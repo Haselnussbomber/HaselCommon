@@ -1,9 +1,8 @@
 using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Component.GUI;
-using HaselCommon.Extensions.Sheets;
+using HaselCommon.Sheets;
 using HaselCommon.Structs.Internal;
-using Lumina.Excel.GeneratedSheets;
 
 namespace HaselCommon.Utils;
 
@@ -15,7 +14,7 @@ public static unsafe class ItemSearchUtils
         if (item == null)
             return;
 
-        if (!item.CanSearchForItem())
+        if (!item.CanSearchForItem)
             return;
 
         if (!TryGetAddon<AddonItemSearch>(AgentId.ItemSearch, out var addon))

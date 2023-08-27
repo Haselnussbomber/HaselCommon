@@ -2,18 +2,18 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using System.Threading.Tasks;
+using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Interface;
 using Dalamud.Interface.Raii;
 using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
-using HaselCommon.Extensions.Sheets;
 using HaselCommon.Records;
+using HaselCommon.Sheets;
 using ImGuiNET;
 using static HaselCommon.Utils.ImGuiContextMenu;
-using GearsetEntry = FFXIVClientStructs.FFXIV.Client.UI.Misc.RaptureGearsetModule.GearsetEntry;
-using Item = Lumina.Excel.GeneratedSheets.Item;
+using TerritoryType = Lumina.Excel.GeneratedSheets.TerritoryType;
 
 namespace HaselCommon.Utils;
 
@@ -79,6 +79,8 @@ public class ImGuiContextMenu : List<IContextMenuEntry>
         }
     }
 
+    public static ContextMenuSeparator CreateSeparator() => new();
+
     public record ContextMenuEntry : IContextMenuEntry
     {
         public bool Visible { get; set; } = true;
@@ -109,7 +111,7 @@ public class ImGuiContextMenu : List<IContextMenuEntry>
     public static unsafe ContextMenuEntry CreateTryOn(uint ItemId, uint GlamourItemId = 0, byte StainId = 0)
         => new()
         {
-            Visible = GetRow<Item>(ItemId)?.CanTryOn() ?? false,
+            Visible = GetRow<Item>(ItemId)?.CanTryOn ?? false,
             Label = GetAddonText(2426), // "Try On"
             LoseFocusOnClick = true,
             ClickCallback = () =>
@@ -132,7 +134,164 @@ public class ImGuiContextMenu : List<IContextMenuEntry>
             }
         };
 
-    public static ContextMenuEntry CreateGarlandTools(uint ItemId)
+    public static ContextMenuEntry CreateCopyItemName(uint ItemId)
+        => new()
+        {
+            Label = GetAddonText(159), // "Copy Item Name"
+            ClickCallback = () =>
+            {
+                ImGui.SetClipboardText(GetItemName(ItemId));
+            }
+        };
+
+    public static ContextMenuEntry CreateItemSearch(uint ItemId)
+        => new()
+        {
+            Visible = GetRow<Item>(ItemId)?.CanSearchForItem ?? false,
+            Label = t("ItemContextMenu.SearchTheMarkets"),
+            LoseFocusOnClick = true,
+            ClickCallback = () =>
+            {
+                ItemSearchUtils.Search(ItemId);
+            }
+        };
+
+    public static unsafe ContextMenuEntry CreateGearsetLinkGlamour(byte GearsetId)
+    {
+        var gearset = RaptureGearsetModule.Instance()->GetGearset(GearsetId);
+        return new()
+        {
+            Visible = gearset != null && gearset->GlamourSetLink == 0,
+            Enabled = UIState.Instance()->IsUnlockLinkUnlocked(15),
+            Label = GetAddonText(4394),
+            LoseFocusOnClick = true,
+            ClickCallback = () =>
+            {
+                var agentGearset = AgentModule.Instance()->GetAgentByInternalId(AgentId.Gearset);
+                ContextMenuGlamourCallback.Value?.Invoke((nint)agentGearset, gearset->ID, ContextMenuGlamourCallbackAction.Link);
+            }
+        };
+    }
+
+    public static unsafe ContextMenuEntry CreateGearsetUnlinkGlamour(byte GearsetId)
+    {
+        var gearset = RaptureGearsetModule.Instance()->GetGearset(GearsetId);
+        return new()
+        {
+            Visible = gearset != null && gearset->GlamourSetLink != 0,
+            Enabled = UIState.Instance()->IsUnlockLinkUnlocked(15),
+            Label = GetAddonText(4396),
+            ClickCallback = () =>
+            {
+                var agentGearset = AgentModule.Instance()->GetAgentByInternalId(AgentId.Gearset);
+                ContextMenuGlamourCallback.Value?.Invoke((nint)agentGearset, gearset->ID, ContextMenuGlamourCallbackAction.Unlink);
+            }
+        };
+    }
+
+    public static unsafe ContextMenuEntry CreateGearsetChangeGlamour(byte GearsetId)
+    {
+        var gearset = RaptureGearsetModule.Instance()->GetGearset(GearsetId);
+        return new()
+        {
+            Visible = gearset != null && gearset->GlamourSetLink != 0,
+            Enabled = UIState.Instance()->IsUnlockLinkUnlocked(15),
+            Label = GetAddonText(4395),
+            ClickCallback = () =>
+            {
+                var agentGearset = AgentModule.Instance()->GetAgentByInternalId(AgentId.Gearset);
+                ContextMenuGlamourCallback.Value?.Invoke((nint)agentGearset, gearset->ID, ContextMenuGlamourCallbackAction.ChangeLink);
+            }
+        };
+    }
+
+    public static unsafe ContextMenuEntry CreateGearsetChangePortrait(byte GearsetId)
+    {
+        var gearset = RaptureGearsetModule.Instance()->GetGearset(GearsetId);
+        return new()
+        {
+            Visible = gearset != null,
+            Label = GetAddonText(4411),
+            ClickCallback = () =>
+            {
+                GetAgent<AgentBannerEditor>()->AgentInterface.Hide();
+                GetAgent<AgentBannerEditor>()->OpenForGearset(gearset->ID);
+            }
+        };
+    }
+
+    public static unsafe ContextMenuEntry CreateSearchCraftingMethod(uint ItemId)
+        => new()
+        {
+            Visible = GetRow<Item>(ItemId)?.IsCraftable ?? false,
+            Label = GetAddonText(1414), // "Search for Item by Crafting Method"
+            LoseFocusOnClick = true,
+            ClickCallback = () =>
+            {
+                AgentRecipeNote.Instance()->OpenRecipeByItemId(ItemId);
+            }
+        };
+
+    public static unsafe ContextMenuEntry CreateOpenMapForGatheringPoint(uint ItemId, TerritoryType? territoryType, SeString? prefix = null)
+    {
+        var item = GetRow<Item>(ItemId);
+        return new()
+        {
+            Visible = territoryType != null && (item?.IsGatherable ?? false),
+            Label = GetAddonText(8506), // "Open Map"
+            LoseFocusOnClick = true,
+            ClickCallback = () =>
+            {
+                var point = item!.GatheringPoints.First(point => point.TerritoryType.Row == territoryType!.RowId);
+                point.OpenMap(item, prefix);
+            }
+        };
+    }
+
+    public static unsafe ContextMenuEntry CreateOpenMapForFishingSpot(uint ItemId, SeString? prefix = null)
+    {
+        var item = GetRow<Item>(ItemId);
+        return new()
+        {
+            Visible = item?.IsFish ?? false,
+            Label = GetAddonText(8506), // "Open Map"
+            LoseFocusOnClick = true,
+            ClickCallback = () =>
+            {
+                item!.FishingSpots.First().OpenMap(item, prefix);
+            }
+        };
+    }
+
+    public static unsafe ContextMenuEntry CreateSearchGatheringMethod(uint ItemId)
+        => new()
+        {
+            Visible = GetRow<Item>(ItemId)?.IsGatherable ?? false,
+            Label = GetAddonText(1472), // "Search for Item by Gathering Method"
+            LoseFocusOnClick = true,
+            ClickCallback = () =>
+            {
+                AgentGatheringNote.Instance()->OpenGatherableByItemId((ushort)ItemId);
+            }
+        };
+
+    public static unsafe ContextMenuEntry CreateOpenInFishGuide(uint ItemId)
+    {
+        var item = GetRow<Item>(ItemId);
+        return new()
+        {
+            Visible = item?.IsFish ?? false,
+            Label = t("ItemContextMenu.OpenInFishGuide"),
+            LoseFocusOnClick = true,
+            ClickCallback = () =>
+            {
+                var agent = (AgentFishGuide*)AgentModule.Instance()->GetAgentByInternalId(AgentId.FishGuide);
+                agent->OpenForItemId(ItemId, item!.IsSpearfishing);
+            }
+        };
+    }
+
+    public static ContextMenuEntry CreateOpenOnGarlandTools(uint ItemId)
         => new()
         {
             Label = t("ItemContextMenu.OpenOnGarlandTools"),
@@ -153,79 +312,6 @@ public class ImGuiContextMenu : List<IContextMenuEntry>
                 );
                 ImGui.SetCursorPos(pos + new Vector2(20, 0) * ImGuiHelpers.GlobalScale);
                 ImGuiUtils.TextUnformattedColored(Colors.Grey, $"https://www.garlandtools.org/db/#item/{ItemId}");
-            }
-        };
-
-    public static ContextMenuEntry CreateCopyItemName(uint ItemId)
-        => new()
-        {
-            Label = GetAddonText(159), // "Copy Item Name"
-            ClickCallback = () =>
-            {
-                ImGui.SetClipboardText(GetRow<Item>(ItemId)!.Singular.ToDalamudString().ToString());
-            }
-        };
-
-    public static ContextMenuEntry CreateItemSearch(uint ItemId)
-        => new()
-        {
-            Visible = GetRow<Item>(ItemId)!.CanSearchForItem(),
-            Label = t("ItemContextMenu.SearchTheMarkets"),
-            LoseFocusOnClick = true,
-            ClickCallback = () =>
-            {
-                ItemSearchUtils.Search(ItemId);
-            }
-        };
-
-    public static unsafe ContextMenuEntry CreateGearsetLinkGlamour(GearsetEntry* gearset)
-        => new()
-        {
-            Visible = gearset->GlamourSetLink == 0,
-            Enabled = UIState.Instance()->IsUnlockLinkUnlocked(15),
-            Label = GetAddonText(4394),
-            LoseFocusOnClick = true,
-            ClickCallback = () =>
-            {
-                var agentGearset = AgentModule.Instance()->GetAgentByInternalId(AgentId.Gearset);
-                ContextMenuGlamourCallback.Value?.Invoke((nint)agentGearset, gearset->ID, ContextMenuGlamourCallbackAction.Link);
-            }
-        };
-
-    public static unsafe ContextMenuEntry CreateGearsetUnlinkGlamour(GearsetEntry* gearset)
-        => new()
-        {
-            Visible = gearset->GlamourSetLink != 0,
-            Enabled = UIState.Instance()->IsUnlockLinkUnlocked(15),
-            Label = GetAddonText(4396),
-            ClickCallback = () =>
-            {
-                var agentGearset = AgentModule.Instance()->GetAgentByInternalId(AgentId.Gearset);
-                ContextMenuGlamourCallback.Value?.Invoke((nint)agentGearset, gearset->ID, ContextMenuGlamourCallbackAction.Unlink);
-            }
-        };
-
-    public static unsafe ContextMenuEntry CreateGearsetChangeGlamour(GearsetEntry* gearset)
-        => new()
-        {
-            Visible = gearset->GlamourSetLink != 0,
-            Enabled = UIState.Instance()->IsUnlockLinkUnlocked(15),
-            Label = GetAddonText(4395),
-            ClickCallback = () =>
-            {
-                var agentGearset = AgentModule.Instance()->GetAgentByInternalId(AgentId.Gearset);
-                ContextMenuGlamourCallback.Value?.Invoke((nint)agentGearset, gearset->ID, ContextMenuGlamourCallbackAction.ChangeLink);
-            }
-        };
-
-    public static unsafe ContextMenuEntry CreateGearsetChangePortrait(GearsetEntry* gearset)
-        => new()
-        {
-            Label = GetAddonText(4411),
-            ClickCallback = () =>
-            {
-                GetAgent<AgentBannerEditor>()->AgentInterface.Hide();
-                GetAgent<AgentBannerEditor>()->OpenForGearset(gearset->ID);
             }
         };
 }
