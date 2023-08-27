@@ -134,10 +134,11 @@ public static class ImGuiUtils
         return ImGui.CalcTextSize(icon.ToIconString());
     }
 
-    public static void Icon(FontAwesomeIcon icon)
+    public static void Icon(FontAwesomeIcon icon, uint? col = null)
     {
+        using var color = col != null ? ImRaii.PushColor(ImGuiCol.Text, (uint)col) : null;
         using (ImRaii.PushFont(UiBuilder.IconFont))
-            ImGui.TextDisabled(icon.ToIconString());
+            ImGui.Text(icon.ToIconString());
     }
 
     public static Vector2 GetIconButtonSize(FontAwesomeIcon icon)
