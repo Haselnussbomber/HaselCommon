@@ -104,116 +104,116 @@ public class ImGuiContextMenu : List<IContextMenuEntry>
                 HoverCallback?.Invoke();
             }
         }
-
-        public static unsafe ContextMenuEntry CreateTryOn(uint ItemId, uint GlamourItemId = 0, byte StainId = 0)
-            => new()
-            {
-                Visible = GetRow<Item>(ItemId)?.CanTryOn() ?? false,
-                Label = GetAddonText(2426), // "Try On"
-                LoseFocusOnClick = true,
-                ClickCallback = () =>
-                {
-                    if (ImGui.IsKeyDown(ImGuiKey.LeftShift) || ImGui.IsKeyDown(ImGuiKey.RightShift))
-                        AgentTryon.TryOn(0, ItemId, StainId, 0, 0);
-                    else
-                        AgentTryon.TryOn(0, ItemId, StainId, GlamourItemId, StainId);
-                }
-            };
-
-        public static unsafe ContextMenuEntry CreateItemFinder(uint ItemId)
-            => new()
-            {
-                Label = GetAddonText(4379), // "Search for Item"
-                LoseFocusOnClick = true,
-                ClickCallback = () =>
-                {
-                    ItemFinderModule.Instance()->SearchForItem(ItemId);
-                }
-            };
-
-        public static ContextMenuEntry CreateGarlandTools(uint ItemId)
-            => new()
-            {
-                Label = t("ItemContextMenu.OpenOnGarlandTools"),
-                ClickCallback = () =>
-                {
-                    Task.Run(() => Util.OpenLink($"https://www.garlandtools.org/db/#item/{ItemId}"));
-                },
-                HoverCallback = () =>
-                {
-                    using var tooltip = ImRaii.Tooltip();
-
-                    var pos = ImGui.GetCursorPos();
-                    ImGui.GetWindowDrawList().AddText(
-                        UiBuilder.IconFont, 12 * ImGuiHelpers.GlobalScale,
-                        ImGui.GetWindowPos() + pos + new Vector2(2),
-                        Colors.Grey,
-                        FontAwesomeIcon.ExternalLinkAlt.ToIconString()
-                    );
-                    ImGui.SetCursorPos(pos + new Vector2(20, 0) * ImGuiHelpers.GlobalScale);
-                    ImGuiUtils.TextUnformattedColored(Colors.Grey, $"https://www.garlandtools.org/db/#item/{ItemId}");
-                }
-            };
-
-        public static ContextMenuEntry CreateCopyItemName(uint ItemId)
-            => new()
-            {
-                Label = GetAddonText(159), // "Copy Item Name"
-                ClickCallback = () =>
-                {
-                    ImGui.SetClipboardText(GetRow<Item>(ItemId)!.Singular.ToDalamudString().ToString());
-                }
-            };
-
-        public static unsafe ContextMenuEntry CreateGearsetLinkGlamour(GearsetEntry* gearset)
-            => new()
-            {
-                Visible = gearset->GlamourSetLink == 0,
-                Enabled = UIState.Instance()->IsUnlockLinkUnlocked(15),
-                Label = GetAddonText(4394),
-                LoseFocusOnClick = true,
-                ClickCallback = () =>
-                {
-                    var agentGearset = AgentModule.Instance()->GetAgentByInternalId(AgentId.Gearset);
-                    ContextMenuGlamourCallback.Value?.Invoke((nint)agentGearset, gearset->ID, ContextMenuGlamourCallbackAction.Link);
-                }
-            };
-
-        public static unsafe ContextMenuEntry CreateGearsetUnlinkGlamour(GearsetEntry* gearset)
-            => new()
-            {
-                Visible = gearset->GlamourSetLink != 0,
-                Enabled = UIState.Instance()->IsUnlockLinkUnlocked(15),
-                Label = GetAddonText(4396),
-                ClickCallback = () =>
-                {
-                    var agentGearset = AgentModule.Instance()->GetAgentByInternalId(AgentId.Gearset);
-                    ContextMenuGlamourCallback.Value?.Invoke((nint)agentGearset, gearset->ID, ContextMenuGlamourCallbackAction.Unlink);
-                }
-            };
-
-        public static unsafe ContextMenuEntry CreateGearsetChangeGlamour(GearsetEntry* gearset)
-            => new()
-            {
-                Visible = gearset->GlamourSetLink != 0,
-                Enabled = UIState.Instance()->IsUnlockLinkUnlocked(15),
-                Label = GetAddonText(4395),
-                ClickCallback = () =>
-                {
-                    var agentGearset = AgentModule.Instance()->GetAgentByInternalId(AgentId.Gearset);
-                    ContextMenuGlamourCallback.Value?.Invoke((nint)agentGearset, gearset->ID, ContextMenuGlamourCallbackAction.ChangeLink);
-                }
-            };
-
-        public static unsafe ContextMenuEntry CreateGearsetChangePortrait(GearsetEntry* gearset)
-            => new()
-            {
-                Label = GetAddonText(4411),
-                ClickCallback = () =>
-                {
-                    GetAgent<AgentBannerEditor>()->AgentInterface.Hide();
-                    GetAgent<AgentBannerEditor>()->OpenForGearset(gearset->ID);
-                }
-            };
     }
+
+    public static unsafe ContextMenuEntry CreateTryOn(uint ItemId, uint GlamourItemId = 0, byte StainId = 0)
+        => new()
+        {
+            Visible = GetRow<Item>(ItemId)?.CanTryOn() ?? false,
+            Label = GetAddonText(2426), // "Try On"
+            LoseFocusOnClick = true,
+            ClickCallback = () =>
+            {
+                if (ImGui.IsKeyDown(ImGuiKey.LeftShift) || ImGui.IsKeyDown(ImGuiKey.RightShift))
+                    AgentTryon.TryOn(0, ItemId, StainId, 0, 0);
+                else
+                    AgentTryon.TryOn(0, ItemId, StainId, GlamourItemId, StainId);
+            }
+        };
+
+    public static unsafe ContextMenuEntry CreateItemFinder(uint ItemId)
+        => new()
+        {
+            Label = GetAddonText(4379), // "Search for Item"
+            LoseFocusOnClick = true,
+            ClickCallback = () =>
+            {
+                ItemFinderModule.Instance()->SearchForItem(ItemId);
+            }
+        };
+
+    public static ContextMenuEntry CreateGarlandTools(uint ItemId)
+        => new()
+        {
+            Label = t("ItemContextMenu.OpenOnGarlandTools"),
+            ClickCallback = () =>
+            {
+                Task.Run(() => Util.OpenLink($"https://www.garlandtools.org/db/#item/{ItemId}"));
+            },
+            HoverCallback = () =>
+            {
+                using var tooltip = ImRaii.Tooltip();
+
+                var pos = ImGui.GetCursorPos();
+                ImGui.GetWindowDrawList().AddText(
+                    UiBuilder.IconFont, 12 * ImGuiHelpers.GlobalScale,
+                    ImGui.GetWindowPos() + pos + new Vector2(2),
+                    Colors.Grey,
+                    FontAwesomeIcon.ExternalLinkAlt.ToIconString()
+                );
+                ImGui.SetCursorPos(pos + new Vector2(20, 0) * ImGuiHelpers.GlobalScale);
+                ImGuiUtils.TextUnformattedColored(Colors.Grey, $"https://www.garlandtools.org/db/#item/{ItemId}");
+            }
+        };
+
+    public static ContextMenuEntry CreateCopyItemName(uint ItemId)
+        => new()
+        {
+            Label = GetAddonText(159), // "Copy Item Name"
+            ClickCallback = () =>
+            {
+                ImGui.SetClipboardText(GetRow<Item>(ItemId)!.Singular.ToDalamudString().ToString());
+            }
+        };
+
+    public static unsafe ContextMenuEntry CreateGearsetLinkGlamour(GearsetEntry* gearset)
+        => new()
+        {
+            Visible = gearset->GlamourSetLink == 0,
+            Enabled = UIState.Instance()->IsUnlockLinkUnlocked(15),
+            Label = GetAddonText(4394),
+            LoseFocusOnClick = true,
+            ClickCallback = () =>
+            {
+                var agentGearset = AgentModule.Instance()->GetAgentByInternalId(AgentId.Gearset);
+                ContextMenuGlamourCallback.Value?.Invoke((nint)agentGearset, gearset->ID, ContextMenuGlamourCallbackAction.Link);
+            }
+        };
+
+    public static unsafe ContextMenuEntry CreateGearsetUnlinkGlamour(GearsetEntry* gearset)
+        => new()
+        {
+            Visible = gearset->GlamourSetLink != 0,
+            Enabled = UIState.Instance()->IsUnlockLinkUnlocked(15),
+            Label = GetAddonText(4396),
+            ClickCallback = () =>
+            {
+                var agentGearset = AgentModule.Instance()->GetAgentByInternalId(AgentId.Gearset);
+                ContextMenuGlamourCallback.Value?.Invoke((nint)agentGearset, gearset->ID, ContextMenuGlamourCallbackAction.Unlink);
+            }
+        };
+
+    public static unsafe ContextMenuEntry CreateGearsetChangeGlamour(GearsetEntry* gearset)
+        => new()
+        {
+            Visible = gearset->GlamourSetLink != 0,
+            Enabled = UIState.Instance()->IsUnlockLinkUnlocked(15),
+            Label = GetAddonText(4395),
+            ClickCallback = () =>
+            {
+                var agentGearset = AgentModule.Instance()->GetAgentByInternalId(AgentId.Gearset);
+                ContextMenuGlamourCallback.Value?.Invoke((nint)agentGearset, gearset->ID, ContextMenuGlamourCallbackAction.ChangeLink);
+            }
+        };
+
+    public static unsafe ContextMenuEntry CreateGearsetChangePortrait(GearsetEntry* gearset)
+        => new()
+        {
+            Label = GetAddonText(4411),
+            ClickCallback = () =>
+            {
+                GetAgent<AgentBannerEditor>()->AgentInterface.Hide();
+                GetAgent<AgentBannerEditor>()->OpenForGearset(gearset->ID);
+            }
+        };
 }
