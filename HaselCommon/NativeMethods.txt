@@ -1,0 +1,28 @@
+// winbase.h
+
+SetThreadExecutionState
+EXECUTION_STATE
+
+// winuser.h
+
+GetForegroundWindow
+GetActiveWindow
+WM_MOUSEWHEEL
+WHEEL_DELTA
+
+GetClipboardSequenceNumber
+IsClipboardFormatAvailable
+OpenClipboard
+CloseClipboard
+EmptyClipboard
+GetClipboardData
+SetClipboardData
+RegisterClipboardFormat
+CLIPBOARD_FORMAT
+
+// windgi.h
+
+BITMAPINFOHEADER
+BITMAPV5HEADER
+CIEXYZ
+CIEXYZTRIPLE
