@@ -7,7 +7,7 @@ namespace HaselCommon.Utils.Globals;
 public static class Excel
 {
     public static ExcelSheet<T> GetSheet<T>(ClientLanguage? language = null) where T : ExcelRow
-        => Service.DataManager.GetExcelSheet<T>(language ?? HaselCommon.TranslationManager.ClientLanguage)!;
+        => Service.DataManager.GetExcelSheet<T>(language ?? HaselCommonBase.TranslationManager.ClientLanguage)!;
 
     public static uint GetRowCount<T>() where T : ExcelRow
         => GetSheet<T>().RowCount;

@@ -3,7 +3,7 @@ using HaselCommon.Services;
 
 namespace HaselCommon;
 
-public static class HaselCommon
+public static class HaselCommonBase
 {
     public static AddonObserver AddonObserver { get; private set; } = null!;
     public static TranslationManager TranslationManager { get; private set; } = null!;
