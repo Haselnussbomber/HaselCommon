@@ -1,8 +1,6 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
-using System.Reflection;
-using System.Text.Json;
 using Dalamud;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Plugin;
@@ -27,7 +25,7 @@ public class TranslationManager : IDisposable
     private readonly DalamudPluginInterface _pluginInterface;
     private readonly IClientState _clientState;
 
-    private Dictionary<string, Dictionary<string, string>> _translations = new();
+    private readonly Dictionary<string, Dictionary<string, string>> _translations = new();
     private ITranslationConfig _config = null!;
 
     private string _activeLanguage = DefaultLanguage;
@@ -49,14 +47,14 @@ public class TranslationManager : IDisposable
         GC.SuppressFinalize(this);
     }
 
-    public void Initialize(string translationsResourceName, ITranslationConfig config)
+    public void Initialize(Dictionary<string, Dictionary<string, string>> translations, ITranslationConfig config)
     {
-        using var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(translationsResourceName)
-            ?? throw new Exception($"Could not find translations resource \"{translationsResourceName}\".");
-
-        _translations = JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, string>>>(stream) ?? new();
-
         _config = config;
+
+        foreach (var key in translations.Keys)
+        {
+            _translations.Add(key, translations[key]);
+        }
 
         SetLanguage(_config.PluginLanguageOverride, _config.PluginLanguage, false);
 
