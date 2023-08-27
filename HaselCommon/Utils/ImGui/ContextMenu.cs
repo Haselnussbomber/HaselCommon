@@ -166,6 +166,18 @@ public class ImGuiContextMenu : List<IContextMenuEntry>
             }
         };
 
+    public static ContextMenuEntry CreateItemSearch(uint ItemId)
+        => new()
+        {
+            Visible = GetRow<Item>(ItemId)!.CanSearchForItem(),
+            Label = t("ItemContextMenu.SearchTheMarkets"),
+            LoseFocusOnClick = true,
+            ClickCallback = () =>
+            {
+                ItemSearchUtils.Search(ItemId);
+            }
+        };
+
     public static unsafe ContextMenuEntry CreateGearsetLinkGlamour(GearsetEntry* gearset)
         => new()
         {
