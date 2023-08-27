@@ -6,7 +6,7 @@ using ImGuiNET;
 
 namespace HaselCommon.Utils;
 
-public partial class ImGuiUtils
+public class ImGuiIconButton
 {
     public static Vector2 GetIconButtonSize(FontAwesomeIcon icon)
     {

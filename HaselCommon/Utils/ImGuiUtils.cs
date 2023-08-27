@@ -7,7 +7,7 @@ using ImGuiNET;
 
 namespace HaselCommon.Utils;
 
-public static partial class ImGuiUtils
+public static class ImGuiUtils
 {
     public static void DrawPaddedSeparator()
     {

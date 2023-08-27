@@ -11,13 +11,36 @@ using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using HaselCommon.Extensions.Sheets;
 using HaselCommon.Records;
 using ImGuiNET;
+using static HaselCommon.Utils.ImGuiContextMenu;
 using GearsetEntry = FFXIVClientStructs.FFXIV.Client.UI.Misc.RaptureGearsetModule.GearsetEntry;
 using Item = Lumina.Excel.GeneratedSheets.Item;
 
 namespace HaselCommon.Utils;
 
-public partial class ImGuiUtils
+public class ImGuiContextMenu : List<IContextMenuEntry>
 {
+    private readonly string key;
+
+    public ImGuiContextMenu(string key)
+    {
+        this.key = key;
+    }
+
+    public void Draw()
+    {
+        using var popup = ImRaii.ContextPopupItem(key);
+        if (!popup.Success)
+            return;
+
+        var visibleEntries = this.Where(entry => entry.Visible);
+        var count = visibleEntries.Count();
+        var i = 0;
+        foreach (var entry in visibleEntries)
+        {
+            entry.Draw(new IterationArgs(i++, count));
+        }
+    }
+
     private enum ContextMenuGlamourCallbackAction
     {
         Link = 20,
@@ -28,31 +51,6 @@ public partial class ImGuiUtils
     private unsafe delegate void ContextMenuGlamourCallbackDelegate(nint agentGearset, uint gearsetId, ContextMenuGlamourCallbackAction action);
     private static readonly Lazy<ContextMenuGlamourCallbackDelegate> ContextMenuGlamourCallback
         = new(() => MemoryUtils.GetDelegateForSignature<ContextMenuGlamourCallbackDelegate>("40 53 48 83 EC 20 8B DA 41 83 F8 14"));
-
-    public class ContextMenu : List<IContextMenuEntry>
-    {
-        private readonly string key;
-
-        public ContextMenu(string key)
-        {
-            this.key = key;
-        }
-
-        public void Draw()
-        {
-            using var popup = ImRaii.ContextPopupItem(key);
-            if (!popup.Success)
-                return;
-
-            var visibleEntries = this.Where(entry => entry.Visible);
-            var count = visibleEntries.Count();
-            var i = 0;
-            foreach (var entry in visibleEntries)
-            {
-                entry.Draw(new IterationArgs(i++, count));
-            }
-        }
-    }
 
     public interface IContextMenuEntry
     {
@@ -153,7 +151,7 @@ public partial class ImGuiUtils
                         FontAwesomeIcon.ExternalLinkAlt.ToIconString()
                     );
                     ImGui.SetCursorPos(pos + new Vector2(20, 0) * ImGuiHelpers.GlobalScale);
-                    TextUnformattedColored(Colors.Grey, $"https://www.garlandtools.org/db/#item/{ItemId}");
+                    ImGuiUtils.TextUnformattedColored(Colors.Grey, $"https://www.garlandtools.org/db/#item/{ItemId}");
                 }
             };
 
