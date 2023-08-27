@@ -100,6 +100,7 @@ public class TranslationManager : IDisposable
         {
             _activeLanguage = code;
             CultureInfo = new(code);
+            HaselCommonBase.StringManager.Clear();
 
             if (fireOnLanguageChangeEvent)
                 OnLanguageChange?.Invoke();
