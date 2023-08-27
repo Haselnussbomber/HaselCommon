@@ -1,13 +1,37 @@
 using System.Collections.Generic;
 using System.Reflection;
+using Dalamud.Memory;
 using Dalamud.Utility;
+using HaselCommon.Structs.Internal;
 using Lumina.Excel;
 
 namespace HaselCommon.Services;
 
 public unsafe class StringManager
 {
+    private readonly Dictionary<(NameFormatter.Placeholder placeholder, NameFormatter.IdConverter idConverter, uint id), string> _nameCache = new();
     private readonly Dictionary<(string sheetName, uint rowId, string columnName), string> _sheetCache = new();
+
+    internal string? FormatName(NameFormatter.Placeholder placeholder, NameFormatter.IdConverter idConverter, uint id)
+    {
+        var key = (placeholder, idConverter, id);
+
+        if (!_nameCache.TryGetValue(key, out var value))
+        {
+            var ptr = (nint)NameFormatter.Format.Value.Invoke(placeholder, id, idConverter, 1);
+            if (ptr != 0)
+            {
+                value = MemoryHelper.ReadSeStringNullTerminated(ptr).ToString();
+
+                if (string.IsNullOrWhiteSpace(value))
+                    return null;
+
+                _nameCache.Add(key, value);
+            }
+        }
+
+        return value;
+    }
 
     public string GetSheetText<T>(uint rowId, string columnName) where T : ExcelRow
     {
@@ -39,6 +63,7 @@ public unsafe class StringManager
 
     public void Clear()
     {
+        _nameCache.Clear();
         _sheetCache.Clear();
     }
 }
