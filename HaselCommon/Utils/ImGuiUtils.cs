@@ -1,11 +1,9 @@
-using System.Diagnostics;
 using System.Numerics;
 using System.Threading.Tasks;
 using Dalamud.Interface;
 using Dalamud.Interface.Raii;
 using Dalamud.Utility;
 using ImGuiNET;
-using Windows.Win32;
 
 namespace HaselCommon.Utils;
 
@@ -116,9 +114,6 @@ public static partial class ImGuiUtils
 
     public static void PushCursorY(float y)
         => ImGui.SetCursorPosY(ImGui.GetCursorPosY() + y);
-
-    public static bool IsGameWindowFocused()
-        => Process.GetCurrentProcess().MainWindowHandle == PInvoke.GetForegroundWindow();
 
     public static void TextUnformattedDisabled(string text)
     {
