@@ -2,10 +2,10 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
-namespace HaselCommon;
+namespace HaselCommon.Extensions;
 
-// from Dalamud.Interface
-internal static class EnumerableExtensions
+// copied from Dalamud.Interface and made public
+public static class ArrayExtensions
 {
     /// <summary> Iterate over enumerables with additional index. </summary>
     public static IEnumerable<(T Value, int Index)> WithIndex<T>(this IEnumerable<T> list)

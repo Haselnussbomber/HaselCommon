@@ -2,7 +2,7 @@ using Dalamud.Game.Gui.Dtr;
 
 namespace HaselCommon.Extensions;
 
-internal static class DtrBarEntryExtension
+public static class DtrBarEntryExtension
 {
     public static void SetText(this DtrBarEntry entry, string text)
     {

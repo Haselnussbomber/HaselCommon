@@ -2,7 +2,7 @@ using FFXIVClientStructs.FFXIV.Common.Math;
 
 namespace HaselCommon.Extensions;
 
-internal static class HalfVector4Extensions
+public static class HalfVector4Extensions
 {
     public static bool IsApproximately(this HalfVector4 a, HalfVector4 b)
         => a.X.IsApproximately(b.X)
