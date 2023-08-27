@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using System.Reflection;
+using System.Text.Json;
 using Dalamud;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Plugin;
@@ -39,6 +41,16 @@ public class TranslationManager : IDisposable
     {
         _pluginInterface = pluginInterface;
         _clientState = clientState;
+
+        using var stream = Assembly.GetCallingAssembly().GetManifestResourceStream("HaselCommon.Translations.json")
+            ?? throw new Exception($"Could not find translations resource \"HaselCommon.Translations.json\".");
+
+        var translations = JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, string>>>(stream) ?? new();
+
+        foreach (var key in translations.Keys)
+        {
+            _translations.Add(key, translations[key]);
+        }
     }
 
     public void Dispose()
