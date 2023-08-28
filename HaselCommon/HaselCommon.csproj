@@ -31,6 +31,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Translations.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Translations.json" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Reference Include="Dalamud" Private="false" />
     <Reference Include="Dalamud.Interface" Private="false" />
     <Reference Include="FFXIVClientStructs" Private="false" />
