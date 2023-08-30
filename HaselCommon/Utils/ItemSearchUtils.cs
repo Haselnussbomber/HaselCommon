@@ -1,4 +1,3 @@
-using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using HaselCommon.Sheets;
@@ -23,7 +22,7 @@ public static unsafe class ItemSearchUtils
         if (TryGetAddon<AtkUnitBase>("ItemSearchResult", out var itemSearchResult))
             itemSearchResult->Hide2();
 
-        var itemName = item.Singular.ToDalamudString().ToString();
+        var itemName = GetItemName(item.RowId);
         if (itemName.Length > 40)
             itemName = itemName[..40];
 
