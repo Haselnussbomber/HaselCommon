@@ -9,7 +9,7 @@ public static unsafe class ItemSearchUtils
 {
     public static void Search(uint itemId)
     {
-        var item = GetRow<Item>(itemId % 1000000);
+        var item = GetRow<ExtendedItem>(itemId % 1000000);
         if (item == null)
             return;
 

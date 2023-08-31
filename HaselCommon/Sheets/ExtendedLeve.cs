@@ -1,10 +1,11 @@
 using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Application.Network.WorkDefinitions;
 using FFXIVClientStructs.FFXIV.Client.Game;
+using Lumina.Excel.GeneratedSheets;
 
 namespace HaselCommon.Sheets;
 
-public class Leve : Lumina.Excel.GeneratedSheets.Leve
+public class ExtendedLeve : Leve
 {
     private string? _name = null;
     private string? _levemeteName = null;

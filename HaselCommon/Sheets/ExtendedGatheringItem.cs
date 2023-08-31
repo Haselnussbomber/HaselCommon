@@ -3,30 +3,31 @@ using System.Linq;
 using Lumina;
 using Lumina.Data;
 using Lumina.Excel;
+using Lumina.Excel.GeneratedSheets;
 
 namespace HaselCommon.Sheets;
 
-public class GatheringItem : Lumina.Excel.GeneratedSheets.GatheringItem
+public class ExtendedGatheringItem : GatheringItem
 {
-    private GatheringPoint[]? _gatheringPoints = null;
+    private ExtendedGatheringPoint[]? _gatheringPoints = null;
 
-    public LazyRow<Item> ItemRow { get; set; } = null!;
+    public LazyRow<ExtendedItem> ItemRow { get; set; } = null!;
 
     public override void PopulateData(RowParser parser, GameData gameData, Language language)
     {
         base.PopulateData(parser, gameData, language);
 
-        ItemRow = new LazyRow<Item>(gameData, Item, language);
+        ItemRow = new LazyRow<ExtendedItem>(gameData, Item, language);
     }
 
-    public GatheringPoint[] GatheringPoints
+    public ExtendedGatheringPoint[] GatheringPoints
     {
         get
         {
             if (_gatheringPoints != null)
                 return _gatheringPoints;
 
-            var GatheringPointSheet = GetSheet<GatheringPoint>();
+            var GatheringPointSheet = GetSheet<ExtendedGatheringPoint>();
 
             //! https://github.com/Ottermandias/GatherBuddy/blob/56da5c9/GatherBuddy.GameData/Data/HiddenItems.cs
             var pointBases = Item switch
@@ -82,7 +83,7 @@ public class GatheringItem : Lumina.Excel.GeneratedSheets.GatheringItem
             return _gatheringPoints ??= pointBases
                 .Select((baseId) => GatheringPointSheet.Where((row) => row.TerritoryType.Row > 1 && row.GatheringPointBase.Row == baseId))
                 .SelectMany(e => e)
-                .OfType<GatheringPoint>().ToArray();
+                .OfType<ExtendedGatheringPoint>().ToArray();
         }
     }
 }

@@ -111,7 +111,7 @@ public class ImGuiContextMenu : List<IContextMenuEntry>
     public static unsafe ContextMenuEntry CreateTryOn(uint ItemId, uint GlamourItemId = 0, byte StainId = 0)
         => new()
         {
-            Visible = GetRow<Item>(ItemId)?.CanTryOn ?? false,
+            Visible = GetRow<ExtendedItem>(ItemId)?.CanTryOn ?? false,
             Label = GetAddonText(2426), // "Try On"
             LoseFocusOnClick = true,
             ClickCallback = () =>
@@ -147,7 +147,7 @@ public class ImGuiContextMenu : List<IContextMenuEntry>
     public static ContextMenuEntry CreateItemSearch(uint ItemId)
         => new()
         {
-            Visible = GetRow<Item>(ItemId)?.CanSearchForItem ?? false,
+            Visible = GetRow<ExtendedItem>(ItemId)?.CanSearchForItem ?? false,
             Label = t("ItemContextMenu.SearchTheMarkets"),
             LoseFocusOnClick = true,
             ClickCallback = () =>
@@ -223,7 +223,7 @@ public class ImGuiContextMenu : List<IContextMenuEntry>
     public static unsafe ContextMenuEntry CreateSearchCraftingMethod(uint ItemId)
         => new()
         {
-            Visible = GetRow<Item>(ItemId)?.IsCraftable ?? false,
+            Visible = GetRow<ExtendedItem>(ItemId)?.IsCraftable ?? false,
             Label = GetAddonText(1414), // "Search for Item by Crafting Method"
             LoseFocusOnClick = true,
             ClickCallback = () =>
@@ -234,7 +234,7 @@ public class ImGuiContextMenu : List<IContextMenuEntry>
 
     public static unsafe ContextMenuEntry CreateOpenMapForGatheringPoint(uint ItemId, TerritoryType? territoryType, SeString? prefix = null)
     {
-        var item = GetRow<Item>(ItemId);
+        var item = GetRow<ExtendedItem>(ItemId);
         return new()
         {
             Visible = territoryType != null && (item?.IsGatherable ?? false),
@@ -250,7 +250,7 @@ public class ImGuiContextMenu : List<IContextMenuEntry>
 
     public static unsafe ContextMenuEntry CreateOpenMapForFishingSpot(uint ItemId, SeString? prefix = null)
     {
-        var item = GetRow<Item>(ItemId);
+        var item = GetRow<ExtendedItem>(ItemId);
         return new()
         {
             Visible = item?.IsFish ?? false,
@@ -266,7 +266,7 @@ public class ImGuiContextMenu : List<IContextMenuEntry>
     public static unsafe ContextMenuEntry CreateSearchGatheringMethod(uint ItemId)
         => new()
         {
-            Visible = GetRow<Item>(ItemId)?.IsGatherable ?? false,
+            Visible = GetRow<ExtendedItem>(ItemId)?.IsGatherable ?? false,
             Label = GetAddonText(1472), // "Search for Item by Gathering Method"
             LoseFocusOnClick = true,
             ClickCallback = () =>
@@ -277,7 +277,7 @@ public class ImGuiContextMenu : List<IContextMenuEntry>
 
     public static unsafe ContextMenuEntry CreateOpenInFishGuide(uint ItemId)
     {
-        var item = GetRow<Item>(ItemId);
+        var item = GetRow<ExtendedItem>(ItemId);
         return new()
         {
             Visible = item?.IsFish ?? false,

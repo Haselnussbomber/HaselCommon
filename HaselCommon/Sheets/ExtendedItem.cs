@@ -4,12 +4,11 @@ using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Component.Exd;
 using HaselCommon.Enums;
-using Recipe = Lumina.Excel.GeneratedSheets.Recipe;
-using SpearfishingItem = Lumina.Excel.GeneratedSheets.SpearfishingItem;
+using Lumina.Excel.GeneratedSheets;
 
 namespace HaselCommon.Sheets;
 
-public class Item : Lumina.Excel.GeneratedSheets.Item
+public class ExtendedItem : Item
 {
     private string? _name { get; set; } = null;
     private Recipe? _recipe { get; set; } = null;
@@ -17,8 +16,8 @@ public class Item : Lumina.Excel.GeneratedSheets.Item
     private bool? _isFish { get; set; } = null;
     private bool? _isSpearfishing { get; set; } = null;
     private bool? _isUnlockable { get; set; } = null;
-    private GatheringItem[]? _gatheringItems { get; set; } = null;
-    private FishingSpot[]? _fishingSpots { get; set; } = null;
+    private ExtendedGatheringItem[]? _gatheringItems { get; set; } = null;
+    private ExtendedFishingSpot[]? _fishingSpots { get; set; } = null;
 
     public new string Name
         => _name ??= base.Name.ToDalamudString().ToString();
@@ -26,16 +25,16 @@ public class Item : Lumina.Excel.GeneratedSheets.Item
     public Recipe? Recipe
         => _recipe ??= FindRow<Recipe>(recipe => recipe?.ItemResult.Row == RowId);
 
-    public GatheringItem[] GatheringItems
-        => _gatheringItems ??= GetSheet<GatheringItem>().Where((row) => row.Item == RowId).ToArray();
+    public ExtendedGatheringItem[] GatheringItems
+        => _gatheringItems ??= GetSheet<ExtendedGatheringItem>().Where((row) => row.Item == RowId).ToArray();
 
-    public GatheringPoint[] GatheringPoints
+    public ExtendedGatheringPoint[] GatheringPoints
         => GatheringItems
             .SelectMany(row => row.GatheringPoints)
             .ToArray();
 
-    public FishingSpot[] FishingSpots
-        => _fishingSpots ??= FishingSpot.FindByItemId(RowId);
+    public ExtendedFishingSpot[] FishingSpots
+        => _fishingSpots ??= ExtendedFishingSpot.FindByItemId(RowId);
 
     public bool IsCraftable
         => _isCraftable ??= Recipe != null;

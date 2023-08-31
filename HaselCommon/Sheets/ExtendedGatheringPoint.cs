@@ -6,7 +6,7 @@ using Lumina.Excel.GeneratedSheets;
 
 namespace HaselCommon.Sheets;
 
-public class GatheringPoint : Lumina.Excel.GeneratedSheets.GatheringPoint
+public class ExtendedGatheringPoint : GatheringPoint
 {
     private uint? _icon { get; set; } = null;
 
@@ -26,7 +26,7 @@ public class GatheringPoint : Lumina.Excel.GeneratedSheets.GatheringPoint
         }
     }
 
-    public unsafe bool OpenMap(Item? item = null, SeString? prefix = null)
+    public unsafe bool OpenMap(ExtendedItem? item = null, SeString? prefix = null)
     {
         var agentMap = AgentMap.Instance();
         if (agentMap == null)

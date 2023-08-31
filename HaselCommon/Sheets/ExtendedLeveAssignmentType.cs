@@ -1,8 +1,9 @@
 using Dalamud.Utility;
+using Lumina.Excel.GeneratedSheets;
 
 namespace HaselCommon.Sheets;
 
-public class LeveAssignmentType : Lumina.Excel.GeneratedSheets.LeveAssignmentType
+public class ExtendedLeveAssignmentType : LeveAssignmentType
 {
     private string? _name { get; set; } = null;
 

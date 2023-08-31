@@ -8,17 +8,17 @@ using Lumina.Excel.GeneratedSheets;
 
 namespace HaselCommon.Sheets;
 
-public class FishingSpot : Lumina.Excel.GeneratedSheets.FishingSpot
+public class ExtendedFishingSpot : FishingSpot
 {
-    public static readonly Dictionary<uint, FishingSpot[]> Cache = new();
+    public static readonly Dictionary<uint, ExtendedFishingSpot[]> Cache = new();
 
-    public static FishingSpot[] FindByItemId(uint id)
+    public static ExtendedFishingSpot[] FindByItemId(uint id)
     {
         if (!Cache.TryGetValue(id, out var cachedFishingSpot))
         {
-            cachedFishingSpot = GetSheet<FishingSpot>()
+            cachedFishingSpot = GetSheet<ExtendedFishingSpot>()
                 .Where(row => row.TerritoryType.Row != 0 && row.Item.Any(item => item.Row == id))
-                .Select(row => GetRow<FishingSpot>(row.RowId)!)
+                .Select(row => GetRow<ExtendedFishingSpot>(row.RowId)!)
                 .ToArray();
 
             Cache.Add(id, cachedFishingSpot);
@@ -32,7 +32,7 @@ public class FishingSpot : Lumina.Excel.GeneratedSheets.FishingSpot
     public uint Icon
         => _icon ??= !Rare ? 60465u : 60466u;
 
-    public unsafe bool OpenMap(Item? item = null, SeString? prefix = null)
+    public unsafe bool OpenMap(ExtendedItem? item = null, SeString? prefix = null)
     {
         var agentMap = AgentMap.Instance();
         if (agentMap == null)
