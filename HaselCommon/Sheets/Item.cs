@@ -2,10 +2,8 @@ using System.Linq;
 using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
+using FFXIVClientStructs.FFXIV.Component.Exd;
 using HaselCommon.Enums;
-using HaselCommon.Structs.Internal;
-using HaselCommon.Utils;
-using Lumina.Excel.GeneratedSheets;
 using Recipe = Lumina.Excel.GeneratedSheets.Recipe;
 using SpearfishingItem = Lumina.Excel.GeneratedSheets.SpearfishingItem;
 
@@ -73,33 +71,15 @@ public class Item : Lumina.Excel.GeneratedSheets.Item
     {
         get
         {
-            var action = ItemAction.Value;
-            if (action == null)
-            {
+            if (ItemAction.Row == 0)
                 return false;
-            }
 
-            var type = (ItemActionType)action.Type;
+            var type = (ItemActionType)ItemAction.Value!.Type;
             if (type == ItemActionType.Cards)
-            {
-                var cardId = AdditionalData;
-                var card = Service.DataManager.GetExcelSheet<TripleTriadCard>()!.GetRow(cardId);
-                return card != null && UIState.Instance()->IsTripleTriadCardUnlocked((ushort)card.RowId);
-            }
+                return UIState.Instance()->IsTripleTriadCardUnlocked((ushort)AdditionalData);
 
-            using var data = new DisposableStruct<ItemActionUnlockedData>();
-            data.Ptr->ItemActionId = action.RowId;
-
-            if (type == ItemActionType.OrchestrionRolls || type == ItemActionType.FramersKits)
-            {
-                data.Ptr->ItemActionAdditionalData = AdditionalData;
-            }
-
-            return HasItemActionUnlocked.Value.Invoke(data);
+            var row = ExdModule.GetItemRowById(RowId);
+            return row != null && UIState.Instance()->IsItemActionUnlocked(row) == 1;
         }
     }
-
-    internal unsafe delegate bool HasItemActionUnlockedDelegate(ItemActionUnlockedData* data, nint a2 = 0, nint a3 = 0);
-    internal static readonly Lazy<HasItemActionUnlockedDelegate> HasItemActionUnlocked
-        = new(() => MemoryUtils.GetDelegateForSignature<HasItemActionUnlockedDelegate>("E8 ?? ?? ?? ?? 84 C0 75 A6 32 C0"));
 }
