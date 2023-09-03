@@ -50,6 +50,5 @@ internal readonly struct NameFormatter
     }
 
     internal unsafe delegate byte* FormatDelegate(Placeholder placeholder, uint id, IdConverter idConverter, uint a4);
-    internal static readonly Lazy<FormatDelegate> Format
-        = new(() => MemoryUtils.GetDelegateForSignature<FormatDelegate>("E9 ?? ?? ?? ?? 48 8D 47 30"));
+    internal static FormatDelegate Format { get; } = MemoryUtils.GetDelegateForSignature<FormatDelegate>("E9 ?? ?? ?? ?? 48 8D 47 G0");
 }

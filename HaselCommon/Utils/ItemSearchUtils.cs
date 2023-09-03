@@ -31,8 +31,8 @@ public static unsafe class ItemSearchUtils
         addon->TextInput->UnkText1.SetString(itemName);
         addon->TextInput->UnkText2.SetString(itemName);
 
-        AddonItemSearch.SetModeFilter.Value.Invoke(addon, AddonItemSearch.SearchMode.Normal, -1);
-        HAtkComponentTextInput.TriggerRedraw.Value.Invoke(addon->TextInput);
-        AddonItemSearch.RunSearch.Value.Invoke(addon, false);
+        AddonItemSearch.SetModeFilter.Invoke(addon, AddonItemSearch.SearchMode.Normal, -1);
+        HAtkComponentTextInput.TriggerRedraw.Invoke(addon->TextInput);
+        AddonItemSearch.RunSearch.Invoke(addon, false);
     }
 }

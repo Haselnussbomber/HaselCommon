@@ -21,7 +21,7 @@ public class ExtendedGatheringPoint : GatheringPoint
             if (gatheringType == null)
                 return _icon ??= 0;
 
-            var rare = !IsGatheringPointRare.Value.Invoke(Type);
+            var rare = !IsGatheringPointRare.Invoke(Type);
             return _icon ??= rare ? (uint)gatheringType.IconMain : (uint)gatheringType.IconOff;
         }
     }
@@ -59,7 +59,7 @@ public class ExtendedGatheringPoint : GatheringPoint
         tooltip.AppendString(" ");
         tooltip.AppendString(gatheringPointName);
 
-        var iconId = !IsGatheringPointRare.Value.Invoke(exportedPoint.GatheringPointType)
+        var iconId = !IsGatheringPointRare.Invoke(exportedPoint.GatheringPointType)
             ? gatheringType.IconMain
             : gatheringType.IconOff;
 
@@ -113,6 +113,5 @@ public class ExtendedGatheringPoint : GatheringPoint
     }
 
     internal unsafe delegate bool IsGatheringPointRareDelegate(byte gatheringPointType);
-    internal static readonly Lazy<IsGatheringPointRareDelegate> IsGatheringPointRare
-        = new(() => MemoryUtils.GetDelegateForSignature<IsGatheringPointRareDelegate>("80 F9 07 77 10"));
+    internal static IsGatheringPointRareDelegate IsGatheringPointRare { get; } = MemoryUtils.GetDelegateForSignature<IsGatheringPointRareDelegate>("80 F9 07 77 10");
 }

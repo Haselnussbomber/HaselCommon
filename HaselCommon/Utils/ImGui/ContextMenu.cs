@@ -49,8 +49,7 @@ public class ImGuiContextMenu : List<IContextMenuEntry>
     }
 
     private unsafe delegate void ContextMenuGlamourCallbackDelegate(nint agentGearset, uint gearsetId, ContextMenuGlamourCallbackAction action);
-    private static readonly Lazy<ContextMenuGlamourCallbackDelegate> ContextMenuGlamourCallback
-        = new(() => MemoryUtils.GetDelegateForSignature<ContextMenuGlamourCallbackDelegate>("40 53 48 83 EC 20 8B DA 41 83 F8 14"));
+    private static ContextMenuGlamourCallbackDelegate ContextMenuGlamourCallback { get; } = MemoryUtils.GetDelegateForSignature<ContextMenuGlamourCallbackDelegate>("40 53 48 83 EC 20 8B DA 41 83 F8 14");
 
     public interface IContextMenuEntry
     {
@@ -168,7 +167,7 @@ public class ImGuiContextMenu : List<IContextMenuEntry>
             ClickCallback = () =>
             {
                 var agentGearset = AgentModule.Instance()->GetAgentByInternalId(AgentId.Gearset);
-                ContextMenuGlamourCallback.Value?.Invoke((nint)agentGearset, gearset->ID, ContextMenuGlamourCallbackAction.Link);
+                ContextMenuGlamourCallback.Invoke((nint)agentGearset, gearset->ID, ContextMenuGlamourCallbackAction.Link);
             }
         };
     }
@@ -184,7 +183,7 @@ public class ImGuiContextMenu : List<IContextMenuEntry>
             ClickCallback = () =>
             {
                 var agentGearset = AgentModule.Instance()->GetAgentByInternalId(AgentId.Gearset);
-                ContextMenuGlamourCallback.Value?.Invoke((nint)agentGearset, gearset->ID, ContextMenuGlamourCallbackAction.Unlink);
+                ContextMenuGlamourCallback.Invoke((nint)agentGearset, gearset->ID, ContextMenuGlamourCallbackAction.Unlink);
             }
         };
     }
@@ -200,7 +199,7 @@ public class ImGuiContextMenu : List<IContextMenuEntry>
             ClickCallback = () =>
             {
                 var agentGearset = AgentModule.Instance()->GetAgentByInternalId(AgentId.Gearset);
-                ContextMenuGlamourCallback.Value?.Invoke((nint)agentGearset, gearset->ID, ContextMenuGlamourCallbackAction.ChangeLink);
+                ContextMenuGlamourCallback.Invoke((nint)agentGearset, gearset->ID, ContextMenuGlamourCallbackAction.ChangeLink);
             }
         };
     }
