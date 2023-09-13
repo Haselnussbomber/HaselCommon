@@ -4,6 +4,7 @@ using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Component.Exd;
 using HaselCommon.Enums;
+using HaselCommon.SheetLookup;
 using Lumina.Excel.GeneratedSheets;
 
 namespace HaselCommon.Sheets;
@@ -17,24 +18,25 @@ public class ExtendedItem : Item
     private bool? _isSpearfishing { get; set; } = null;
     private bool? _isUnlockable { get; set; } = null;
     private ExtendedGatheringItem[]? _gatheringItems { get; set; } = null;
+    private ExtendedGatheringPoint[]? _gatheringPoints { get; set; } = null;
     private ExtendedFishingSpot[]? _fishingSpots { get; set; } = null;
 
     public new string Name
         => _name ??= base.Name.ToDalamudString().ToString();
 
     public Recipe? Recipe
-        => _recipe ??= FindRow<Recipe>(recipe => recipe?.ItemResult.Row == RowId);
+        => _recipe ??= ItemRecipeLookup.First(RowId);
 
     public ExtendedGatheringItem[] GatheringItems
-        => _gatheringItems ??= GetSheet<ExtendedGatheringItem>().Where((row) => row.Item == RowId).ToArray();
+        => _gatheringItems ??= ItemGatheringItemLookup.All(RowId);
 
     public ExtendedGatheringPoint[] GatheringPoints
-        => GatheringItems
+        => _gatheringPoints ??= GatheringItems
             .SelectMany(row => row.GatheringPoints)
             .ToArray();
 
     public ExtendedFishingSpot[] FishingSpots
-        => _fishingSpots ??= ExtendedFishingSpot.FindByItemId(RowId);
+        => _fishingSpots ??= ItemFishingSpotLookup.All(RowId);
 
     public bool IsCraftable
         => _isCraftable ??= Recipe != null;

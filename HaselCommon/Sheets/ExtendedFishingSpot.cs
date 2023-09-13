@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
 using Dalamud.Game.Text.SeStringHandling;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
@@ -10,23 +8,6 @@ namespace HaselCommon.Sheets;
 
 public class ExtendedFishingSpot : FishingSpot
 {
-    public static readonly Dictionary<uint, ExtendedFishingSpot[]> Cache = new();
-
-    public static ExtendedFishingSpot[] FindByItemId(uint id)
-    {
-        if (!Cache.TryGetValue(id, out var cachedFishingSpot))
-        {
-            cachedFishingSpot = GetSheet<ExtendedFishingSpot>()
-                .Where(row => row.TerritoryType.Row != 0 && row.Item.Any(item => item.Row == id))
-                .Select(row => GetRow<ExtendedFishingSpot>(row.RowId)!)
-                .ToArray();
-
-            Cache.Add(id, cachedFishingSpot);
-        }
-
-        return cachedFishingSpot;
-    }
-
     private uint? _icon { get; set; } = null;
 
     public uint Icon
