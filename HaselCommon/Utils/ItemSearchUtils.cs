@@ -7,12 +7,8 @@ namespace HaselCommon.Utils;
 
 public static unsafe class ItemSearchUtils
 {
-    public static void Search(uint itemId)
+    public static void Search(ExtendedItem item)
     {
-        var item = GetRow<ExtendedItem>(itemId % 1000000);
-        if (item == null)
-            return;
-
         if (!item.CanSearchForItem)
             return;
 
