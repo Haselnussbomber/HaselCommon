@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Dalamud.Game.Text.SeStringHandling;
 using HaselCommon.Structs.Internal;
 using Lumina.Excel;
@@ -8,18 +9,23 @@ namespace HaselCommon.Utils.Globals;
 
 public static unsafe class Strings
 {
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static string t(string key)
         => HaselCommonBase.TranslationManager.Translate(key);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static string t(string key, params object?[] args)
         => HaselCommonBase.TranslationManager.Translate(key, args);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static SeString tSe(string key, params SeString[] args)
         => HaselCommonBase.TranslationManager.TranslateSeString(key, args.Select(s => s.Payloads).ToArray());
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static string GetAddonText(uint id)
         => HaselCommonBase.StringManager.GetSheetText<AddonSheet>(id, "Text");
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static string GetSheetText<T>(uint rowId, string columnName) where T : ExcelRow
         => HaselCommonBase.StringManager.GetSheetText<T>(rowId, columnName);
 

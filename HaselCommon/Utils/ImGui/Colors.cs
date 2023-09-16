@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using FFXIVClientStructs.FFXIV.Client.UI;
@@ -28,6 +29,7 @@ public static class Colors
     public static unsafe bool IsLightTheme
         => RaptureAtkModule.Instance()->AtkModule.ActiveColorThemeType == 1;
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ImColor GetUIColor(uint id)
         => (ImColor)GetRow<UIColor>(id)!.UIForeground.Reverse();
 
@@ -39,7 +41,8 @@ public static class Colors
             .Select(rarity => (Rarity: rarity, Color: GetUIColor(547u + rarity * 2u)))
             .ToDictionary(tuple => tuple.Rarity, tuple => tuple.Color));
 
-    public static ImColor GetItemRarityColor(byte rarity) => ItemRarityColors.Value[rarity];
+    public static ImColor GetItemRarityColor(byte rarity)
+        => ItemRarityColors.Value[rarity];
 
     public static ImColor GetStainColor(uint id)
     {

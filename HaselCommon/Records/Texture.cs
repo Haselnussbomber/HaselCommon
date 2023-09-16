@@ -1,5 +1,6 @@
 using System.IO;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using HaselCommon.Utils;
 using ImGuiNET;
 using ImGuiScene;
@@ -69,11 +70,13 @@ public record Texture : IDisposable
         ImGui.Image(_textureWrap.ImGuiHandle, size, Uv0 ?? Vector2.Zero, Uv1 ?? Vector2.One);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Draw(float x, float y)
         => Draw(new Vector2(x, y));
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Draw(float dimensions)
-        => Draw(dimensions, dimensions);
+        => Draw(new Vector2(dimensions));
 
     private TextureWrap? LoadTexture()
     {
