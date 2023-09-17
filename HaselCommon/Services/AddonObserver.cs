@@ -1,8 +1,9 @@
 using System.Collections.Generic;
-using Dalamud.Game;
 using Dalamud.Memory;
+using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Component.GUI;
+using static HaselCommon.Utils.Globals.UnsafeGlobals;
 
 namespace HaselCommon.Services;
 
@@ -23,7 +24,7 @@ public unsafe class AddonObserver : IDisposable
         GC.SuppressFinalize(this);
     }
 
-    private void OnFrameworkUpdate(Framework framework)
+    private void OnFrameworkUpdate(IFramework framework)
     {
         Update();
     }
@@ -44,12 +45,9 @@ public unsafe class AddonObserver : IDisposable
 
         // check added units
         var allLoadedList = &raptureAtkModule->RaptureAtkUnitManager.AtkUnitManager.AllLoadedUnitsList;
-        // TODO: update when https://github.com/aers/FFXIVClientStructs/pull/426 is merged
-        var count = (ushort)(allLoadedList->Count & 0xFFFF);
-        var entries = new Span<Pointer<AtkUnitBase>>(&allLoadedList->AtkUnitEntries, count);
-        for (var i = 0; i < count; i++)
+        for (var i = 0; i < allLoadedList->Count; i++)
         {
-            var address = (nint)entries[i].Value;
+            var address = *(nint*)AsPointer(ref allLoadedList->EntriesSpan[i]);
             if (address == 0 || _loadedUnits.Contains(address) || !raptureAtkModule->AtkModule.IsAddonReady(((AtkUnitBase*)address)->ID))
                 continue;
 
@@ -68,13 +66,14 @@ public unsafe class AddonObserver : IDisposable
         }
 
         // check removed units
-        foreach (var address in _loadedUnits)
+        foreach (var loadedUnitAddress in _loadedUnits)
         {
             var isLoaded = false;
 
-            for (var i = 0; i < count; i++)
+            for (var i = 0; i < allLoadedList->Count; i++)
             {
-                if ((nint)entries[i].Value == address)
+                var address = *(nint*)AsPointer(ref allLoadedList->EntriesSpan[i]);
+                if (address == loadedUnitAddress)
                 {
                     isLoaded = true;
                     break;
@@ -82,7 +81,7 @@ public unsafe class AddonObserver : IDisposable
             }
 
             if (!isLoaded)
-                _removedUnits.Add(address);
+                _removedUnits.Add(loadedUnitAddress);
         }
 
         foreach (var address in _removedUnits)

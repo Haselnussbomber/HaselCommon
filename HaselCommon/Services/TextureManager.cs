@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Numerics;
-using Dalamud.Game;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using HaselCommon.Extensions;
@@ -12,13 +11,13 @@ public class TextureManager : IDisposable
 {
     private static readonly string[] ThemePaths = { "", "light/", "third/", "fourth/" };
 
-    private readonly Framework _framework;
+    private readonly IFramework _framework;
 
     private readonly Dictionary<(string Path, int Version, Vector2? Uv0, Vector2? Uv1), Texture> _cache = new();
     private readonly Dictionary<(uint IconId, bool IsHq), Texture> _iconTexCache = new();
     private readonly Dictionary<(string UldName, uint PartListId, uint PartId), Texture> _uldTexCache = new();
 
-    public TextureManager(Framework framework)
+    public TextureManager(IFramework framework)
     {
         _framework = framework;
 
@@ -34,7 +33,7 @@ public class TextureManager : IDisposable
         _cache.Dispose();
     }
 
-    private void OnFrameworkUpdate(Framework framework)
+    private void OnFrameworkUpdate(IFramework framework)
     {
         lock (_cache)
         {

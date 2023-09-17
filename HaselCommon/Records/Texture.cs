@@ -1,9 +1,9 @@
 using System.IO;
 using System.Numerics;
 using System.Runtime.CompilerServices;
+using Dalamud.Interface.Internal;
 using HaselCommon.Utils;
 using ImGuiNET;
-using ImGuiScene;
 
 namespace HaselCommon.Records;
 
@@ -12,7 +12,7 @@ public record Texture : IDisposable
     public static readonly string EmptyIconPath = "ui/icon/000000/000000.tex";
     private static readonly TimeSpan KeepAliveTime = TimeSpan.FromSeconds(2);
 
-    private TextureWrap? _textureWrap;
+    private IDalamudTextureWrap? _textureWrap;
     private DateTime _lastAccess = DateTime.UtcNow;
     private DateTime _lastRender = DateTime.MinValue;
     private bool _sizesSet;
@@ -78,7 +78,7 @@ public record Texture : IDisposable
     public void Draw(float dimensions)
         => Draw(new Vector2(dimensions));
 
-    private TextureWrap? LoadTexture()
+    private IDalamudTextureWrap? LoadTexture()
     {
         var tex = System.IO.Path.IsPathRooted(Path)
             ? Service.TextureProvider.GetTextureFromFile(new FileInfo(Path), true)
