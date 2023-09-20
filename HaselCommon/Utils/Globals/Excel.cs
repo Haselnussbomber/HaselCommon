@@ -20,6 +20,6 @@ public static class Excel
         => GetSheet<T>().GetRow(rowId, subRowId);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static T? FindRow<T>(Func<T?, bool> predicate) where T : ExcelRow
+    public static T? FindRow<T>(Func<T, bool> predicate) where T : ExcelRow
         => GetSheet<T>().FirstOrDefault(predicate);
 }
