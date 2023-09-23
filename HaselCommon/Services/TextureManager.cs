@@ -32,8 +32,6 @@ public class TextureManager : IDisposable
         _iconTexCache.Clear();
         _uldTexCache.Clear();
         _cache.Dispose();
-
-        GC.SuppressFinalize(this);
     }
 
     private void OnFrameworkUpdate(Framework framework)

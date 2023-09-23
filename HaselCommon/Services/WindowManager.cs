@@ -25,7 +25,6 @@ public class WindowManager : WindowSystem, IDisposable
         }
 
         RemoveAllWindows();
-        GC.SuppressFinalize(this);
     }
 
     public T? GetWindow<T>() where T : Window

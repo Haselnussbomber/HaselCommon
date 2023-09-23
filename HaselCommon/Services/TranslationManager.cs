@@ -24,8 +24,8 @@ public class TranslationManager : IDisposable
         ["ja"] = "Japanese"
     };
 
-    private readonly DalamudPluginInterface _pluginInterface;
-    private readonly IClientState _clientState;
+    private DalamudPluginInterface _pluginInterface;
+    private IClientState _clientState;
 
     private readonly Dictionary<string, Dictionary<string, string>> _translations = new();
     private ITranslationConfig _config = null!;
@@ -55,8 +55,10 @@ public class TranslationManager : IDisposable
 
     public void Dispose()
     {
-        Service.PluginInterface.LanguageChanged -= PluginInterface_LanguageChanged;
-        GC.SuppressFinalize(this);
+        _pluginInterface.LanguageChanged -= PluginInterface_LanguageChanged;
+        _pluginInterface = null!;
+        _clientState = null!;
+        _config = null!;
     }
 
     public void Initialize(Dictionary<string, Dictionary<string, string>> translations, ITranslationConfig config)

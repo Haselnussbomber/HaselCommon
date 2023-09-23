@@ -27,5 +27,10 @@ public static class HaselCommonBase
         TranslationManager.Dispose();
         TextureManager.Dispose();
         WindowManager.Dispose();
+
+        AddonObserver = null!;
+        TranslationManager = null!;
+        TextureManager = null!;
+        WindowManager = null!;
     }
 }
