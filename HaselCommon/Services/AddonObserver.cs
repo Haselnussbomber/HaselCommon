@@ -3,7 +3,7 @@ using Dalamud.Memory;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Component.GUI;
-using static HaselCommon.Utils.Globals.UnsafeGlobals;
+using static FFXIVClientStructs.Interop.SpanExtensions;
 
 namespace HaselCommon.Services;
 
@@ -47,7 +47,7 @@ public unsafe class AddonObserver : IDisposable
         var allLoadedList = &raptureAtkModule->RaptureAtkUnitManager.AtkUnitManager.AllLoadedUnitsList;
         for (var i = 0; i < allLoadedList->Count; i++)
         {
-            var address = *(nint*)AsPointer(ref allLoadedList->EntriesSpan[i]);
+            var address = *(nint*)allLoadedList->EntriesSpan.GetPointer(i);
             if (address == 0 || _loadedUnits.Contains(address) || !raptureAtkModule->AtkModule.IsAddonReady(((AtkUnitBase*)address)->ID))
                 continue;
 
@@ -72,7 +72,7 @@ public unsafe class AddonObserver : IDisposable
 
             for (var i = 0; i < allLoadedList->Count; i++)
             {
-                var address = *(nint*)AsPointer(ref allLoadedList->EntriesSpan[i]);
+                var address = *(nint*)allLoadedList->EntriesSpan.GetPointer(i);
                 if (address == loadedUnitAddress)
                 {
                     isLoaded = true;
