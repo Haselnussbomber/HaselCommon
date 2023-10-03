@@ -12,7 +12,7 @@ public class ExtendedSpecialShop : SpecialShop
     [StructLayout(LayoutKind.Explicit, Size = StructSize)]
     public struct SpecialShopItem
     {
-        public const int StructSize = 0x4C; // 0x50 - 0x4
+        public const int StructSize = 0x60; // to update just diff between column 2 and 1
 
         [FieldOffset(0x4)] public uint ReceiveCount1;
         [FieldOffset(0x8)] public uint ReceiveCount2;
@@ -30,17 +30,24 @@ public class ExtendedSpecialShop : SpecialShop
         [FieldOffset(0x38)] public int Unk38;
         [FieldOffset(0x3C)] public int Unk3C;
         [FieldOffset(0x40)] public ushort Unk40;
-        [FieldOffset(0x42)] public ushort Unk42;
         [FieldOffset(0x44)] public ushort Unk44;
-        [FieldOffset(0x46)] public ushort PatchNumber;
         [FieldOffset(0x48)] public byte Unk48;
-        [FieldOffset(0x49)] public byte Unk49;
-        [FieldOffset(0x4A)] public byte Unk4A;
-        [FieldOffset(0x4B)] public byte Unk4B;
         [FieldOffset(0x4C)] public byte Unk4C;
-        [FieldOffset(0x4D)] public byte SortKey;
-        [FieldOffset(0x4E)] public bool Unk4E;
-        [FieldOffset(0x4F)] public bool Unk4F;
+        [FieldOffset(0x50)] public ushort Unk50; // related to Give1?
+        [FieldOffset(0x52)] public ushort Unk52; // related to Give2?
+        [FieldOffset(0x54)] public ushort Unk54; // related to Give2?
+        [FieldOffset(0x56)] public ushort PatchNumber;
+        [FieldOffset(0x58)] public byte Unk58; // related to Give1?
+        [FieldOffset(0x59)] public byte Unk59; // related to Give2?
+        [FieldOffset(0x5A)] public byte Unk5A; // related to Give3?
+        [FieldOffset(0x5B)] public byte Unk5B;
+        [FieldOffset(0x5C)] public byte Unk5C;
+        [FieldOffset(0x5D)] public byte Unk5D;
+        [FieldOffset(0x5E)] public byte Unk5E;
+        [FieldOffset(0x5F)] public byte Unk5F;
+        [FieldOffset(0x60)] public byte SortKey;
+        [FieldOffset(0x61)] public bool Unk61; // related to Receive1?
+        [FieldOffset(0x62)] public bool Unk62; // related to Receive2?
 
         public unsafe void Read(int index, RowParser parser)
         {
@@ -60,17 +67,24 @@ public class ExtendedSpecialShop : SpecialShop
             Unk38 = parser.ReadOffset<int>((ushort)(0x38 + StructSize * index));
             Unk3C = parser.ReadOffset<int>((ushort)(0x3C + StructSize * index));
             Unk40 = parser.ReadOffset<ushort>((ushort)(0x40 + StructSize * index));
-            Unk42 = parser.ReadOffset<ushort>((ushort)(0x42 + StructSize * index));
             Unk44 = parser.ReadOffset<ushort>((ushort)(0x44 + StructSize * index));
-            PatchNumber = parser.ReadOffset<ushort>((ushort)(0x46 + StructSize * index));
             Unk48 = parser.ReadOffset<byte>((ushort)(0x48 + StructSize * index));
-            Unk49 = parser.ReadOffset<byte>((ushort)(0x49 + StructSize * index));
-            Unk4A = parser.ReadOffset<byte>((ushort)(0x4A + StructSize * index));
-            Unk4B = parser.ReadOffset<byte>((ushort)(0x4B + StructSize * index));
             Unk4C = parser.ReadOffset<byte>((ushort)(0x4C + StructSize * index));
-            SortKey = parser.ReadOffset<byte>((ushort)(0x4D + StructSize * index));
-            Unk4E = parser.ReadOffset<bool>((ushort)(0x4E + StructSize * index));
-            Unk4F = parser.ReadOffset<bool>((ushort)(0x4F + StructSize * index));
+            Unk50 = parser.ReadOffset<ushort>((ushort)(0x50 + StructSize * index));
+            Unk52 = parser.ReadOffset<ushort>((ushort)(0x52 + StructSize * index));
+            Unk54 = parser.ReadOffset<ushort>((ushort)(0x54 + StructSize * index));
+            PatchNumber = parser.ReadOffset<ushort>((ushort)(0x56 + StructSize * index));
+            Unk58 = parser.ReadOffset<byte>((ushort)(0x58 + StructSize * index));
+            Unk59 = parser.ReadOffset<byte>((ushort)(0x59 + StructSize * index));
+            Unk5A = parser.ReadOffset<byte>((ushort)(0x5A + StructSize * index));
+            Unk5B = parser.ReadOffset<byte>((ushort)(0x5B + StructSize * index));
+            Unk5C = parser.ReadOffset<byte>((ushort)(0x5C + StructSize * index));
+            Unk5D = parser.ReadOffset<byte>((ushort)(0x5D + StructSize * index));
+            Unk5E = parser.ReadOffset<byte>((ushort)(0x5E + StructSize * index));
+            Unk5F = parser.ReadOffset<byte>((ushort)(0x5F + StructSize * index));
+            SortKey = parser.ReadOffset<byte>((ushort)(0x60 + StructSize * index));
+            Unk61 = parser.ReadOffset<bool>((ushort)(0x61 + StructSize * index));
+            Unk62 = parser.ReadOffset<bool>((ushort)(0x62 + StructSize * index));
         }
     }
 
