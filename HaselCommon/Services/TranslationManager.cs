@@ -61,7 +61,7 @@ public class TranslationManager : IDisposable
         _config = null!;
     }
 
-    public void Initialize(Dictionary<string, Dictionary<string, string>> translations, ITranslationConfig config)
+    public void Initialize(ITranslationConfig config, Dictionary<string, Dictionary<string, string>> translations)
     {
         _config = config;
 
@@ -73,6 +73,19 @@ public class TranslationManager : IDisposable
         SetLanguage(_config.PluginLanguageOverride, _config.PluginLanguage, false);
 
         _pluginInterface.LanguageChanged += PluginInterface_LanguageChanged;
+    }
+
+    public void Initialize(ITranslationConfig config, string? filename = null)
+    {
+        if (string.IsNullOrEmpty(filename))
+            filename = $"{Service.PluginInterface.InternalName}.Translations.json";
+
+        using var stream = Assembly.GetCallingAssembly().GetManifestResourceStream(filename)
+            ?? throw new Exception($"Could not find translations resource \"{filename}\".");
+
+        var translations = JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, string>>>(stream) ?? new();
+
+        Initialize(config, translations);
     }
 
     public PluginLanguageOverride Override
