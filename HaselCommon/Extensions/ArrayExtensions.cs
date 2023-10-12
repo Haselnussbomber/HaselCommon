@@ -85,4 +85,9 @@ public static class ArrayExtensions
         result = default;
         return false;
     }
+
+    public static T? FirstOrNull<T>(this IEnumerable<T> values) where T : class
+    {
+        return values.DefaultIfEmpty(null).FirstOrDefault();
+    }
 }

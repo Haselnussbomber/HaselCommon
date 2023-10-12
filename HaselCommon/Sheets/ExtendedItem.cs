@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
@@ -12,7 +13,7 @@ namespace HaselCommon.Sheets;
 public class ExtendedItem : Item
 {
     private string? _name { get; set; } = null;
-    private Recipe? _recipe { get; set; } = null;
+    private Recipe[]? recipes { get; set; } = null;
     private bool? _isCraftable { get; set; } = null;
     private bool? _isFish { get; set; } = null;
     private bool? _isSpearfishing { get; set; } = null;
@@ -24,8 +25,29 @@ public class ExtendedItem : Item
     public new string Name
         => _name ??= base.Name.ToDalamudString().ToString();
 
-    public Recipe? Recipe
-        => _recipe ??= ItemRecipeLookup.First(RowId);
+    public Recipe[] Recipes
+    {
+        get
+        {
+            if (recipes != null)
+                return recipes;
+
+            var lookup = GetRow<RecipeLookup>(RowId);
+            if (lookup == null)
+                return recipes ??= Array.Empty<Recipe>();
+
+            var _recipes = new List<Recipe>();
+            if (lookup.CRP.Row != 0 && lookup.CRP.Value != null) _recipes.Add(lookup.CRP.Value);
+            if (lookup.BSM.Row != 0 && lookup.BSM.Value != null) _recipes.Add(lookup.BSM.Value);
+            if (lookup.ARM.Row != 0 && lookup.ARM.Value != null) _recipes.Add(lookup.ARM.Value);
+            if (lookup.GSM.Row != 0 && lookup.GSM.Value != null) _recipes.Add(lookup.GSM.Value);
+            if (lookup.LTW.Row != 0 && lookup.LTW.Value != null) _recipes.Add(lookup.LTW.Value);
+            if (lookup.WVR.Row != 0 && lookup.WVR.Value != null) _recipes.Add(lookup.WVR.Value);
+            if (lookup.ALC.Row != 0 && lookup.ALC.Value != null) _recipes.Add(lookup.ALC.Value);
+            if (lookup.CUL.Row != 0 && lookup.CUL.Value != null) _recipes.Add(lookup.CUL.Value);
+            return recipes ??= _recipes.ToArray();
+        }
+    }
 
     public ExtendedGatheringItem[] GatheringItems
         => _gatheringItems ??= ItemGatheringItemLookup.All(RowId);
@@ -39,7 +61,7 @@ public class ExtendedItem : Item
         => _fishingSpots ??= ItemFishingSpotLookup.All(RowId);
 
     public bool IsCraftable
-        => _isCraftable ??= Recipe != null;
+        => _isCraftable ??= !Recipes.Any();
 
     public bool IsCrystal
         => ItemUICategory.Row == 59;
