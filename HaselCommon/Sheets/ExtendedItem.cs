@@ -61,7 +61,7 @@ public class ExtendedItem : Item
         => _fishingSpots ??= ItemFishingSpotLookup.All(RowId);
 
     public bool IsCraftable
-        => _isCraftable ??= !Recipes.Any();
+        => _isCraftable ??= Recipes.Any();
 
     public bool IsCrystal
         => ItemUICategory.Row == 59;
