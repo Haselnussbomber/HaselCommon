@@ -9,7 +9,7 @@ public static class Excel
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ExcelSheet<T> GetSheet<T>(ClientLanguage? language = null) where T : ExcelRow
-        => Service.DataManager.GetExcelSheet<T>(language ?? HaselCommonBase.TranslationManager.ClientLanguage)!;
+        => Service.DataManager.GetExcelSheet<T>(language ?? Service.TranslationManager.ClientLanguage)!;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static uint GetRowCount<T>() where T : ExcelRow
