@@ -56,8 +56,7 @@ public class ExtendedGatheringPoint : GatheringPoint
         var gatheringPointName = GetGatheringPointName(RowId);
 
         using var tooltip = new DisposableUtf8String(levelText);
-        tooltip.AppendString(" ");
-        tooltip.AppendString(gatheringPointName);
+        tooltip.Append(" " + gatheringPointName);
 
         var iconId = !IsGatheringPointRare.Invoke(exportedPoint.GatheringPointType)
             ? gatheringType.IconMain
