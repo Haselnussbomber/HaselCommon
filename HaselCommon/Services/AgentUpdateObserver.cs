@@ -27,26 +27,33 @@ public unsafe class AgentUpdateObserver : IDisposable
 
     private void RaptureAtkModule_OnUpdateDetour(RaptureAtkModule* module)
     {
-        if (module->AgentUpdateFlag.HasFlag(RaptureAtkModule.AgentUpdateFlags.InventoryUpdate))
-            OnInventoryUpdate?.Invoke();
+        try
+        {
+            if (module->AgentUpdateFlag.HasFlag(RaptureAtkModule.AgentUpdateFlags.InventoryUpdate))
+                OnInventoryUpdate?.Invoke();
 
-        if (module->AgentUpdateFlag.HasFlag(RaptureAtkModule.AgentUpdateFlags.ActionBarUpdate))
-            OnActionBarUpdate?.Invoke();
+            if (module->AgentUpdateFlag.HasFlag(RaptureAtkModule.AgentUpdateFlags.ActionBarUpdate))
+                OnActionBarUpdate?.Invoke();
 
-        if (module->AgentUpdateFlag.HasFlag(RaptureAtkModule.AgentUpdateFlags.RetainerUpdate))
-            OnRetainerUpdate?.Invoke();
+            if (module->AgentUpdateFlag.HasFlag(RaptureAtkModule.AgentUpdateFlags.RetainerUpdate))
+                OnRetainerUpdate?.Invoke();
 
-        if (module->AgentUpdateFlag.HasFlag(RaptureAtkModule.AgentUpdateFlags.NameplateUpdate))
-            OnNameplateUpdate?.Invoke();
+            if (module->AgentUpdateFlag.HasFlag(RaptureAtkModule.AgentUpdateFlags.NameplateUpdate))
+                OnNameplateUpdate?.Invoke();
 
-        if (module->AgentUpdateFlag.HasFlag(RaptureAtkModule.AgentUpdateFlags.UnlocksUpdate))
-            OnUnlocksUpdate?.Invoke();
+            if (module->AgentUpdateFlag.HasFlag(RaptureAtkModule.AgentUpdateFlags.UnlocksUpdate))
+                OnUnlocksUpdate?.Invoke();
 
-        if (module->AgentUpdateFlag.HasFlag(RaptureAtkModule.AgentUpdateFlags.MainCommandEnabledStateUpdate))
-            OnMainCommandEnabledStateUpdate?.Invoke();
+            if (module->AgentUpdateFlag.HasFlag(RaptureAtkModule.AgentUpdateFlags.MainCommandEnabledStateUpdate))
+                OnMainCommandEnabledStateUpdate?.Invoke();
 
-        if (module->AgentUpdateFlag.HasFlag(RaptureAtkModule.AgentUpdateFlags.HousingInventoryUpdate))
-            OnHousingInventoryUpdate?.Invoke();
+            if (module->AgentUpdateFlag.HasFlag(RaptureAtkModule.AgentUpdateFlags.HousingInventoryUpdate))
+                OnHousingInventoryUpdate?.Invoke();
+        }
+        catch (Exception ex)
+        {
+            Service.PluginLog.Error(ex, "Error during RaptureAtkModule_OnUpdateDetour");
+        }
 
         _onUpdateHook!.OriginalDisposeSafe(module);
     }
