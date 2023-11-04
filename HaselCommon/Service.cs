@@ -48,6 +48,7 @@ public class Service
 
     #region HaselCommon Services
     public static AddonObserver AddonObserver { get; private set; } = null!;
+    public static AgentUpdateObserver AgentUpdateObserver { get; private set; } = null!;
     public static TranslationManager TranslationManager { get; private set; } = null!;
     public static StringManager StringManager { get; private set; } = null!;
     public static TextureManager TextureManager { get; private set; } = null!;
@@ -60,6 +61,7 @@ public class Service
         pluginInterface.Create<Service>();
 
         AddonObserver = new();
+        AgentUpdateObserver = new();
         TranslationManager = new(pluginInterface, ClientState);
         StringManager = new();
         TextureManager = new(Framework);
@@ -69,11 +71,13 @@ public class Service
     public static void Dispose()
     {
         AddonObserver.Dispose();
+        AgentUpdateObserver.Dispose();
         TranslationManager.Dispose();
         TextureManager.Dispose();
         WindowManager.Dispose();
 
         AddonObserver = null!;
+        AgentUpdateObserver = null!;
         TranslationManager = null!;
         TextureManager = null!;
         WindowManager = null!;
