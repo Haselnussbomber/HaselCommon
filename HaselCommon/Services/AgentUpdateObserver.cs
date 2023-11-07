@@ -5,8 +5,8 @@ namespace HaselCommon.Services;
 
 public unsafe class AgentUpdateObserver : IDisposable
 {
-    private delegate void RaptureAtkModule_OnUpdateDelegate(RaptureAtkModule* module);
-    private Hook<RaptureAtkModule_OnUpdateDelegate>? _onUpdateHook;
+    private delegate void RaptureAtkModule_UpdateDelegate(RaptureAtkModule* module, float a2);
+    private Hook<RaptureAtkModule_UpdateDelegate>? _updateHook;
 
     public event Action? OnInventoryUpdate;
     public event Action? OnActionBarUpdate;
@@ -20,12 +20,12 @@ public unsafe class AgentUpdateObserver : IDisposable
     {
         var vtablePtr = Service.SigScanner.ScanText("33 C9 48 8D 05 ?? ?? ?? ?? 48 89 8F") + 5;
         var vtableAddress = vtablePtr + *(int*)vtablePtr + 4;
-        var onUpdateAddress = vtableAddress + 0x8 * 58;
-        _onUpdateHook = Service.GameInteropProvider.HookFromFunctionPointerVariable<RaptureAtkModule_OnUpdateDelegate>(onUpdateAddress, RaptureAtkModule_OnUpdateDetour);
-        _onUpdateHook?.Enable();
+        var updateAddress = vtableAddress + 0x8 * 58;
+        _updateHook = Service.GameInteropProvider.HookFromFunctionPointerVariable<RaptureAtkModule_UpdateDelegate>(updateAddress, RaptureAtkModule_UpdateDetour);
+        _updateHook?.Enable();
     }
 
-    private void RaptureAtkModule_OnUpdateDetour(RaptureAtkModule* module)
+    private void RaptureAtkModule_UpdateDetour(RaptureAtkModule* module, float delta)
     {
         try
         {
@@ -52,15 +52,15 @@ public unsafe class AgentUpdateObserver : IDisposable
         }
         catch (Exception ex)
         {
-            Service.PluginLog.Error(ex, "Error during RaptureAtkModule_OnUpdateDetour");
+            Service.PluginLog.Error(ex, "Error during RaptureAtkModule_UpdateDetour");
         }
 
-        _onUpdateHook!.OriginalDisposeSafe(module);
+        _updateHook!.OriginalDisposeSafe(module, delta);
     }
 
     public void Dispose()
     {
-        _onUpdateHook?.Dispose();
-        _onUpdateHook = null;
+        _updateHook?.Dispose();
+        _updateHook = null;
     }
 }
