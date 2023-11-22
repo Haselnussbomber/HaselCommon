@@ -32,6 +32,11 @@ public class WindowManager : WindowSystem, IDisposable
         return Windows.OfType<T>().FirstOrDefault();
     }
 
+    public bool IsWindowOpen<T>() where T : Window
+    {
+        return GetWindow<T>() is not null;
+    }
+
     public T OpenWindow<T>() where T : Window, new()
     {
         var window = GetWindow<T>();
