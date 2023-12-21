@@ -39,8 +39,8 @@ public static class ImGuiUtils
         PushCursorY(style.ItemSpacing.Y * 2 - 1);
     }
 
-    public static ImRaii.Indent ConfigIndent()
-        => ImRaii.PushIndent(ImGui.GetFrameHeight() + ImGui.GetStyle().ItemSpacing.X / 2f);
+    public static ImRaii.Indent ConfigIndent(bool enabled = true)
+        => ImRaii.PushIndent(ImGui.GetFrameHeight() + ImGui.GetStyle().ItemSpacing.X / 2f, true, enabled);
 
     public static void DrawLink(string label, string title, string url)
     {
