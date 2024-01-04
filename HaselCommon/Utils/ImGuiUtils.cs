@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Dalamud.Interface;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Utility;
+using HaselCommon.Structs;
 using ImGuiNET;
 
 namespace HaselCommon.Utils;
@@ -29,7 +30,7 @@ public static class ImGuiUtils
 
         var color = Colors.Gold;
         if (RespectUiTheme && Colors.IsLightTheme)
-            color = Colors.GetUIColor(UIColor);
+            color = HaselColor.FromUiForeground(UIColor);
 
         TextUnformattedColored(color, Label);
 
