@@ -32,29 +32,17 @@ public struct HaselColor
     {
     }
 
-    public HaselColor WithRed(float r)
-    {
-        R = r;
-        return this;
-    }
+    public readonly HaselColor WithRed(float r)
+        => new(r, G, B, A);
 
-    public HaselColor WithGreen(float g)
-    {
-        G = g;
-        return this;
-    }
+    public readonly HaselColor WithGreen(float g)
+        => new(R, g, B, A);
 
-    public HaselColor WithBlue(float b)
-    {
-        B = b;
-        return this;
-    }
+    public readonly HaselColor WithBlue(float b)
+        => new(R, G, b, A);
 
-    public HaselColor WithAlpha(float a)
-    {
-        A = a;
-        return this;
-    }
+    public readonly HaselColor WithAlpha(float a)
+        => new(R, G, B, a);
 
     public static HaselColor From(float r, float g, float b, float a = 1)
         => new() { R = r, G = g, B = b, A = a };
