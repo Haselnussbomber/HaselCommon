@@ -1,8 +1,6 @@
-using HaselCommon.Utils;
-
 namespace HaselCommon.Structs.Internal;
 
-internal readonly struct NameFormatter
+internal unsafe partial struct NameFormatter
 {
     public enum Placeholder : int
     {
@@ -49,6 +47,6 @@ internal readonly struct NameFormatter
         ActStr_Ornament = 20,
     }
 
-    internal unsafe delegate byte* FormatDelegate(Placeholder placeholder, uint id, IdConverter idConverter, uint a4);
-    internal static FormatDelegate Format { get; } = MemoryUtils.GetDelegateForSignature<FormatDelegate>("E9 ?? ?? ?? ?? 48 8D 47 30");
+    [MemberFunction("E9 ?? ?? ?? ?? 48 8D 47 30")]
+    internal static partial byte* Format(Placeholder placeholder, uint id, IdConverter idConverter, uint a4);
 }

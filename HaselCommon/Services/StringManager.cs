@@ -18,7 +18,7 @@ public unsafe class StringManager
 
         if (!_nameCache.TryGetValue(key, out var value))
         {
-            var ptr = (nint)NameFormatter.Format.Invoke(placeholder, id, idConverter, 1);
+            var ptr = (nint)NameFormatter.Format(placeholder, id, idConverter, 1);
             if (ptr != nint.Zero)
             {
                 value = MemoryHelper.ReadSeStringNullTerminated(ptr).ToString();

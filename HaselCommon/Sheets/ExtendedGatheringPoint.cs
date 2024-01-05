@@ -1,6 +1,7 @@
 using Dalamud.Game.Text.SeStringHandling;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
+using HaselCommon.Structs.Internal;
 using HaselCommon.Utils;
 using Lumina.Excel.GeneratedSheets;
 
@@ -21,7 +22,7 @@ public class ExtendedGatheringPoint : GatheringPoint
             if (gatheringType == null)
                 return _icon ??= 0;
 
-            var rare = !IsGatheringPointRare.Invoke(Type);
+            var rare = !Statics.IsGatheringPointRare(Type);
             return _icon ??= rare ? (uint)gatheringType.IconMain : (uint)gatheringType.IconOff;
         }
     }
@@ -58,7 +59,7 @@ public class ExtendedGatheringPoint : GatheringPoint
         using var tooltip = new DisposableUtf8String(levelText);
         tooltip.Append(" " + gatheringPointName);
 
-        var iconId = !IsGatheringPointRare.Invoke(exportedPoint.GatheringPointType)
+        var iconId = !Statics.IsGatheringPointRare(exportedPoint.GatheringPointType)
             ? gatheringType.IconMain
             : gatheringType.IconOff;
 
@@ -110,7 +111,4 @@ public class ExtendedGatheringPoint : GatheringPoint
 
         return true;
     }
-
-    internal unsafe delegate bool IsGatheringPointRareDelegate(byte gatheringPointType);
-    internal static IsGatheringPointRareDelegate IsGatheringPointRare { get; } = MemoryUtils.GetDelegateForSignature<IsGatheringPointRareDelegate>("80 F9 07 77 10");
 }

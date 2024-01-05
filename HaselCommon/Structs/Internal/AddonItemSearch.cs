@@ -1,5 +1,4 @@
 using FFXIVClientStructs.FFXIV.Component.GUI;
-using HaselCommon.Utils;
 
 namespace HaselCommon.Structs.Internal;
 
@@ -28,9 +27,9 @@ internal unsafe partial struct AddonItemSearch
 
     [FieldOffset(0x3EDB)] public bool PartialMatch;
 
-    internal unsafe delegate void RunSearchDelegate(AddonItemSearch* addon, bool a2);
-    internal static RunSearchDelegate RunSearch { get; } = MemoryUtils.GetDelegateForSignature<RunSearchDelegate>("E8 ?? ?? ?? ?? 48 8B DE 48 8D BC 24");
+    [MemberFunction("E8 ?? ?? ?? ?? 48 8B DE 48 8D BC 24")]
+    internal partial void RunSearch(bool a2);
 
-    internal unsafe delegate void SetModeFilterDelegate(AddonItemSearch* addon, SearchMode mode, int filter);
-    internal static SetModeFilterDelegate SetModeFilter { get; } = MemoryUtils.GetDelegateForSignature<SetModeFilterDelegate>("E8 ?? ?? ?? ?? EB 40 41 8D 40 FD");
+    [MemberFunction("E8 ?? ?? ?? ?? EB 40 41 8D 40 FD")]
+    internal partial void SetModeFilter(SearchMode mode, int filter);
 }

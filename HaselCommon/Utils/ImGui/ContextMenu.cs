@@ -12,6 +12,7 @@ using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using HaselCommon.Records;
 using HaselCommon.Sheets;
+using HaselCommon.Structs.Internal;
 using ImGuiNET;
 using static HaselCommon.Utils.ImGuiContextMenu;
 using GearsetEntry = FFXIVClientStructs.FFXIV.Client.UI.Misc.RaptureGearsetModule.GearsetEntry;
@@ -42,16 +43,6 @@ public class ImGuiContextMenu : List<IContextMenuEntry>
             entry.Draw(new IterationArgs(i++, count));
         }
     }
-
-    private enum ContextMenuGlamourCallbackAction
-    {
-        Link = 20,
-        ChangeLink = 21,
-        Unlink = 22,
-    }
-
-    private unsafe delegate void ContextMenuGlamourCallbackDelegate(nint agentGearset, uint gearsetId, ContextMenuGlamourCallbackAction action);
-    private static ContextMenuGlamourCallbackDelegate ContextMenuGlamourCallback { get; } = MemoryUtils.GetDelegateForSignature<ContextMenuGlamourCallbackDelegate>("40 53 48 83 EC 20 8B DA 41 83 F8 14");
 
     public interface IContextMenuEntry
     {
@@ -166,8 +157,8 @@ public class ImGuiContextMenu : List<IContextMenuEntry>
             LoseFocusOnClick = true,
             ClickCallback = () =>
             {
-                var agentGearset = AgentModule.Instance()->GetAgentByInternalId(AgentId.Gearset);
-                ContextMenuGlamourCallback.Invoke((nint)agentGearset, gearset->ID, ContextMenuGlamourCallbackAction.Link);
+                var agentGearset = (AgentGearSet*)AgentModule.Instance()->GetAgentByInternalId(AgentId.Gearset);
+                agentGearset->ContextMenuGlamourCallback(gearset->ID, AgentGearSet.ContextMenuGlamourCallbackAction.Link);
             }
         };
 
@@ -179,8 +170,8 @@ public class ImGuiContextMenu : List<IContextMenuEntry>
             Label = GetAddonText(4396),
             ClickCallback = () =>
             {
-                var agentGearset = AgentModule.Instance()->GetAgentByInternalId(AgentId.Gearset);
-                ContextMenuGlamourCallback.Invoke((nint)agentGearset, gearset->ID, ContextMenuGlamourCallbackAction.Unlink);
+                var agentGearset = (AgentGearSet*)AgentModule.Instance()->GetAgentByInternalId(AgentId.Gearset);
+                agentGearset->ContextMenuGlamourCallback(gearset->ID, AgentGearSet.ContextMenuGlamourCallbackAction.Unlink);
             }
         };
 
@@ -192,8 +183,8 @@ public class ImGuiContextMenu : List<IContextMenuEntry>
             Label = GetAddonText(4395),
             ClickCallback = () =>
             {
-                var agentGearset = AgentModule.Instance()->GetAgentByInternalId(AgentId.Gearset);
-                ContextMenuGlamourCallback.Invoke((nint)agentGearset, gearset->ID, ContextMenuGlamourCallbackAction.ChangeLink);
+                var agentGearset = (AgentGearSet*)AgentModule.Instance()->GetAgentByInternalId(AgentId.Gearset);
+                agentGearset->ContextMenuGlamourCallback(gearset->ID, AgentGearSet.ContextMenuGlamourCallbackAction.ChangeLink);
             }
         };
 

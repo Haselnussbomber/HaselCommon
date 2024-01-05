@@ -1,10 +1,7 @@
-using FFXIVClientStructs.FFXIV.Component.GUI;
-using HaselCommon.Utils;
-
 namespace HaselCommon.Structs.Internal;
 
-internal readonly unsafe struct HAtkComponentTextInput
+internal partial struct HAtkComponentTextInput
 {
-    internal unsafe delegate void TriggerRedrawDelegate(AtkComponentTextInput* input);
-    internal static TriggerRedrawDelegate TriggerRedraw { get; } = MemoryUtils.GetDelegateForSignature<TriggerRedrawDelegate>("E8 ?? ?? ?? ?? 48 0F BF 56");
+    [MemberFunction("E8 ?? ?? ?? ?? 48 0F BF 56")]
+    internal partial void TriggerRedraw();
 }
