@@ -83,7 +83,7 @@ internal sealed class MemberFunctionGenerator : IIncrementalGenerator
         builder.AppendLine("using HaselCommon.Interop;");
         builder.AppendLine();
 
-        structInfos[0].IfSuccess(s => builder.AppendLine($"namespace {s.StructInfo.Namespace[..s.StructInfo.Namespace.IndexOf(".")]}.Interop;"));
+        structInfos.First().IfSuccess(s => builder.AppendLine($"namespace {s.StructInfo.Namespace}.Interop;"));
 
         builder.AppendLine();
 
