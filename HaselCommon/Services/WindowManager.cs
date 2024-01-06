@@ -1,29 +1,20 @@
 using System.Linq;
 using Dalamud.Interface.Windowing;
-using Dalamud.Plugin;
+using HaselCommon.Extensions;
 
 namespace HaselCommon.Services;
 
 public class WindowManager : WindowSystem, IDisposable
 {
-    private readonly DalamudPluginInterface _pluginInterface;
-
-    public WindowManager(DalamudPluginInterface pluginInterface) : base(pluginInterface.InternalName)
+    public WindowManager() : base(Service.PluginInterface.InternalName)
     {
-        _pluginInterface = pluginInterface;
-
-        pluginInterface.UiBuilder.Draw += Draw;
+        Service.PluginInterface.UiBuilder.Draw += Draw;
     }
 
     public void Dispose()
     {
-        _pluginInterface.UiBuilder.Draw -= Draw;
-
-        foreach (var window in Windows)
-        {
-            (window as IDisposable)?.Dispose();
-        }
-
+        Service.PluginInterface.UiBuilder.Draw -= Draw;
+        Windows.OfType<IDisposable>().ForEach(window => window.Dispose());
         RemoveAllWindows();
     }
 

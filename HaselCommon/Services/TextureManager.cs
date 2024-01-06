@@ -11,22 +11,18 @@ public class TextureManager : IDisposable
 {
     private static readonly string[] ThemePaths = { "", "light/", "third/", "fourth/" };
 
-    private readonly IFramework _framework;
-
     private readonly Dictionary<(string Path, int Version, Vector2? Uv0, Vector2? Uv1), Texture> _cache = new();
     private readonly Dictionary<(uint IconId, bool IsHq), Texture> _iconTexCache = new();
     private readonly Dictionary<(string UldName, uint PartListId, uint PartId), Texture> _uldTexCache = new();
 
-    public TextureManager(IFramework framework)
+    public TextureManager()
     {
-        _framework = framework;
-
-        framework.Update += OnFrameworkUpdate;
+        Service.Framework.Update += OnFrameworkUpdate;
     }
 
     public void Dispose()
     {
-        _framework.Update -= OnFrameworkUpdate;
+        Service.Framework.Update -= OnFrameworkUpdate;
 
         _iconTexCache.Clear();
         _uldTexCache.Clear();

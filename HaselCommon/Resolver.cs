@@ -31,7 +31,6 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using FFXIVClientStructs.FFXIV.Client.System.Framework;
-using FFXIVClientStructs.Interop;
 
 namespace HaselCommon.Interop;
 

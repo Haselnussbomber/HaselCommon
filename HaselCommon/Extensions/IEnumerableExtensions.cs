@@ -4,9 +4,15 @@ using System.Linq;
 
 namespace HaselCommon.Extensions;
 
-// copied from Dalamud.Interface and made public
-public static class ArrayExtensions
+// most of them are copied from Dalamud.Interface and made public
+public static class IEnumerableExtensions
 {
+    public static void ForEach<T>(this IEnumerable<T> source, Action<T> action)
+    {
+        foreach (var element in source)
+            action(element);
+    }
+
     /// <summary> Iterate over enumerables with additional index. </summary>
     public static IEnumerable<(T Value, int Index)> WithIndex<T>(this IEnumerable<T> list)
         => list.Select((x, i) => (x, i));

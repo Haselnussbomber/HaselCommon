@@ -5,8 +5,6 @@ using System.Reflection;
 using System.Text.Json;
 using Dalamud;
 using Dalamud.Game.Text.SeStringHandling;
-using Dalamud.Plugin;
-using Dalamud.Plugin.Services;
 using HaselCommon.Enums;
 using HaselCommon.Extensions;
 using HaselCommon.Interfaces;
@@ -24,9 +22,6 @@ public class TranslationManager : IDisposable
         ["ja"] = "Japanese"
     };
 
-    private DalamudPluginInterface _pluginInterface;
-    private IClientState _clientState;
-
     private readonly Dictionary<string, Dictionary<string, string>> _translations = new();
     private ITranslationConfig _config = null!;
 
@@ -37,11 +32,8 @@ public class TranslationManager : IDisposable
 
     public CultureInfo CultureInfo { get; private set; } = new(DefaultLanguage);
 
-    public TranslationManager(DalamudPluginInterface pluginInterface, IClientState clientState)
+    public TranslationManager()
     {
-        _pluginInterface = pluginInterface;
-        _clientState = clientState;
-
         using var stream = Assembly.GetCallingAssembly().GetManifestResourceStream("HaselCommon.Translations.json")
             ?? throw new Exception($"Could not find translations resource \"HaselCommon.Translations.json\".");
 
@@ -55,9 +47,7 @@ public class TranslationManager : IDisposable
 
     public void Dispose()
     {
-        _pluginInterface.LanguageChanged -= PluginInterface_LanguageChanged;
-        _pluginInterface = null!;
-        _clientState = null!;
+        Service.PluginInterface.LanguageChanged -= PluginInterface_LanguageChanged;
         _config = null!;
     }
 
@@ -72,7 +62,7 @@ public class TranslationManager : IDisposable
 
         SetLanguage(_config.PluginLanguageOverride, _config.PluginLanguage, false);
 
-        _pluginInterface.LanguageChanged += PluginInterface_LanguageChanged;
+        Service.PluginInterface.LanguageChanged += PluginInterface_LanguageChanged;
     }
 
     public void Initialize(ITranslationConfig config, string? filename = null)
@@ -112,8 +102,8 @@ public class TranslationManager : IDisposable
     {
         code = pluginLanguageOverride switch
         {
-            PluginLanguageOverride.Dalamud => _pluginInterface.UiLanguage,
-            PluginLanguageOverride.Client => _clientState.ClientLanguage.ToCode(),
+            PluginLanguageOverride.Dalamud => Service.PluginInterface.UiLanguage,
+            PluginLanguageOverride.Client => Service.ClientState.ClientLanguage.ToCode(),
             _ => code,
         };
 
