@@ -26,7 +26,6 @@ SOFTWARE.
 
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
@@ -55,51 +54,13 @@ public sealed partial class Resolver
     private bool _cacheChanged = false;
 
     private nint _baseAddress;
-
     private nint _targetSpace;
     private int _targetLength;
-
     private int _textSectionOffset;
     private int _textSectionSize;
 
     private bool _hasResolved = false;
     private bool _isSetup = false;
-
-    // adapted from Dalamud SigScanner
-    private unsafe void SetupSections()
-    {
-        ReadOnlySpan<byte> baseAddress = new(_baseAddress.ToPointer(), _targetLength);
-
-        // We don't want to read all of IMAGE_DOS_HEADER or IMAGE_NT_HEADER stuff so we cheat here.
-        int ntNewOffset = BitConverter.ToInt32(baseAddress.Slice(0x3C, 4));
-        ReadOnlySpan<byte> ntHeader = baseAddress[ntNewOffset..];
-
-        // IMAGE_NT_HEADER
-        ReadOnlySpan<byte> fileHeader = ntHeader[4..];
-        short numSections = BitConverter.ToInt16(ntHeader.Slice(6, 2));
-
-        // IMAGE_OPTIONAL_HEADER
-        ReadOnlySpan<byte> optionalHeader = fileHeader[20..];
-
-        ReadOnlySpan<byte> sectionHeader = optionalHeader[240..]; // IMAGE_OPTIONAL_HEADER64
-
-        // IMAGE_SECTION_HEADER
-        ReadOnlySpan<byte> sectionCursor = sectionHeader;
-        for (int i = 0; i < numSections; i++)
-        {
-            long sectionName = BitConverter.ToInt64(sectionCursor);
-
-            // .text
-            if (sectionName == 0x747865742E)
-            {
-                _textSectionOffset = BitConverter.ToInt32(sectionCursor.Slice(12, 4));
-                _textSectionSize = BitConverter.ToInt32(sectionCursor.Slice(8, 4));
-                break;
-            }
-
-            sectionCursor = sectionCursor[40..]; // advance by 40
-        }
-    }
 
     private void LoadCache()
     {
@@ -161,10 +122,11 @@ public sealed partial class Resolver
     {
         if (!_isSetup)
         {
-            ProcessModule module = Service.SigScanner.Module;
-            _baseAddress = module.BaseAddress;
-            _targetSpace = Service.SigScanner.SearchBase;
-            _targetLength = module.ModuleMemorySize;
+            _baseAddress = Service.SigScanner.Module.BaseAddress;
+            _targetSpace = Service.SigScanner.Module.BaseAddress;
+            _targetLength = Service.SigScanner.Module.ModuleMemorySize;
+            _textSectionOffset = (int)Service.SigScanner.TextSectionOffset;
+            _textSectionSize = Service.SigScanner.TextSectionSize;
 
             string gameVersion;
             unsafe { gameVersion = Framework.Instance()->GameVersion.Base; }
@@ -185,7 +147,6 @@ public sealed partial class Resolver
             if (_cacheFile is not null)
                 LoadCache();
 
-            SetupSections();
             _isSetup = true;
         }
 
