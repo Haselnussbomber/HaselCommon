@@ -28,7 +28,7 @@ internal unsafe partial struct AddonItemSearch
     [FieldOffset(0x3EDB)] public bool PartialMatch;
 
     [MemberFunction("E8 ?? ?? ?? ?? 48 8B DE 48 8D BC 24")]
-    internal partial void RunSearch(bool a2);
+    internal partial void RunSearch(bool ignoreFilters = false);
 
     [MemberFunction("E8 ?? ?? ?? ?? EB 40 41 8D 40 FD")]
     internal partial void SetModeFilter(SearchMode mode, int filter);
