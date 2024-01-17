@@ -7,7 +7,7 @@ using Lumina.Excel;
 
 namespace HaselCommon.Services;
 
-public unsafe class StringManager
+internal unsafe class StringManager
 {
     private readonly Dictionary<(NameFormatterPlaceholder placeholder, NameFormatterIdConverter idConverter, uint id), string> _nameCache = [];
     private readonly Dictionary<(string sheetName, uint rowId, string columnName), string> _sheetCache = [];
@@ -33,7 +33,7 @@ public unsafe class StringManager
         return value;
     }
 
-    public string GetSheetText<T>(uint rowId, string columnName) where T : ExcelRow
+    internal string GetSheetText<T>(uint rowId, string columnName) where T : ExcelRow
     {
         var sheetType = typeof(T);
         var sheetName = sheetType.Name;
