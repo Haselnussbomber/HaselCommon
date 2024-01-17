@@ -13,7 +13,7 @@ public class ExtendedLevel : Level
     {
         if (!ObjectIdCache.TryGetValue(objId, out var value))
         {
-            value = FindRow<ExtendedLevel>(row => row.Object == objId);
+            value = FindRow<ExtendedLevel>(row => row?.Object == objId);
             ObjectIdCache.Add(objId, value);
         }
 

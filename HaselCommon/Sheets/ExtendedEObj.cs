@@ -11,7 +11,7 @@ public class ExtendedEObj : EObj
     {
         if (!DataIdCache.TryGetValue(dataId, out var value))
         {
-            value = FindRow<ExtendedEObj>(row => row.Data == dataId);
+            value = FindRow<ExtendedEObj>(row => row?.Data == dataId);
             DataIdCache.Add(dataId, value);
         }
 

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Dalamud;
@@ -7,6 +8,8 @@ namespace HaselCommon.Utils.Globals;
 
 public static class Excel
 {
+    private static readonly Dictionary<Type, Dictionary<(uint, uint), ExcelRow?>> ExcelCache = [];
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ExcelSheet<T> GetSheet<T>(ClientLanguage? language = null) where T : ExcelRow
         => Service.DataManager.GetExcelSheet<T>(language ?? Service.TranslationManager.ClientLanguage)!;
@@ -16,10 +19,18 @@ public static class Excel
         => GetSheet<T>().RowCount;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static T? GetRow<T>(uint rowId, uint subRowId = uint.MaxValue) where T : ExcelRow
-        => GetSheet<T>().GetRow(rowId, subRowId);
+    public static T? GetRow<T>(uint rowId, uint subRowId = uint.MaxValue, ClientLanguage? language = null) where T : ExcelRow
+    {
+        if (!ExcelCache.TryGetValue(typeof(T), out var dict))
+            ExcelCache.Add(typeof(T), dict = []);
+
+        if (!dict.TryGetValue((rowId, subRowId), out var row))
+            dict.Add((rowId, subRowId), row = GetSheet<T>(language).GetRow(rowId, subRowId));
+
+        return (T?)row;
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static T? FindRow<T>(Func<T, bool> predicate) where T : ExcelRow
-        => GetSheet<T>().FirstOrDefault(predicate);
+    public static T? FindRow<T>(Func<T?, bool> predicate) where T : ExcelRow
+        => GetSheet<T>().FirstOrDefault(predicate, null);
 }
