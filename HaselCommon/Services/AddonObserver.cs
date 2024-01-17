@@ -3,7 +3,6 @@ using Dalamud.Memory;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Component.GUI;
-using static FFXIVClientStructs.Interop.SpanExtensions;
 
 namespace HaselCommon.Services;
 
@@ -29,80 +28,56 @@ public unsafe class AddonObserver : IDisposable
         Update();
     }
 
-    private HashSet<nint> _addedUnits { get; } = new();
-    private HashSet<nint> _removedUnits { get; } = new();
-    private HashSet<nint> _loadedUnits { get; } = new();
-    private Dictionary<nint, string> _nameCache { get; } = new();
+    private HashSet<nint> LoadedUnits { get; } = [];
+    private Dictionary<nint, string> NameCache { get; } = [];
 
     private void Update()
     {
-        _addedUnits.Clear();
-        _removedUnits.Clear();
-
         var raptureAtkModule = RaptureAtkModule.Instance();
         if (raptureAtkModule == null)
             return;
 
-        // check added units
-        var allLoadedList = &raptureAtkModule->RaptureAtkUnitManager.AtkUnitManager.AllLoadedUnitsList;
-        for (var i = 0; i < allLoadedList->Count; i++)
-        {
-            var address = *(nint*)allLoadedList->EntriesSpan.GetPointer(i);
-            if (address == 0 || _loadedUnits.Contains(address) || !raptureAtkModule->AtkModule.IsAddonReady(((AtkUnitBase*)address)->ID))
-                continue;
+        var allLoadedList = raptureAtkModule->RaptureAtkUnitManager.AtkUnitManager.AllLoadedUnitsList;
 
-            _addedUnits.Add(address);
-        }
+        static bool IsAddonReady(nint address)
+            => (*(byte*)(address + 0x189) & 0x1) == 0x1; // see AtkModule.IsAddonReady()
 
-        foreach (var address in _addedUnits)
-        {
-            var unitBase = (AtkUnitBase*)address;
-            var name = MemoryHelper.ReadStringNullTerminated((nint)unitBase->Name);
+        static bool IsAddonVisible(nint address)
+            => (*(ushort*)(address + 0x182) & 0x20) == 0x20; // see AtkUnitBase.IsVisible
 
-            if (!_nameCache.ContainsKey(address))
-                _nameCache.Add(address, name);
-
-            AddonOpen?.Invoke(name);
-        }
-
-        // check removed units
-        foreach (var loadedUnitAddress in _loadedUnits)
+        foreach (var loadedUnitAddress in LoadedUnits)
         {
             var isLoaded = false;
 
-            for (var i = 0; i < allLoadedList->Count; i++)
+            foreach (AtkUnitBase* unitBase in allLoadedList.EntriesSpan)
             {
-                var address = *(nint*)allLoadedList->EntriesSpan.GetPointer(i);
-                if (address == loadedUnitAddress)
+                var address = (nint)unitBase;
+                if (address == loadedUnitAddress && IsAddonReady(address) && IsAddonVisible(address))
                 {
                     isLoaded = true;
                     break;
                 }
             }
 
-            if (!isLoaded)
-                _removedUnits.Add(loadedUnitAddress);
-        }
-
-        foreach (var address in _removedUnits)
-        {
-            if (_nameCache.TryGetValue(address, out var name))
+            if (!isLoaded && NameCache.TryGetValue(loadedUnitAddress, out var name))
             {
-                _nameCache.Remove(address);
-
+                NameCache.Remove(loadedUnitAddress);
+                LoadedUnits.Remove(loadedUnitAddress);
                 AddonClose?.Invoke(name);
             }
         }
 
-        // update LoadedUnits
-        foreach (var address in _addedUnits)
+        foreach (AtkUnitBase* unitBase in allLoadedList.EntriesSpan)
         {
-            _loadedUnits.Add(address);
-        }
+            var address = (nint)unitBase;
+            if (address == 0 || !IsAddonReady(address) || !IsAddonVisible(address) || LoadedUnits.Contains(address))
+                continue;
 
-        foreach (var address in _removedUnits)
-        {
-            _loadedUnits.Remove(address);
+            var name = MemoryHelper.ReadString((nint)unitBase->Name, 32);
+
+            NameCache.Add(address, name);
+            LoadedUnits.Add(address);
+            AddonOpen?.Invoke(name);
         }
     }
 }
