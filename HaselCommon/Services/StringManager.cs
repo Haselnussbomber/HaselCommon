@@ -2,23 +2,23 @@ using System.Collections.Generic;
 using System.Reflection;
 using Dalamud.Memory;
 using Dalamud.Utility;
-using HaselCommon.Structs.Internal;
+using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using Lumina.Excel;
 
 namespace HaselCommon.Services;
 
 public unsafe class StringManager
 {
-    private readonly Dictionary<(NameFormatter.Placeholder placeholder, NameFormatter.IdConverter idConverter, uint id), string> _nameCache = new();
-    private readonly Dictionary<(string sheetName, uint rowId, string columnName), string> _sheetCache = new();
+    private readonly Dictionary<(NameFormatterPlaceholder placeholder, NameFormatterIdConverter idConverter, uint id), string> _nameCache = [];
+    private readonly Dictionary<(string sheetName, uint rowId, string columnName), string> _sheetCache = [];
 
-    internal string? FormatName(NameFormatter.Placeholder placeholder, NameFormatter.IdConverter idConverter, uint id)
+    internal string? FormatName(NameFormatterPlaceholder placeholder, NameFormatterIdConverter idConverter, uint id)
     {
         var key = (placeholder, idConverter, id);
 
         if (!_nameCache.TryGetValue(key, out var value))
         {
-            var ptr = (nint)NameFormatter.Format(placeholder, id, idConverter, 1);
+            var ptr = (nint)RaptureTextModule.FormatName(placeholder, (int)id, idConverter, 1);
             if (ptr != nint.Zero)
             {
                 value = MemoryHelper.ReadSeStringNullTerminated(ptr).ToString();
