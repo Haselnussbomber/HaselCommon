@@ -33,7 +33,5 @@ public unsafe class DisposableCreatable<T> : IDisposable where T : unmanaged, IC
 
         IMemorySpace.Free(Ptr);
         Ptr = null;
-
-        GC.SuppressFinalize(this);
     }
 }

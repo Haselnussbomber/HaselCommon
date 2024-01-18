@@ -20,7 +20,6 @@ public unsafe class AddonObserver : IDisposable
     public void Dispose()
     {
         Service.Framework.Update -= OnFrameworkUpdate;
-        GC.SuppressFinalize(this);
     }
 
     private void OnFrameworkUpdate(IFramework framework)

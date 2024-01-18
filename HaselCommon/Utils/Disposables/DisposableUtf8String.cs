@@ -136,7 +136,5 @@ public unsafe class DisposableUtf8String : DisposableCreatable<Utf8String>, IDis
 
         Ptr->Dtor();
         base.Dispose();
-
-        GC.SuppressFinalize(this);
     }
 }

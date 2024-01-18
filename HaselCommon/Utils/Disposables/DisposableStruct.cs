@@ -33,7 +33,5 @@ public unsafe class DisposableStruct<T> : IDisposable where T : unmanaged
 
         IMemorySpace.Free(Ptr);
         Ptr = null;
-
-        GC.SuppressFinalize(this);
     }
 }

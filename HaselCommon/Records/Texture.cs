@@ -28,8 +28,6 @@ public record Texture : IDisposable
     public void Dispose()
     {
         _textureWrap?.Dispose();
-        _textureWrap = null;
-        GC.SuppressFinalize(this);
     }
 
     public string Path { get; }

@@ -28,8 +28,6 @@ public unsafe class DisposableStructArray<T> : IDisposable where T : unmanaged
 
         IMemorySpace.Free(Ptr);
         Ptr = null;
-
-        GC.SuppressFinalize(this);
     }
 
     public T* this[int index]
