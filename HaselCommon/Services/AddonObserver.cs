@@ -1,8 +1,10 @@
 using System.Collections.Generic;
+using System.Linq;
 using Dalamud.Memory;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Component.GUI;
+using NoAlloq;
 
 namespace HaselCommon.Services;
 
@@ -11,6 +13,9 @@ public unsafe class AddonObserver : IDisposable
     public delegate void CallbackDelegate(string addonName);
     public event CallbackDelegate? AddonOpen;
     public event CallbackDelegate? AddonClose;
+
+    private readonly HashSet<nint> LoadedUnits = new(256);
+    private readonly Dictionary<nint, string> NameCache = new(256);
 
     public AddonObserver()
     {
@@ -24,55 +29,32 @@ public unsafe class AddonObserver : IDisposable
 
     private void OnFrameworkUpdate(IFramework framework)
     {
-        Update();
-    }
-
-    private HashSet<nint> LoadedUnits { get; } = [];
-    private Dictionary<nint, string> NameCache { get; } = [];
-
-    private void Update()
-    {
-        var raptureAtkModule = RaptureAtkModule.Instance();
-        if (raptureAtkModule == null)
-            return;
-
-        var allLoadedList = raptureAtkModule->RaptureAtkUnitManager.AtkUnitManager.AllLoadedUnitsList;
-
+        /*
         static bool IsAddonReady(nint address)
             => (*(byte*)(address + 0x189) & 0x1) == 0x1; // see AtkModule.IsAddonReady()
 
         static bool IsAddonVisible(nint address)
             => (*(ushort*)(address + 0x182) & 0x20) == 0x20; // see AtkUnitBase.IsVisible
+        */
 
-        foreach (var loadedUnitAddress in LoadedUnits)
+        var visibleUnits = RaptureAtkModule.Instance()->RaptureAtkUnitManager.AtkUnitManager.AllLoadedUnitsList.EntriesSpan
+            .Select(entry => (nint)entry.Value)
+            .Where(address => address != 0 && (*(byte*)(address + 0x189) & 0x1) == 0x1 && (*(ushort*)(address + 0x182) & 0x20) == 0x20);
+
+        foreach (var address in LoadedUnits.Except(visibleUnits.Where(LoadedUnits.Contains).ToList()))
         {
-            var isLoaded = false;
+            LoadedUnits.Remove(address);
 
-            foreach (AtkUnitBase* unitBase in allLoadedList.EntriesSpan)
-            {
-                var address = (nint)unitBase;
-                if (address == loadedUnitAddress && IsAddonReady(address) && IsAddonVisible(address))
-                {
-                    isLoaded = true;
-                    break;
-                }
-            }
-
-            if (!isLoaded && NameCache.TryGetValue(loadedUnitAddress, out var name))
-            {
-                NameCache.Remove(loadedUnitAddress);
-                LoadedUnits.Remove(loadedUnitAddress);
-                AddonClose?.Invoke(name);
-            }
-        }
-
-        foreach (AtkUnitBase* unitBase in allLoadedList.EntriesSpan)
-        {
-            var address = (nint)unitBase;
-            if (address == 0 || !IsAddonReady(address) || !IsAddonVisible(address) || LoadedUnits.Contains(address))
+            if (!NameCache.TryGetValue(address, out var name))
                 continue;
 
-            var name = MemoryHelper.ReadString((nint)unitBase->Name, 32);
+            NameCache.Remove(address);
+            AddonClose?.Invoke(name);
+        }
+
+        foreach (var address in visibleUnits.Where(address => !LoadedUnits.Contains(address)))
+        {
+            var name = MemoryHelper.ReadString((nint)((AtkUnitBase*)address)->Name, 32);
 
             NameCache.Add(address, name);
             LoadedUnits.Add(address);
