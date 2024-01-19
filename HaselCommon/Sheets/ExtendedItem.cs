@@ -81,6 +81,7 @@ public class ExtendedItem : Item
     public bool CanTryOn
         => EquipSlotCategory.Row switch
         {
+            0 => false,
             2 when FilterGroup != 3 => false, // any OffHand that's not a Shield
             6 => false, // Waist
             17 => false, // SoulCrystal
