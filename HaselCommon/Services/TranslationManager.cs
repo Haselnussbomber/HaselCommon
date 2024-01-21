@@ -5,134 +5,65 @@ using System.Reflection;
 using System.Text.Json;
 using Dalamud;
 using Dalamud.Game.Text.SeStringHandling;
-using HaselCommon.Enums;
 using HaselCommon.Extensions;
-using HaselCommon.Interfaces;
 
 namespace HaselCommon.Services;
 
 public class TranslationManager : IDisposable
 {
-    public static readonly string DefaultLanguage = "en";
-    public static readonly Dictionary<string, string> AllowedLanguages = new()
+    private readonly Dictionary<string, Dictionary<string, string>> _translations = [];
+
+    public CultureInfo CultureInfo { get; private set; } = new("en");
+    public ClientLanguage ClientLanguage { get; private set; } = ClientLanguage.English;
+    public string LanguageCode { get; private set; } = "en";
+
+    public void Initialize()
     {
-        ["de"] = "German",
-        ["en"] = "English",
-        ["fr"] = "French",
-        ["ja"] = "Japanese"
-    };
+        LoadEmbeddedResource(GetType().Assembly, "HaselCommon.Translations.json");
+        LoadEmbeddedResource(Assembly.GetCallingAssembly(), $"{Service.PluginInterface.InternalName}.Translations.json");
 
-    private readonly Dictionary<string, Dictionary<string, string>> _translations = new();
-    private ITranslationConfig _config = null!;
+        LanguageCode = Service.PluginInterface.UiLanguage;
+        ClientLanguage = Service.PluginInterface.UiLanguage.ToClientlanguage();
+        CultureInfo = new(LanguageCode);
 
-    private string _activeLanguage = DefaultLanguage;
-
-    public delegate void LanguageChangedDelegate();
-    public event LanguageChangedDelegate? OnLanguageChange;
-
-    public CultureInfo CultureInfo { get; private set; } = new(DefaultLanguage);
-
-    public TranslationManager()
-    {
-        using var stream = Assembly.GetCallingAssembly().GetManifestResourceStream("HaselCommon.Translations.json")
-            ?? throw new Exception($"Could not find translations resource \"HaselCommon.Translations.json\".");
-
-        var translations = JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, string>>>(stream) ?? new();
-
-        foreach (var key in translations.Keys)
-        {
-            _translations.Add(key, translations[key]);
-        }
+        Service.PluginInterface.LanguageChanged += PluginInterface_LanguageChanged;
     }
 
     public void Dispose()
     {
         Service.PluginInterface.LanguageChanged -= PluginInterface_LanguageChanged;
-        _config = null!;
     }
 
-    public void Initialize(ITranslationConfig config, Dictionary<string, Dictionary<string, string>> translations)
+    public void LoadEmbeddedResource(Assembly assembly, string filename)
     {
-        _config = config;
-
-        foreach (var key in translations.Keys)
+        using var stream = assembly.GetManifestResourceStream(filename);
+        if (stream == null)
         {
-            _translations.Add(key, translations[key]);
+            Service.PluginLog.Warning("[TranslationManager] Could not find translations resource {filename} in assembly {assemblyName}", filename, assembly.Location);
+            return;
         }
 
-        SetLanguage(_config.PluginLanguageOverride, _config.PluginLanguage, false);
-
-        Service.PluginInterface.LanguageChanged += PluginInterface_LanguageChanged;
+        LoadDictionary(JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, string>>>(stream) ?? []);
     }
 
-    public void Initialize(ITranslationConfig config, string? filename = null)
+    public void LoadDictionary(Dictionary<string, Dictionary<string, string>> translations)
     {
-        if (string.IsNullOrEmpty(filename))
-            filename = $"{Service.PluginInterface.InternalName}.Translations.json";
-
-        using var stream = Assembly.GetCallingAssembly().GetManifestResourceStream(filename)
-            ?? throw new Exception($"Could not find translations resource \"{filename}\".");
-
-        var translations = JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, string>>>(stream) ?? new();
-
-        Initialize(config, translations);
+        foreach (var key in translations.Keys)
+            _translations.Add(key, translations[key]);
     }
-
-    public PluginLanguageOverride Override
-    {
-        get => _config.PluginLanguageOverride;
-        set => SetLanguage(value, _config.PluginLanguage);
-    }
-
-    public string Language
-    {
-        get => _activeLanguage;
-        set => SetLanguage(_config.PluginLanguageOverride, value);
-    }
-
-    public ClientLanguage ClientLanguage => _activeLanguage.ToClientlanguage();
 
     private void PluginInterface_LanguageChanged(string langCode)
     {
-        if (Override == PluginLanguageOverride.Dalamud)
-            Language = langCode;
-    }
-
-    public void SetLanguage(PluginLanguageOverride pluginLanguageOverride, string code, bool fireOnLanguageChangeEvent = true)
-    {
-        code = pluginLanguageOverride switch
-        {
-            PluginLanguageOverride.Dalamud => Service.PluginInterface.UiLanguage,
-            PluginLanguageOverride.Client => Service.ClientState.ClientLanguage.ToCode(),
-            _ => code,
-        };
-
-        if (!AllowedLanguages.ContainsKey(code))
-            code = DefaultLanguage;
-
-        _config.PluginLanguageOverride = pluginLanguageOverride;
-        _config.PluginLanguage = code;
-
-        if (_activeLanguage != code)
-        {
-            _activeLanguage = code;
-            CultureInfo = new(code);
-            Service.StringManager.Clear();
-
-            if (fireOnLanguageChangeEvent)
-                OnLanguageChange?.Invoke();
-        }
-    }
-
-    public void UpdateLanguage()
-    {
-        SetLanguage(Override, Language);
+        LanguageCode = Service.PluginInterface.UiLanguage;
+        ClientLanguage = Service.PluginInterface.UiLanguage.ToClientlanguage();
+        CultureInfo = new(LanguageCode);
+        Service.StringManager.Clear();
     }
 
     public bool TryGetTranslation(string key, [MaybeNullWhen(false)] out string text)
     {
         text = default;
-        return _translations.TryGetValue(key, out var entry) && (entry.TryGetValue(_activeLanguage, out text) || entry.TryGetValue("en", out text));
+        return _translations.TryGetValue(key, out var entry) && (entry.TryGetValue(LanguageCode, out text) || entry.TryGetValue("en", out text));
     }
 
     public string Translate(string key)
@@ -146,7 +77,7 @@ public class TranslationManager : IDisposable
         if (!TryGetTranslation(key, out var format))
             return key;
 
-        var placeholders = format.Split(new[] { '{', '}' });
+        var placeholders = format.Split(['{', '}']);
         var sb = new SeStringBuilder();
 
         for (var i = 0; i < placeholders.Length; i++)
