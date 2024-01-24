@@ -3,6 +3,7 @@ using System.Runtime.CompilerServices;
 using Dalamud.Game.Text.SeStringHandling;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using Lumina.Excel;
+using Lumina.Excel.GeneratedSheets;
 using AddonSheet = Lumina.Excel.GeneratedSheets.Addon;
 
 namespace HaselCommon.Utils.Globals;
@@ -30,7 +31,7 @@ public static unsafe class Strings
         => Service.StringManager.GetSheetText<T>(rowId, columnName);
 
     public static string GetItemName(uint id)
-        => Service.StringManager.FormatName(NameFormatterPlaceholder.Item, NameFormatterIdConverter.None, id) ?? $"[Item#{id}]";
+        => GetSheetText<Item>(id, "Name");
 
     public static string GetBNpcName(uint id)
         => Service.StringManager.FormatName(NameFormatterPlaceholder.ObjStr, NameFormatterIdConverter.BNpcName, id) ?? $"[BNpcName#{id}]";
