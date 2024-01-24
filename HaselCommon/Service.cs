@@ -12,21 +12,22 @@ namespace HaselCommon;
 
 public class Service
 {
-    private static readonly HashSet<object> cache = [];
+    private static readonly HashSet<object> Cache = [];
+    private static readonly HashSet<object> DalamudCache = [];
 
     public static bool HasService<T>() where T : class
-        => cache.OfType<T>().FirstOrDefault() != null;
+        => Cache.OfType<T>().FirstOrDefault() != null || DalamudCache.OfType<T>().FirstOrDefault() != null;
 
     public static T GetService<T>() where T : class, new()
     {
-        lock (cache)
+        lock (Cache)
         {
-            var obj = cache.OfType<T>().FirstOrDefault();
+            var obj = Cache.OfType<T>().FirstOrDefault();
             if (obj == null)
             {
                 if (HasService<IPluginLog>())
                     PluginLog.Verbose($"[Service] Creating {typeof(T).Name}");
-                cache.Add(obj = new T());
+                Cache.Add(obj = new T());
             }
 
             return obj;
@@ -35,9 +36,9 @@ public class Service
 
     public static T GetDalamudService<T>()
     {
-        lock (cache)
+        lock (DalamudCache)
         {
-            var obj = cache.OfType<T>().FirstOrDefault();
+            var obj = DalamudCache.OfType<T>().FirstOrDefault();
             if (obj == null)
             {
                 if (HasService<IPluginLog>())
@@ -46,7 +47,7 @@ public class Service
                 obj = new DalamudServiceWrapper<T>(PluginInterface).Service;
 
                 if (obj != null)
-                    cache.Add(obj);
+                    DalamudCache.Add(obj);
                 else
                     throw new Exception($"DalamudService of type {typeof(T).Name} is null");
             }
@@ -109,6 +110,8 @@ public class Service
 
     public static void Dispose()
     {
-        cache.OfType<IDisposable>().ForEach(disposable => disposable.Dispose());
+        Cache.OfType<IDisposable>().ForEach(disposable => disposable.Dispose());
+        Cache.Clear();
+        DalamudCache.Clear();
     }
 }
