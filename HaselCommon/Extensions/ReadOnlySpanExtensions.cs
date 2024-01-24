@@ -1,6 +1,6 @@
 namespace HaselCommon.Extensions;
 
-public static class ReadOnlySpanExtension
+public static class ReadOnlySpanExtensions
 {
     public static ReadOnlySpan<byte> WithNullTerminator(this ReadOnlySpan<byte> originalSpan)
     {

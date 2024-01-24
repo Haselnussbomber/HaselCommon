@@ -3,7 +3,7 @@ using FFXIVClientStructs.FFXIV.Common.Math;
 
 namespace HaselCommon.Extensions;
 
-public static class BinaryWriterExtension
+public static class BinaryWriterExtensions
 {
     public static void Write(this BinaryWriter writer, HalfVector2 vec)
     {

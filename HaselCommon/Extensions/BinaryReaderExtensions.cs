@@ -3,7 +3,7 @@ using FFXIVClientStructs.FFXIV.Common.Math;
 
 namespace HaselCommon.Extensions;
 
-public static class BinaryReaderExtension
+public static class BinaryReaderExtensions
 {
     public static HalfVector2 ReadHalfVector2(this BinaryReader reader) => new()
     {
