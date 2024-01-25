@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Component.Exd;
@@ -12,7 +11,6 @@ namespace HaselCommon.Sheets;
 
 public class ExtendedItem : Item
 {
-    private string? _name { get; set; } = null;
     private Recipe[]? recipes { get; set; } = null;
     private bool? _isCraftable { get; set; } = null;
     private bool? _isFish { get; set; } = null;
@@ -23,7 +21,7 @@ public class ExtendedItem : Item
     private ExtendedFishingSpot[]? _fishingSpots { get; set; } = null;
 
     public new string Name
-        => _name ??= base.Name.ToDalamudString().ToString();
+        => GetItemName(RowId);
 
     public Recipe[] Recipes
     {
