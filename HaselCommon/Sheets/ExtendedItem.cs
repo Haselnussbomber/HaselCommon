@@ -89,7 +89,7 @@ public class ExtendedItem : Item
     public bool CanSearchForItem
         => !IsUntradable && !IsCollectable && IsAddonOpen(AgentId.ItemSearch);
 
-    public unsafe bool HasAcquired
+    public unsafe bool IsUnlocked
     {
         get
         {
@@ -97,8 +97,41 @@ public class ExtendedItem : Item
                 return false;
 
             var type = (ItemActionType)ItemAction.Value!.Type;
-            if (type == ItemActionType.Cards)
-                return UIState.Instance()->IsTripleTriadCardUnlocked((ushort)AdditionalData);
+
+            // most of what "E8 ?? ?? ?? ?? 84 C0 75 A6 32 C0" does
+            // just to avoid the ExdModule.GetItemRowById call...
+            switch (type)
+            {
+                case ItemActionType.Companion:
+                    return UIState.Instance()->IsCompanionUnlocked(ItemAction.Value.Data[0]);
+                
+                case ItemActionType.BuddyEquip:
+                    return UIState.Instance()->Buddy.IsBuddyEquipUnlocked(ItemAction.Value.Data[0]);
+
+                case ItemActionType.Mount:
+                    return PlayerState.Instance()->IsMountUnlocked(ItemAction.Value.Data[0]);
+
+                case ItemActionType.SecretRecipeBook:
+                    return PlayerState.Instance()->IsSecretRecipeBookUnlocked(ItemAction.Value.Data[0]);
+
+                case ItemActionType.UnlockLink:
+                    return UIState.Instance()->IsUnlockLinkUnlocked(ItemAction.Value.Data[0]);
+
+                case ItemActionType.TripleTriadCard:
+                    return UIState.Instance()->IsTripleTriadCardUnlocked((ushort)AdditionalData);
+
+                case ItemActionType.FolkloreTome:
+                    return PlayerState.Instance()->IsFolkloreBookUnlocked(ItemAction.Value.Data[0]);
+
+                case ItemActionType.OrchestrionRoll:
+                    return PlayerState.Instance()->IsOrchestrionRollUnlocked(ItemAction.Value.Data[0]);
+
+                case ItemActionType.FramersKit:
+                    return PlayerState.Instance()->IsFramersKitUnlocked(ItemAction.Value.Data[0]);
+
+                case ItemActionType.Ornament:
+                    return PlayerState.Instance()->IsOrnamentUnlocked(ItemAction.Value.Data[0]);
+            }
 
             var row = ExdModule.GetItemRowById(RowId);
             return row != null && UIState.Instance()->IsItemActionUnlocked(row) == 1;
