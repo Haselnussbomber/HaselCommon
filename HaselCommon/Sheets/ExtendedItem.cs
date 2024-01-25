@@ -124,7 +124,7 @@ public class ExtendedItem : Item
                     return PlayerState.Instance()->IsFolkloreBookUnlocked(ItemAction.Value.Data[0]);
 
                 case ItemActionType.OrchestrionRoll:
-                    return PlayerState.Instance()->IsOrchestrionRollUnlocked(ItemAction.Value.Data[0]);
+                    return PlayerState.Instance()->IsOrchestrionRollUnlocked(AdditionalData);
 
                 case ItemActionType.FramersKit:
                     return PlayerState.Instance()->IsFramersKitUnlocked(ItemAction.Value.Data[0]);
