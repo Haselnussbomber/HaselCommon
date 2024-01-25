@@ -8,7 +8,7 @@ namespace HaselCommon.Utils.Globals;
 
 public static class Excel
 {
-    private static readonly Dictionary<Type, Dictionary<(ClientLanguage, uint, uint), ExcelRow?>> ExcelCache = [];
+    internal static readonly Dictionary<Type, Dictionary<(uint, uint), ExcelRow?>> ExcelCache = [];
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ExcelSheet<T> GetSheet<T>(ClientLanguage? language = null) where T : ExcelRow
@@ -24,9 +24,8 @@ public static class Excel
         if (!ExcelCache.TryGetValue(typeof(T), out var dict))
             ExcelCache.Add(typeof(T), dict = []);
 
-        var lang = language ?? Service.TranslationManager.ClientLanguage;
-        if (!dict.TryGetValue((lang, rowId, subRowId), out var row))
-            dict.Add((lang, rowId, subRowId), row = GetSheet<T>(language).GetRow(rowId, subRowId));
+        if (!dict.TryGetValue((rowId, subRowId), out var row))
+            dict.Add((rowId, subRowId), row = GetSheet<T>(language).GetRow(rowId, subRowId));
 
         return (T?)row;
     }

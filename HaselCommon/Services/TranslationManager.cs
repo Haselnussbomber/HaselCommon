@@ -57,7 +57,9 @@ public class TranslationManager : IDisposable
         LanguageCode = Service.PluginInterface.UiLanguage;
         ClientLanguage = Service.PluginInterface.UiLanguage.ToClientlanguage();
         CultureInfo = new(LanguageCode);
-        Service.StringManager.Clear();
+        StringManager.NameCache.Clear();
+        StringManager.TextCache.Clear();
+        ExcelCache.Clear();
     }
 
     public bool TryGetTranslation(string key, [MaybeNullWhen(false)] out string text)

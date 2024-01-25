@@ -9,14 +9,14 @@ namespace HaselCommon.Services;
 
 internal unsafe class StringManager
 {
-    private readonly Dictionary<(NameFormatterPlaceholder placeholder, NameFormatterIdConverter idConverter, uint id), string> _nameCache = [];
-    private readonly Dictionary<(string sheetName, uint rowId, string columnName), string> _sheetCache = [];
+    internal static readonly Dictionary<(NameFormatterPlaceholder placeholder, NameFormatterIdConverter idConverter, uint id), string> NameCache = [];
+    internal static readonly Dictionary<(string sheetName, uint rowId, string columnName), string> TextCache = [];
 
     internal string? FormatName(NameFormatterPlaceholder placeholder, NameFormatterIdConverter idConverter, uint id)
     {
         var key = (placeholder, idConverter, id);
 
-        if (!_nameCache.TryGetValue(key, out var value))
+        if (!NameCache.TryGetValue(key, out var value))
         {
             var ptr = (nint)RaptureTextModule.FormatName(placeholder, (int)id, idConverter, 1);
             if (ptr != nint.Zero)
@@ -26,7 +26,7 @@ internal unsafe class StringManager
                 if (string.IsNullOrWhiteSpace(value))
                     return null;
 
-                _nameCache.Add(key, value);
+                NameCache.Add(key, value);
             }
         }
 
@@ -39,7 +39,7 @@ internal unsafe class StringManager
         var sheetName = sheetType.Name;
         var key = (sheetName, rowId, columnName);
 
-        if (!_sheetCache.TryGetValue(key, out var value))
+        if (!TextCache.TryGetValue(key, out var value))
         {
             var prop = sheetType.GetProperty(columnName, BindingFlags.Instance | BindingFlags.Public);
             if (prop == null || prop.PropertyType != typeof(Lumina.Text.SeString))
@@ -55,15 +55,9 @@ internal unsafe class StringManager
 
             value = seStr.ToDalamudString().TextValue;
 
-            _sheetCache.Add(key, value);
+            TextCache.Add(key, value);
         }
 
         return value;
-    }
-
-    public void Clear()
-    {
-        _nameCache.Clear();
-        _sheetCache.Clear();
     }
 }
