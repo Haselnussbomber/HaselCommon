@@ -6,17 +6,6 @@ namespace HaselCommon.Structs.Internal;
 [StructLayout(LayoutKind.Explicit, Size = 0x3EE0)]
 internal unsafe partial struct AddonItemSearch
 {
-    public enum SearchMode : uint
-    {
-        Normal = 0,
-        ArmsFilter = 1,
-        EquipmentFilter = 2,
-        ItemsFilter = 3,
-        HousingFilter = 4,
-        Wishlist = 5,
-        Favorites = 6,
-    }
-
     [FieldOffset(0)] public AtkUnitBase AtkUnitBase;
 
     [FieldOffset(0x230)] public SearchMode Mode;
@@ -32,4 +21,15 @@ internal unsafe partial struct AddonItemSearch
 
     [MemberFunction("E8 ?? ?? ?? ?? EB 40 41 8D 40 FD")]
     internal partial void SetModeFilter(SearchMode mode, int filter);
+
+    public enum SearchMode : uint
+    {
+        Normal = 0,
+        ArmsFilter = 1,
+        EquipmentFilter = 2,
+        ItemsFilter = 3,
+        HousingFilter = 4,
+        Wishlist = 5,
+        Favorites = 6,
+    }
 }

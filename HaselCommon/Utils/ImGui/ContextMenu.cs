@@ -7,14 +7,15 @@ using Dalamud.Interface;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Utility;
+using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using HaselCommon.Records;
 using HaselCommon.Sheets;
-using HaselCommon.Structs.Internal;
 using ImGuiNET;
 using static HaselCommon.Utils.ImGuiContextMenu;
+using AgentMiragePrismMiragePlate = HaselCommon.Structs.Internal.AgentMiragePrismMiragePlate;
 using GearsetEntry = FFXIVClientStructs.FFXIV.Client.UI.Misc.RaptureGearsetModule.GearsetEntry;
 using TerritoryType = Lumina.Excel.GeneratedSheets.TerritoryType;
 
@@ -151,41 +152,28 @@ public class ImGuiContextMenu : List<IContextMenuEntry>
     public static unsafe ContextMenuEntry CreateGearsetLinkGlamour(GearsetEntry* gearset)
         => new()
         {
-            Visible = gearset != null && gearset->GlamourSetLink == 0,
-            Enabled = UIState.Instance()->IsUnlockLinkUnlocked(15),
+            Visible = gearset != null && gearset->GlamourSetLink == 0 && UIState.Instance()->IsUnlockLinkUnlocked(15),
+            Enabled = GameMain.IsInSanctuary(),
             Label = GetAddonText(4394),
             LoseFocusOnClick = true,
-            ClickCallback = () =>
-            {
-                var agentGearset = (AgentGearSet*)AgentModule.Instance()->GetAgentByInternalId(AgentId.Gearset);
-                agentGearset->ContextMenuGlamourCallback(gearset->ID, AgentGearSet.ContextMenuGlamourCallbackAction.Link);
-            }
-        };
-
-    public static unsafe ContextMenuEntry CreateGearsetUnlinkGlamour(GearsetEntry* gearset)
-        => new()
-        {
-            Visible = gearset != null && gearset->GlamourSetLink != 0,
-            Enabled = UIState.Instance()->IsUnlockLinkUnlocked(15),
-            Label = GetAddonText(4396),
-            ClickCallback = () =>
-            {
-                var agentGearset = (AgentGearSet*)AgentModule.Instance()->GetAgentByInternalId(AgentId.Gearset);
-                agentGearset->ContextMenuGlamourCallback(gearset->ID, AgentGearSet.ContextMenuGlamourCallbackAction.Unlink);
-            }
+            ClickCallback = () => GetAgent<AgentMiragePrismMiragePlate>()->OpenForGearset(gearset->ID, gearset->GlamourSetLink)
         };
 
     public static unsafe ContextMenuEntry CreateGearsetChangeGlamour(GearsetEntry* gearset)
         => new()
         {
-            Visible = gearset != null && gearset->GlamourSetLink != 0,
-            Enabled = UIState.Instance()->IsUnlockLinkUnlocked(15),
+            Visible = gearset != null && gearset->GlamourSetLink != 0 && UIState.Instance()->IsUnlockLinkUnlocked(15),
+            Enabled = GameMain.IsInSanctuary(),
             Label = GetAddonText(4395),
-            ClickCallback = () =>
-            {
-                var agentGearset = (AgentGearSet*)AgentModule.Instance()->GetAgentByInternalId(AgentId.Gearset);
-                agentGearset->ContextMenuGlamourCallback(gearset->ID, AgentGearSet.ContextMenuGlamourCallbackAction.ChangeLink);
-            }
+            ClickCallback = () => GetAgent<AgentMiragePrismMiragePlate>()->OpenForGearset(gearset->ID, gearset->GlamourSetLink)
+        };
+
+    public static unsafe ContextMenuEntry CreateGearsetUnlinkGlamour(GearsetEntry* gearset)
+        => new()
+        {
+            Visible = gearset != null && gearset->GlamourSetLink != 0 && UIState.Instance()->IsUnlockLinkUnlocked(15),
+            Label = GetAddonText(4396),
+            ClickCallback = () => RaptureGearsetModule.Instance()->LinkGlamourPlate(gearset->ID, 0)
         };
 
     public static unsafe ContextMenuEntry CreateGearsetChangePortrait(GearsetEntry* gearset)

@@ -22,13 +22,9 @@ public static unsafe class ItemSearchUtils
         if (itemName.Length > 40)
             itemName = itemName[..40];
 
-        addon->TextInput->AtkComponentInputBase.UnkText1.SetString(itemName);
-        addon->TextInput->AtkComponentInputBase.UnkText2.SetString(itemName);
-        addon->TextInput->UnkText1.SetString(itemName);
-        addon->TextInput->UnkText2.SetString(itemName);
+        ((HAtkComponentTextInput*)addon->TextInput)->SetText(itemName);
 
         addon->SetModeFilter(AddonItemSearch.SearchMode.Normal, -1);
-        ((HAtkComponentTextInput*)addon->TextInput)->TriggerRedraw();
         addon->RunSearch(false);
     }
 }

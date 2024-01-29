@@ -1,7 +1,7 @@
 namespace HaselCommon.Structs.Internal;
 
-internal partial struct HAtkComponentTextInput
+internal unsafe partial struct HAtkComponentTextInput
 {
-    [MemberFunction("E8 ?? ?? ?? ?? 48 0F BF 56")]
-    internal partial void TriggerRedraw();
+    [MemberFunction("E8 ?? ?? ?? ?? 45 32 C0 8B D6"), GenerateCStrOverloads]
+    public readonly partial void SetText(byte* text);
 }
