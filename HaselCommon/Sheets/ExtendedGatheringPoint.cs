@@ -1,7 +1,6 @@
 using Dalamud.Game.Text.SeStringHandling;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
-using HaselCommon.Structs.Internal;
 using HaselCommon.Utils;
 using Lumina.Excel.GeneratedSheets;
 
@@ -22,7 +21,7 @@ public class ExtendedGatheringPoint : GatheringPoint
             if (gatheringType == null)
                 return _icon ??= 0;
 
-            var rare = !Statics.IsGatheringPointRare(Type);
+            var rare = !IsGatheringTypeRare(Type);
             return _icon ??= rare ? (uint)gatheringType.IconMain : (uint)gatheringType.IconOff;
         }
     }
@@ -59,7 +58,7 @@ public class ExtendedGatheringPoint : GatheringPoint
         using var tooltip = new DisposableUtf8String(levelText);
         tooltip.Append(" " + gatheringPointName);
 
-        var iconId = !Statics.IsGatheringPointRare(exportedPoint.GatheringPointType)
+        var iconId = !IsGatheringTypeRare(exportedPoint.GatheringPointType)
             ? gatheringType.IconMain
             : gatheringType.IconOff;
 

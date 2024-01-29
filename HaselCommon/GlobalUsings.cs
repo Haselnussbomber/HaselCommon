@@ -5,4 +5,5 @@ global using FFXIVClientStructs.Interop.Attributes;
 global using static HaselCommon.Utils.Globals.Addon;
 global using static HaselCommon.Utils.Globals.Agent;
 global using static HaselCommon.Utils.Globals.Excel;
+global using static HaselCommon.Utils.Globals.Statics;
 global using static HaselCommon.Utils.Globals.Strings;
