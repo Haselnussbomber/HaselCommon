@@ -64,21 +64,12 @@ public sealed partial class Resolver
 
     private void LoadCache()
     {
-        if (_cacheFile is not { Exists: true })
-        {
-            _textCache = new ConcurrentDictionary<string, long>();
-            return;
-        }
-
         try
         {
             var json = File.ReadAllText(_cacheFile.FullName);
             _textCache = JsonSerializer.Deserialize<ConcurrentDictionary<string, long>>(json) ?? new ConcurrentDictionary<string, long>();
         }
-        catch
-        {
-            _textCache = new ConcurrentDictionary<string, long>();
-        }
+        catch { }
     }
 
     private void SaveCache()
@@ -144,7 +135,7 @@ public sealed partial class Resolver
             }
 
             _cacheFile = new FileInfo(Path.Join(Service.PluginInterface.ConfigDirectory.FullName, currentSigCacheName));
-            if (_cacheFile is not null)
+            if (_cacheFile is { Exists: true })
                 LoadCache();
 
             _isSetup = true;
@@ -156,7 +147,7 @@ public sealed partial class Resolver
         if (_targetSpace == 0)
             throw new Exception("[Resolver] Attempted to call Resolve() without initializing the search space.");
 
-        if (_textCache is not null)
+        if (_textCache != null)
         {
             if (ResolveFromCache())
                 return;
@@ -213,7 +204,8 @@ public sealed partial class Resolver
 
                         Service.PluginLog.Verbose($"[SigCache] Caching address {address.Value:X} (ffxiv_dx11.exe+{address.Value - (nuint)_baseAddress:X}) for {str}");
 
-                        if (_textCache!.TryAdd(str, outLocation + _textSectionOffset) == true)
+                        _textCache ??= [];
+                        if (_textCache.TryAdd(str, outLocation + _textSectionOffset) == true)
                             _cacheChanged = true;
 
                         _preResolveArray[targetSpan[location]].Remove(address);
