@@ -30,10 +30,29 @@ public class Service
             {
                 if (HasService<IPluginLog>())
                     PluginLog.Verbose($"[Service] Creating {typeof(T).Name}");
+
                 Cache.Add(obj = new T());
             }
 
             return obj;
+        }
+    }
+
+    public static void AddService<T>() where T : class, new()
+        => GetService<T>();
+
+    public static void AddService<T>(T obj) where T : class, new()
+    {
+        lock (Cache)
+        {
+            var existingObj = Cache.OfType<T>().FirstOrDefault();
+            if (existingObj == null)
+            {
+                if (HasService<IPluginLog>())
+                    PluginLog.Verbose($"[Service] Adding {typeof(T).Name}");
+
+                Cache.Add(obj);
+            }
         }
     }
 
@@ -110,6 +129,7 @@ public class Service
     {
         PluginInterface = pluginInterface;
         PluginAssembly = Assembly.GetCallingAssembly();
+        Interop.Resolver.GetInstance.Resolve();
     }
 
     public static void Dispose()
