@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using Dalamud.Game;
 using Dalamud.Game.ClientState.Objects;
 using Dalamud.IoC;
@@ -12,6 +13,8 @@ namespace HaselCommon;
 
 public class Service
 {
+    internal static Assembly PluginAssembly = null!;
+
     private static readonly HashSet<object> Cache = [];
     private static readonly HashSet<object> DalamudCache = [];
 
@@ -106,6 +109,7 @@ public class Service
     public static void Initialize(DalamudPluginInterface pluginInterface)
     {
         PluginInterface = pluginInterface;
+        PluginAssembly = Assembly.GetCallingAssembly();
     }
 
     public static void Dispose()

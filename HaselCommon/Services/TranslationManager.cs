@@ -17,10 +17,10 @@ public class TranslationManager : IDisposable
     public ClientLanguage ClientLanguage { get; private set; } = ClientLanguage.English;
     public string LanguageCode { get; private set; } = "en";
 
-    public void Initialize()
+    public TranslationManager()
     {
         LoadEmbeddedResource(GetType().Assembly, "HaselCommon.Translations.json");
-        LoadEmbeddedResource(Assembly.GetCallingAssembly(), $"{Service.PluginInterface.InternalName}.Translations.json");
+        LoadEmbeddedResource(Service.PluginAssembly, $"{Service.PluginInterface.InternalName}.Translations.json");
 
         LanguageCode = Service.PluginInterface.UiLanguage;
         ClientLanguage = Service.PluginInterface.UiLanguage.ToClientlanguage();
