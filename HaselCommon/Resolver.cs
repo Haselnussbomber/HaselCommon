@@ -26,6 +26,7 @@ SOFTWARE.
 // but completely changed to use SigScanner instead
 
 using System.Collections.Generic;
+using System.Linq;
 
 namespace HaselCommon.Interop;
 
@@ -43,6 +44,13 @@ public sealed class Resolver
     {
         if (_hasResolved)
             return;
+
+        // delete old sig caches
+        foreach (var file in Service.PluginInterface.ConfigDirectory.EnumerateFiles().Where(fi => fi.Name.StartsWith("SigCache_")))
+        {
+            try { file.Delete(); }
+            catch { }
+        }
 
         foreach (var address in _addresses)
         {
