@@ -1,4 +1,8 @@
 {
+  "Notification.CouldNotLoadConfig": {
+    "en": "Could not load the configuration file. Creating a new one.",
+    "de": "Die Konfigurationsdatei konnte nicht geladen werden. Es wird eine neue erstellt."
+  },
   "ItemContextMenu.OpenOnGarlandTools": {
     "en": "Open on Garland Tools",
     "de": "Auf Garland Tools öffnen"
