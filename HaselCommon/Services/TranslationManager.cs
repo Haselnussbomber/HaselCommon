@@ -57,8 +57,8 @@ public class TranslationManager : IDisposable
         LanguageCode = Service.PluginInterface.UiLanguage;
         ClientLanguage = Service.PluginInterface.UiLanguage.ToClientlanguage();
         CultureInfo = new(LanguageCode);
-        StringManager.NameCache.Clear();
-        StringManager.TextCache.Clear();
+        Service.StringManager.NameCache.Clear();
+        Service.StringManager.TextCache.Clear();
         ExcelCache.Clear();
     }
 

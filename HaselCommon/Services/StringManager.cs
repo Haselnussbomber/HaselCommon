@@ -9,8 +9,8 @@ namespace HaselCommon.Services;
 
 internal unsafe class StringManager
 {
-    internal static readonly Dictionary<(NameFormatterPlaceholder placeholder, NameFormatterIdConverter idConverter, uint id), string> NameCache = [];
-    internal static readonly Dictionary<(string sheetName, uint rowId, string columnName), string> TextCache = [];
+    internal readonly Dictionary<(NameFormatterPlaceholder placeholder, NameFormatterIdConverter idConverter, uint id), string> NameCache = [];
+    internal readonly Dictionary<(string sheetName, uint rowId, string columnName), string> TextCache = [];
 
     internal string? FormatName(NameFormatterPlaceholder placeholder, NameFormatterIdConverter idConverter, uint id)
     {
