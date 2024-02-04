@@ -38,7 +38,7 @@ public record Texture : IDisposable
 
     public bool IsExpired => _lastAccess < DateTime.UtcNow - KeepAliveTime;
 
-    public void Draw(Vector2? drawSize = null)
+    public void Draw(Vector2? drawSize = null, Vector4? tintColor = null, Vector4? borderColor = null)
     {
         var size = drawSize ?? Size;
 
@@ -65,16 +65,16 @@ public record Texture : IDisposable
             return;
         }
 
-        ImGui.Image(_textureWrap.ImGuiHandle, size, Uv0 ?? Vector2.Zero, Uv1 ?? Vector2.One);
+        ImGui.Image(_textureWrap.ImGuiHandle, size, Uv0 ?? Vector2.Zero, Uv1 ?? Vector2.One, tintColor ?? Vector4.One, borderColor ?? Vector4.Zero);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void Draw(float x, float y)
-        => Draw(new Vector2(x, y));
+    public void Draw(float x, float y, Vector4? tintColor = null, Vector4? borderColor = null)
+        => Draw(new Vector2(x, y), tintColor, borderColor);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void Draw(float dimensions)
-        => Draw(new Vector2(dimensions));
+    public void Draw(float dimensions, Vector4? tintColor = null, Vector4? borderColor = null)
+        => Draw(new Vector2(dimensions), tintColor, borderColor);
 
     private IDalamudTextureWrap? LoadTexture()
     {
