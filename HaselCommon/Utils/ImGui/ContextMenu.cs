@@ -252,13 +252,13 @@ public class ImGuiContextMenu : List<IContextMenuEntry>
             }
         };
 
-    public static ContextMenuEntry CreateOpenOnGarlandTools(uint ItemId)
+    public static ContextMenuEntry CreateOpenOnGarlandTools(string type, uint id)
         => new()
         {
             Label = t("ItemContextMenu.OpenOnGarlandTools"),
             ClickCallback = () =>
             {
-                Task.Run(() => Util.OpenLink($"https://www.garlandtools.org/db/#item/{ItemId}"));
+                Task.Run(() => Util.OpenLink($"https://www.garlandtools.org/db/#{type}/{id}"));
             },
             HoverCallback = () =>
             {
@@ -272,7 +272,7 @@ public class ImGuiContextMenu : List<IContextMenuEntry>
                     FontAwesomeIcon.ExternalLinkAlt.ToIconString()
                 );
                 ImGui.SetCursorPos(pos + new Vector2(20, 0) * ImGuiHelpers.GlobalScale);
-                ImGuiUtils.TextUnformattedColored(Colors.Grey, $"https://www.garlandtools.org/db/#item/{ItemId}");
+                ImGuiUtils.TextUnformattedColored(Colors.Grey, $"https://www.garlandtools.org/db/#{type}/{id}");
             }
         };
 }
