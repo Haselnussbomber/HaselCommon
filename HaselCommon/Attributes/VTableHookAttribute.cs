@@ -1,12 +1,7 @@
 namespace HaselCommon.Attributes;
 
 [AttributeUsage(AttributeTargets.Method)]
-public class VTableHookAttribute<T> : Attribute
+public class VTableHookAttribute<T>(int VTableIndex) : Attribute
 {
-    public VTableHookAttribute(int VTableIndex)
-    {
-        this.VTableIndex = VTableIndex;
-    }
-
-    public int VTableIndex { get; }
+    public int VTableIndex { get; } = VTableIndex;
 }
