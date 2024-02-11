@@ -1,0 +1,86 @@
+using System.Collections.Generic;
+using System.IO;
+using Dalamud;
+using HaselCommon.Text.Extensions;
+using HaselCommon.Utils;
+using Lumina.Text.Expressions;
+
+namespace HaselCommon.Text.Abstracts;
+
+// <XXnoun(SheetName,Person,RowId[,Amount[,Case[,UnkInt5]]])>
+// s . .
+public abstract class NounPayload : HaselMacroPayload
+{
+    private static readonly IntegerExpression DefaultPerson = new(5);
+    private static readonly IntegerExpression DefaultAmount = new(1);
+    private static readonly IntegerExpression DefaultCase = new(1);
+    private static readonly IntegerExpression DefaultUnkInt5 = new(1);
+
+    public abstract ClientLanguage Language { get; }
+
+    public BaseExpression? SheetName { get; set; }
+    public BaseExpression? Person { get; set; } = DefaultPerson;
+    public BaseExpression? RowId { get; set; }
+    public BaseExpression? Amount { get; set; } = DefaultAmount;
+    public BaseExpression? Case { get; set; } = DefaultCase;
+    public BaseExpression? UnkInt5 { get; set; } = DefaultUnkInt5;
+
+    public override byte[] Encode()
+    {
+        return EncodeChunk(
+            SheetName,
+            Person ?? DefaultPerson,
+            RowId,
+            Amount ?? DefaultAmount,
+            Case ?? DefaultCase,
+            UnkInt5 ?? DefaultUnkInt5
+        );
+    }
+
+    public override void Decode(BinaryReader reader)
+    {
+        if (reader.ReadByte() != START_BYTE)
+            throw new Exception("Expected START_BYTE");
+
+        if (reader.ReadByte() != (byte)Code)
+            throw new Exception($"Expected MacroCode {Code} (0x{(byte)Code:X})");
+
+        reader.ReadIntegerExpression();
+
+        SheetName = BaseExpression.Parse(reader.BaseStream);
+        Person = BaseExpression.Parse(reader.BaseStream);
+        RowId = BaseExpression.Parse(reader.BaseStream);
+
+        if (!reader.IsEndOfChunk())
+        {
+            Amount = BaseExpression.Parse(reader.BaseStream);
+
+            if (!reader.IsEndOfChunk())
+            {
+                Case = BaseExpression.Parse(reader.BaseStream);
+
+                if (!reader.IsEndOfChunk())
+                    UnkInt5 = BaseExpression.Parse(reader.BaseStream);
+            }
+        }
+
+        if (reader.ReadByte() != END_BYTE)
+            throw new Exception("Expected END_BYTE");
+    }
+
+    public override HaselSeString Resolve(List<HaselSeString>? localParameterData = null)
+    {
+        if (SheetName == null || RowId == null)
+            return new HaselSeString();
+
+        var sheetName = SheetName.ResolveString(localParameterData).ToString();
+        var rowId = RowId.ResolveNumber(localParameterData);
+
+        var person = (Person ?? DefaultPerson).ResolveNumber(localParameterData);
+        var amount = (Amount ?? DefaultAmount).ResolveNumber(localParameterData);
+        var @case = (Case ?? DefaultCase).ResolveNumber(localParameterData);
+        var unkInt5 = (UnkInt5 ?? DefaultUnkInt5).ResolveNumber(localParameterData);
+
+        return TextDecoder.ProcessNoun(Language, sheetName, person, rowId, amount, @case, unkInt5);
+    }
+}
