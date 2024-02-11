@@ -22,7 +22,7 @@ public static unsafe class Strings
         => Service.StringManager.GetSheetText<T>(rowId, columnName);
 
     private static string TitleCasedSingularNoun(string sheetName, uint id)
-        => Service.TranslationManager.CultureInfo.TextInfo.ToTitleCase(TextDecoder.ProcessNoun(sheetName, id, 1, 0));
+        => Service.TranslationManager.CultureInfo.TextInfo.ToTitleCase(TextDecoder.ProcessNoun(Service.TranslationManager.ClientLanguage, sheetName, 5, (int)id));
 
     public static string GetAddonText(uint id)
         => GetSheetText<AddonSheet>(id, "Text");
