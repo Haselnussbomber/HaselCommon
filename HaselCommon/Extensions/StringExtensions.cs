@@ -8,6 +8,9 @@ public static class StringExtensions
     public static string FirstCharToUpper(this string input)
         => string.IsNullOrEmpty(input) ? string.Empty : string.Concat(input[0].ToString().ToUpper(), input.AsSpan(1));
 
+    public static string FirstCharToLower(this string input)
+        => string.IsNullOrEmpty(input) ? string.Empty : string.Concat(input[0].ToString().ToLower(), input.AsSpan(1));
+
     public static string GetHash(this string input)
         => Encoding.UTF8.GetBytes(input).GetHash();
 }
