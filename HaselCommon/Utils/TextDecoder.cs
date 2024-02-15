@@ -3,7 +3,6 @@ using Dalamud;
 using Dalamud.Game.Text.SeStringHandling;
 using FFXIVClientStructs.FFXIV.Client.System.String;
 using HaselCommon.Extensions;
-using HaselCommon.Structs.Internal;
 using Lumina.Excel;
 using LuminaSeString = Lumina.Text.SeString;
 
@@ -126,7 +125,7 @@ public static unsafe class TextDecoder
             var v16 = Amount.ToString();
             placeholder->SetString("[n]");
             temp->SetString(v16);
-            Statics.Utf8StringReplace(output, placeholder, temp);
+            output->Replace(placeholder, temp);
         }
 
         // UnkInt5 can only be 0, because the offsets array has only 1 entry, which is 0
@@ -194,7 +193,7 @@ public static unsafe class TextDecoder
         var v27 = Amount.ToString();
         placeholder->SetString("[n]");
         temp->SetString(v27);
-        Statics.Utf8StringReplace(output, placeholder, temp);
+        output->Replace(placeholder, temp);
 
         placeholder->Dtor(true);
         temp->Dtor(true);
@@ -257,7 +256,7 @@ public static unsafe class TextDecoder
         {
             placeholder->SetString("[t]");
             temp->SetString(v32.RawData.WithNullTerminator());
-            has_t = Statics.Utf8StringIndexOf(temp, placeholder) != -1; // v34
+            has_t = temp->IndexOf(placeholder) != -1; // v34
             output->Clear();
 
             if (articleIndex == 0 && !has_t)
@@ -278,9 +277,9 @@ public static unsafe class TextDecoder
             {
                 placeholder->SetString("[p]");
                 temp->SetString(v43.RawData.WithNullTerminator());
-                var has_p = Statics.Utf8StringIndexOf(output, placeholder) != -1; // inverted v38
+                var has_p = output->IndexOf(placeholder) != -1; // inverted v38
                 if (has_p)
-                    Statics.Utf8StringReplace(output, placeholder, temp);
+                    output->Replace(placeholder, temp);
                 else
                     output->Append(temp);
             }
@@ -292,7 +291,7 @@ public static unsafe class TextDecoder
                 {
                     placeholder->SetString("[t]");
                     temp->SetString(v46.RawData.WithNullTerminator());
-                    Statics.Utf8StringReplace(output, placeholder, temp);
+                    output->Replace(placeholder, temp);
                 }
             }
         }
@@ -303,7 +302,7 @@ public static unsafe class TextDecoder
         {
             placeholder->SetString("[pa]");
             temp->SetString(v50.RawData.WithNullTerminator());
-            Statics.Utf8StringReplace(output, placeholder, temp);
+            output->Replace(placeholder, temp);
         }
 
         var v52 = attributiveSheet.GetRow(26); // Starke Flexion eines Artikels?!
@@ -319,13 +318,13 @@ public static unsafe class TextDecoder
         {
             placeholder->SetString("[a]");
             temp->SetString(v54.RawData.WithNullTerminator());
-            Statics.Utf8StringReplace(output, placeholder, temp);
+            output->Replace(placeholder, temp);
         }
 
         var v55 = Amount.ToString(); // TODO: check what "E8 ?? ?? ?? ?? 44 3B F7 0F 8E" does exactly
         placeholder->SetString("[n]");
         temp->SetString(v55);
-        Statics.Utf8StringReplace(output, placeholder, temp);
+        output->Replace(placeholder, temp);
 
         placeholder->Dtor(true);
         temp->Dtor(true);
@@ -385,7 +384,7 @@ public static unsafe class TextDecoder
                 var v31 = Amount.ToString();
                 placeholder->SetString("[n]");
                 temp->SetString(v31);
-                Statics.Utf8StringReplace(output, placeholder, temp);
+                output->Replace(placeholder, temp);
             }
         }
         else
@@ -428,7 +427,7 @@ public static unsafe class TextDecoder
             var v31 = Amount.ToString();
             placeholder->SetString("[n]");
             temp->SetString(v31);
-            Statics.Utf8StringReplace(output, placeholder, temp);
+            output->Replace(placeholder, temp);
         }
 
         return output;

@@ -15,7 +15,6 @@ using HaselCommon.Records;
 using HaselCommon.Sheets;
 using ImGuiNET;
 using static HaselCommon.Utils.ImGuiContextMenu;
-using AgentMiragePrismMiragePlate = HaselCommon.Structs.Internal.AgentMiragePrismMiragePlate;
 using GearsetEntry = FFXIVClientStructs.FFXIV.Client.UI.Misc.RaptureGearsetModule.GearsetEntry;
 using TerritoryType = Lumina.Excel.GeneratedSheets.TerritoryType;
 

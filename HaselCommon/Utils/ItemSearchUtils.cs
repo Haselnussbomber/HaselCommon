@@ -1,7 +1,7 @@
+using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using HaselCommon.Sheets;
-using HaselCommon.Structs.Internal;
 
 namespace HaselCommon.Utils;
 
@@ -22,7 +22,7 @@ public static unsafe class ItemSearchUtils
         if (itemName.Length > 40)
             itemName = itemName[..40];
 
-        ((HAtkComponentTextInput*)addon->TextInput)->SetText(itemName);
+        addon->SearchTextInput->SetText(itemName);
 
         addon->SetModeFilter(AddonItemSearch.SearchMode.Normal, -1);
         addon->RunSearch(false);
