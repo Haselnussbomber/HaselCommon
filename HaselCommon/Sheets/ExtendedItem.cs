@@ -106,7 +106,7 @@ public class ExtendedItem : Item
                     return UIState.Instance()->IsCompanionUnlocked(ItemAction.Value.Data[0]);
                 
                 case ItemActionType.BuddyEquip:
-                    return UIState.Instance()->Buddy.IsBuddyEquipUnlocked(ItemAction.Value.Data[0]);
+                    return UIState.Instance()->Buddy.CompanionInfo.IsBuddyEquipUnlocked(ItemAction.Value.Data[0]);
 
                 case ItemActionType.Mount:
                     return PlayerState.Instance()->IsMountUnlocked(ItemAction.Value.Data[0]);
