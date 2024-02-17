@@ -1,12 +1,7 @@
 namespace HaselCommon.Text.Enums;
 
-/*
-n N = numeric
-s S = string
-  x = null byte/terminator (any params passed here and after are ignored/encoded to garbage)
-  . = can be anything, will auto-detect if its a string/number/conditional etc
-  * = repeat last param type (if param before * was string this needs to be a string too etc.)
-*/
+// https://github.com/NotAdam/Lumina/blob/master/src/Lumina/Text/Payloads/MacroCodes.cs#L3
+
 public enum MacroCodes : byte
 {
     SetResetTime = 0x06, // n N x

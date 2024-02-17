@@ -1,9 +1,9 @@
 namespace HaselCommon.Text.Payloads.Macro;
 
-[SeStringPayload(MacroCodes.Wait)] // n x
-public class WaitPayload : HaselMacroPayload
+[SeStringPayload(MacroCodes.LevelPos)] // n x
+public class LevelPosPayload : HaselMacroPayload
 {
-    public BaseExpression? Seconds { get; set; }
+    public BaseExpression? Arg1 { get; set; }
 
     [TerminatorExpression]
     private BaseExpression? Terminator { get; set; }

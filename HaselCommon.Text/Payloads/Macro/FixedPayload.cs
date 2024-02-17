@@ -1,14 +1,15 @@
 namespace HaselCommon.Text.Payloads.Macro;
 
-[SeStringPayload(MacroCodes.Switch)] // . . .
-public class SwitchPayload : HaselMacroPayload
+[SeStringPayload(MacroCodes.Fixed)] // n n . . .
+public class FixedPayload : HaselMacroPayload
 {
-    public BaseExpression? Condition { get; set; }
-    public List<BaseExpression> Cases { get; set; } = [];
+    public BaseExpression? Type { get; set; }
+    public BaseExpression? Arg2 { get; set; }
+    public List<BaseExpression> Args { get; set; } = [];
 
     public override byte[] Encode()
     {
-        if (Condition == null || Cases.Count == 0)
+        if (Type == null || Arg2 == null || Args.Count == 0)
             return [];
 
         using var stream = new MemoryStream();
@@ -16,8 +17,9 @@ public class SwitchPayload : HaselMacroPayload
         stream.WriteByte((byte)Code);
 
         using var chunkData = new MemoryStream();
-        Condition.Encode(chunkData);
-        foreach (var c in Cases)
+        Type.Encode(chunkData);
+        Arg2.Encode(chunkData);
+        foreach (var c in Args)
             c.Encode(chunkData);
         chunkData.CopyStreamWithLengthTo(stream);
 
@@ -36,25 +38,13 @@ public class SwitchPayload : HaselMacroPayload
 
         reader.ReadIntegerExpression();
 
-        Condition = BaseExpression.Parse(reader.BaseStream);
+        Type = BaseExpression.Parse(reader.BaseStream);
+        Arg2 = BaseExpression.Parse(reader.BaseStream);
 
         while (!reader.IsEndOfChunk())
-            Cases.Add(BaseExpression.Parse(reader.BaseStream));
+            Args.Add(BaseExpression.Parse(reader.BaseStream));
 
         if (reader.ReadByte() != END_BYTE)
             throw new Exception("Expected END_BYTE");
-    }
-
-    public override HaselSeString Resolve(List<HaselSeString>? localParameterData = null)
-    {
-        if (Condition == null)
-            return new();
-
-        var caseIndex = Condition.ResolveNumber(localParameterData) - 1;
-
-        if (Cases.Count < caseIndex)
-            return new();
-
-        return Cases[caseIndex].ResolveString(localParameterData);
     }
 }

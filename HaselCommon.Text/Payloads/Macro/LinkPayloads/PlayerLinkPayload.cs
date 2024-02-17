@@ -1,7 +1,3 @@
-using HaselCommon.Text.Enums;
-using HaselCommon.Text.Extensions;
-using Lumina.Text.Expressions;
-
 namespace HaselCommon.Text.Payloads.Macro;
 
 public class PlayerLinkPayload : LinkPayload
@@ -12,7 +8,7 @@ public class PlayerLinkPayload : LinkPayload
 
     // TODO: arg2 = flags, arg4 = bool
     // see inside "E8 ?? ?? ?? ?? 41 83 FF 0C"
-    public PlayerLinkPayload(PlayerLinkFlag flags, uint serverId, string playerName) : base(LinkType.Player, (uint)flags, serverId, 0, playerName)
+    public PlayerLinkPayload(PlayerLinkFlag flags, uint worldId, string playerName) : base(LinkType.Player, (uint)flags, worldId, 0, playerName)
     {
     }
 
@@ -22,7 +18,7 @@ public class PlayerLinkPayload : LinkPayload
         set => Arg2 = new IntegerExpression((uint)value);
     }
 
-    public uint ServerId
+    public uint WorldId
     {
         get => (uint)(Arg3?.ResolveNumber() ?? 0);
         set => Arg3 = new IntegerExpression(value);

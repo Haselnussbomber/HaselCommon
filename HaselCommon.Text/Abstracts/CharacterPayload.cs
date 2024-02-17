@@ -1,6 +1,3 @@
-using System.IO;
-using HaselCommon.Text.Extensions;
-
 namespace HaselCommon.Text.Abstracts;
 
 /// <summary>

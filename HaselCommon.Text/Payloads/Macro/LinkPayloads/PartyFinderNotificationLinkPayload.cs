@@ -1,5 +1,3 @@
-using HaselCommon.Text.Enums;
-
 namespace HaselCommon.Text.Payloads.Macro;
 
 public class PartyFinderNotificationLinkPayload : LinkPayload

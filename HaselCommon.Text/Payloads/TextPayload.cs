@@ -1,6 +1,3 @@
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
 using Lumina.Extensions;
 
 namespace HaselCommon.Text.Payloads;
@@ -15,9 +12,7 @@ public class TextPayload : HaselPayload
     }
 
     public override byte[] Encode()
-    {
-        return string.IsNullOrEmpty(Text) ? [] : Encoding.UTF8.GetBytes(Text);
-    }
+        => string.IsNullOrEmpty(Text) ? [] : Encoding.UTF8.GetBytes(Text);
 
     public override void Decode(BinaryReader reader)
     {
@@ -40,4 +35,7 @@ public class TextPayload : HaselPayload
 
     public override HaselSeString Resolve(List<HaselSeString>? localParameterData = null)
         => this;
+
+    public override string ToString()
+        => Text ?? string.Empty;
 }

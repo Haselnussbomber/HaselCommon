@@ -1,6 +1,3 @@
-using System.Collections.Generic;
-using System.IO;
-
 namespace HaselCommon.Text.Payloads;
 
 public class RawPayload : HaselPayload

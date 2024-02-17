@@ -1,10 +1,5 @@
-using System.IO;
 using System.Linq;
 using System.Reflection;
-using HaselCommon.Extensions;
-using HaselCommon.Text.Attributes;
-using HaselCommon.Text.Enums;
-using Lumina.Text.Expressions;
 
 namespace HaselCommon.Text;
 
@@ -12,9 +7,118 @@ public abstract class HaselMacroPayload : HaselPayload
 {
     public MacroCodes Code { get; private set; }
 
+    private readonly PropertyInfo[] PropertyInfos;
+
     public HaselMacroPayload()
     {
         Code = GetType().GetCustomAttribute<SeStringPayloadAttribute>()?.Code ?? throw new Exception($"{GetType().FullName} is missing SeStringPayloadAttribute");
+
+        // TODO: support arrays? see SwitchPayload
+        PropertyInfos = GetType()
+            .GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
+            .Where(propInfo => propInfo.PropertyType.IsAssignableTo(typeof(BaseExpression)))
+            .ToArray();
+    }
+
+    public override byte[] Encode()
+    {
+        using var exprStream = new MemoryStream();
+
+        foreach (var propInfo in PropertyInfos)
+        {
+            if (propInfo.GetCustomAttribute<TerminatorExpressionAttribute>() != null)
+                break; // not needed, omit
+
+            var expr = (BaseExpression?)propInfo.GetValue(this);
+            expr?.Encode(exprStream);
+        }
+
+        using var stream = new MemoryStream();
+
+        stream.WriteByte(START_BYTE);
+        stream.WriteByte((byte)Code);
+        exprStream.CopyStreamWithLengthTo(stream);
+        stream.WriteByte(END_BYTE);
+
+        return stream.ToArray();
+    }
+
+    public override void Decode(BinaryReader reader)
+    {
+        if (reader.ReadByte() != START_BYTE)
+            throw new Exception("Expected START_BYTE");
+
+        if (reader.ReadByte() != (byte)Code)
+            throw new Exception($"Expected MacroCode {Code} (0x{(byte)Code:X})");
+
+        reader.ReadIntegerExpression(); // length
+
+        foreach (var propInfo in PropertyInfos)
+        {
+            if (reader.IsEndOfChunk())
+                break;
+
+            propInfo.SetValue(this, BaseExpression.Parse(reader.BaseStream));
+        }
+
+        if (reader.ReadByte() != END_BYTE)
+            throw new Exception("Expected END_BYTE");
+    }
+
+    public override HaselSeString Resolve(List<HaselSeString>? localParameterData = null)
+        => this; // passthrough
+
+    public override string ToString()
+    {
+        switch (Code)
+        {
+            case MacroCodes.NewLine:
+                return "\n";
+            case MacroCodes.NonBreakingSpace:
+                return "\u00A0";
+            case MacroCodes.Hyphen:
+                return "-";
+            case MacroCodes.SoftHyphen:
+                return "\u00AD";
+        }
+
+        var sb = new StringBuilder();
+
+        sb.Append('<');
+        sb.Append(Code.ToString().ToLower());
+
+        if (PropertyInfos.Any())
+        {
+            sb.Append('(');
+
+            var isFirst = true;
+            foreach (var propInfo in PropertyInfos)
+            {
+                if (propInfo.GetCustomAttribute<TerminatorExpressionAttribute>() != null)
+                    break;
+
+                var expr = (BaseExpression?)propInfo.GetValue(this);
+                if (expr == null)
+                    break;
+
+                if (isFirst)
+                {
+                    isFirst = false;
+                }
+                else
+                {
+                    sb.Append(',');
+                }
+
+                sb.Append(expr.HaselToString());
+            }
+
+            sb.Append(')');
+        }
+
+        sb.Append('>');
+
+        return sb.ToString();
     }
 
     protected byte[] EncodeChunk(params BaseExpression?[] expressions)

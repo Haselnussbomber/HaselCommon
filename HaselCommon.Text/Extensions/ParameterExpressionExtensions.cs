@@ -1,7 +1,6 @@
-using System.Collections.Generic;
 using Dalamud.Memory;
-using HaselCommon.Structs;
-using Lumina.Text.Expressions;
+using FFXIVClientStructs.FFXIV.Client.UI.Misc;
+using FFXIVClientStructs.FFXIV.Component.Text;
 
 namespace HaselCommon.Text.Extensions;
 
@@ -13,14 +12,14 @@ public static unsafe class ParameterExpressionExtensions
         if (expr.ExpressionType is ExpressionType.ObjectParameter or ExpressionType.PlayerParameter)
         {
             var num = expr.Operand.ResolveNumber(localParameterData) - 1;
-            var param = TextParameter.Get((ulong)num);
+            var param = RaptureTextModule.Instance()->TextModule.MacroDecoder.GlobalParameters.Get((ulong)num);
 
             return param.Type switch
             {
                 TextParameterType.Uninitialized => 0,
                 TextParameterType.Integer => param.IntValue,
-                TextParameterType.Utf8StringPtr => param.Utf8StringValue->ToInteger(),
-                TextParameterType.BytePtr => int.Parse(MemoryHelper.ReadStringNullTerminated((nint)param.BytePtrValue)),
+                TextParameterType.Utf8String => param.Utf8StringValue->ToInteger(),
+                TextParameterType.String => int.Parse(MemoryHelper.ReadStringNullTerminated((nint)param.StringValue)),
                 _ => throw new NotImplementedException($"Unhandled ParameterDataType {(byte)param.Type:x02}"),
             };
         }
@@ -52,14 +51,14 @@ public static unsafe class ParameterExpressionExtensions
         if (expr.ExpressionType is ExpressionType.ObjectParameter or ExpressionType.PlayerParameter)
         {
             var num = expr.Operand.ResolveNumber(localParameterData) - 1;
-            var param = TextParameter.Get((ulong)num);
+            var param = RaptureTextModule.Instance()->TextModule.MacroDecoder.GlobalParameters.Get((ulong)num);
 
             return param.Type switch
             {
                 TextParameterType.Uninitialized => "",
                 TextParameterType.Integer => param.IntValue.ToString(),
-                TextParameterType.Utf8StringPtr => HaselSeString.Parse(param.Utf8StringValue->StringPtr, param.Utf8StringValue->Length),
-                TextParameterType.BytePtr => HaselSeString.Parse(MemoryHelper.ReadRawNullTerminated((nint)param.BytePtrValue)),
+                TextParameterType.Utf8String => HaselSeString.Parse(param.Utf8StringValue->StringPtr, param.Utf8StringValue->Length),
+                TextParameterType.String => HaselSeString.Parse(MemoryHelper.ReadRawNullTerminated((nint)param.StringValue)),
                 _ => throw new NotImplementedException($"Unhandled ParameterDataType {param.Type}"),
             };
         }

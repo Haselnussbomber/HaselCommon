@@ -1,9 +1,3 @@
-using System.IO;
-using System.Text;
-using HaselCommon.Text.Enums;
-using HaselCommon.Text.Extensions;
-using Lumina.Text.Expressions;
-
 namespace HaselCommon.Text.Payloads.Macro;
 
 // does not follow LinkPayload structure, nor does it use StringExpression to encode the plugin name...

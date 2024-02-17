@@ -1,10 +1,5 @@
-using HaselCommon.Text.Enums;
-using HaselCommon.Text.Extensions;
-using Lumina.Text.Expressions;
-
 namespace HaselCommon.Text.Payloads.Macro;
 
-// TODO: untested
 public class AkatsukiNoteLinkPayload : LinkPayload
 {
     public AkatsukiNoteLinkPayload() : base(LinkType.AkatsukiNote)

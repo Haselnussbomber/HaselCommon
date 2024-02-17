@@ -1,7 +1,3 @@
-using HaselCommon.Text.Enums;
-using HaselCommon.Text.Extensions;
-using Lumina.Text.Expressions;
-
 namespace HaselCommon.Text.Payloads.Macro;
 
 public class MapPositionLinkPayload : LinkPayload
@@ -11,7 +7,7 @@ public class MapPositionLinkPayload : LinkPayload
     }
 
     // TODO: add overload with x and y as float (to be able to pass GameObject.Position) and encode it
-    public MapPositionLinkPayload(uint territoryType, uint mapId, uint x, uint y, uint instanceId = 0) : base(LinkType.MapPosition, (territoryType << 0x10) + mapId, x, y)
+    public MapPositionLinkPayload(uint territoryType, uint mapId, uint x, uint y) : base(LinkType.MapPosition, (territoryType << 0x10) + mapId, x, y)
     {
     }
 

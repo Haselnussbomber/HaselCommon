@@ -1,9 +1,3 @@
-using System.Collections.Generic;
-using HaselCommon.Text.Abstracts;
-using HaselCommon.Text.Attributes;
-using HaselCommon.Text.Enums;
-using HaselCommon.Text.Extensions;
-
 namespace HaselCommon.Text.Payloads.Macro;
 
 [SeStringPayload(MacroCodes.Num)] // n x

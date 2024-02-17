@@ -1,14 +1,6 @@
-using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Reflection;
-using HaselCommon.Extensions;
-using HaselCommon.Text.Attributes;
-using HaselCommon.Text.Enums;
-using HaselCommon.Text.Extensions;
-using HaselCommon.Text.Payloads;
-using HaselCommon.Text.Payloads.Macro;
-using Lumina.Text.Expressions;
+using Lumina.Extensions;
 
 namespace HaselCommon.Text;
 

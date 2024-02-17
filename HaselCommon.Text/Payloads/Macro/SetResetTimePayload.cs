@@ -1,10 +1,4 @@
-using System.Collections.Generic;
-using System.IO;
-using HaselCommon.Structs;
-using HaselCommon.Text.Attributes;
-using HaselCommon.Text.Enums;
-using HaselCommon.Text.Extensions;
-using Lumina.Text.Expressions;
+using FFXIVClientStructs.FFXIV.Component.Text;
 
 namespace HaselCommon.Text.Payloads.Macro;
 
@@ -14,26 +8,8 @@ public class SetResetTimePayload : HaselMacroPayload
     public BaseExpression? Hour { get; set; }
     public BaseExpression? WeekDay { get; set; }
 
-    public override byte[] Encode() => EncodeChunk(Hour, WeekDay);
-
-    public override void Decode(BinaryReader reader)
-    {
-        if (reader.ReadByte() != START_BYTE)
-            throw new Exception("Expected START_BYTE");
-
-        if (reader.ReadByte() != (byte)Code)
-            throw new Exception($"Expected MacroCode {Code} (0x{(byte)Code:X})");
-
-        reader.ReadIntegerExpression();
-
-        Hour = BaseExpression.Parse(reader.BaseStream);
-
-        if (!reader.IsEndOfChunk())
-            WeekDay = BaseExpression.Parse(reader.BaseStream);
-
-        if (reader.ReadByte() != END_BYTE)
-            throw new Exception("Expected END_BYTE");
-    }
+    [TerminatorExpression]
+    private BaseExpression? Terminator { get; set; }
 
     public override unsafe HaselSeString Resolve(List<HaselSeString>? localParameterData = null)
     {
@@ -47,7 +23,9 @@ public class SetResetTimePayload : HaselMacroPayload
         if (day > 7) day = 7;
 
         if (hour >= 9)
+        {
             hour -= 9;
+        }
         else
         {
             if (day != 7)
@@ -56,7 +34,7 @@ public class SetResetTimePayload : HaselMacroPayload
             hour += 15;
         }
 
-        var mt = MacroTime.Instance();
+        var mt = MacroDecoder.GetMacroTime();
         var now = DateTime.Now;
         mt->SetTime(now);
 
@@ -71,7 +49,7 @@ public class SetResetTimePayload : HaselMacroPayload
         {
             var wday = (int)now.DayOfWeek;
 
-            if (wday < day || wday == day && now.Hour < hour)
+            if (wday < day || (wday == day && now.Hour < hour))
                 mt->tm_mday += day - wday;
             else
                 mt->tm_mday += 7 + day - wday;

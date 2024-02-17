@@ -1,7 +1,3 @@
-using HaselCommon.Text.Enums;
-using HaselCommon.Text.Extensions;
-using Lumina.Text.Expressions;
-
 namespace HaselCommon.Text.Payloads.Macro;
 
 public class ItemLinkPayload : LinkPayload

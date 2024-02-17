@@ -1,7 +1,7 @@
 namespace HaselCommon.Text.Payloads.Macro;
 
-[SeStringPayload(MacroCodes.Color)] // n N x
-public class ColorPayload : HaselMacroPayload
+[SeStringPayload(MacroCodes.EdgeColor)] // n N x
+public class EdgeColorPayload : HaselMacroPayload
 {
     public BaseExpression? Color { get; set; }
     public BaseExpression? Arg2 { get; set; }
@@ -44,16 +44,10 @@ public class ColorPayload : HaselMacroPayload
             }
             else
             {
-                sb.Append(Color?.HaselToString());
+                sb.Append(Color.HaselToString());
             }
         }
 
-        if (Arg2 != null)
-        {
-            sb.Append(',');
-            sb.Append(Arg2.HaselToString());
-        }
-        
         sb.Append(')');
         sb.Append('>');
 

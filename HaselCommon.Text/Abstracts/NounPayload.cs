@@ -1,9 +1,4 @@
-using System.Collections.Generic;
-using System.IO;
-using Dalamud;
-using HaselCommon.Text.Extensions;
 using HaselCommon.Utils;
-using Lumina.Text.Expressions;
 
 namespace HaselCommon.Text.Abstracts;
 

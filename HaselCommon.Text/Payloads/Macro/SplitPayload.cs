@@ -1,9 +1,11 @@
 namespace HaselCommon.Text.Payloads.Macro;
 
-[SeStringPayload(MacroCodes.Wait)] // n x
-public class WaitPayload : HaselMacroPayload
+[SeStringPayload(MacroCodes.Split)] // s s n x
+public class SplitPayload : HaselMacroPayload
 {
-    public BaseExpression? Seconds { get; set; }
+    public BaseExpression? Arg1 { get; set; }
+    public BaseExpression? Arg2 { get; set; }
+    public BaseExpression? Arg3 { get; set; }
 
     [TerminatorExpression]
     private BaseExpression? Terminator { get; set; }

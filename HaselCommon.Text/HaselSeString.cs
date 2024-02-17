@@ -1,10 +1,6 @@
-using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text;
 using FFXIVClientStructs.FFXIV.Client.System.String;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
-using HaselCommon.Text.Payloads;
 
 namespace HaselCommon.Text;
 
@@ -33,10 +29,7 @@ public class HaselSeString
 
     public override string ToString()
     {
-        return Payloads
-            .Where(p => p is TextPayload)
-            .Cast<TextPayload>()
-            .Aggregate(new StringBuilder(), (sb, tp) => sb.Append(tp.Text), sb => sb.ToString());
+        return Payloads.Aggregate(new StringBuilder(), (sb, tp) => sb.Append(tp.ToString()), sb => sb.ToString());
     }
 
     public static unsafe HaselSeString FromMacro(string macro)

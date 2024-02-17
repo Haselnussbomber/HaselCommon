@@ -1,10 +1,3 @@
-using System.Collections.Generic;
-using System.IO;
-using HaselCommon.Text.Attributes;
-using HaselCommon.Text.Enums;
-using HaselCommon.Text.Extensions;
-using Lumina.Text.Expressions;
-
 namespace HaselCommon.Text.Payloads.Macro;
 
 [SeStringPayload(MacroCodes.Sheet)] // s . . .
@@ -17,7 +10,12 @@ public class SheetPayload : HaselMacroPayload
     public BaseExpression? RowId { get; set; } = DefaultRowId;
     public BaseExpression? ColumnIndex { get; set; } = DefaultColumnIndex;
 
-    public override byte[] Encode() => EncodeChunk(SheetName);
+    public override byte[] Encode()
+        => EncodeChunk(
+            SheetName ?? new StringExpression(),
+            RowId ?? DefaultRowId,
+            ColumnIndex ?? DefaultColumnIndex
+        );
 
     public override void Decode(BinaryReader reader)
     {
@@ -29,12 +27,23 @@ public class SheetPayload : HaselMacroPayload
 
         reader.ReadIntegerExpression();
 
-        SheetName = BaseExpression.Parse(reader.BaseStream);
-        RowId = BaseExpression.Parse(reader.BaseStream);
-        ColumnIndex = BaseExpression.Parse(reader.BaseStream);
+        if (!reader.IsEndOfChunk())
+        {
+            SheetName = BaseExpression.Parse(reader.BaseStream);
 
-        if (reader.ReadByte() != END_BYTE)
-            throw new Exception("Expected END_BYTE");
+            if (!reader.IsEndOfChunk())
+            {
+                RowId = BaseExpression.Parse(reader.BaseStream);
+
+                if (!reader.IsEndOfChunk())
+                {
+                    ColumnIndex = BaseExpression.Parse(reader.BaseStream);
+                }
+            }
+        }
+
+        //if (reader.ReadByte() != END_BYTE)
+        //    throw new Exception("Expected END_BYTE");
     }
 
     public override HaselSeString Resolve(List<HaselSeString>? localParameterData = null)

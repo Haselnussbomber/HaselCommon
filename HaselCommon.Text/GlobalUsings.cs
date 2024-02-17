@@ -1,1 +1,13 @@
 global using System;
+global using System.Collections.Generic;
+global using System.IO;
+global using System.Text;
+global using Dalamud;
+global using HaselCommon.Extensions;
+global using HaselCommon.Text.Abstracts;
+global using HaselCommon.Text.Attributes;
+global using HaselCommon.Text.Enums;
+global using HaselCommon.Text.Extensions;
+global using HaselCommon.Text.Payloads;
+global using HaselCommon.Text.Payloads.Macro;
+global using Lumina.Text.Expressions;
