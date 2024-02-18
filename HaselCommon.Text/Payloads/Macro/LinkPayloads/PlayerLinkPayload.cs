@@ -8,7 +8,7 @@ public class PlayerLinkPayload : LinkPayload
 
     // TODO: arg2 = flags, arg4 = bool
     // see inside "E8 ?? ?? ?? ?? 41 83 FF 0C"
-    public PlayerLinkPayload(PlayerLinkFlag flags, uint worldId, string playerName) : base(LinkType.Player, (uint)flags, worldId, 0, playerName)
+    public PlayerLinkPayload(PlayerLinkFlag flags, uint worldId, string playerName, bool unkBool = true) : base(LinkType.Player, (uint)flags, worldId, unkBool ? 0u : 1, playerName)
     {
     }
 
@@ -31,8 +31,25 @@ public class PlayerLinkPayload : LinkPayload
     }
 }
 
+// a couple here: "45 1B F6 41 83 E6 0F"
 public enum PlayerLinkFlag
 {
     None = 0,
-    // InCrossWorldDuty = 0x10 ?
+    // Novice Network start
+    NewAdventurer = 1,
+    Returner = 2,
+    Mentor = 3,
+    BattleMentor = 4,
+    TradeMentor = 5,
+    PvpMentor = 6,
+    ExpiredMentor = 7,
+    // Unk = 8, // "FF CD 83 FD 08" ??
+    // Novice Network end
+
+    // IsSameHomeWorld = 10, ?
+    // 11,
+    // IsCrossWorld = 12, ?
+    // 13,
+    // InCrossWorldDuty = 0x10, ? controls context menu entry "Add to Blacklist"
+    // IsGameMaster = 0x1000,
 }
