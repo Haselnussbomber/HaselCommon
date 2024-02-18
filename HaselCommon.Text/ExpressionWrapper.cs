@@ -5,8 +5,9 @@ public class ExpressionWrapper(BaseExpression expression)
     public BaseExpression Expression { get; set; } = expression;
 
     public override string ToString()
-        => Expression.ToString() ?? string.Empty;
+        => Expression.HaselToString() ?? string.Empty;
 
+    public static implicit operator ExpressionWrapper(BaseExpression value) => new(value);
     public static implicit operator ExpressionWrapper(Lumina.Text.SeString str) => new(new StringExpression(str));
     public static implicit operator ExpressionWrapper(string str) => new(new StringExpression(new(str)));
     public static implicit operator ExpressionWrapper(int value) => new(new IntegerExpression((uint)value));

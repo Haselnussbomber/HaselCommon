@@ -8,6 +8,7 @@ public class SheetPayload : HaselMacroPayload
     public BaseExpression? SheetName { get; set; }
     public BaseExpression? RowId { get; set; }
     public BaseExpression? ColumnIndex { get; set; }
+    public BaseExpression? ColumnParam { get; set; } // like lnum1 in the switch in GrandCompany.Unknown1
 
     public override HaselSeString Resolve(List<ExpressionWrapper>? localParameters = null)
     {
@@ -26,6 +27,8 @@ public class SheetPayload : HaselMacroPayload
         if (text == null)
             return new();
 
-        return text.Resolve(localParameters);
+        return ColumnParam == null
+            ? text.Resolve()
+            : text.Resolve([ColumnParam]);
     }
 }
