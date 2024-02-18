@@ -15,7 +15,7 @@ public class SetTimePayload : HaselMacroPayload
         if (Time != null)
         {
             var mt = (FixedTm*)MacroDecoder.GetMacroTime();
-            mt->SetTime(DateTimeOffset.FromUnixTimeSeconds(Time.ResolveNumber(localParameters)).DateTime);
+            mt->SetTime(DateTimeOffset.FromUnixTimeSeconds(Time.ResolveNumber(localParameters)).DateTime.ToLocalTime());
         }
 
         return this;
