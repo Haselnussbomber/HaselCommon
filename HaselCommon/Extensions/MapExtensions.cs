@@ -1,6 +1,6 @@
 using Lumina.Excel.GeneratedSheets;
 
-namespace HaselCommon.Text.Extensions;
+namespace HaselCommon.Extensions;
 
 public static class MapExtensions
 {
