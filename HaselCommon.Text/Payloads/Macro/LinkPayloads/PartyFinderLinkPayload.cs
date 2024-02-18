@@ -20,7 +20,7 @@ public class PartyFinderLinkPayload : LinkPayload
         set
         {
             var cur = (uint)(Arg4?.ResolveNumber() ?? 0) & 0xFFFF;
-            Arg4 = new IntegerExpression((uint)(cur + ((byte)value << 0x10)));
+            Arg4 = (uint)(cur + ((byte)value << 0x10));
         }
     }
 }

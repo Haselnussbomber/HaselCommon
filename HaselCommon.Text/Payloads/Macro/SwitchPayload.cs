@@ -3,8 +3,8 @@ namespace HaselCommon.Text.Payloads.Macro;
 [SeStringPayload(MacroCodes.Switch)] // . . .
 public class SwitchPayload : HaselMacroPayload
 {
-    public BaseExpression? Condition { get; set; }
-    public List<BaseExpression> Cases { get; set; } = [];
+    public ExpressionWrapper? Condition { get; set; }
+    public List<ExpressionWrapper> Cases { get; set; } = [];
 
     public override byte[] Encode()
     {
@@ -50,9 +50,9 @@ public class SwitchPayload : HaselMacroPayload
         if (Condition == null)
             return new();
 
-        var caseIndex = Condition.ResolveNumber(localParameters) - 1;
+        var caseIndex = Condition.ResolveNumber(localParameters);
 
-        if (Cases.Count < caseIndex)
+        if (caseIndex < 0 || Cases.Count < caseIndex)
             return new();
 
         return Cases[caseIndex].ResolveString(localParameters);

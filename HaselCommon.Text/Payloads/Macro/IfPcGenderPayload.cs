@@ -5,12 +5,12 @@ namespace HaselCommon.Text.Payloads.Macro;
 [SeStringPayload(MacroCodes.IfPcGender)] // n . . x
 public class IfPcGenderPayload : HaselMacroPayload
 {
-    public BaseExpression? ObjectId { get; set; }
-    public BaseExpression? CaseMale { get; set; }
-    public BaseExpression? CaseFemale { get; set; }
+    public ExpressionWrapper? ObjectId { get; set; }
+    public ExpressionWrapper? CaseMale { get; set; }
+    public ExpressionWrapper? CaseFemale { get; set; }
 
     [TerminatorExpression]
-    private BaseExpression? Terminator { get; set; }
+    private ExpressionWrapper? Terminator { get; set; }
 
     public override unsafe HaselSeString Resolve(List<ExpressionWrapper>? localParameters = null)
     {

@@ -3,10 +3,10 @@ namespace HaselCommon.Text.Payloads.Macro;
 [SeStringPayload(MacroCodes.Hex)] // n x
 public class HexPayload : HaselMacroPayload
 {
-    public BaseExpression? Value { get; set; }
+    public ExpressionWrapper? Value { get; set; }
 
     [TerminatorExpression]
-    private BaseExpression? Terminator { get; set; }
+    private ExpressionWrapper? Terminator { get; set; }
 
     public override HaselSeString Resolve(List<ExpressionWrapper>? localParameters = null)
     {

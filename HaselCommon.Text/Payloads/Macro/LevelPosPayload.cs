@@ -14,10 +14,10 @@ public class LevelPosPayload : HaselMacroPayload
         LevelId = new IntegerExpression(levelId);
     }
 
-    public BaseExpression? LevelId { get; set; }
+    public ExpressionWrapper? LevelId { get; set; }
 
     [TerminatorExpression]
-    private BaseExpression? Terminator { get; set; }
+    private ExpressionWrapper? Terminator { get; set; }
 
     public override HaselSeString Resolve(List<ExpressionWrapper>? localParameters = null)
     {

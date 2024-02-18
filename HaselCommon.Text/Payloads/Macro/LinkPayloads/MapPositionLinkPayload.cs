@@ -25,7 +25,7 @@ public class MapPositionLinkPayload : LinkPayload
         set
         {
             var cur = (uint)(Arg2?.ResolveNumber() ?? 0) & 0xFFFF0000;
-            Arg2 = new IntegerExpression(cur + value);
+            Arg2 = cur + value;
             Map = GetRow<Map>(value);
         }
     }
@@ -36,20 +36,20 @@ public class MapPositionLinkPayload : LinkPayload
         set
         {
             var cur = (uint)(Arg2?.ResolveNumber() ?? 0) & 0xFFFF;
-            Arg2 = new IntegerExpression((uint)(cur + (value << 0x10)));
+            Arg2 = (uint)(cur + (value << 0x10));
         }
     }
 
     public float X
     {
         get => (Arg3?.ResolveNumber() ?? 0) / 1000f;
-        set => Arg3 = new IntegerExpression((uint)(value * 1000f));
+        set => Arg3 = (uint)(value * 1000f);
     }
 
     public float Y
     {
         get => (Arg4?.ResolveNumber() ?? 0) / 1000f;
-        set => Arg4 = new IntegerExpression((uint)(value * 1000f));
+        set => Arg4 = (uint)(value * 1000f);
     }
 
     public float MapPosX => (Map?.ConvertRawToMapPosX(X) ?? 10) / 10f;

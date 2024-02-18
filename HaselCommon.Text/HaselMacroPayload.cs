@@ -16,7 +16,7 @@ public abstract class HaselMacroPayload : HaselPayload
         // TODO: support arrays? see SwitchPayload
         PropertyInfos = GetType()
             .GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
-            .Where(propInfo => propInfo.PropertyType.IsAssignableTo(typeof(BaseExpression)))
+            .Where(propInfo => propInfo.PropertyType.IsAssignableTo(typeof(ExpressionWrapper)))
             .ToArray();
     }
 
@@ -29,8 +29,8 @@ public abstract class HaselMacroPayload : HaselPayload
             if (propInfo.GetCustomAttribute<TerminatorExpressionAttribute>() != null)
                 break; // not needed, omit
 
-            var expr = (BaseExpression?)propInfo.GetValue(this);
-            expr?.Encode(exprStream);
+            var expr = (ExpressionWrapper?)propInfo.GetValue(this);
+            expr?.BaseExpression.Encode(exprStream);
         }
 
         using var stream = new MemoryStream();
@@ -58,7 +58,7 @@ public abstract class HaselMacroPayload : HaselPayload
             if (reader.IsEndOfChunk())
                 break;
 
-            propInfo.SetValue(this, BaseExpression.Parse(reader.BaseStream));
+            propInfo.SetValue(this, new ExpressionWrapper(BaseExpression.Parse(reader.BaseStream)));
         }
 
         if (reader.ReadByte() != END_BYTE)
@@ -97,7 +97,7 @@ public abstract class HaselMacroPayload : HaselPayload
                 if (propInfo.GetCustomAttribute<TerminatorExpressionAttribute>() != null)
                     break;
 
-                var expr = (BaseExpression?)propInfo.GetValue(this);
+                var expr = (ExpressionWrapper?)propInfo.GetValue(this);
                 if (expr == null)
                     break;
 
@@ -110,7 +110,7 @@ public abstract class HaselMacroPayload : HaselPayload
                     sb.Append(',');
                 }
 
-                sb.Append(expr.HaselToString());
+                sb.Append(expr.ToString());
             }
 
             sb.Append(')');

@@ -78,7 +78,7 @@ public static unsafe class ParameterExpressionExtensions
             if (localParameters.Count < num)
                 throw new ArgumentException($"localParameters index {num} was not provided");
 
-            return localParameters[num].Expression.ToString() ?? string.Empty;
+            return localParameters[num].BaseExpression.ToString() ?? string.Empty;
         }
 
         throw new NotImplementedException($"Unhandled ParameterExpression type 0x{(byte)expr.ExpressionType:X02}");

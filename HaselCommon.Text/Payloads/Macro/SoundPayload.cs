@@ -3,6 +3,6 @@ namespace HaselCommon.Text.Payloads.Macro;
 [SeStringPayload(MacroCodes.Sound)] // n n
 public class SoundPayload : HaselMacroPayload
 {
-    public BaseExpression? Arg1 { get; set; }
-    public BaseExpression? SoundId { get; set; }
+    public ExpressionWrapper? Arg1 { get; set; }
+    public ExpressionWrapper? SoundId { get; set; }
 }

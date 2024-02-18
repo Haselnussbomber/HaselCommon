@@ -5,10 +5,10 @@ namespace HaselCommon.Text.Payloads.Macro;
 [SeStringPayload(MacroCodes.Sheet)] // s . . .
 public class SheetPayload : HaselMacroPayload
 {
-    public BaseExpression? SheetName { get; set; }
-    public BaseExpression? RowId { get; set; }
-    public BaseExpression? ColumnIndex { get; set; }
-    public BaseExpression? ColumnParam { get; set; } // like lnum1 in the switch in GrandCompany.Unknown1
+    public ExpressionWrapper? SheetName { get; set; }
+    public ExpressionWrapper? RowId { get; set; }
+    public ExpressionWrapper? ColumnIndex { get; set; }
+    public ExpressionWrapper? ColumnParam { get; set; } // like lnum1 in the switch in GrandCompany.Unknown1
 
     public override HaselSeString Resolve(List<ExpressionWrapper>? localParameters = null)
     {

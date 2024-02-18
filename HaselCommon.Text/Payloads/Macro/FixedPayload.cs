@@ -3,9 +3,9 @@ namespace HaselCommon.Text.Payloads.Macro;
 [SeStringPayload(MacroCodes.Fixed)] // n n . . .
 public class FixedPayload : HaselMacroPayload
 {
-    public BaseExpression? Type { get; set; }
-    public BaseExpression? Arg2 { get; set; }
-    public List<BaseExpression> Args { get; set; } = [];
+    public ExpressionWrapper? Type { get; set; }
+    public ExpressionWrapper? Arg2 { get; set; }
+    public List<ExpressionWrapper> Args { get; set; } = [];
 
     public override byte[] Encode()
     {

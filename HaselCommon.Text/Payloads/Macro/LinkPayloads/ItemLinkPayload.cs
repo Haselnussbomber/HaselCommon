@@ -13,6 +13,6 @@ public class ItemLinkPayload : LinkPayload
     public uint ItemId
     {
         get => (uint)(Arg2?.ResolveNumber() ?? 0);
-        set => Arg2 = new IntegerExpression(value);
+        set => Arg2 = value;
     }
 }

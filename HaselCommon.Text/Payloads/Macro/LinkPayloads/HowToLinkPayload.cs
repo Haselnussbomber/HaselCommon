@@ -13,6 +13,6 @@ public class HowToLinkPayload : LinkPayload
     public uint HowToId
     {
         get => (uint)(Arg2?.ResolveNumber() ?? 0);
-        set => Arg2 = new IntegerExpression(value);
+        set => Arg2 = value;
     }
 }

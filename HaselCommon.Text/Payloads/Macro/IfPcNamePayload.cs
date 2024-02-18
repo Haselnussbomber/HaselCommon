@@ -6,13 +6,13 @@ namespace HaselCommon.Text.Payloads.Macro;
 [SeStringPayload(MacroCodes.IfPcName)] // n . . . x
 public class IfPcNamePayload : HaselMacroPayload
 {
-    public BaseExpression? ObjectId { get; set; }
-    public BaseExpression? Name { get; set; }
-    public BaseExpression? CaseTrue { get; set; }
-    public BaseExpression? CaseFalse { get; set; }
+    public ExpressionWrapper? ObjectId { get; set; }
+    public ExpressionWrapper? Name { get; set; }
+    public ExpressionWrapper? CaseTrue { get; set; }
+    public ExpressionWrapper? CaseFalse { get; set; }
 
     [TerminatorExpression]
-    private BaseExpression? Terminator { get; set; }
+    private ExpressionWrapper? Terminator { get; set; }
 
     public override unsafe HaselSeString Resolve(List<ExpressionWrapper>? localParameters = null)
     {

@@ -3,8 +3,8 @@ namespace HaselCommon.Text.Payloads.Macro;
 [SeStringPayload(MacroCodes.EdgeColorType)] // n x
 public class EdgeColorTypePayload : HaselMacroPayload
 {
-    public BaseExpression? ColorType { get; set; }
+    public ExpressionWrapper? ColorType { get; set; }
 
     [TerminatorExpression]
-    private BaseExpression? Terminator { get; set; }
+    private ExpressionWrapper? Terminator { get; set; }
 }

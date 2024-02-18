@@ -3,12 +3,12 @@ namespace HaselCommon.Text.Payloads.Macro;
 [SeStringPayload(MacroCodes.If)] // . . * x
 public class IfPayload : HaselMacroPayload
 {
-    public BaseExpression? Condition { get; set; }
-    public BaseExpression? StatementTrue { get; set; }
-    public BaseExpression? StatementFalse { get; set; }
+    public ExpressionWrapper? Condition { get; set; }
+    public ExpressionWrapper? StatementTrue { get; set; }
+    public ExpressionWrapper? StatementFalse { get; set; }
 
     [TerminatorExpression]
-    private BaseExpression? Terminator { get; set; }
+    private ExpressionWrapper? Terminator { get; set; }
 
     public override HaselSeString Resolve(List<ExpressionWrapper>? localParameters = null)
     {

@@ -3,12 +3,12 @@ namespace HaselCommon.Text.Payloads.Macro;
 [SeStringPayload(MacroCodes.Float)] // n n s x
 public class FloatPayload : HaselMacroPayload
 {
-    public BaseExpression? Value { get; set; }
-    public BaseExpression? Radix { get; set; }
-    public BaseExpression? Separator { get; set; }
+    public ExpressionWrapper? Value { get; set; }
+    public ExpressionWrapper? Radix { get; set; }
+    public ExpressionWrapper? Separator { get; set; }
 
     [TerminatorExpression]
-    private BaseExpression? Terminator { get; set; }
+    private ExpressionWrapper? Terminator { get; set; }
 
     public override HaselSeString Resolve(List<ExpressionWrapper>? localParameters = null)
     {

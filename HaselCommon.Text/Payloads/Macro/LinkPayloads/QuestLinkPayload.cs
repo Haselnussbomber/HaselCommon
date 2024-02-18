@@ -13,6 +13,6 @@ public class QuestLinkPayload : LinkPayload
     public uint QuestId
     {
         get => (uint)(Arg2?.ResolveNumber() + 65536 ?? 0);
-        set => Arg2 = new IntegerExpression(value - 65536);
+        set => Arg2 = value - 65536;
     }
 }

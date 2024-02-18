@@ -6,10 +6,10 @@ namespace HaselCommon.Text.Payloads.Macro;
 [SeStringPayload(MacroCodes.PcName)] // n x
 public class PcNamePayload : HaselMacroPayload
 {
-    public BaseExpression? ObjectId { get; set; }
+    public ExpressionWrapper? ObjectId { get; set; }
 
     [TerminatorExpression]
-    private BaseExpression? Terminator { get; set; }
+    private ExpressionWrapper? Terminator { get; set; }
 
     public override HaselSeString Resolve(List<ExpressionWrapper>? localParameters = null)
     {

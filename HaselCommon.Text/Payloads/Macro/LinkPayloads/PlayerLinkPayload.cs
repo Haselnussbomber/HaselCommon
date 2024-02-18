@@ -15,19 +15,19 @@ public class PlayerLinkPayload : LinkPayload
     public PlayerLinkFlag Flags
     {
         get => (PlayerLinkFlag)(Arg2?.ResolveNumber() ?? 0);
-        set => Arg2 = new IntegerExpression((uint)value);
+        set => Arg2 = (uint)value;
     }
 
     public uint WorldId
     {
         get => (uint)(Arg3?.ResolveNumber() ?? 0);
-        set => Arg3 = new IntegerExpression(value);
+        set => Arg3 = value;
     }
 
     public string PlayerName
     {
         get => Arg5?.ResolveString().ToString() ?? "";
-        set => Arg5 = new StringExpression(new(value));
+        set => Arg5 = value;
     }
 }
 

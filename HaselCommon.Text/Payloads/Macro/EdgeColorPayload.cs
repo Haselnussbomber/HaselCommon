@@ -3,11 +3,11 @@ namespace HaselCommon.Text.Payloads.Macro;
 [SeStringPayload(MacroCodes.EdgeColor)] // n N x
 public class EdgeColorPayload : HaselMacroPayload
 {
-    public BaseExpression? Color { get; set; }
-    public BaseExpression? Arg2 { get; set; }
+    public ExpressionWrapper? Color { get; set; }
+    public ExpressionWrapper? Arg2 { get; set; }
 
     [TerminatorExpression]
-    private BaseExpression? Terminator { get; set; }
+    private ExpressionWrapper? Terminator { get; set; }
 
     public override HaselSeString Resolve(List<ExpressionWrapper>? localParameters = null)
     {
@@ -38,13 +38,13 @@ public class EdgeColorPayload : HaselMacroPayload
 
         if (Color != null)
         {
-            if (Color is IntegerExpression integerExpression && integerExpression.Value == 0)
+            if (Color.BaseExpression is IntegerExpression integerExpression && integerExpression.Value == 0)
             {
                 sb.Append("stackcolor");
             }
             else
             {
-                sb.Append(Color.HaselToString());
+                sb.Append(Color.ToString());
             }
         }
 

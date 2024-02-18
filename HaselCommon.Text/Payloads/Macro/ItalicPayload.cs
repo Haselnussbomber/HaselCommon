@@ -9,8 +9,8 @@ public class ItalicPayload : HaselMacroPayload
 
     public ItalicPayload(bool enabled) : base()
     {
-        Enabled = new(enabled ? 1u : 0);
+        Enabled = enabled ? 1u : 0;
     }
 
-    public IntegerExpression Enabled { get; set; } = new();
+    public ExpressionWrapper Enabled { get; set; } = 0;
 }

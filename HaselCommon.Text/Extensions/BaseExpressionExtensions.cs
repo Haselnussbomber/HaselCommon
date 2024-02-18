@@ -39,8 +39,8 @@ public static unsafe class BaseExpressionExtensions
             ExpressionType.Second => MacroDecoder.GetMacroTime()->tm_sec,
             ExpressionType.Minute => MacroDecoder.GetMacroTime()->tm_min,
             ExpressionType.Hour => MacroDecoder.GetMacroTime()->tm_hour,
-            ExpressionType.Day => MacroDecoder.GetMacroTime()->tm_mday + 1,
-            ExpressionType.Weekday => MacroDecoder.GetMacroTime()->tm_wday + 1,
+            ExpressionType.Day => ((FixedTm*)MacroDecoder.GetMacroTime())->tm_mday,
+            ExpressionType.Weekday => ((FixedTm*)MacroDecoder.GetMacroTime())->tm_wday,
             ExpressionType.Month => MacroDecoder.GetMacroTime()->tm_mon + 1,
             ExpressionType.Year => MacroDecoder.GetMacroTime()->tm_year + 1900,
 
@@ -68,8 +68,8 @@ public static unsafe class BaseExpressionExtensions
             ExpressionType.Second => MacroDecoder.GetMacroTime()->tm_sec,
             ExpressionType.Minute => MacroDecoder.GetMacroTime()->tm_min,
             ExpressionType.Hour => MacroDecoder.GetMacroTime()->tm_hour,
-            ExpressionType.Day => MacroDecoder.GetMacroTime()->tm_mday + 1,
-            ExpressionType.Weekday => MacroDecoder.GetMacroTime()->tm_wday + 1,
+            ExpressionType.Day => ((FixedTm*)MacroDecoder.GetMacroTime())->tm_mday,
+            ExpressionType.Weekday => ((FixedTm*)MacroDecoder.GetMacroTime())->tm_wday,
             ExpressionType.Month => MacroDecoder.GetMacroTime()->tm_mon + 1,
             ExpressionType.Year => MacroDecoder.GetMacroTime()->tm_year + 1900,
 

@@ -13,15 +13,18 @@ public abstract class NounPayload : HaselMacroPayload
 
     public abstract ClientLanguage Language { get; }
 
-    public BaseExpression? SheetName { get; set; }
-    public BaseExpression? Person { get; set; } = DefaultPerson;
-    public BaseExpression? RowId { get; set; }
-    public BaseExpression? Amount { get; set; } = DefaultAmount;
-    public BaseExpression? Case { get; set; } = DefaultCase;
-    public BaseExpression? UnkInt5 { get; set; } = DefaultUnkInt5;
+    public ExpressionWrapper? SheetName { get; set; }
+    public ExpressionWrapper? Person { get; set; } = DefaultPerson;
+    public ExpressionWrapper? RowId { get; set; }
+    public ExpressionWrapper? Amount { get; set; } = DefaultAmount;
+    public ExpressionWrapper? Case { get; set; } = DefaultCase;
+    public ExpressionWrapper? UnkInt5 { get; set; } = DefaultUnkInt5;
 
     public override byte[] Encode()
     {
+        if (SheetName == null || RowId == null)
+            return [];
+
         return EncodeChunk(
             SheetName,
             Person ?? DefaultPerson,
