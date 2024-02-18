@@ -8,7 +8,9 @@ namespace HaselCommon.Text.Extensions;
 
 // ExpressionType 0xEE is not an expression, it's used for icons. basically it's the UTF-8 Private Use Area, but 0xE0 was already used for GreaterThanOrEqualTo
 
-public static unsafe partial class BaseExpressionExtensions
+// TODO: find a better way to Resolve() expressions...
+
+public static unsafe class BaseExpressionExtensions
 {
     public static string HaselToString(this BaseExpression expr)
     {
@@ -17,19 +19,19 @@ public static unsafe partial class BaseExpressionExtensions
             : expr.ToString()!;
     }
 
-    public static int ResolveNumber(this BaseExpression expr, List<HaselSeString>? localParameterData = null)
+    public static int ResolveNumber(this BaseExpression expr, List<ExpressionWrapper>? localParameters = null)
     {
         if (expr is IntegerExpression integerExpression)
             return (int)integerExpression.Value;
 
         if (expr is StringExpression stringExpression)
-            return stringExpression.ResolveNumber(localParameterData);
+            return stringExpression.ResolveNumber(localParameters);
 
         if (expr is BinaryExpression binaryExpression)
-            return binaryExpression.Resolve(localParameterData) ? 1 : 0;
+            return binaryExpression.Resolve(localParameters) ? 1 : 0;
 
         if (expr is ParameterExpression parameterExpression)
-            return parameterExpression.ResolveNumber(localParameterData);
+            return parameterExpression.ResolveNumber(localParameters);
 
         return expr.ExpressionType switch
         {
@@ -46,19 +48,19 @@ public static unsafe partial class BaseExpressionExtensions
         };
     }
 
-    public static HaselSeString ResolveString(this BaseExpression expr, List<HaselSeString>? localParameterData = null)
+    public static HaselSeString ResolveString(this BaseExpression expr, List<ExpressionWrapper>? localParameters = null)
     {
         if (expr is IntegerExpression integerExpression)
             return integerExpression.Value.ToString();
 
         if (expr is StringExpression stringExpression)
-            return stringExpression.ResolveString(localParameterData);
+            return stringExpression.ResolveString(localParameters);
 
         if (expr is BinaryExpression binaryExpression)
-            return binaryExpression.Resolve(localParameterData) ? "1" : "0";
+            return binaryExpression.Resolve(localParameters) ? "1" : "0";
 
         if (expr is ParameterExpression parameterExpression)
-            return parameterExpression.ResolveString(localParameterData);
+            return parameterExpression.ResolveString(localParameters);
 
         return (expr.ExpressionType switch
         {

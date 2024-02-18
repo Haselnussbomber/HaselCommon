@@ -11,3 +11,4 @@ global using HaselCommon.Text.Extensions;
 global using HaselCommon.Text.Payloads;
 global using HaselCommon.Text.Payloads.Macro;
 global using Lumina.Text.Expressions;
+global using static HaselCommon.Utils.Globals.Excel;

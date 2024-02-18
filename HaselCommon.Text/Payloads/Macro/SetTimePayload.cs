@@ -10,12 +10,12 @@ public class SetTimePayload : HaselMacroPayload
     [TerminatorExpression]
     private BaseExpression? Terminator { get; set; }
 
-    public override unsafe HaselSeString Resolve(List<HaselSeString>? localParameterData = null)
+    public override unsafe HaselSeString Resolve(List<ExpressionWrapper>? localParameters = null)
     {
         if (Time != null)
         {
             var mt = MacroDecoder.GetMacroTime();
-            mt->SetTime(DateTimeOffset.FromUnixTimeSeconds(Time.ResolveNumber(localParameterData)).DateTime);
+            mt->SetTime(DateTimeOffset.FromUnixTimeSeconds(Time.ResolveNumber(localParameters)).DateTime);
         }
 
         return this;

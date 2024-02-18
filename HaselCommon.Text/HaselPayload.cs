@@ -110,7 +110,7 @@ public abstract class HaselPayload
 
     public abstract byte[] Encode();
     public abstract void Decode(BinaryReader reader);
-    public abstract HaselSeString Resolve(List<HaselSeString>? localParameterData = null);
+    public abstract HaselSeString Resolve(List<ExpressionWrapper>? localParameters = null);
 
     public static explicit operator HaselPayload(byte[] data) => From(data);
 }

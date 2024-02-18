@@ -9,7 +9,7 @@ public class EdgeColorPayload : HaselMacroPayload
     [TerminatorExpression]
     private BaseExpression? Terminator { get; set; }
 
-    public override HaselSeString Resolve(List<HaselSeString>? localParameterData = null)
+    public override HaselSeString Resolve(List<ExpressionWrapper>? localParameters = null)
     {
         if (Color == null)
             return new();
@@ -22,7 +22,7 @@ public class EdgeColorPayload : HaselMacroPayload
         {
             Color = isStackcolor
                 ? Color
-                : new IntegerExpression((uint)Color.ResolveNumber(localParameterData))
+                : new IntegerExpression((uint)Color.ResolveNumber(localParameters))
         };
 
         return payload;

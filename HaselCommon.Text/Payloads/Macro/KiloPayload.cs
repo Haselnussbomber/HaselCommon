@@ -11,13 +11,13 @@ public class KiloPayload : HaselMacroPayload
     [TerminatorExpression]
     private BaseExpression? Terminator { get; set; }
 
-    public override HaselSeString Resolve(List<HaselSeString>? localParameterData = null)
+    public override HaselSeString Resolve(List<ExpressionWrapper>? localParameters = null)
     {
         if (Value == null || Separator == null)
             return new();
 
-        var value = Value.ResolveNumber(localParameterData);
-        var separator = Separator.ResolveString(localParameterData).ToString();
+        var value = Value.ResolveNumber(localParameters);
+        var separator = Separator.ResolveString(localParameters).ToString();
 
         var nfi = new NumberFormatInfo { NumberGroupSeparator = separator, NumberDecimalDigits = 0 };
         return $"{value.ToString("n", nfi)}";

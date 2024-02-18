@@ -8,12 +8,12 @@ public class HexPayload : HaselMacroPayload
     [TerminatorExpression]
     private BaseExpression? Terminator { get; set; }
 
-    public override HaselSeString Resolve(List<HaselSeString>? localParameterData = null)
+    public override HaselSeString Resolve(List<ExpressionWrapper>? localParameters = null)
     {
         if (Value == null)
             return new();
 
-        var value = Value?.ResolveNumber(localParameterData) ?? 0;
+        var value = Value?.ResolveNumber(localParameters) ?? 0;
         return $"0x{value:X08}";
     }
 }

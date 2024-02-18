@@ -11,12 +11,12 @@ public class PcNamePayload : HaselMacroPayload
     [TerminatorExpression]
     private BaseExpression? Terminator { get; set; }
 
-    public override HaselSeString Resolve(List<HaselSeString>? localParameterData = null)
+    public override HaselSeString Resolve(List<ExpressionWrapper>? localParameters = null)
     {
         if (ObjectId == null)
             return new();
 
-        var objectId = (uint)ObjectId.ResolveNumber(localParameterData);
+        var objectId = (uint)ObjectId.ResolveNumber(localParameters);
 
         return GetNameForObjectId(objectId);
     }

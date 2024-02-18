@@ -63,18 +63,18 @@ public abstract class NounPayload : HaselMacroPayload
             throw new Exception("Expected END_BYTE");
     }
 
-    public override HaselSeString Resolve(List<HaselSeString>? localParameterData = null)
+    public override HaselSeString Resolve(List<ExpressionWrapper>? localParameters = null)
     {
         if (SheetName == null || RowId == null)
             return new HaselSeString();
 
-        var sheetName = SheetName.ResolveString(localParameterData).ToString();
-        var rowId = RowId.ResolveNumber(localParameterData);
+        var sheetName = SheetName.ResolveString(localParameters).ToString();
+        var rowId = RowId.ResolveNumber(localParameters);
 
-        var person = (Person ?? DefaultPerson).ResolveNumber(localParameterData);
-        var amount = (Amount ?? DefaultAmount).ResolveNumber(localParameterData);
-        var @case = (Case ?? DefaultCase).ResolveNumber(localParameterData);
-        var unkInt5 = (UnkInt5 ?? DefaultUnkInt5).ResolveNumber(localParameterData);
+        var person = (Person ?? DefaultPerson).ResolveNumber(localParameters);
+        var amount = (Amount ?? DefaultAmount).ResolveNumber(localParameters);
+        var @case = (Case ?? DefaultCase).ResolveNumber(localParameters);
+        var unkInt5 = (UnkInt5 ?? DefaultUnkInt5).ResolveNumber(localParameters);
 
         return TextDecoder.ProcessNoun(Language, sheetName, person, rowId, amount, @case, unkInt5);
     }

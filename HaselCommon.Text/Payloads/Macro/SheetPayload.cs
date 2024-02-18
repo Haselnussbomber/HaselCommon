@@ -1,71 +1,31 @@
+using Lumina.Text;
+
 namespace HaselCommon.Text.Payloads.Macro;
 
 [SeStringPayload(MacroCodes.Sheet)] // s . . .
 public class SheetPayload : HaselMacroPayload
 {
-    private static readonly IntegerExpression DefaultRowId = new(0);
-    private static readonly IntegerExpression DefaultColumnIndex = new(0);
-
     public BaseExpression? SheetName { get; set; }
-    public BaseExpression? RowId { get; set; } = DefaultRowId;
-    public BaseExpression? ColumnIndex { get; set; } = DefaultColumnIndex;
+    public BaseExpression? RowId { get; set; }
+    public BaseExpression? ColumnIndex { get; set; }
 
-    public override byte[] Encode()
-        => EncodeChunk(
-            SheetName ?? new StringExpression(),
-            RowId ?? DefaultRowId,
-            ColumnIndex ?? DefaultColumnIndex
-        );
-
-    public override void Decode(BinaryReader reader)
+    public override HaselSeString Resolve(List<ExpressionWrapper>? localParameters = null)
     {
-        if (reader.ReadByte() != START_BYTE)
-            throw new Exception("Expected START_BYTE");
-
-        if (reader.ReadByte() != (byte)Code)
-            throw new Exception($"Expected MacroCode {Code} (0x{(byte)Code:X})");
-
-        reader.ReadIntegerExpression();
-
-        if (!reader.IsEndOfChunk())
-        {
-            SheetName = BaseExpression.Parse(reader.BaseStream);
-
-            if (!reader.IsEndOfChunk())
-            {
-                RowId = BaseExpression.Parse(reader.BaseStream);
-
-                if (!reader.IsEndOfChunk())
-                {
-                    ColumnIndex = BaseExpression.Parse(reader.BaseStream);
-                }
-            }
-        }
-
-        //if (reader.ReadByte() != END_BYTE)
-        //    throw new Exception("Expected END_BYTE");
-    }
-
-    public override HaselSeString Resolve(List<HaselSeString>? localParameterData = null)
-    {
-        if (SheetName == null)
+        if (SheetName == null || RowId == null || ColumnIndex == null)
             return new();
 
-        var sheet = Service.DataManager.Excel.GetSheetRaw(SheetName.ResolveString(localParameterData).ToString());
+        var sheet = Service.DataManager.Excel.GetSheetRaw(SheetName.ResolveString(localParameters).ToString());
         if (sheet == null)
             return new();
 
-        var rowId = RowId ?? DefaultRowId;
-        var columnIndex = ColumnIndex ?? DefaultColumnIndex;
-
-        var row = sheet.GetRow((uint)rowId.ResolveNumber(localParameterData));
+        var row = sheet.GetRow((uint)RowId.ResolveNumber(localParameters));
         if (row == null)
             return new();
 
-        var text = row.ReadColumn<Lumina.Text.SeString>(columnIndex.ResolveNumber(localParameterData));
+        var text = row.ReadColumn<SeString>(ColumnIndex.ResolveNumber(localParameters));
         if (text == null)
             return new();
 
-        return text.Resolve(localParameterData);
+        return text.Resolve(localParameters);
     }
 }

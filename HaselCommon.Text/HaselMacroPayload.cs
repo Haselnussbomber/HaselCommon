@@ -65,7 +65,7 @@ public abstract class HaselMacroPayload : HaselPayload
             throw new Exception("Expected END_BYTE");
     }
 
-    public override HaselSeString Resolve(List<HaselSeString>? localParameterData = null)
+    public override HaselSeString Resolve(List<ExpressionWrapper>? localParameters = null)
         => this; // passthrough
 
     public override string ToString()

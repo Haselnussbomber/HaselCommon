@@ -8,11 +8,11 @@ public class SecPayload : HaselMacroPayload
     [TerminatorExpression]
     private BaseExpression? Terminator { get; set; }
 
-    public override HaselSeString Resolve(List<HaselSeString>? localParameterData = null)
+    public override HaselSeString Resolve(List<ExpressionWrapper>? localParameters = null)
     {
         if (Value == null)
             return new();
 
-        return Value.ResolveNumber(localParameterData).ToString("00"); // TODO: technically they cut it off if it's more than 2 digits
+        return Value.ResolveNumber(localParameters).ToString("00"); // TODO: technically they cut it off if it's more than 2 digits
     }
 }

@@ -7,7 +7,4 @@ public class WaitPayload : HaselMacroPayload
 
     [TerminatorExpression]
     private BaseExpression? Terminator { get; set; }
-
-    public override HaselSeString Resolve(List<HaselSeString>? localParameterData = null)
-        => this; // TODO: NYI
 }

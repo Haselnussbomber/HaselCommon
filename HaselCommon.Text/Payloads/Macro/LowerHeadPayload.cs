@@ -8,6 +8,6 @@ public class LowerHeadPayload : HaselMacroPayload
     [TerminatorExpression]
     private BaseExpression? Terminator { get; set; }
 
-    public override HaselSeString Resolve(List<HaselSeString>? localParameterData = null)
-        => String?.ResolveString(localParameterData).ToString()?.FirstCharToLower() ?? new HaselSeString();
+    public override HaselSeString Resolve(List<ExpressionWrapper>? localParameters = null)
+        => String?.ResolveString(localParameters).ToString()?.FirstCharToLower() ?? new HaselSeString();
 }

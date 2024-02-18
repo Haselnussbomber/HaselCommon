@@ -10,13 +10,13 @@ public class IfPayload : HaselMacroPayload
     [TerminatorExpression]
     private BaseExpression? Terminator { get; set; }
 
-    public override HaselSeString Resolve(List<HaselSeString>? localParameterData = null)
+    public override HaselSeString Resolve(List<ExpressionWrapper>? localParameters = null)
     {
         if (Condition == null)
             return new();
 
-        var isTruthy = Condition.ResolveNumber(localParameterData) != 0; // TODO: what if it's a string? can it be a string?
+        var isTruthy = Condition.ResolveNumber(localParameters) != 0; // TODO: what if it's a string? can it be a string?
         var statement = isTruthy ? StatementTrue : StatementFalse;
-        return statement?.ResolveString(localParameterData) ?? new();
+        return statement?.ResolveString(localParameters) ?? new();
     }
 }

@@ -8,12 +8,12 @@ public class HeadAllPayload : HaselMacroPayload
     [TerminatorExpression]
     private BaseExpression? Terminator { get; set; }
 
-    public override HaselSeString Resolve(List<HaselSeString>? localParameterData = null)
+    public override HaselSeString Resolve(List<ExpressionWrapper>? localParameters = null)
     {
         if (String == null)
             return new();
 
-        var splitted = String.ResolveString(localParameterData).ToString().Split(' ');
+        var splitted = String.ResolveString(localParameters).ToString().Split(' ');
 
         for (var i = 0; i < splitted.Length; i++)
             splitted[i] = splitted[i].FirstCharToUpper();

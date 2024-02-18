@@ -2,12 +2,12 @@ namespace HaselCommon.Text.Extensions;
 
 public static class BinaryExpressionExtensions
 {
-    public static bool Resolve(this BinaryExpression expr, List<HaselSeString>? localParameterData = null)
+    public static bool Resolve(this BinaryExpression expr, List<ExpressionWrapper>? localParameters = null)
     {
         if (expr.ExpressionType is ExpressionType.Equal or ExpressionType.NotEqual)
         {
-            var op1 = expr.Operand1.ResolveString(localParameterData);
-            var op2 = expr.Operand2.ResolveString(localParameterData);
+            var op1 = expr.Operand1.ResolveString(localParameters);
+            var op2 = expr.Operand2.ResolveString(localParameters);
 
             return expr.ExpressionType == ExpressionType.Equal
                 ? op1 == op2
@@ -15,8 +15,8 @@ public static class BinaryExpressionExtensions
         }
         else
         {
-            var op1 = expr.Operand1.ResolveNumber(localParameterData);
-            var op2 = expr.Operand2.ResolveNumber(localParameterData);
+            var op1 = expr.Operand1.ResolveNumber(localParameters);
+            var op2 = expr.Operand2.ResolveNumber(localParameters);
 
             return expr.ExpressionType switch
             {

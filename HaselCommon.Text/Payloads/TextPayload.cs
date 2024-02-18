@@ -33,7 +33,7 @@ public class TextPayload : HaselPayload
             Text = Encoding.UTF8.GetString(textBytes.ToArray());
     }
 
-    public override HaselSeString Resolve(List<HaselSeString>? localParameterData = null)
+    public override HaselSeString Resolve(List<ExpressionWrapper>? localParameters = null)
         => this;
 
     public override string ToString()

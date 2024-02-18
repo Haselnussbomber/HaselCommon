@@ -9,13 +9,13 @@ public class DigitPayload : HaselMacroPayload
     [TerminatorExpression]
     private BaseExpression? Terminator { get; set; }
 
-    public override HaselSeString Resolve(List<HaselSeString>? localParameterData = null)
+    public override HaselSeString Resolve(List<ExpressionWrapper>? localParameters = null)
     {
         if (Value == null)
             return new();
 
-        var value = Value?.ResolveNumber(localParameterData) ?? 0;
-        var targetLength = TargetLength?.ResolveNumber(localParameterData) ?? 1;
+        var value = Value?.ResolveNumber(localParameters) ?? 0;
+        var targetLength = TargetLength?.ResolveNumber(localParameters) ?? 1;
         return value.ToString($"{new string('0', targetLength)}");
     }
 }

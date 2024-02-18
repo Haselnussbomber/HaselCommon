@@ -12,12 +12,12 @@ public class IfSelfPayload : HaselMacroPayload
     [TerminatorExpression]
     private BaseExpression? Terminator { get; set; }
 
-    public override unsafe HaselSeString Resolve(List<HaselSeString>? localParameterData = null)
+    public override unsafe HaselSeString Resolve(List<ExpressionWrapper>? localParameters = null)
     {
         if (ObjectId == null)
             return new();
 
-        var isSelf = (uint)ObjectId.ResolveNumber(localParameterData) == PlayerState.Instance()->ObjectId;
-        return (isSelf ? CaseTrue : CaseFalse)?.ResolveString(localParameterData) ?? new();
+        var isSelf = (uint)ObjectId.ResolveNumber(localParameters) == PlayerState.Instance()->ObjectId;
+        return (isSelf ? CaseTrue : CaseFalse)?.ResolveString(localParameters) ?? new();
     }
 }

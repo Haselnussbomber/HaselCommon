@@ -12,18 +12,18 @@ public class IfPcGenderPayload : HaselMacroPayload
     [TerminatorExpression]
     private BaseExpression? Terminator { get; set; }
 
-    public override unsafe HaselSeString Resolve(List<HaselSeString>? localParameterData = null)
+    public override unsafe HaselSeString Resolve(List<ExpressionWrapper>? localParameters = null)
     {
         if (ObjectId == null)
             return new();
 
-        var objectId = (uint)ObjectId.ResolveNumber(localParameterData);
+        var objectId = (uint)ObjectId.ResolveNumber(localParameters);
 
         var chara = CharacterManager.Instance()->LookupBattleCharaByObjectId(objectId);
         if (chara == null)
-            return CaseMale?.ResolveString(localParameterData) ?? new();
+            return CaseMale?.ResolveString(localParameters) ?? new();
 
         var isMale = chara->Character.DrawData.CustomizeData.Sex == 0;
-        return (isMale ? CaseMale : CaseFemale)?.ResolveString(localParameterData) ?? new();
+        return (isMale ? CaseMale : CaseFemale)?.ResolveString(localParameters) ?? new();
     }
 }

@@ -6,12 +6,12 @@ namespace HaselCommon.Text.Extensions;
 
 public static unsafe class ParameterExpressionExtensions
 {
-    public static int ResolveNumber(this ParameterExpression expr, List<HaselSeString>? localParameterData = null)
+    public static int ResolveNumber(this ParameterExpression expr, List<ExpressionWrapper>? localParameters = null)
     {
         // gstr, gnum
         if (expr.ExpressionType is ExpressionType.ObjectParameter or ExpressionType.PlayerParameter)
         {
-            var num = expr.Operand.ResolveNumber(localParameterData) - 1;
+            var num = expr.Operand.ResolveNumber(localParameters) - 1;
             var param = RaptureTextModule.Instance()->TextModule.MacroDecoder.GlobalParameters.Get((ulong)num);
 
             return param.Type switch
@@ -27,30 +27,30 @@ public static unsafe class ParameterExpressionExtensions
         // lstr, lnum
         if (expr.ExpressionType is ExpressionType.IntegerParameter or ExpressionType.StringParameter)
         {
-            if (localParameterData == null)
-                throw new ArgumentException("No LocalParameterData provided");
+            if (localParameters == null)
+                throw new ArgumentException("No localParameters provided");
 
-            var num = expr.Operand.ResolveNumber(localParameterData) - 1;
+            var num = expr.Operand.ResolveNumber(localParameters) - 1;
 
             // TODO: silently return default (0)?
             if (num < 0)
-                throw new ArgumentException($"Requiring invalid LocalParameterData index {num}");
+                throw new ArgumentException($"Requiring invalid localParameters index {num}");
 
-            if (localParameterData.Count < num)
-                throw new ArgumentException($"LocalParameterData index {num} was not provided");
+            if (localParameters.Count < num)
+                throw new ArgumentException($"localParameters index {num} was not provided");
 
-            return int.Parse(localParameterData[num].ToString());
+            return int.Parse(localParameters[num].ToString());
         }
 
         throw new NotImplementedException($"Unhandled ParameterExpression type 0x{(byte)expr.ExpressionType:X02}");
     }
 
-    public static HaselSeString ResolveString(this ParameterExpression expr, List<HaselSeString>? localParameterData = null)
+    public static HaselSeString ResolveString(this ParameterExpression expr, List<ExpressionWrapper>? localParameters = null)
     {
         // gstr, gnum
         if (expr.ExpressionType is ExpressionType.ObjectParameter or ExpressionType.PlayerParameter)
         {
-            var num = expr.Operand.ResolveNumber(localParameterData) - 1;
+            var num = expr.Operand.ResolveNumber(localParameters) - 1;
             var param = RaptureTextModule.Instance()->TextModule.MacroDecoder.GlobalParameters.Get((ulong)num);
 
             return param.Type switch
@@ -66,19 +66,19 @@ public static unsafe class ParameterExpressionExtensions
         // lstr, lnum
         if (expr.ExpressionType is ExpressionType.IntegerParameter or ExpressionType.StringParameter)
         {
-            if (localParameterData == null)
-                throw new ArgumentException("No LocalParameterData provided");
+            if (localParameters == null)
+                throw new ArgumentException("No localParameters provided");
 
-            var num = (int)uint.Parse(expr.Operand.ResolveString(localParameterData).ToString()) - 1;
+            var num = (int)uint.Parse(expr.Operand.ResolveString(localParameters).ToString()) - 1;
 
             // TODO: silently return default ("")?
             if (num < 0)
-                throw new ArgumentException($"Requiring invalid LocalParameterData index {num}");
+                throw new ArgumentException($"Requiring invalid localParameters index {num}");
 
-            if (localParameterData.Count < num)
-                throw new ArgumentException($"LocalParameterData index {num} was not provided");
+            if (localParameters.Count < num)
+                throw new ArgumentException($"localParameters index {num} was not provided");
 
-            return localParameterData[num];
+            return localParameters[num].Expression.ToString() ?? string.Empty;
         }
 
         throw new NotImplementedException($"Unhandled ParameterExpression type 0x{(byte)expr.ExpressionType:X02}");

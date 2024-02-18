@@ -45,16 +45,16 @@ public class SwitchPayload : HaselMacroPayload
             throw new Exception("Expected END_BYTE");
     }
 
-    public override HaselSeString Resolve(List<HaselSeString>? localParameterData = null)
+    public override HaselSeString Resolve(List<ExpressionWrapper>? localParameters = null)
     {
         if (Condition == null)
             return new();
 
-        var caseIndex = Condition.ResolveNumber(localParameterData) - 1;
+        var caseIndex = Condition.ResolveNumber(localParameters) - 1;
 
         if (Cases.Count < caseIndex)
             return new();
 
-        return Cases[caseIndex].ResolveString(localParameterData);
+        return Cases[caseIndex].ResolveString(localParameters);
     }
 }

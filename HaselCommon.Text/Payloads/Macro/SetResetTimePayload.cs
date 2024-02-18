@@ -11,15 +11,15 @@ public class SetResetTimePayload : HaselMacroPayload
     [TerminatorExpression]
     private BaseExpression? Terminator { get; set; }
 
-    public override unsafe HaselSeString Resolve(List<HaselSeString>? localParameterData = null)
+    public override unsafe HaselSeString Resolve(List<ExpressionWrapper>? localParameters = null)
     {
         // see Client::UI::Misc::RaptureTextModule___Component::Text::MacroDecoder_vf1
         // i just copy pasted and guessed
 
-        var hour = (Hour?.ResolveNumber(localParameterData) ?? 1) - 1;
+        var hour = (Hour?.ResolveNumber(localParameters) ?? 1) - 1;
         if (hour > 23) hour = 0;
 
-        var day = (WeekDay?.ResolveNumber(localParameterData) ?? 8) - 1;
+        var day = (WeekDay?.ResolveNumber(localParameters) ?? 8) - 1;
         if (day > 7) day = 7;
 
         if (hour >= 9)
