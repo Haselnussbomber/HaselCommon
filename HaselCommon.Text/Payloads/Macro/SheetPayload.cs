@@ -27,8 +27,11 @@ public class SheetPayload : HaselMacroPayload
         if (text == null)
             return new();
 
-        return ColumnParam == null
-            ? text.Resolve()
-            : text.Resolve([ColumnParam]);
+        if (ColumnParam == null)
+            return text.Resolve();
+
+        // HACK: (I think) we need to subtract 1, because passing it to Resolve is casting the int to ExpressionWrapper, which creates an IntegerExpression that adds 1 during encode
+        var columnParam = (ColumnParam?.ResolveNumber(localParameters) ?? 1) - 1;
+        return text.Resolve([columnParam]);
     }
 }
