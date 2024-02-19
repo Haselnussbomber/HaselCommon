@@ -28,16 +28,12 @@ public static unsafe class ParameterExpressionExtensions
         if (expr.ExpressionType is ExpressionType.IntegerParameter or ExpressionType.StringParameter)
         {
             if (localParameters == null)
-                throw new ArgumentException("No localParameters provided");
+                return 0;
 
             var num = expr.Operand.ResolveNumber(localParameters) - 1;
 
-            // TODO: silently return default (0)?
-            if (num < 0)
-                throw new ArgumentException($"Requiring invalid localParameters index {num}");
-
-            if (localParameters.Count < num)
-                throw new ArgumentException($"localParameters index {num} was not provided");
+            if (num < 0 || localParameters.Count < num)
+                return 0;
 
             return int.Parse(localParameters[num].ToString());
         }
@@ -67,16 +63,12 @@ public static unsafe class ParameterExpressionExtensions
         if (expr.ExpressionType is ExpressionType.IntegerParameter or ExpressionType.StringParameter)
         {
             if (localParameters == null)
-                throw new ArgumentException("No localParameters provided");
+                return string.Empty;
 
             var num = (int)uint.Parse(expr.Operand.ResolveString(localParameters).ToString()) - 1;
 
-            // TODO: silently return default ("")?
-            if (num < 0)
-                throw new ArgumentException($"Requiring invalid localParameters index {num}");
-
-            if (localParameters.Count < num)
-                throw new ArgumentException($"localParameters index {num} was not provided");
+            if (num < 0 || localParameters.Count < num)
+                return string.Empty;
 
             return localParameters[num].BaseExpression.ToString() ?? string.Empty;
         }

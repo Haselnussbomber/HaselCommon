@@ -15,8 +15,9 @@ public class IfPayload : HaselMacroPayload
         if (Condition == null)
             return new();
 
-        var isTruthy = Condition.ResolveNumber(localParameters) != 0; // TODO: what if it's a string? can it be a string?
+        var isTruthy = Condition.ResolveNumber(localParameters) != 0;
         var statement = isTruthy ? StatementTrue : StatementFalse;
+
         return statement?.ResolveString(localParameters) ?? new();
     }
 }
