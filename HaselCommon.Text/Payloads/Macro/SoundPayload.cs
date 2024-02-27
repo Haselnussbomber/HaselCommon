@@ -1,8 +1,8 @@
 namespace HaselCommon.Text.Payloads.Macro;
 
 [SeStringPayload(MacroCodes.Sound)] // n n
-public class SoundPayload : HaselMacroPayload
+public class SoundPayload : MacroPayload
 {
-    public ExpressionWrapper? IsJingle { get; set; }
-    public ExpressionWrapper? SoundId { get; set; }
+    public Expression? IsJingle { get; set; }
+    public Expression? SoundId { get; set; }
 }

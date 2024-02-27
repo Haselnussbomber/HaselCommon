@@ -1,7 +1,7 @@
 namespace HaselCommon.Text.Payloads.Macro;
 
 [SeStringPayload(MacroCodes.Link)] // n n n n s
-public class LinkPayload : HaselMacroPayload
+public class LinkPayload : MacroPayload
 {
     public LinkPayload()
     {
@@ -16,9 +16,9 @@ public class LinkPayload : HaselMacroPayload
         Arg5 = arg5;
     }
 
-    public ExpressionWrapper? Type { get; set; }
-    public ExpressionWrapper? Arg2 { get; set; }
-    public ExpressionWrapper? Arg3 { get; set; }
-    public ExpressionWrapper? Arg4 { get; set; }
-    public ExpressionWrapper? Arg5 { get; set; }
+    public Expression? Type { get; set; }
+    public Expression? Arg2 { get; set; }
+    public Expression? Arg3 { get; set; }
+    public Expression? Arg4 { get; set; }
+    public Expression? Arg5 { get; set; }
 }

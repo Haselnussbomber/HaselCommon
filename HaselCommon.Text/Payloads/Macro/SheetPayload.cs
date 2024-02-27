@@ -3,14 +3,14 @@ using Lumina.Text;
 namespace HaselCommon.Text.Payloads.Macro;
 
 [SeStringPayload(MacroCodes.Sheet)] // s . . .
-public class SheetPayload : HaselMacroPayload
+public class SheetPayload : MacroPayload
 {
-    public ExpressionWrapper? SheetName { get; set; }
-    public ExpressionWrapper? RowId { get; set; }
-    public ExpressionWrapper? ColumnIndex { get; set; }
-    public ExpressionWrapper? ColumnParam { get; set; } // like lnum1 in the switch in GrandCompany.Unknown1
+    public Expression? SheetName { get; set; }
+    public Expression? RowId { get; set; }
+    public Expression? ColumnIndex { get; set; }
+    public Expression? ColumnParam { get; set; } // like lnum1 in the switch in GrandCompany.Unknown1
 
-    public override HaselSeString Resolve(List<ExpressionWrapper>? localParameters = null)
+    public override SeString Resolve(List<Expression>? localParameters = null)
     {
         if (SheetName == null || RowId == null || ColumnIndex == null)
             return new();
@@ -23,7 +23,7 @@ public class SheetPayload : HaselMacroPayload
         if (row == null)
             return new();
 
-        var text = row.ReadColumn<SeString>(ColumnIndex.ResolveNumber(localParameters));
+        var text = row.ReadColumn<Lumina.Text.SeString>(ColumnIndex.ResolveNumber(localParameters));
         if (text == null)
             return new();
 

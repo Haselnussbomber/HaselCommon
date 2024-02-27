@@ -1,15 +1,15 @@
 namespace HaselCommon.Text.Payloads.Macro;
 
 [SeStringPayload(MacroCodes.Split)] // s s n x
-public class SplitPayload : HaselMacroPayload
+public class SplitPayload : MacroPayload
 {
-    public ExpressionWrapper? Arg1 { get; set; }
-    public ExpressionWrapper? Arg2 { get; set; }
-    public ExpressionWrapper? Arg3 { get; set; }
+    public Expression? Arg1 { get; set; }
+    public Expression? Arg2 { get; set; }
+    public Expression? Arg3 { get; set; }
 
     [TerminatorExpression]
-    private ExpressionWrapper? Terminator { get; set; }
+    private Expression? Terminator { get; set; }
 
-    public override HaselSeString Resolve(List<ExpressionWrapper>? localParameters = null)
+    public override SeString Resolve(List<Expression>? localParameters = null)
         => this; // TODO: NYI
 }

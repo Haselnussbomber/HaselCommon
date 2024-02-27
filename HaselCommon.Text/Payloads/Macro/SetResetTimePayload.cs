@@ -3,15 +3,15 @@ using FFXIVClientStructs.FFXIV.Component.Text;
 namespace HaselCommon.Text.Payloads.Macro;
 
 [SeStringPayload(MacroCodes.SetResetTime)] // n N x
-public class SetResetTimePayload : HaselMacroPayload
+public class SetResetTimePayload : MacroPayload
 {
-    public ExpressionWrapper? Hour { get; set; }
-    public ExpressionWrapper? WeekDay { get; set; }
+    public Expression? Hour { get; set; }
+    public Expression? WeekDay { get; set; }
 
     [TerminatorExpression]
-    private ExpressionWrapper? Terminator { get; set; }
+    private Expression? Terminator { get; set; }
 
-    public override unsafe HaselSeString Resolve(List<ExpressionWrapper>? localParameters = null)
+    public override unsafe SeString Resolve(List<Expression>? localParameters = null)
     {
         // not quite what Client::UI::Misc::RaptureTextModule___Component::Text::MacroDecoder_vf1 does
         // but it seems to work?!

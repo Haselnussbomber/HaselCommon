@@ -15,11 +15,11 @@ public static unsafe class BaseExpressionExtensions
     public static string HaselToString(this BaseExpression expr)
     {
         return expr is StringExpression stringExpression
-            ? HaselSeString.Parse(stringExpression.Value.RawData).ToString()
+            ? SeString.Parse(stringExpression.Value.RawData).ToString()
             : expr.ToString()!;
     }
 
-    public static int ResolveNumber(this BaseExpression expr, List<ExpressionWrapper>? localParameters = null)
+    public static int ResolveNumber(this BaseExpression expr, List<Expression>? localParameters = null)
     {
         if (expr is IntegerExpression integerExpression)
             return (int)integerExpression.Value;
@@ -48,7 +48,7 @@ public static unsafe class BaseExpressionExtensions
         };
     }
 
-    public static HaselSeString ResolveString(this BaseExpression expr, List<ExpressionWrapper>? localParameters = null)
+    public static SeString ResolveString(this BaseExpression expr, List<Expression>? localParameters = null)
     {
         if (expr is IntegerExpression integerExpression)
             return integerExpression.Value.ToString();

@@ -1,15 +1,15 @@
 namespace HaselCommon.Text.Payloads.Macro;
 
 [SeStringPayload(MacroCodes.EdgeColor)] // n N x
-public class EdgeColorPayload : HaselMacroPayload
+public class EdgeColorPayload : MacroPayload
 {
-    public ExpressionWrapper? Color { get; set; }
-    public ExpressionWrapper? Arg2 { get; set; }
+    public Expression? Color { get; set; }
+    public Expression? Arg2 { get; set; }
 
     [TerminatorExpression]
-    private ExpressionWrapper? Terminator { get; set; }
+    private Expression? Terminator { get; set; }
 
-    public override HaselSeString Resolve(List<ExpressionWrapper>? localParameters = null)
+    public override SeString Resolve(List<Expression>? localParameters = null)
     {
         if (Color == null)
             return new();

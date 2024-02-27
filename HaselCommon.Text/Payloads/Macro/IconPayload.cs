@@ -1,10 +1,10 @@
 namespace HaselCommon.Text.Payloads.Macro;
 
 [SeStringPayload(MacroCodes.Icon)] // n x
-public class IconPayload : HaselMacroPayload
+public class IconPayload : MacroPayload
 {
-    public ExpressionWrapper? IconId { get; set; }
+    public Expression? IconId { get; set; }
 
     [TerminatorExpression]
-    private ExpressionWrapper? Terminator { get; set; }
+    private Expression? Terminator { get; set; }
 }

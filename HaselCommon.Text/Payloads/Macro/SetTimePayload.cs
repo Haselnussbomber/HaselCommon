@@ -3,14 +3,14 @@ using FFXIVClientStructs.FFXIV.Component.Text;
 namespace HaselCommon.Text.Payloads.Macro;
 
 [SeStringPayload(MacroCodes.SetTime)] // n x
-public class SetTimePayload : HaselMacroPayload
+public class SetTimePayload : MacroPayload
 {
-    public ExpressionWrapper? Time { get; set; }
+    public Expression? Time { get; set; }
 
     [TerminatorExpression]
-    private ExpressionWrapper? Terminator { get; set; }
+    private Expression? Terminator { get; set; }
 
-    public override unsafe HaselSeString Resolve(List<ExpressionWrapper>? localParameters = null)
+    public override unsafe SeString Resolve(List<Expression>? localParameters = null)
     {
         if (Time != null)
         {

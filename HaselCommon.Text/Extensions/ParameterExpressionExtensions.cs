@@ -6,7 +6,7 @@ namespace HaselCommon.Text.Extensions;
 
 public static unsafe class ParameterExpressionExtensions
 {
-    public static int ResolveNumber(this ParameterExpression expr, List<ExpressionWrapper>? localParameters = null)
+    public static int ResolveNumber(this ParameterExpression expr, List<Expression>? localParameters = null)
     {
         // gstr, gnum
         if (expr.ExpressionType is ExpressionType.ObjectParameter or ExpressionType.PlayerParameter)
@@ -41,7 +41,7 @@ public static unsafe class ParameterExpressionExtensions
         throw new NotImplementedException($"Unhandled ParameterExpression type 0x{(byte)expr.ExpressionType:X02}");
     }
 
-    public static HaselSeString ResolveString(this ParameterExpression expr, List<ExpressionWrapper>? localParameters = null)
+    public static SeString ResolveString(this ParameterExpression expr, List<Expression>? localParameters = null)
     {
         // gstr, gnum
         if (expr.ExpressionType is ExpressionType.ObjectParameter or ExpressionType.PlayerParameter)
@@ -53,8 +53,8 @@ public static unsafe class ParameterExpressionExtensions
             {
                 TextParameterType.Uninitialized => "",
                 TextParameterType.Integer => param.IntValue.ToString(),
-                TextParameterType.Utf8String => HaselSeString.Parse(param.Utf8StringValue->StringPtr, param.Utf8StringValue->Length),
-                TextParameterType.String => HaselSeString.Parse(MemoryHelper.ReadRawNullTerminated((nint)param.StringValue)),
+                TextParameterType.Utf8String => SeString.Parse(param.Utf8StringValue->StringPtr, param.Utf8StringValue->Length),
+                TextParameterType.String => SeString.Parse(MemoryHelper.ReadRawNullTerminated((nint)param.StringValue)),
                 _ => throw new NotImplementedException($"Unhandled ParameterDataType {param.Type}"),
             };
         }

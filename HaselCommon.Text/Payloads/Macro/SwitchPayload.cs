@@ -1,10 +1,10 @@
 namespace HaselCommon.Text.Payloads.Macro;
 
 [SeStringPayload(MacroCodes.Switch)] // . . .
-public class SwitchPayload : HaselMacroPayload
+public class SwitchPayload : MacroPayload
 {
-    public ExpressionWrapper? Condition { get; set; }
-    public List<ExpressionWrapper> Cases { get; set; } = [];
+    public Expression? Condition { get; set; }
+    public List<Expression> Cases { get; set; } = [];
 
     public override byte[] Encode()
     {
@@ -45,7 +45,7 @@ public class SwitchPayload : HaselMacroPayload
             throw new Exception("Expected END_BYTE");
     }
 
-    public override HaselSeString Resolve(List<ExpressionWrapper>? localParameters = null)
+    public override SeString Resolve(List<Expression>? localParameters = null)
     {
         if (Condition == null)
             return new();

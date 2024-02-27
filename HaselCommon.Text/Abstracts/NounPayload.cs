@@ -4,7 +4,7 @@ namespace HaselCommon.Text.Abstracts;
 
 // <XXnoun(SheetName,Person,RowId[,Amount[,Case[,UnkInt5]]])>
 // s . .
-public abstract class NounPayload : HaselMacroPayload
+public abstract class NounPayload : MacroPayload
 {
     private static readonly IntegerExpression DefaultPerson = new(5);
     private static readonly IntegerExpression DefaultAmount = new(1);
@@ -13,12 +13,12 @@ public abstract class NounPayload : HaselMacroPayload
 
     public abstract ClientLanguage Language { get; }
 
-    public ExpressionWrapper? SheetName { get; set; }
-    public ExpressionWrapper? Person { get; set; } = DefaultPerson;
-    public ExpressionWrapper? RowId { get; set; }
-    public ExpressionWrapper? Amount { get; set; } = DefaultAmount;
-    public ExpressionWrapper? Case { get; set; } = DefaultCase;
-    public ExpressionWrapper? UnkInt5 { get; set; } = DefaultUnkInt5;
+    public Expression? SheetName { get; set; }
+    public Expression? Person { get; set; } = DefaultPerson;
+    public Expression? RowId { get; set; }
+    public Expression? Amount { get; set; } = DefaultAmount;
+    public Expression? Case { get; set; } = DefaultCase;
+    public Expression? UnkInt5 { get; set; } = DefaultUnkInt5;
 
     public override byte[] Encode()
     {
@@ -66,10 +66,10 @@ public abstract class NounPayload : HaselMacroPayload
             throw new Exception("Expected END_BYTE");
     }
 
-    public override HaselSeString Resolve(List<ExpressionWrapper>? localParameters = null)
+    public override SeString Resolve(List<Expression>? localParameters = null)
     {
         if (SheetName == null || RowId == null)
-            return new HaselSeString();
+            return new SeString();
 
         var sheetName = SheetName.ResolveString(localParameters).ToString();
         var rowId = RowId.ResolveNumber(localParameters);

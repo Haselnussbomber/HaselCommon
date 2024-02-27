@@ -3,20 +3,20 @@ using System.Reflection;
 
 namespace HaselCommon.Text;
 
-public abstract class HaselMacroPayload : HaselPayload
+public abstract class MacroPayload : Payload
 {
     public MacroCodes Code { get; private set; }
 
     private readonly PropertyInfo[] PropertyInfos;
 
-    public HaselMacroPayload()
+    public MacroPayload()
     {
         Code = GetType().GetCustomAttribute<SeStringPayloadAttribute>()?.Code ?? throw new Exception($"{GetType().FullName} is missing SeStringPayloadAttribute");
 
         // TODO: support arrays? see SwitchPayload
         PropertyInfos = GetType()
             .GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
-            .Where(propInfo => propInfo.PropertyType.IsAssignableTo(typeof(ExpressionWrapper)))
+            .Where(propInfo => propInfo.PropertyType.IsAssignableTo(typeof(Expression)))
             .ToArray();
     }
 
@@ -29,7 +29,7 @@ public abstract class HaselMacroPayload : HaselPayload
             if (propInfo.GetCustomAttribute<TerminatorExpressionAttribute>() != null)
                 break; // not needed, omit
 
-            var expr = (ExpressionWrapper?)propInfo.GetValue(this);
+            var expr = (Expression?)propInfo.GetValue(this);
             expr?.BaseExpression.Encode(exprStream);
         }
 
@@ -58,14 +58,14 @@ public abstract class HaselMacroPayload : HaselPayload
             if (reader.IsEndOfChunk())
                 break;
 
-            propInfo.SetValue(this, new ExpressionWrapper(BaseExpression.Parse(reader.BaseStream)));
+            propInfo.SetValue(this, new Expression(BaseExpression.Parse(reader.BaseStream)));
         }
 
         if (reader.ReadByte() != END_BYTE)
             throw new Exception("Expected END_BYTE");
     }
 
-    public override HaselSeString Resolve(List<ExpressionWrapper>? localParameters = null)
+    public override SeString Resolve(List<Expression>? localParameters = null)
         => this; // passthrough
 
     public override string ToString()
@@ -97,7 +97,7 @@ public abstract class HaselMacroPayload : HaselPayload
                 if (propInfo.GetCustomAttribute<TerminatorExpressionAttribute>() != null)
                     break;
 
-                var expr = (ExpressionWrapper?)propInfo.GetValue(this);
+                var expr = (Expression?)propInfo.GetValue(this);
                 if (expr == null)
                     break;
 

@@ -1,16 +1,16 @@
 namespace HaselCommon.Text.Payloads.Macro;
 
 [SeStringPayload(MacroCodes.If)] // . . * x
-public class IfPayload : HaselMacroPayload
+public class IfPayload : MacroPayload
 {
-    public ExpressionWrapper? Condition { get; set; }
-    public ExpressionWrapper? StatementTrue { get; set; }
-    public ExpressionWrapper? StatementFalse { get; set; }
+    public Expression? Condition { get; set; }
+    public Expression? StatementTrue { get; set; }
+    public Expression? StatementFalse { get; set; }
 
     [TerminatorExpression]
-    private ExpressionWrapper? Terminator { get; set; }
+    private Expression? Terminator { get; set; }
 
-    public override HaselSeString Resolve(List<ExpressionWrapper>? localParameters = null)
+    public override SeString Resolve(List<Expression>? localParameters = null)
     {
         if (Condition == null)
             return new();

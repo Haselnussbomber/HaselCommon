@@ -3,7 +3,7 @@ using Lumina.Excel.GeneratedSheets;
 namespace HaselCommon.Text.Payloads.Macro;
 
 [SeStringPayload(MacroCodes.LevelPos)] // n x
-public class LevelPosPayload : HaselMacroPayload
+public class LevelPosPayload : MacroPayload
 {
     public LevelPosPayload() : base()
     {
@@ -14,12 +14,12 @@ public class LevelPosPayload : HaselMacroPayload
         LevelId = new IntegerExpression(levelId);
     }
 
-    public ExpressionWrapper? LevelId { get; set; }
+    public Expression? LevelId { get; set; }
 
     [TerminatorExpression]
-    private ExpressionWrapper? Terminator { get; set; }
+    private Expression? Terminator { get; set; }
 
-    public override HaselSeString Resolve(List<ExpressionWrapper>? localParameters = null)
+    public override SeString Resolve(List<Expression>? localParameters = null)
     {
         if (LevelId == null)
             return new();
@@ -36,7 +36,7 @@ public class LevelPosPayload : HaselMacroPayload
         if (placeName == null)
             return new();
 
-        return HaselSeString.FromAddon(1637).Resolve([
+        return SeString.FromAddon(1637).Resolve([
             placeName.Name,
             map.ConvertRawToMapPosX(level.X),
             map.ConvertRawToMapPosY(level.Z),

@@ -1,9 +1,9 @@
 namespace HaselCommon.Text.Abstracts;
 
-public abstract class ParameterPayload : HaselMacroPayload
+public abstract class ParameterPayload : MacroPayload
 {
-    public ExpressionWrapper? Parameter { get; set; }
+    public Expression? Parameter { get; set; }
 
     [TerminatorExpression]
-    private ExpressionWrapper? Terminator { get; set; }
+    private Expression? Terminator { get; set; }
 }

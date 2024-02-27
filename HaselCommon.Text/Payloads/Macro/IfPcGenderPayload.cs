@@ -3,16 +3,16 @@ using FFXIVClientStructs.FFXIV.Client.Game.Character;
 namespace HaselCommon.Text.Payloads.Macro;
 
 [SeStringPayload(MacroCodes.IfPcGender)] // n . . x
-public class IfPcGenderPayload : HaselMacroPayload
+public class IfPcGenderPayload : MacroPayload
 {
-    public ExpressionWrapper? ObjectId { get; set; }
-    public ExpressionWrapper? CaseMale { get; set; }
-    public ExpressionWrapper? CaseFemale { get; set; }
+    public Expression? ObjectId { get; set; }
+    public Expression? CaseMale { get; set; }
+    public Expression? CaseFemale { get; set; }
 
     [TerminatorExpression]
-    private ExpressionWrapper? Terminator { get; set; }
+    private Expression? Terminator { get; set; }
 
-    public override unsafe HaselSeString Resolve(List<ExpressionWrapper>? localParameters = null)
+    public override unsafe SeString Resolve(List<Expression>? localParameters = null)
     {
         if (ObjectId == null)
             return new();

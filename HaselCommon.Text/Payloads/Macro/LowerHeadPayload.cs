@@ -1,13 +1,13 @@
 namespace HaselCommon.Text.Payloads.Macro;
 
 [SeStringPayload(MacroCodes.LowerHead)] // s x
-public class LowerHeadPayload : HaselMacroPayload
+public class LowerHeadPayload : MacroPayload
 {
-    public ExpressionWrapper? String { get; set; }
+    public Expression? String { get; set; }
 
     [TerminatorExpression]
-    private ExpressionWrapper? Terminator { get; set; }
+    private Expression? Terminator { get; set; }
 
-    public override HaselSeString Resolve(List<ExpressionWrapper>? localParameters = null)
-        => String?.ResolveString(localParameters).ToString()?.FirstCharToLower() ?? new HaselSeString();
+    public override SeString Resolve(List<Expression>? localParameters = null)
+        => String?.ResolveString(localParameters).ToString()?.FirstCharToLower() ?? new SeString();
 }

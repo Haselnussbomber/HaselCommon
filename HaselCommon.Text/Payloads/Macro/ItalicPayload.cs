@@ -1,7 +1,7 @@
 namespace HaselCommon.Text.Payloads.Macro;
 
 [SeStringPayload(MacroCodes.Italic)] // n
-public class ItalicPayload : HaselMacroPayload
+public class ItalicPayload : MacroPayload
 {
     public ItalicPayload() : base()
     {
@@ -12,5 +12,5 @@ public class ItalicPayload : HaselMacroPayload
         Enabled = enabled ? 1u : 0;
     }
 
-    public ExpressionWrapper Enabled { get; set; } = 0;
+    public Expression Enabled { get; set; } = 0;
 }

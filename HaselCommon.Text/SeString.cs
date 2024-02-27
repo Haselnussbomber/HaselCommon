@@ -5,15 +5,15 @@ using Addon = Lumina.Excel.GeneratedSheets.Addon;
 
 namespace HaselCommon.Text;
 
-public class HaselSeString
+public class SeString
 {
-    public List<HaselPayload> Payloads { get; set; } = [];
+    public List<Payload> Payloads { get; set; } = [];
 
-    public HaselSeString()
+    public SeString()
     {
     }
 
-    public HaselSeString(List<HaselPayload> payloads)
+    public SeString(List<Payload> payloads)
     {
         Payloads = payloads;
     }
@@ -23,7 +23,7 @@ public class HaselSeString
         return Payloads.SelectMany(payload => payload.Encode()).ToArray();
     }
 
-    public HaselSeString Resolve(List<ExpressionWrapper>? localParameters = null)
+    public SeString Resolve(List<Expression>? localParameters = null)
     {
         return new(Payloads.SelectMany(payload => payload.Resolve(localParameters).Payloads).ToList());
     }
@@ -33,7 +33,7 @@ public class HaselSeString
         return Payloads.Aggregate(new StringBuilder(), (sb, tp) => sb.Append(tp.ToString()), sb => sb.ToString());
     }
 
-    public static unsafe HaselSeString FromAddon(uint addonId)
+    public static unsafe SeString FromAddon(uint addonId)
     {
         var row = Service.DataManager.GetExcelSheet<Addon>(Service.TranslationManager.ClientLanguage)?.GetRow(addonId);
         return row == null
@@ -41,7 +41,7 @@ public class HaselSeString
             : Parse(row.Text.RawData);
     }
 
-    public static unsafe HaselSeString FromMacro(string macro)
+    public static unsafe SeString FromMacro(string macro)
     {
         var input = Utf8String.FromString(macro);
         var output = Utf8String.CreateEmpty();
@@ -52,7 +52,7 @@ public class HaselSeString
         return str;
     }
 
-    public static unsafe HaselSeString Parse(ReadOnlySpan<byte> data)
+    public static unsafe SeString Parse(ReadOnlySpan<byte> data)
     {
         fixed (byte* ptr = data)
         {
@@ -60,9 +60,9 @@ public class HaselSeString
         }
     }
 
-    public static unsafe HaselSeString Parse(byte* ptr, int len)
+    public static unsafe SeString Parse(byte* ptr, int len)
     {
-        var str = new HaselSeString();
+        var str = new SeString();
 
         if (ptr == null)
             return str;
@@ -71,15 +71,15 @@ public class HaselSeString
         using var reader = new BinaryReader(stream);
 
         while (stream.Position < len)
-            str.Payloads.Add(HaselPayload.From(reader));
+            str.Payloads.Add(Payload.From(reader));
 
         return str;
     }
 
-    public static implicit operator HaselSeString(HaselPayload payload) => new([payload]);
-    public static implicit operator HaselSeString(string str) => new([new TextPayload(str)]);
-    public static implicit operator HaselSeString(uint value) => value.ToString(); // TODO: encode number properly? used for Resolve([...])
-    public static implicit operator HaselSeString(Lumina.Text.SeString str) => Parse(str.RawData);
+    public static implicit operator SeString(Payload payload) => new([payload]);
+    public static implicit operator SeString(string str) => new([new TextPayload(str)]);
+    public static implicit operator SeString(uint value) => value.ToString(); // TODO: encode number properly? used for Resolve([...])
+    public static implicit operator SeString(Lumina.Text.SeString str) => Parse(str.RawData);
 
-    public static implicit operator byte[](HaselSeString str) => str.Encode();
+    public static implicit operator byte[](SeString str) => str.Encode();
 }

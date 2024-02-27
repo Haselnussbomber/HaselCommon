@@ -1,10 +1,10 @@
 namespace HaselCommon.Text.Payloads.Macro;
 
 [SeStringPayload(MacroCodes.ColorType)] // n x
-public class ColorTypePayload : HaselMacroPayload
+public class ColorTypePayload : MacroPayload
 {
-    public ExpressionWrapper? ColorType { get; set; }
+    public Expression? ColorType { get; set; }
 
     [TerminatorExpression]
-    private ExpressionWrapper? Terminator { get; set; }
+    private Expression? Terminator { get; set; }
 }

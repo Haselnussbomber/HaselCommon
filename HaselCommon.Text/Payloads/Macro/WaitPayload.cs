@@ -1,10 +1,10 @@
 namespace HaselCommon.Text.Payloads.Macro;
 
 [SeStringPayload(MacroCodes.Wait)] // n x
-public class WaitPayload : HaselMacroPayload
+public class WaitPayload : MacroPayload
 {
-    public ExpressionWrapper? Seconds { get; set; }
+    public Expression? Seconds { get; set; }
 
     [TerminatorExpression]
-    private ExpressionWrapper? Terminator { get; set; }
+    private Expression? Terminator { get; set; }
 }

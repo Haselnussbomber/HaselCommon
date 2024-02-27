@@ -1,15 +1,15 @@
 namespace HaselCommon.Text.Payloads.Macro;
 
 [SeStringPayload(MacroCodes.Digit)] // n n x
-public class DigitPayload : HaselMacroPayload
+public class DigitPayload : MacroPayload
 {
-    public ExpressionWrapper? Value { get; set; }
-    public ExpressionWrapper? TargetLength { get; set; }
+    public Expression? Value { get; set; }
+    public Expression? TargetLength { get; set; }
 
     [TerminatorExpression]
-    private ExpressionWrapper? Terminator { get; set; }
+    private Expression? Terminator { get; set; }
 
-    public override HaselSeString Resolve(List<ExpressionWrapper>? localParameters = null)
+    public override SeString Resolve(List<Expression>? localParameters = null)
     {
         if (Value == null)
             return new();

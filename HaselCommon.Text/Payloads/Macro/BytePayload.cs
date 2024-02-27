@@ -3,14 +3,14 @@ using System.Globalization;
 namespace HaselCommon.Text.Payloads.Macro;
 
 [SeStringPayload(MacroCodes.Byte)] // n x
-public class BytePayload : HaselMacroPayload
+public class BytePayload : MacroPayload
 {
-    public ExpressionWrapper? Value { get; set; }
+    public Expression? Value { get; set; }
 
     [TerminatorExpression]
-    private ExpressionWrapper? Terminator { get; set; }
+    private Expression? Terminator { get; set; }
 
-    public override HaselSeString Resolve(List<ExpressionWrapper>? localParameters = null)
+    public override SeString Resolve(List<Expression>? localParameters = null)
     {
         if (Value == null)
             return new();

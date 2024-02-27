@@ -4,17 +4,17 @@ using FFXIVClientStructs.FFXIV.Client.Game.Character;
 namespace HaselCommon.Text.Payloads.Macro;
 
 [SeStringPayload(MacroCodes.IfPcName)] // n . . . x
-public class IfPcNamePayload : HaselMacroPayload
+public class IfPcNamePayload : MacroPayload
 {
-    public ExpressionWrapper? ObjectId { get; set; }
-    public ExpressionWrapper? Name { get; set; }
-    public ExpressionWrapper? CaseTrue { get; set; }
-    public ExpressionWrapper? CaseFalse { get; set; }
+    public Expression? ObjectId { get; set; }
+    public Expression? Name { get; set; }
+    public Expression? CaseTrue { get; set; }
+    public Expression? CaseFalse { get; set; }
 
     [TerminatorExpression]
-    private ExpressionWrapper? Terminator { get; set; }
+    private Expression? Terminator { get; set; }
 
-    public override unsafe HaselSeString Resolve(List<ExpressionWrapper>? localParameters = null)
+    public override unsafe SeString Resolve(List<Expression>? localParameters = null)
     {
         if (ObjectId == null || Name == null)
             return new();

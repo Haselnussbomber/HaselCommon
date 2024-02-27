@@ -4,7 +4,7 @@ using Lumina.Extensions;
 
 namespace HaselCommon.Text;
 
-public abstract class HaselPayload
+public abstract class Payload
 {
     protected const byte START_BYTE = 2;
     protected const byte END_BYTE = 3;
@@ -15,7 +15,7 @@ public abstract class HaselPayload
 
         var customPayloadTypes = Assembly.GetExecutingAssembly()
             .GetTypes()
-            .Where(type => !type.IsAbstract && type.IsSubclassOf(typeof(HaselPayload)));
+            .Where(type => !type.IsAbstract && type.IsSubclassOf(typeof(Payload)));
 
         foreach (var type in customPayloadTypes)
         {
@@ -29,16 +29,16 @@ public abstract class HaselPayload
         return macroTypes;
     });
 
-    public static HaselPayload From(byte[] data)
+    public static Payload From(byte[] data)
     {
         using var ms = new MemoryStream(data);
         using var br = new BinaryReader(ms);
         return From(br);
     }
 
-    public static HaselPayload From(BinaryReader reader)
+    public static Payload From(BinaryReader reader)
     {
-        HaselPayload payload;
+        Payload payload;
 
         var initialByte = reader.PeekByte();
         if (initialByte == START_BYTE)
@@ -80,7 +80,7 @@ public abstract class HaselPayload
                     };
                 }
 
-                payload = (HaselPayload)Activator.CreateInstance(type)!;
+                payload = (Payload)Activator.CreateInstance(type)!;
             }
             else
             {
@@ -110,7 +110,7 @@ public abstract class HaselPayload
 
     public abstract byte[] Encode();
     public abstract void Decode(BinaryReader reader);
-    public abstract HaselSeString Resolve(List<ExpressionWrapper>? localParameters = null);
+    public abstract SeString Resolve(List<Expression>? localParameters = null);
 
-    public static explicit operator HaselPayload(byte[] data) => From(data);
+    public static explicit operator Payload(byte[] data) => From(data);
 }

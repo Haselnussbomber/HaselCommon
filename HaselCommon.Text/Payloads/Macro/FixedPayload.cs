@@ -1,11 +1,11 @@
 namespace HaselCommon.Text.Payloads.Macro;
 
 [SeStringPayload(MacroCodes.Fixed)] // n n . . .
-public class FixedPayload : HaselMacroPayload
+public class FixedPayload : MacroPayload
 {
-    public ExpressionWrapper? Type { get; set; }
-    public ExpressionWrapper? Arg2 { get; set; }
-    public List<ExpressionWrapper> Args { get; set; } = [];
+    public Expression? Type { get; set; }
+    public Expression? Arg2 { get; set; }
+    public List<Expression> Args { get; set; } = [];
 
     public override byte[] Encode()
     {

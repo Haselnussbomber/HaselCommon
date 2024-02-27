@@ -1,14 +1,14 @@
 namespace HaselCommon.Text.Payloads.Macro;
 
 [SeStringPayload(MacroCodes.HeadAll)] // s x
-public class HeadAllPayload : HaselMacroPayload
+public class HeadAllPayload : MacroPayload
 {
-    public ExpressionWrapper? String { get; set; }
+    public Expression? String { get; set; }
 
     [TerminatorExpression]
-    private ExpressionWrapper? Terminator { get; set; }
+    private Expression? Terminator { get; set; }
 
-    public override HaselSeString Resolve(List<ExpressionWrapper>? localParameters = null)
+    public override SeString Resolve(List<Expression>? localParameters = null)
     {
         if (String == null)
             return new();

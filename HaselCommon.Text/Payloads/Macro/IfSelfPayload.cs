@@ -3,16 +3,16 @@ using FFXIVClientStructs.FFXIV.Client.Game.UI;
 namespace HaselCommon.Text.Payloads.Macro;
 
 [SeStringPayload(MacroCodes.IfSelf)] // n . . x
-public class IfSelfPayload : HaselMacroPayload
+public class IfSelfPayload : MacroPayload
 {
-    public ExpressionWrapper? ObjectId { get; set; }
-    public ExpressionWrapper? CaseTrue { get; set; }
-    public ExpressionWrapper? CaseFalse { get; set; }
+    public Expression? ObjectId { get; set; }
+    public Expression? CaseTrue { get; set; }
+    public Expression? CaseFalse { get; set; }
 
     [TerminatorExpression]
-    private ExpressionWrapper? Terminator { get; set; }
+    private Expression? Terminator { get; set; }
 
-    public override unsafe HaselSeString Resolve(List<ExpressionWrapper>? localParameters = null)
+    public override unsafe SeString Resolve(List<Expression>? localParameters = null)
     {
         if (ObjectId == null)
             return new();

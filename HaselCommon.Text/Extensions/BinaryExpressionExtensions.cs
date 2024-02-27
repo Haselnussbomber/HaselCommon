@@ -2,7 +2,7 @@ namespace HaselCommon.Text.Extensions;
 
 public static class BinaryExpressionExtensions
 {
-    public static bool Resolve(this BinaryExpression expr, List<ExpressionWrapper>? localParameters = null)
+    public static bool Resolve(this BinaryExpression expr, List<Expression>? localParameters = null)
     {
         if (expr.ExpressionType is ExpressionType.Equal or ExpressionType.NotEqual)
         {

@@ -3,7 +3,7 @@ namespace HaselCommon.Text.Abstracts;
 /// <summary>
 /// A very simple payload that is replaced by a character.
 /// </summary>
-public abstract class CharacterPayload : HaselMacroPayload
+public abstract class CharacterPayload : MacroPayload
 {
     public override byte[] Encode()
         => EncodeChunk();

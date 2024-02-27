@@ -1,6 +1,6 @@
 namespace HaselCommon.Text.Payloads;
 
-public class RawPayload : HaselPayload
+public class RawPayload : Payload
 {
     public RawPayload() : base()
     {
@@ -23,6 +23,6 @@ public class RawPayload : HaselPayload
         Data = reader.ReadBytes((int)reader.BaseStream.Length);
     }
 
-    public override HaselSeString Resolve(List<ExpressionWrapper>? localParameters = null)
+    public override SeString Resolve(List<Expression>? localParameters = null)
         => this;
 }
