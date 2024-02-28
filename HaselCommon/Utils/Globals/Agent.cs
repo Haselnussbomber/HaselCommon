@@ -8,7 +8,7 @@ namespace HaselCommon.Utils.Globals;
 
 public static unsafe class Agent
 {
-    private static readonly Dictionary<Type, AgentId> AgentIdCache = new();
+    private static readonly Dictionary<Type, AgentId> AgentIdCache = [];
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static T* GetAgent<T>(AgentId id) where T : unmanaged

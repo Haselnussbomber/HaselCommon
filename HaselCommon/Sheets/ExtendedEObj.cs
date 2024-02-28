@@ -5,7 +5,7 @@ namespace HaselCommon.Sheets;
 
 public class ExtendedEObj : EObj
 {
-    private static readonly Dictionary<uint, ExtendedEObj?> DataIdCache = new();
+    private static readonly Dictionary<uint, ExtendedEObj?> DataIdCache = [];
 
     public static ExtendedEObj? GetByDataId(uint dataId)
     {

@@ -7,7 +7,7 @@ namespace HaselCommon.Sheets;
 
 public class ExtendedLevel : Level
 {
-    private static readonly Dictionary<uint, ExtendedLevel?> ObjectIdCache = new();
+    private static readonly Dictionary<uint, ExtendedLevel?> ObjectIdCache = [];
 
     public static ExtendedLevel? GetByObjectId(uint objId)
     {

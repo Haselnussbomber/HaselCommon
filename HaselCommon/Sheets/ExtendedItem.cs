@@ -32,7 +32,7 @@ public class ExtendedItem : Item
 
             var lookup = GetRow<RecipeLookup>(RowId);
             if (lookup == null)
-                return recipes ??= Array.Empty<Recipe>();
+                return recipes ??= [];
 
             var _recipes = new List<Recipe>();
             if (lookup.CRP.Row != 0 && lookup.CRP.Value != null) _recipes.Add(lookup.CRP.Value);

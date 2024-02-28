@@ -10,11 +10,11 @@ namespace HaselCommon.Services;
 
 public class TextureManager : IDisposable
 {
-    private static readonly string[] ThemePaths = { "", "light/", "third/", "fourth/" };
+    private static readonly string[] ThemePaths = ["", "light/", "third/", "fourth/"];
 
-    private readonly Dictionary<(string Path, int Version, Vector2? Uv0, Vector2? Uv1), Texture> _cache = new();
-    private readonly Dictionary<(uint IconId, bool IsHq), Texture> _iconTexCache = new();
-    private readonly Dictionary<(string UldName, uint PartListId, uint PartId), Texture> _uldTexCache = new();
+    private readonly Dictionary<(string Path, int Version, Vector2? Uv0, Vector2? Uv1), Texture> _cache = [];
+    private readonly Dictionary<(uint IconId, bool IsHq), Texture> _iconTexCache = [];
+    private readonly Dictionary<(string UldName, uint PartListId, uint PartId), Texture> _uldTexCache = [];
 
     public TextureManager()
     {

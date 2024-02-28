@@ -6,7 +6,7 @@ namespace HaselCommon.SheetLookup;
 
 public static class ItemFishingSpotLookup
 {
-    private static readonly Dictionary<uint, HashSet<ExtendedFishingSpot>> Cache = new();
+    private static readonly Dictionary<uint, HashSet<ExtendedFishingSpot>> Cache = [];
 
     private static void Load()
     {
@@ -18,7 +18,7 @@ public static class ItemFishingSpotLookup
             foreach (var item in fishingSpot.Item)
             {
                 if (!Cache.TryGetValue(item.Row, out var fishingSpots))
-                    Cache.Add(item.Row, fishingSpots = new());
+                    Cache.Add(item.Row, fishingSpots = []);
 
                 fishingSpots.Add(fishingSpot);
             }
@@ -49,7 +49,7 @@ public static class ItemFishingSpotLookup
             Load();
 
         return !Cache.TryGetValue(itemId, out var fishingSpots)
-                ? Array.Empty<ExtendedFishingSpot>()
+                ? []
                 : fishingSpots.ToArray();
     }
 }

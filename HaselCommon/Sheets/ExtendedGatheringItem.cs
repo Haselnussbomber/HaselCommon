@@ -32,28 +32,28 @@ public class ExtendedGatheringItem : GatheringItem
             //! https://github.com/Ottermandias/GatherBuddy/blob/56da5c9/GatherBuddy.GameData/Data/HiddenItems.cs
             var pointBases = Item switch
             {
-                7758 => new() { 203 },  // Grade 1 La Noscean Topsoil
-                7761 => new() { 200 },  // Grade 1 Shroud Topsoil
-                7764 => new() { 201 },  // Grade 1 Thanalan Topsoil
-                7759 => new() { 150 },  // Grade 2 La Noscean Topsoil
-                7762 => new() { 209 },  // Grade 2 Shroud Topsoil
-                7765 => new() { 151 },  // Grade 2 Thanalan Topsoil
-                10092 => new() { 210 }, // Black Limestone
-                10094 => new() { 177 }, // Little Worm
-                10097 => new() { 133 }, // Yafaemi Wildgrass
-                12893 => new() { 295 }, // Dark Chestnut
-                15865 => new() { 30 },  // Firelight Seeds
-                15866 => new() { 39 },  // Icelight Seeds
-                15867 => new() { 21 },  // Windlight Seeds
-                15868 => new() { 31 },  // Earthlight Seeds
-                15869 => new() { 25 },  // Levinlight Seeds
-                15870 => new() { 14 },  // Waterlight Seeds
-                12534 => new() { 285 }, // Mythrite Ore
-                12535 => new() { 353 }, // Hardsilver Ore
-                12537 => new() { 286 }, // Titanium Ore
-                12579 => new() { 356 }, // Birch Log
-                12878 => new() { 297 }, // Cyclops Onion
-                12879 => new() { 298 }, // Emerald Beans
+                7758 => [203],  // Grade 1 La Noscean Topsoil
+                7761 => [200],  // Grade 1 Shroud Topsoil
+                7764 => [201],  // Grade 1 Thanalan Topsoil
+                7759 => [150],  // Grade 2 La Noscean Topsoil
+                7762 => [209],  // Grade 2 Shroud Topsoil
+                7765 => [151],  // Grade 2 Thanalan Topsoil
+                10092 => [210], // Black Limestone
+                10094 => [177], // Little Worm
+                10097 => [133], // Yafaemi Wildgrass
+                12893 => [295], // Dark Chestnut
+                15865 => [30],  // Firelight Seeds
+                15866 => [39],  // Icelight Seeds
+                15867 => [21],  // Windlight Seeds
+                15868 => [31],  // Earthlight Seeds
+                15869 => [25],  // Levinlight Seeds
+                15870 => [14],  // Waterlight Seeds
+                12534 => [285], // Mythrite Ore
+                12535 => [353], // Hardsilver Ore
+                12537 => [286], // Titanium Ore
+                12579 => [356], // Birch Log
+                12878 => [297], // Cyclops Onion
+                12879 => [298], // Emerald Beans
                 _ => new HashSet<uint>()
             };
 

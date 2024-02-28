@@ -9,7 +9,7 @@ public class ExtendedClassJobCategory : ClassJobCategory
 {
     private const int NumClasses = 43;
 
-    public bool[] ClassJobs { get; set; } = Array.Empty<bool>();
+    public bool[] ClassJobs { get; set; } = [];
 
     public override void PopulateData(RowParser parser, GameData gameData, Language language)
     {

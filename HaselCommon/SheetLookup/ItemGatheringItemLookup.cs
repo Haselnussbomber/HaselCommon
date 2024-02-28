@@ -6,7 +6,7 @@ namespace HaselCommon.SheetLookup;
 
 public static class ItemGatheringItemLookup
 {
-    private static readonly Dictionary<uint, HashSet<ExtendedGatheringItem>> Cache = new();
+    private static readonly Dictionary<uint, HashSet<ExtendedGatheringItem>> Cache = [];
 
     private static void Load()
     {
@@ -14,7 +14,7 @@ public static class ItemGatheringItemLookup
         {
             if (!Cache.TryGetValue(gatheringItem.ItemRow.Row, out var gatheringItemIds))
             {
-                Cache.Add(gatheringItem.ItemRow.Row, gatheringItemIds = new());
+                Cache.Add(gatheringItem.ItemRow.Row, gatheringItemIds = []);
             }
 
             gatheringItemIds.Add(GetRow<ExtendedGatheringItem>(gatheringItem.RowId)!);
@@ -45,7 +45,7 @@ public static class ItemGatheringItemLookup
             Load();
 
         return !Cache.TryGetValue(itemId, out var gatheringItems)
-                ? Array.Empty<ExtendedGatheringItem>()
+                ? []
                 : gatheringItems.ToArray();
     }
 }
