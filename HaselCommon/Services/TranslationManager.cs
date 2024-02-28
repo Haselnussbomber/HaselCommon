@@ -59,7 +59,6 @@ public class TranslationManager : IDisposable
         CultureInfo = new(LanguageCode);
         Service.StringManager.NameCache.Clear();
         Service.StringManager.TextCache.Clear();
-        ExcelCache.Clear();
     }
 
     public bool TryGetTranslation(string key, [MaybeNullWhen(false)] out string text)
