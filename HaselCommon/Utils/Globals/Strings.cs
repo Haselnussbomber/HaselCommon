@@ -1,5 +1,4 @@
 using System.Linq;
-using System.Runtime.CompilerServices;
 using Dalamud.Game.Text.SeStringHandling;
 using Lumina.Excel;
 using Lumina.Excel.GeneratedSheets;
@@ -10,26 +9,21 @@ namespace HaselCommon.Utils.Globals;
 
 public static unsafe class Strings
 {
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static string t(string key)
         => Service.TranslationManager.Translate(key);
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static string t(string key, params object?[] args)
         => Service.TranslationManager.Translate(key, args);
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static SeString tSe(string key, params SeString[] args)
         => Service.TranslationManager.TranslateSeString(key, args.Select(s => s.Payloads).ToArray());
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static string GetSheetText<T>(uint rowId, string columnName) where T : ExcelRow
         => Service.StringManager.GetSheetText<T>(rowId, columnName);
 
     private static string TitleCasedSingularNoun(string sheetName, uint id)
         => Service.TranslationManager.CultureInfo.TextInfo.ToTitleCase(TextDecoder.ProcessNoun(sheetName, id, 1, 0));
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static string GetAddonText(uint id)
         => GetSheetText<AddonSheet>(id, "Text");
 

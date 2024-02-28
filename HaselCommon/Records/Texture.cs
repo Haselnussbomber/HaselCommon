@@ -1,6 +1,5 @@
 using System.IO;
 using System.Numerics;
-using System.Runtime.CompilerServices;
 using Dalamud.Interface.Internal;
 using HaselCommon.Utils;
 using ImGuiNET;
@@ -68,11 +67,9 @@ public record Texture : IDisposable
         ImGui.Image(_textureWrap.ImGuiHandle, size, Uv0 ?? Vector2.Zero, Uv1 ?? Vector2.One, tintColor ?? Vector4.One, borderColor ?? Vector4.Zero);
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Draw(float x, float y, Vector4? tintColor = null, Vector4? borderColor = null)
         => Draw(new Vector2(x, y), tintColor, borderColor);
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Draw(float dimensions, Vector4? tintColor = null, Vector4? borderColor = null)
         => Draw(new Vector2(dimensions), tintColor, borderColor);
 

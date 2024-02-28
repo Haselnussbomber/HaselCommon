@@ -1,16 +1,13 @@
 using System.Numerics;
-using System.Runtime.CompilerServices;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
 namespace HaselCommon.Utils.Globals;
 
 public static unsafe class Atk
 {
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static T* GetNode<T>(AtkUnitBase* addon, uint nodeId) where T : unmanaged
         => addon == null ? null : (T*)addon->UldManager.SearchNodeById(nodeId);
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static T* GetNode<T>(AtkComponentBase* component, uint nodeId) where T : unmanaged
         => component == null ? null : (T*)component->UldManager.SearchNodeById(nodeId);
 

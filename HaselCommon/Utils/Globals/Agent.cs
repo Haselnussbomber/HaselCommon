@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using FFXIVClientStructs.Attributes;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 
@@ -10,7 +9,6 @@ public static unsafe class Agent
 {
     private static readonly Dictionary<Type, AgentId> AgentIdCache = [];
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static T* GetAgent<T>(AgentId id) where T : unmanaged
         => (T*)AgentModule.Instance()->GetAgentByInternalID((uint)id);
 

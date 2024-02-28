@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using Dalamud;
 using Lumina.Excel;
 
@@ -10,15 +9,12 @@ public static class Excel
 {
     internal static readonly Dictionary<Type, Dictionary<(uint, uint), ExcelRow?>> ExcelCache = [];
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ExcelSheet<T> GetSheet<T>(ClientLanguage? language = null) where T : ExcelRow
         => Service.DataManager.GetExcelSheet<T>(language ?? Service.TranslationManager.ClientLanguage)!;
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static uint GetRowCount<T>() where T : ExcelRow
         => GetSheet<T>().RowCount;
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static T? GetRow<T>(uint rowId, uint subRowId = uint.MaxValue, ClientLanguage? language = null) where T : ExcelRow
     {
         if (!ExcelCache.TryGetValue(typeof(T), out var dict))
@@ -30,7 +26,6 @@ public static class Excel
         return (T?)row;
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static T? FindRow<T>(Func<T?, bool> predicate) where T : ExcelRow
         => GetSheet<T>().FirstOrDefault(predicate, null);
 }
