@@ -4,6 +4,7 @@ using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using HaselCommon.Extensions;
 using HaselCommon.Records;
+using Lumina.Data.Files;
 
 namespace HaselCommon.Services;
 
@@ -83,17 +84,17 @@ public class TextureManager : IDisposable
         if (_uldTexCache.TryGetValue(key, out var tex))
             return tex;
 
-        using var uld = Service.PluginInterface.UiBuilder.LoadUld($"ui/uld/{uldName}.uld");
+        var uld = Service.DataManager.GetFile<UldFile>($"ui/uld/{uldName}.uld");
 
-        if (uld == null || !uld.Valid)
+        if (uld == null)
             return Get(Texture.EmptyIconPath);
 
-        if (!uld.Uld!.Parts.FindFirst((partList) => partList.Id == partListId, out var partList) || partList.PartCount < partIndex)
+        if (!uld.Parts.FindFirst((partList) => partList.Id == partListId, out var partList) || partList.PartCount < partIndex)
             return Get(Texture.EmptyIconPath);
 
         var part = partList.Parts[partIndex];
 
-        if (!uld.Uld.AssetData.FindFirst((asset) => asset.Id == part.TextureId, out var asset))
+        if (!uld.AssetData.FindFirst((asset) => asset.Id == part.TextureId, out var asset))
             return Get(Texture.EmptyIconPath);
 
         var colorThemePath = ThemePaths[RaptureAtkModule.Instance()->AtkModule.ActiveColorThemeType];
