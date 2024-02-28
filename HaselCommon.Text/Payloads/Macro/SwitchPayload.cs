@@ -36,10 +36,10 @@ public class SwitchPayload : MacroPayload
 
         reader.ReadIntegerExpression();
 
-        Condition = BaseExpression.Parse(reader.BaseStream);
+        Condition = Expression.Parse(reader.BaseStream);
 
         while (!reader.IsEndOfChunk())
-            Cases.Add(BaseExpression.Parse(reader.BaseStream));
+            Cases.Add(Expression.Parse(reader.BaseStream));
 
         if (reader.ReadByte() != END_BYTE)
             throw new Exception("Expected END_BYTE");

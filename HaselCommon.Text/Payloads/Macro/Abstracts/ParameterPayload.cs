@@ -1,4 +1,4 @@
-namespace HaselCommon.Text.Abstracts;
+namespace HaselCommon.Text.Payloads.Macro.Abstracts;
 
 public abstract class ParameterPayload : MacroPayload
 {

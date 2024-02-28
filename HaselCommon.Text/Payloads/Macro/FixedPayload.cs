@@ -38,11 +38,11 @@ public class FixedPayload : MacroPayload
 
         reader.ReadIntegerExpression();
 
-        Type = BaseExpression.Parse(reader.BaseStream);
-        Arg2 = BaseExpression.Parse(reader.BaseStream);
+        Type = Expression.Parse(reader.BaseStream);
+        Arg2 = Expression.Parse(reader.BaseStream);
 
         while (!reader.IsEndOfChunk())
-            Args.Add(BaseExpression.Parse(reader.BaseStream));
+            Args.Add(Expression.Parse(reader.BaseStream));
 
         if (reader.ReadByte() != END_BYTE)
             throw new Exception("Expected END_BYTE");

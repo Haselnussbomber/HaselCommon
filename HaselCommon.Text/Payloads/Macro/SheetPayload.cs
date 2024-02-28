@@ -1,5 +1,3 @@
-using Lumina.Text;
-
 namespace HaselCommon.Text.Payloads.Macro;
 
 [SeStringPayload(MacroCodes.Sheet)] // s . . .

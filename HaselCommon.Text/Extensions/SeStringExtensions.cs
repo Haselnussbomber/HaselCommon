@@ -1,5 +1,3 @@
-using Dalamud.Game.Text.SeStringHandling;
-
 namespace HaselCommon.Text.Extensions;
 
 public static class SeStringExtensions

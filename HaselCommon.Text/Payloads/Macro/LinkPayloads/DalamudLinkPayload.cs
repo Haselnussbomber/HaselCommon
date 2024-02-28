@@ -44,7 +44,7 @@ public class DalamudLinkPayload : LinkPayload
 
         reader.ReadIntegerExpression();
 
-        Type = BaseExpression.Parse(reader.BaseStream);
+        Type = Expression.Parse(reader.BaseStream);
 
         PluginName = Encoding.UTF8.GetString(reader.ReadBytes(reader.ReadByte()));
         CommandId = IntegerExpression.Parse(reader.ReadByte(), reader.BaseStream).Value;

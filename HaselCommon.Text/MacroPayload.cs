@@ -30,7 +30,7 @@ public abstract class MacroPayload : Payload
                 break; // not needed, omit
 
             var expr = (Expression?)propInfo.GetValue(this);
-            expr?.BaseExpression.Encode(exprStream);
+            expr?.Encode(exprStream);
         }
 
         using var stream = new MemoryStream();
@@ -58,7 +58,7 @@ public abstract class MacroPayload : Payload
             if (reader.IsEndOfChunk())
                 break;
 
-            propInfo.SetValue(this, new Expression(BaseExpression.Parse(reader.BaseStream)));
+            propInfo.SetValue(this, Expression.Parse(reader.BaseStream));
         }
 
         if (reader.ReadByte() != END_BYTE)
@@ -121,7 +121,7 @@ public abstract class MacroPayload : Payload
         return sb.ToString();
     }
 
-    protected byte[] EncodeChunk(params BaseExpression?[] expressions)
+    protected byte[] EncodeChunk(params Expression?[] expressions)
     {
         if (expressions.Length != 0)
         {

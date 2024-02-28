@@ -1,6 +1,6 @@
 using HaselCommon.Utils;
 
-namespace HaselCommon.Text.Abstracts;
+namespace HaselCommon.Text.Payloads.Macro.Abstracts;
 
 // <XXnoun(SheetName,Person,RowId[,Amount[,Case[,UnkInt5]]])>
 // s . .
@@ -45,20 +45,20 @@ public abstract class NounPayload : MacroPayload
 
         reader.ReadIntegerExpression();
 
-        SheetName = BaseExpression.Parse(reader.BaseStream);
-        Person = BaseExpression.Parse(reader.BaseStream);
-        RowId = BaseExpression.Parse(reader.BaseStream);
+        SheetName = Expression.Parse(reader.BaseStream);
+        Person = Expression.Parse(reader.BaseStream);
+        RowId = Expression.Parse(reader.BaseStream);
 
         if (!reader.IsEndOfChunk())
         {
-            Amount = BaseExpression.Parse(reader.BaseStream);
+            Amount = Expression.Parse(reader.BaseStream);
 
             if (!reader.IsEndOfChunk())
             {
-                Case = BaseExpression.Parse(reader.BaseStream);
+                Case = Expression.Parse(reader.BaseStream);
 
                 if (!reader.IsEndOfChunk())
-                    UnkInt5 = BaseExpression.Parse(reader.BaseStream);
+                    UnkInt5 = Expression.Parse(reader.BaseStream);
             }
         }
 

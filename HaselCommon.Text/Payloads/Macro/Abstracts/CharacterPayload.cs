@@ -1,4 +1,4 @@
-namespace HaselCommon.Text.Abstracts;
+namespace HaselCommon.Text.Payloads.Macro.Abstracts;
 
 /// <summary>
 /// A very simple payload that is replaced by a character.

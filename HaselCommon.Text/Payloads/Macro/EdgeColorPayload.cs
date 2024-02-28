@@ -38,7 +38,7 @@ public class EdgeColorPayload : MacroPayload
 
         if (Color != null)
         {
-            if (Color.BaseExpression is IntegerExpression integerExpression && integerExpression.Value == 0)
+            if (Color is IntegerExpression integerExpression && integerExpression.Value == 0)
             {
                 sb.Append("stackcolor");
             }
