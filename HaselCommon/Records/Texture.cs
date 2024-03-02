@@ -1,4 +1,5 @@
 using System.IO;
+using System.Linq;
 using System.Numerics;
 using Dalamud.Interface.Internal;
 using HaselCommon.Utils;
@@ -65,6 +66,73 @@ public record Texture : IDisposable
         }
 
         ImGui.Image(_textureWrap.ImGuiHandle, size, Uv0 ?? Vector2.Zero, Uv1 ?? Vector2.One, tintColor ?? Vector4.One, borderColor ?? Vector4.Zero);
+    }
+
+    public void DrawRotated(float angle, Vector2? drawSize = null, Vector4? tintColor = null, bool noDummy = false)
+    {
+        var size = drawSize ?? Size;
+
+        var rotationMatrix = Matrix3x2.CreateRotation(angle);
+        var corners = new[] {
+            -size, // top left
+            new Vector2(size.X, -size.Y), // top right
+            size, // bottom right
+            new Vector2(-size.X, size.Y), // bottom left
+        };
+
+        for (var i = 0; i < corners.Length; i++)
+            corners[i] = Vector2.Transform(corners[i], rotationMatrix);
+
+        var xPositions = corners.Select(v => v.X);
+        var yPositions = corners.Select(v => v.Y);
+        var boxSize = new Vector2(
+            xPositions.Max() - xPositions.Min(),
+            yPositions.Max() - yPositions.Min()
+        );
+
+        _lastAccess = DateTime.UtcNow;
+
+        if (!ImGuiUtils.IsInViewport(boxSize) || Path == EmptyIconPath)
+        {
+            if (!noDummy)
+                ImGui.Dummy(boxSize);
+
+            if (_textureWrap != null && _lastRender < DateTime.UtcNow - KeepAliveTime)
+            {
+                _textureWrap?.Dispose();
+                _textureWrap = null;
+            }
+            return;
+        }
+
+        _textureWrap ??= LoadTexture();
+        _lastRender = DateTime.UtcNow;
+
+        if (_textureWrap != null && _textureWrap.ImGuiHandle != nint.Zero)
+        {
+            var position = ImGui.GetCursorPos() + size / 2;
+
+            var uvTopLeft = Uv0 ?? Vector2.Zero;
+            var uvBottomRight = Uv1 ?? Vector2.One;
+            var uvTopRight = new Vector2(uvBottomRight.X, uvTopLeft.Y);
+            var uvBottomLeft = new Vector2(uvTopLeft.X, uvBottomRight.Y);
+
+            // Draw the image quad
+            ImGui.GetWindowDrawList().AddImageQuad(
+                _textureWrap.ImGuiHandle,
+                position + corners[0],
+                position + corners[1],
+                position + corners[2],
+                position + corners[3],
+                uvTopLeft,
+                uvTopRight,
+                uvBottomRight,
+                uvBottomLeft,
+                ImGui.GetColorU32(tintColor ?? Vector4.One));
+        }
+
+        if (!noDummy)
+            ImGui.Dummy(boxSize);
     }
 
     public void Draw(float x, float y, Vector4? tintColor = null, Vector4? borderColor = null)
