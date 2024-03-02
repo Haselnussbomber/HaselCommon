@@ -1,4 +1,5 @@
 using FFXIVClientStructs.FFXIV.Client.System.Framework;
+using HaselCommon.Extensions;
 
 namespace HaselCommon.Utils;
 
@@ -13,7 +14,12 @@ public static class MathUtils
         };
 
     public static float Lerp(float startValue, float endValue, float amount)
-        => (1 - amount) * startValue + amount * endValue;
+    {
+        var val = (1 - amount) * startValue + amount * endValue;
+        if (val.IsApproximately(endValue))
+            val = endValue;
+        return val;
+    }
 
     public static unsafe float DeltaLerp(float startValue, float endValue, float amount, float? timeSec = null)
     {
