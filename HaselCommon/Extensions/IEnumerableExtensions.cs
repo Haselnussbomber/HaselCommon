@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Linq;
+using HaselCommon.Utils;
 
 namespace HaselCommon.Extensions;
 
@@ -15,6 +17,22 @@ public static partial class IEnumerableExtensions
     public static T? FirstOrNull<T>(this IEnumerable<T> values) where T : class
     {
         return values.DefaultIfEmpty(null).FirstOrDefault();
+    }
+
+    public static IEnumerable<(int Score, T Value)> FuzzyMatch<T>(this IEnumerable<T> values, string term, Func<T, string> valueExtractor, FuzzyMatcher.Mode matchMode = FuzzyMatcher.Mode.Fuzzy, CultureInfo? cultureInfo = null)
+    {
+        var results = new PriorityQueue<T, int>(values.Count(), new ReverseComparer<int>());
+
+        cultureInfo ??= Service.TranslationManager.CultureInfo;
+
+        foreach (var value in values)
+        {
+            if (valueExtractor(value).FuzzyMatches(term, matchMode, cultureInfo, out var score))
+                results.Enqueue(value, score);
+        }
+
+        while (results.TryDequeue(out var result, out var score))
+            yield return (score, result);
     }
 }
 
