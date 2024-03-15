@@ -1,10 +1,9 @@
 using System.Collections.Generic;
-using System.Linq;
+using System.Runtime.CompilerServices;
 using Dalamud.Memory;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Component.GUI;
-using NoAlloq;
 
 namespace HaselCommon.Services;
 
@@ -14,7 +13,8 @@ public unsafe class AddonObserver : IDisposable
     public event CallbackDelegate? AddonOpen;
     public event CallbackDelegate? AddonClose;
 
-    private readonly HashSet<nint> LoadedUnits = new(256);
+    private readonly HashSet<nint> VisibleUnits = new(256);
+    private readonly HashSet<nint> RemovedUnits = new(16);
     private readonly Dictionary<nint, string> NameCache = new(256);
 
     public AddonObserver()
@@ -37,27 +37,35 @@ public unsafe class AddonObserver : IDisposable
             => (*(ushort*)(address + 0x182) & 0x20) == 0x20; // see AtkUnitBase.IsVisible
         */
 
-        var visibleUnits = RaptureAtkModule.Instance()->RaptureAtkUnitManager.AtkUnitManager.AllLoadedUnitsList.EntriesSpan
-            .Select(entry => (nint)entry.Value)
-            .Where(address => address != 0 && (*(byte*)(address + 0x189) & 0x1) == 0x1 && (*(ushort*)(address + 0x182) & 0x20) == 0x20);
+        VisibleUnits.Clear();
 
-        foreach (var address in LoadedUnits.Except(visibleUnits.Where(LoadedUnits.Contains).ToList()))
+        foreach (ref var address in new Span<nint>(Unsafe.AsPointer(ref RaptureAtkModule.Instance()->RaptureAtkUnitManager.AtkUnitManager.AllLoadedUnitsList.Entries[0]), 256))
         {
-            LoadedUnits.Remove(address);
-
-            if (!NameCache.TryGetValue(address, out var name))
-                continue;
-
-            NameCache.Remove(address);
-            AddonClose?.Invoke(name);
+            if (address == 0)
+                break;
+            if ((*(byte*)(address + 0x189) & 0x1) == 0x1 && (*(ushort*)(address + 0x182) & 0x20) == 0x20)
+                VisibleUnits.Add(address);
         }
 
-        foreach (var address in visibleUnits.Where(address => !LoadedUnits.Contains(address)))
+        RemovedUnits.Clear();
+
+        foreach (var (address, name) in NameCache)
         {
+            if (!VisibleUnits.Contains(address) && RemovedUnits.Add(address))
+            {
+                NameCache.Remove(address);
+                AddonClose?.Invoke(name);
+            }
+        }
+
+        foreach (var address in VisibleUnits)
+        {
+            if (NameCache.ContainsKey(address))
+                continue;
+
             var name = MemoryHelper.ReadString((nint)((AtkUnitBase*)address)->Name, 32);
 
             NameCache.Add(address, name);
-            LoadedUnits.Add(address);
             AddonOpen?.Invoke(name);
         }
     }
