@@ -24,13 +24,9 @@ public static class DictionaryExtensions
         return anyRemoved;
     }
 
-    public static void Dispose<K, V>(this IDictionary<K, V> dict) where V : IDisposable
+    public static void Dispose<K, V>(this IDictionary<K, V> dict)
     {
-        foreach (var value in dict.Values)
-        {
-            value.Dispose();
-        }
-
+        dict.OfType<IDisposable>().ForEach(disposable => disposable.Dispose());
         dict.Clear();
     }
 }

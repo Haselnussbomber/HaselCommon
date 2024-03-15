@@ -1,5 +1,4 @@
 using System.Collections.Concurrent;
-using System.Linq;
 using System.Reflection;
 using Dalamud.Game;
 using Dalamud.Game.ClientState.Objects;
@@ -112,8 +111,7 @@ public static class Service
 
     public static void Dispose()
     {
-        Cache.OfType<IDisposable>().ForEach(disposable => disposable.Dispose());
-        Cache.Clear();
+        Cache.Dispose();
         DalamudCache.Clear();
     }
 }
