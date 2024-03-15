@@ -26,7 +26,7 @@ public static class DictionaryExtensions
 
     public static void Dispose<K, V>(this IDictionary<K, V> dict)
     {
-        dict.OfType<IDisposable>().ForEach(disposable => disposable.Dispose());
+        dict.Values.OfType<IDisposable>().ForEach(disposable => disposable.Dispose());
         dict.Clear();
     }
 }
