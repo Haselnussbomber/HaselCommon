@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Linq;
 using System.Reflection;
 using Dalamud.Game;
@@ -11,72 +11,50 @@ using HaselCommon.Services;
 
 namespace HaselCommon;
 
-public class Service
+public static class Service
 {
     internal static Assembly PluginAssembly = null!;
 
-    private static readonly HashSet<object> Cache = [];
-    private static readonly HashSet<object> DalamudCache = [];
+    private static readonly ConcurrentDictionary<Type, object> Cache = [];
+    private static readonly ConcurrentDictionary<Type, object> DalamudCache = [];
 
     public static bool HasService<T>() where T : class
-        => Cache.OfType<T>().FirstOrDefault() != null || DalamudCache.OfType<T>().FirstOrDefault() != null;
+        => Cache.ContainsKey(typeof(T));
+
+    public static bool HasDalamudService<T>() where T : class
+        => DalamudCache.ContainsKey(typeof(T));
+
+    public static bool AddService<T>() where T : class, new()
+        => GetService<T>() != null;
+
+    public static bool AddService<T>(T obj) where T : class, new()
+    {
+        var type = typeof(T);
+
+        if (!Cache.ContainsKey(type) && HasDalamudService<IPluginLog>())
+            PluginLog.Verbose($"[Service] Adding {type.Name}");
+
+        return Cache.TryAdd(type, obj);
+    }
 
     public static T GetService<T>() where T : class, new()
-    {
-        lock (Cache)
+        => (T)Cache.GetOrAdd(typeof(T), type =>
         {
-            var obj = Cache.OfType<T>().FirstOrDefault();
-            if (obj == null)
-            {
-                if (HasService<IPluginLog>())
-                    PluginLog.Verbose($"[Service] Creating {typeof(T).Name}");
+            if (HasDalamudService<IPluginLog>())
+                PluginLog.Verbose($"[Service] Creating {type.Name}");
 
-                Cache.Add(obj = new T());
-            }
-
-            return obj;
-        }
-    }
-
-    public static void AddService<T>() where T : class, new()
-        => GetService<T>();
-
-    public static void AddService<T>(T obj) where T : class, new()
-    {
-        lock (Cache)
-        {
-            var existingObj = Cache.OfType<T>().FirstOrDefault();
-            if (existingObj == null)
-            {
-                if (HasService<IPluginLog>())
-                    PluginLog.Verbose($"[Service] Adding {typeof(T).Name}");
-
-                Cache.Add(obj);
-            }
-        }
-    }
+            return new T();
+        });
 
     public static T GetDalamudService<T>()
-    {
-        lock (DalamudCache)
+        => (T)DalamudCache.GetOrAdd(typeof(T), type =>
         {
-            var obj = DalamudCache.OfType<T>().FirstOrDefault();
-            if (obj == null)
-            {
-                if (HasService<IPluginLog>())
-                    PluginLog.Verbose($"[Service] Injecting {typeof(T).Name}");
+            if (HasDalamudService<IPluginLog>())
+                PluginLog.Verbose($"[Service] Injecting {type.Name}");
 
-                obj = new DalamudServiceWrapper<T>(PluginInterface).Service;
-
-                if (obj != null)
-                    DalamudCache.Add(obj);
-                else
-                    throw new Exception($"DalamudService of type {typeof(T).Name} is null");
-            }
-
-            return obj;
-        }
-    }
+            return new DalamudServiceWrapper<T>(PluginInterface).Service ??
+                throw new Exception($"Could not inject DalamudService {type.Name}");
+        });
 
     #region Dalamud Services
     [PluginService] public static DalamudPluginInterface PluginInterface { get; private set; } = null!;
