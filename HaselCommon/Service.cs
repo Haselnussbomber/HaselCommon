@@ -65,6 +65,7 @@ public static class Service
     [PluginService] public static IClientState ClientState => GetDalamudService<IClientState>();
     [PluginService] public static ICommandManager CommandManager => GetDalamudService<ICommandManager>();
     [PluginService] public static ICondition Condition => GetDalamudService<ICondition>();
+    [PluginService] public static IContextMenu ContextMenu => GetDalamudService<IContextMenu>();
     [PluginService] public static IDataManager DataManager => GetDalamudService<IDataManager>();
     [PluginService] public static IDtrBar DtrBar => GetDalamudService<IDtrBar>();
     [PluginService] public static IDutyState DutyState => GetDalamudService<IDutyState>();

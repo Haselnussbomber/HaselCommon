@@ -48,7 +48,7 @@ public static class Colors
             return White;
 
         var level = PlayerState.Instance()->ClassJobLevelArray[(short)expArrayIndex];
-        if (level < 1 || !ItemUtils.MaxLevelRanges.Value.TryGetValue(level, out var range))
+        if (level < 1 || !ItemUtils.MaxLevelRanges.TryGetValue(level, out var range))
             return White;
 
         var itemLevel = item.LevelItem.Row;

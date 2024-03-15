@@ -1,3 +1,4 @@
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using Lumina.Excel.GeneratedSheets;
 
@@ -5,31 +6,39 @@ namespace HaselCommon.Utils;
 
 public static class ItemUtils
 {
-    public static readonly Lazy<Dictionary<short, (uint Min, uint Max)>> MaxLevelRanges = new(() =>
+    private static FrozenDictionary<short, (uint Min, uint Max)>? maxLevelRanges = null;
+
+    public static FrozenDictionary<short, (uint Min, uint Max)> MaxLevelRanges
     {
-        var dict = new Dictionary<short, (uint Min, uint Max)>();
-
-        short level = 50;
-        foreach (var exVersion in GetSheet<ExVersion>())
+        get
         {
-            var entry = (Min: uint.MaxValue, Max: 0u);
+            if (maxLevelRanges != null)
+                return maxLevelRanges;
 
-            foreach (var item in GetSheet<Item>())
+            var dict = new Dictionary<short, (uint Min, uint Max)>();
+
+            short level = 50;
+            foreach (var exVersion in GetSheet<ExVersion>())
             {
-                if (item.LevelEquip != level || item.LevelItem.Row <= 1)
-                    continue;
+                var entry = (Min: uint.MaxValue, Max: 0u);
 
-                if (entry.Min > item.LevelItem.Row)
-                    entry.Min = item.LevelItem.Row;
+                foreach (var item in GetSheet<Item>())
+                {
+                    if (item.LevelEquip != level || item.LevelItem.Row <= 1)
+                        continue;
 
-                if (entry.Max < item.LevelItem.Row)
-                    entry.Max = item.LevelItem.Row;
+                    if (entry.Min > item.LevelItem.Row)
+                        entry.Min = item.LevelItem.Row;
+
+                    if (entry.Max < item.LevelItem.Row)
+                        entry.Max = item.LevelItem.Row;
+                }
+
+                dict.Add(level, entry);
+                level += 10;
             }
 
-            dict.Add(level, entry);
-            level += 10;
+            return maxLevelRanges = dict.ToFrozenDictionary();
         }
-
-        return dict;
-    });
+    }
 }
