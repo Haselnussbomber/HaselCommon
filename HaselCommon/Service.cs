@@ -15,13 +15,9 @@ public static class Service
     internal static Assembly PluginAssembly = null!;
 
     private static readonly ConcurrentDictionary<Type, object> Cache = [];
-    private static readonly ConcurrentDictionary<Type, object> DalamudCache = [];
 
     public static bool HasService<T>() where T : class
         => Cache.ContainsKey(typeof(T));
-
-    public static bool HasDalamudService<T>() where T : class
-        => DalamudCache.ContainsKey(typeof(T));
 
     public static bool AddService<T>() where T : class, new()
         => GetService<T>() != null;
@@ -30,7 +26,7 @@ public static class Service
     {
         var type = typeof(T);
 
-        if (!Cache.ContainsKey(type) && HasDalamudService<IPluginLog>())
+        if (!Cache.ContainsKey(type) && HasService<IPluginLog>())
             PluginLog.Verbose($"[Service] Adding {type.Name}");
 
         return Cache.TryAdd(type, obj);
@@ -39,16 +35,16 @@ public static class Service
     public static T GetService<T>() where T : class, new()
         => (T)Cache.GetOrAdd(typeof(T), type =>
         {
-            if (HasDalamudService<IPluginLog>())
+            if (HasService<IPluginLog>())
                 PluginLog.Verbose($"[Service] Creating {type.Name}");
 
             return new T();
         });
 
     public static T GetDalamudService<T>()
-        => (T)DalamudCache.GetOrAdd(typeof(T), type =>
+        => (T)Cache.GetOrAdd(typeof(T), type =>
         {
-            if (HasDalamudService<IPluginLog>())
+            if (HasService<IPluginLog>())
                 PluginLog.Verbose($"[Service] Injecting {type.Name}");
 
             return new DalamudServiceWrapper<T>(PluginInterface).Service ??
@@ -113,6 +109,5 @@ public static class Service
     public static void Dispose()
     {
         Cache.Dispose();
-        DalamudCache.Clear();
     }
 }
