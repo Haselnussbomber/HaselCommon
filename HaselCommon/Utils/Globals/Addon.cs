@@ -44,7 +44,10 @@ public static unsafe class Addon
 
     // ---
 
-    public static bool IsAddonOpen(string name, int index = 1)
+    public static bool IsAddonOpen(string name)
+        => Service.AddonObserver.IsAddonVisible(name);
+
+    public static bool IsAddonOpen(string name, int index)
         => GetAddon<AtkUnitBase>(name, index) != null;
 
     public static bool IsAddonOpen(ushort addonId)

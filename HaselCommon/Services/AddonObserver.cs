@@ -27,6 +27,9 @@ public unsafe class AddonObserver : IDisposable
         Service.Framework.Update -= OnFrameworkUpdate;
     }
 
+    public bool IsAddonVisible(string name)
+        => NameCache.ContainsValue(name);
+
     private void OnFrameworkUpdate(IFramework framework)
     {
         /*
