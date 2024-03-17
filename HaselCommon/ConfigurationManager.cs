@@ -93,12 +93,13 @@ public static class ConfigurationManager
             if (!Service.TranslationManager.TryGetTranslation("Plugin.DisplayName", out var pluginName))
                 pluginName = Service.PluginInterface.InternalName;
 
-            Service.PluginInterface.UiBuilder.AddNotification(
-                t("Notification.CouldNotLoadConfig"),
-                pluginName,
-                NotificationType.Error,
-                5000
-            );
+            Service.NotificationManager.AddNotification(new()
+            {
+                Content = t("Notification.CouldNotLoadConfig"),
+                Type = NotificationType.Error,
+                InitialDuration = TimeSpan.FromSeconds(10),
+                Minimized = false
+            });
 
             return new();
         }

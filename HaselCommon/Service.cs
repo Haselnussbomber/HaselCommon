@@ -78,6 +78,7 @@ public static class Service
     [PluginService] public static IJobGauges JobGauges => GetDalamudService<IJobGauges>();
     [PluginService] public static IKeyState KeyState => GetDalamudService<IKeyState>();
     [PluginService] public static ILibcFunction LibcFunction => GetDalamudService<ILibcFunction>();
+    [PluginService] public static INotificationManager NotificationManager => GetDalamudService<INotificationManager>();
     [PluginService] public static IObjectTable ObjectTable => GetDalamudService<IObjectTable>();
     [PluginService] public static IPartyFinderGui PartyFinderGui => GetDalamudService<IPartyFinderGui>();
     [PluginService] public static IPartyList PartyList => GetDalamudService<IPartyList>();
