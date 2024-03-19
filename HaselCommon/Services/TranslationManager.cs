@@ -39,7 +39,7 @@ public class TranslationManager : IDisposable
         using var stream = assembly.GetManifestResourceStream(filename);
         if (stream == null)
         {
-            Service.PluginLog.Warning("[TranslationManager] Could not find translations resource {filename} in assembly {assemblyName}", filename, assembly.Location);
+            Service.PluginLog.Warning("[TranslationManager] Could not find translations resource {filename} in assembly {assemblyName}", filename, assembly.ToString());
             return;
         }
 
