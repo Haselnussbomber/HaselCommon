@@ -1,12 +1,7 @@
 namespace HaselCommon.Attributes;
 
 [AttributeUsage(AttributeTargets.Method)]
-public class SigHookAttribute : Attribute
+public class SigHookAttribute(string Signature) : Attribute
 {
-    public SigHookAttribute(string Signature)
-    {
-        this.Signature = Signature;
-    }
-
-    public string Signature { get; }
+    public string Signature { get; } = Signature;
 }
