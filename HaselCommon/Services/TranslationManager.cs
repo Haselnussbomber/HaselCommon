@@ -24,7 +24,7 @@ public class TranslationManager : IDisposable
 
         LanguageCode = Service.PluginInterface.UiLanguage;
         ClientLanguage = Service.PluginInterface.UiLanguage.ToClientlanguage();
-        CultureInfo = new(LanguageCode);
+        CultureInfo = GetCultureInfoFromLangCode(LanguageCode);
 
         Service.PluginInterface.LanguageChanged += PluginInterface_LanguageChanged;
     }
@@ -56,10 +56,19 @@ public class TranslationManager : IDisposable
     {
         LanguageCode = Service.PluginInterface.UiLanguage;
         ClientLanguage = Service.PluginInterface.UiLanguage.ToClientlanguage();
-        CultureInfo = new(LanguageCode);
+        CultureInfo = GetCultureInfoFromLangCode(LanguageCode);
         Service.StringManager.NameCache.Clear();
         Service.StringManager.TextCache.Clear();
     }
+
+    /// copied from <see cref="Dalamud.Localization.GetCultureInfoFromLangCode"/>
+    private static CultureInfo GetCultureInfoFromLangCode(string langCode) =>
+        CultureInfo.GetCultureInfo(langCode switch
+        {
+            "tw" => "zh-hant",
+            "zh" => "zh-hans",
+            _ => langCode,
+        });
 
     public bool TryGetTranslation(string key, [MaybeNullWhen(false)] out string text)
     {
