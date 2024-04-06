@@ -74,8 +74,8 @@ public class PlaceholderExpression : Expression
             ExpressionType.Second => MacroDecoder.GetMacroTime()->tm_sec,
             ExpressionType.Minute => MacroDecoder.GetMacroTime()->tm_min,
             ExpressionType.Hour => MacroDecoder.GetMacroTime()->tm_hour,
-            ExpressionType.Day => ((FixedTm*)MacroDecoder.GetMacroTime())->tm_mday,
-            ExpressionType.Weekday => ((FixedTm*)MacroDecoder.GetMacroTime())->tm_wday,
+            ExpressionType.Day => MacroDecoder.GetMacroTime()->tm_mday,
+            ExpressionType.Weekday => MacroDecoder.GetMacroTime()->tm_wday,
             ExpressionType.Month => MacroDecoder.GetMacroTime()->tm_mon + 1,
             ExpressionType.Year => MacroDecoder.GetMacroTime()->tm_year + 1900,
 

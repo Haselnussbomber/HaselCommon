@@ -22,7 +22,7 @@ public class SetResetTimePayload : MacroPayload
         var weekdayDate = DateTime.Now.AddDays((weekday - (int)DateTime.Now.DayOfWeek + 7) % 7);
         var date = new DateTime(weekdayDate.Year, weekdayDate.Month, weekdayDate.Day, hour, 0, 0, DateTimeKind.Utc).ToLocalTime();
 
-        var mt = (FixedTm*)MacroDecoder.GetMacroTime();
+        var mt = MacroDecoder.GetMacroTime();
         mt->SetTime(date);
 
         return new();

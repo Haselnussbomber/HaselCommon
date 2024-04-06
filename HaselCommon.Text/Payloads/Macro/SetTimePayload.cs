@@ -14,7 +14,7 @@ public class SetTimePayload : MacroPayload
     {
         if (Time != null)
         {
-            var mt = (FixedTm*)MacroDecoder.GetMacroTime();
+            var mt = MacroDecoder.GetMacroTime();
             mt->SetTime(DateTimeOffset.FromUnixTimeSeconds(Time.ResolveNumber(localParameters)).DateTime.ToLocalTime());
         }
 
