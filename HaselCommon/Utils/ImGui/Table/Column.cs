@@ -4,7 +4,7 @@ namespace HaselCommon.Utils;
 
 public class Column<TItem>
 {
-    public string                LabelKey = string.Empty;
+    public string LabelKey = string.Empty;
     public ImGuiTableColumnFlags Flags = ImGuiTableColumnFlags.NoResize;
 
     public virtual float Width

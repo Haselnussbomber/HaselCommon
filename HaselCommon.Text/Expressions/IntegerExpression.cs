@@ -1,6 +1,8 @@
 
 namespace HaselCommon.Text.Expressions;
 
+// https://github.com/NotAdam/Lumina/blob/master/src/Lumina/Text/Expressions/IntegerExpression.cs
+
 /// <summary>
 /// Represent an unsigned int32 value.
 /// </summary>

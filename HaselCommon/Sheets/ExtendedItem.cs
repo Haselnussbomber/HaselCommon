@@ -104,7 +104,7 @@ public class ExtendedItem : Item
             {
                 case ItemActionType.Companion:
                     return UIState.Instance()->IsCompanionUnlocked(ItemAction.Value.Data[0]);
-                
+
                 case ItemActionType.BuddyEquip:
                     return UIState.Instance()->Buddy.CompanionInfo.IsBuddyEquipUnlocked(ItemAction.Value.Data[0]);
 

@@ -2,6 +2,8 @@ using System.Linq;
 
 namespace HaselCommon.Text.Expressions;
 
+// https://github.com/NotAdam/Lumina/blob/master/src/Lumina/Text/Expressions/StringExpression.cs
+
 /// <summary>
 /// Represent an Expression containing SeString.
 /// </summary>

@@ -1,5 +1,7 @@
 namespace HaselCommon.Text.Expressions;
 
+// https://github.com/NotAdam/Lumina/blob/master/src/Lumina/Text/Expressions/BinaryExpression.cs
+
 /// <summary>
 /// Represent an Expression containing an operator with two arguments.
 /// </summary>

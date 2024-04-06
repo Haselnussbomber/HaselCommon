@@ -1,5 +1,7 @@
 namespace HaselCommon.Text.Enums;
 
+// https://github.com/NotAdam/Lumina/blob/master/src/Lumina/Text/Expressions/ExpressionType.cs
+
 public enum ExpressionType : byte
 {
     // Placeholder expressions (Zero arity): 0xD8 ~ 0xDF
@@ -28,9 +30,6 @@ public enum ExpressionType : byte
 
     // Placeholder expressions also exist between 0xEC ~ 0xEF, where 0xEC is at least checked existing.
     StackColor = 0xEC, // stackcolor
-
-    // UTF-8 Private Use Area (special characters and icons in the font)
-    Utf8PrivateUseArea = 0xEE, // should be starting with 0xE0, but that is already used for GreaterThanOrEqualTo, so they took 0xEE
 
     // Embedded SeString
     SeString = 0xFF,  // Followed by length (including length) and data

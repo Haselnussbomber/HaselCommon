@@ -2,6 +2,8 @@ using FFXIVClientStructs.FFXIV.Component.Text;
 
 namespace HaselCommon.Text.Expressions;
 
+// https://github.com/NotAdam/Lumina/blob/master/src/Lumina/Text/Expressions/PlaceholderExpression.cs
+
 /// <summary>
 /// Represent an Expression containing a placeholder value.
 /// </summary>

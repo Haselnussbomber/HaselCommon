@@ -4,6 +4,8 @@ using FFXIVClientStructs.FFXIV.Component.Text;
 
 namespace HaselCommon.Text.Expressions;
 
+// https://github.com/NotAdam/Lumina/blob/master/src/Lumina/Text/Expressions/ParameterExpression.cs
+
 /// <summary>
 /// Represent an Expression containing a parameter with one argument(operand).
 /// </summary>

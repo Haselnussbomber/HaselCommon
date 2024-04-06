@@ -1,10 +1,6 @@
 namespace HaselCommon.Text.Expressions;
 
-// ReadExpression: "E8 ?? ?? ?? ?? 0F B7 55 18"
-// ReadParameter: "E8 ?? ?? ?? ?? 49 8B 45 68"
-// ReadPackedInteger (0xF0-0xFE): "0F B6 01 4C 8D 49 01 05"
-
-// ExpressionType 0xEE is not an expression, it's used for icons. basically it's the UTF-8 Private Use Area, but 0xE0 was already used for GreaterThanOrEqualTo
+// https://github.com/NotAdam/Lumina/blob/master/src/Lumina/Text/Expressions/BaseExpression.cs
 
 /// <summary>
 /// Base class for expressions embedded inside payloads for SeString.

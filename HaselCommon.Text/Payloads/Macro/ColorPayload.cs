@@ -53,7 +53,7 @@ public class ColorPayload : MacroPayload
             sb.Append(',');
             sb.Append(Arg2.ToString());
         }
-        
+
         sb.Append(')');
         sb.Append('>');
 
