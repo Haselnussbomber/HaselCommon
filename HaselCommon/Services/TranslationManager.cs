@@ -6,6 +6,7 @@ using System.Text.Json;
 using Dalamud;
 using Dalamud.Game.Text.SeStringHandling;
 using HaselCommon.Extensions;
+using static Dalamud.Plugin.DalamudPluginInterface;
 
 namespace HaselCommon.Services;
 
@@ -16,6 +17,8 @@ public class TranslationManager : IDisposable
     public CultureInfo CultureInfo { get; private set; } = new("en");
     public ClientLanguage ClientLanguage { get; private set; } = ClientLanguage.English;
     public string LanguageCode { get; private set; } = "en";
+
+    public event LanguageChangedDelegate? LanguageChanged;
 
     public TranslationManager()
     {
@@ -59,6 +62,7 @@ public class TranslationManager : IDisposable
         CultureInfo = GetCultureInfoFromLangCode(LanguageCode);
         Service.StringManager.NameCache.Clear();
         Service.StringManager.TextCache.Clear();
+        LanguageChanged?.Invoke(langCode);
     }
 
     /// copied from <see cref="Dalamud.Localization.GetCultureInfoFromLangCode"/>
