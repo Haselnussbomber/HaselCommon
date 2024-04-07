@@ -27,6 +27,7 @@ SOFTWARE.
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace HaselCommon.Interop;
 
@@ -52,12 +53,15 @@ public sealed class Resolver
             catch { }
         }
 
-        foreach (var address in _addresses)
+        var pluginLog = Service.PluginLog;
+        var sigScanner = Service.SigScanner;
+
+        Parallel.ForEach(_addresses, (address) =>
         {
-            if (!Service.SigScanner.TryScanText(address.String, out var location))
+            if (!sigScanner.TryScanText(address.String, out var location))
             {
-                Service.PluginLog.Error($"[Resolver] Could not find address for signature {address.String}");
-                continue;
+                pluginLog.Error($"[Resolver] Could not find address for signature {address.String}");
+                return;
             }
 
             if (address is StaticAddress sAddress)
@@ -68,8 +72,8 @@ public sealed class Resolver
 
             address.Value = (nuint)location;
 
-            Service.PluginLog.Verbose($"[Resolver] Found address {address.Value:X} (ffxiv_dx11.exe+{address.Value - (nuint)Service.SigScanner.Module.BaseAddress:X}) for signature {address.String}");
-        }
+            pluginLog.Verbose($"[Resolver] Found address {address.Value:X} (ffxiv_dx11.exe+{address.Value - (nuint)sigScanner.Module.BaseAddress:X}) for signature {address.String}");
+        });
 
         _hasResolved = true;
     }
