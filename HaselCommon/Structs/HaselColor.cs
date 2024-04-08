@@ -1,3 +1,4 @@
+using System.Buffers.Binary;
 using System.Numerics;
 using HaselCommon.Extensions;
 using ImGuiNET;
@@ -57,7 +58,7 @@ public struct HaselColor
         => From(ImGui.GetColorU32(col));
 
     public static HaselColor FromABGR(uint abgr)
-        => From(abgr.Reverse());
+        => From(BinaryPrimitives.ReverseEndianness(abgr));
 
     public static HaselColor FromUiForeground(uint id)
         => FromABGR(GetRow<UIColor>(id)!.UIForeground);
@@ -66,7 +67,7 @@ public struct HaselColor
         => FromABGR(GetRow<UIColor>(id)!.UIGlow);
 
     public static HaselColor FromStain(uint id)
-        => From(GetRow<Stain>(id)!.Color.Reverse() >> 8).WithAlpha(1);
+        => From(BinaryPrimitives.ReverseEndianness(GetRow<Stain>(id)!.Color) >> 8).WithAlpha(1);
 
     public static implicit operator Vector4(HaselColor col)
         => new(col.R, col.G, col.B, col.A);

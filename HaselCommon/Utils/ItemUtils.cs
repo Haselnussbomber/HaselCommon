@@ -1,5 +1,6 @@
 using System.Collections.Frozen;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using Lumina.Excel.GeneratedSheets;
 
 namespace HaselCommon.Utils;
@@ -41,4 +42,20 @@ public static class ItemUtils
             return maxLevelRanges = dict.ToFrozenDictionary();
         }
     }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool IsNormalItem(uint itemId)
+        => itemId is < 500_000;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool IsCollectible(uint itemId)
+        => itemId is > 500_000 and < 1_000_000;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool IsHighQuality(uint itemId)
+        => itemId is > 1_000_000 and < 2_000_000;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool IsEventItem(uint itemId)
+        => itemId is > 2_000_000;
 }
