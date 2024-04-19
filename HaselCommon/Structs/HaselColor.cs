@@ -1,6 +1,6 @@
 using System.Buffers.Binary;
 using System.Numerics;
-using HaselCommon.Extensions;
+using Dalamud.Interface.Utility.Raii;
 using ImGuiNET;
 using Lumina.Excel.GeneratedSheets;
 
@@ -32,6 +32,9 @@ public struct HaselColor
     public HaselColor(uint col) : this(ImGui.ColorConvertU32ToFloat4(col))
     {
     }
+
+    public ImRaii.Color Push(ImGuiCol idx, bool condition = true)
+        => ImRaii.PushColor(idx, (uint)this, condition);
 
     public readonly HaselColor WithRed(float r)
         => new(r, G, B, A);
