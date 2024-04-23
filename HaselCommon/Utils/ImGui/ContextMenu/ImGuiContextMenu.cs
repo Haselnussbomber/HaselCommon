@@ -14,93 +14,30 @@ using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using HaselCommon.Records;
 using HaselCommon.Sheets;
 using ImGuiNET;
-using static HaselCommon.Utils.ImGuiContextMenu;
 using GearsetEntry = FFXIVClientStructs.FFXIV.Client.UI.Misc.RaptureGearsetModule.GearsetEntry;
 using TerritoryType = Lumina.Excel.GeneratedSheets.TerritoryType;
 
 namespace HaselCommon.Utils;
 
-public class ImGuiContextMenu : List<IContextMenuEntry>
+public static unsafe class ImGuiContextMenu
 {
-    private readonly string key;
-
-    public ImGuiContextMenu(string key)
-    {
-        this.key = key;
-    }
-
-    public void Draw()
+    public static void Draw(string key, IEnumerable<IImGuiContextMenuEntry> entries)
     {
         using var popup = ImRaii.ContextPopupItem(key);
         if (!popup.Success)
             return;
 
-        var visibleEntries = this.Where(entry => entry.Visible);
+        var visibleEntries = entries.Where(entry => entry.Visible);
         var count = visibleEntries.Count();
         var i = 0;
         foreach (var entry in visibleEntries)
-        {
             entry.Draw(new IterationArgs(i++, count));
-        }
     }
 
-    public interface IContextMenuEntry
-    {
-        public bool Visible { get; set; }
-        public bool Enabled { get; set; }
-        public string Label { get; set; }
-        public bool LoseFocusOnClick { get; set; }
-        public Action? ClickCallback { get; set; }
-        public Action? HoverCallback { get; set; }
-        public void Draw(IterationArgs args);
-    }
+    public static ImGuiContextMenuSeparator CreateSeparator()
+        => new();
 
-    public record ContextMenuSeparator : IContextMenuEntry
-    {
-        public bool Visible { get; set; } = true;
-        public bool Enabled { get; set; } = true;
-        public bool LoseFocusOnClick { get; set; } = false;
-        public string Label { get; set; } = string.Empty;
-        public Action? ClickCallback { get; set; } = null;
-        public Action? HoverCallback { get; set; } = null;
-
-        public void Draw(IterationArgs args)
-        {
-            if (!args.IsFirst && !args.IsLast)
-                ImGui.Separator();
-        }
-    }
-
-    public static ContextMenuSeparator CreateSeparator() => new();
-
-    public record ContextMenuEntry : IContextMenuEntry
-    {
-        public bool Visible { get; set; } = true;
-        public bool Enabled { get; set; } = true;
-        public bool LoseFocusOnClick { get; set; } = false;
-        public string Label { get; set; } = string.Empty;
-        public Action? ClickCallback { get; set; } = null;
-        public Action? HoverCallback { get; set; } = null;
-
-        public void Draw(IterationArgs args)
-        {
-            if (ImGui.MenuItem(Label, Enabled))
-            {
-                ClickCallback?.Invoke();
-
-                if (LoseFocusOnClick)
-                {
-                    ImGui.SetWindowFocus(null);
-                }
-            }
-            if (ImGui.IsItemHovered())
-            {
-                HoverCallback?.Invoke();
-            }
-        }
-    }
-
-    public static unsafe ContextMenuEntry CreateTryOn(ExtendedItem item, uint glamourItemId = 0, byte stainId = 0)
+    public static ImGuiContextMenuEntry CreateTryOn(ExtendedItem item, uint glamourItemId = 0, byte stainId = 0)
         => new()
         {
             Visible = item.CanTryOn,
@@ -115,7 +52,7 @@ public class ImGuiContextMenu : List<IContextMenuEntry>
             }
         };
 
-    public static unsafe ContextMenuEntry CreateItemFinder(uint itemId)
+    public static ImGuiContextMenuEntry CreateItemFinder(uint itemId)
         => new()
         {
             Label = GetAddonText(4379), // "Search for Item"
@@ -126,7 +63,7 @@ public class ImGuiContextMenu : List<IContextMenuEntry>
             }
         };
 
-    public static ContextMenuEntry CreateCopyItemName(uint itemId)
+    public static ImGuiContextMenuEntry CreateCopyItemName(uint itemId)
         => new()
         {
             Label = GetAddonText(159), // "Copy Item Name"
@@ -136,7 +73,7 @@ public class ImGuiContextMenu : List<IContextMenuEntry>
             }
         };
 
-    public static ContextMenuEntry CreateItemSearch(ExtendedItem item)
+    public static ImGuiContextMenuEntry CreateItemSearch(ExtendedItem item)
         => new()
         {
             Visible = item.CanSearchForItem,
@@ -148,7 +85,7 @@ public class ImGuiContextMenu : List<IContextMenuEntry>
             }
         };
 
-    public static unsafe ContextMenuEntry CreateGearsetLinkGlamour(GearsetEntry* gearset)
+    public static ImGuiContextMenuEntry CreateGearsetLinkGlamour(GearsetEntry* gearset)
         => new()
         {
             Visible = gearset != null && gearset->GlamourSetLink == 0 && UIState.Instance()->IsUnlockLinkUnlocked(15),
@@ -158,7 +95,7 @@ public class ImGuiContextMenu : List<IContextMenuEntry>
             ClickCallback = () => GetAgent<AgentMiragePrismMiragePlate>()->OpenForGearset(gearset->ID, gearset->GlamourSetLink)
         };
 
-    public static unsafe ContextMenuEntry CreateGearsetChangeGlamour(GearsetEntry* gearset)
+    public static ImGuiContextMenuEntry CreateGearsetChangeGlamour(GearsetEntry* gearset)
         => new()
         {
             Visible = gearset != null && gearset->GlamourSetLink != 0 && UIState.Instance()->IsUnlockLinkUnlocked(15),
@@ -167,7 +104,7 @@ public class ImGuiContextMenu : List<IContextMenuEntry>
             ClickCallback = () => GetAgent<AgentMiragePrismMiragePlate>()->OpenForGearset(gearset->ID, gearset->GlamourSetLink)
         };
 
-    public static unsafe ContextMenuEntry CreateGearsetUnlinkGlamour(GearsetEntry* gearset)
+    public static ImGuiContextMenuEntry CreateGearsetUnlinkGlamour(GearsetEntry* gearset)
         => new()
         {
             Visible = gearset != null && gearset->GlamourSetLink != 0 && UIState.Instance()->IsUnlockLinkUnlocked(15),
@@ -175,9 +112,8 @@ public class ImGuiContextMenu : List<IContextMenuEntry>
             ClickCallback = () => RaptureGearsetModule.Instance()->LinkGlamourPlate(gearset->ID, 0)
         };
 
-    public static unsafe ContextMenuEntry CreateGearsetChangePortrait(GearsetEntry* gearset)
-    {
-        return new()
+    public static ImGuiContextMenuEntry CreateGearsetChangePortrait(GearsetEntry* gearset)
+        => new()
         {
             Visible = gearset != null,
             Label = GetAddonText(4411),
@@ -187,9 +123,8 @@ public class ImGuiContextMenu : List<IContextMenuEntry>
                 GetAgent<AgentBannerEditor>()->OpenForGearset(gearset->ID);
             }
         };
-    }
 
-    public static unsafe ContextMenuEntry CreateSearchCraftingMethod(ExtendedItem item)
+    public static ImGuiContextMenuEntry CreateSearchCraftingMethod(ExtendedItem item)
         => new()
         {
             Visible = item.IsCraftable,
@@ -201,7 +136,7 @@ public class ImGuiContextMenu : List<IContextMenuEntry>
             }
         };
 
-    public static unsafe ContextMenuEntry CreateOpenMapForGatheringPoint(ExtendedItem item, TerritoryType? territoryType, SeString? prefix = null)
+    public static ImGuiContextMenuEntry CreateOpenMapForGatheringPoint(ExtendedItem item, TerritoryType? territoryType, SeString? prefix = null)
         => new()
         {
             Visible = territoryType != null && item.IsGatherable,
@@ -214,7 +149,7 @@ public class ImGuiContextMenu : List<IContextMenuEntry>
             }
         };
 
-    public static unsafe ContextMenuEntry CreateOpenMapForFishingSpot(ExtendedItem item, SeString? prefix = null)
+    public static ImGuiContextMenuEntry CreateOpenMapForFishingSpot(ExtendedItem item, SeString? prefix = null)
         => new()
         {
             Visible = item.IsFish,
@@ -226,7 +161,7 @@ public class ImGuiContextMenu : List<IContextMenuEntry>
             }
         };
 
-    public static unsafe ContextMenuEntry CreateSearchGatheringMethod(ExtendedItem item)
+    public static ImGuiContextMenuEntry CreateSearchGatheringMethod(ExtendedItem item)
         => new()
         {
             Visible = item.IsGatherable,
@@ -238,7 +173,7 @@ public class ImGuiContextMenu : List<IContextMenuEntry>
             }
         };
 
-    public static unsafe ContextMenuEntry CreateOpenInFishGuide(ExtendedItem item)
+    public static ImGuiContextMenuEntry CreateOpenInFishGuide(ExtendedItem item)
         => new()
         {
             Visible = item.IsFish,
@@ -251,7 +186,7 @@ public class ImGuiContextMenu : List<IContextMenuEntry>
             }
         };
 
-    public static ContextMenuEntry CreateOpenOnGarlandTools(string type, uint id)
+    public static ImGuiContextMenuEntry CreateOpenOnGarlandTools(string type, uint id)
         => new()
         {
             Label = t("ItemContextMenu.OpenOnGarlandTools"),
