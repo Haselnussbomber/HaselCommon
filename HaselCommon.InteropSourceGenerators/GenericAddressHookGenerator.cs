@@ -5,14 +5,15 @@ using HaselCommon.InteropSourceGenerators.Models;
 using LanguageExt;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using static HaselCommon.InteropSourceGenerators.DiagnosticDescriptors;
 using static LanguageExt.Prelude;
 
 namespace HaselCommon.InteropSourceGenerators;
 
 [Generator]
-internal sealed class AddressHookGenerator : IIncrementalGenerator
+internal sealed class GenericAddressHookGenerator : IIncrementalGenerator
 {
-    private const string AddressHookAttributeName = "HaselCommon.Attributes.AddressHookAttribute";
+    private const string AddressHookAttributeName = "HaselCommon.Attributes.AddressHookAttribute`1";
 
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
@@ -63,7 +64,7 @@ internal sealed class AddressHookGenerator : IIncrementalGenerator
         });
     }
 
-    internal sealed record AddressHookInfoGeneric(MethodInfo MethodInfo, string addressName)
+    internal sealed record AddressHookInfoGeneric(MethodInfo MethodInfo, string structName, string addressName)
     {
         public static Validation<DiagnosticInfo, AddressHookInfoGeneric> GetFromRoslyn(
             MethodDeclarationSyntax methodSyntax, IMethodSymbol methodSymbol)
@@ -82,13 +83,17 @@ internal sealed class AddressHookGenerator : IIncrementalGenerator
                     pInfos.ToImmutableArray()
                 ));
 
-            var hookAttr = methodSymbol.GetFirstAttributeDataByTypeName(AddressHookAttributeName);
+            var hookAttr = methodSymbol.GetFirstAttributeDataByTypeName(AddressHookAttributeName.Replace("`1", ""));
+
+            var validStructName = hookAttr
+                .Select(attributeData => attributeData.AttributeClass?.TypeArguments[0].GetFullyQualifiedNameWithGenerics())
+                .ToValidation(DiagnosticInfo.Create(AttributeGenericTypeArgumentInvalid, methodSymbol, AddressHookAttributeName.Replace("`1", "")));
 
             var validAddressName = hookAttr
-                .GetValidAttributeArgument<string>("AddressName", 0, AddressHookAttributeName, methodSymbol);
+                .GetValidAttributeArgument<string>("AddressName", 0, AddressHookAttributeName.Replace("`1", ""), methodSymbol);
 
-            return (validMethodInfo, validAddressName).Apply((methodInfo, addressName) =>
-                new AddressHookInfoGeneric(methodInfo, addressName));
+            return (validMethodInfo, validStructName, validAddressName).Apply((methodInfo, structName, addressName) =>
+                new AddressHookInfoGeneric(methodInfo, structName ?? "", addressName));
         }
 
         public void RenderDelegate(IndentedStringBuilder builder)
@@ -103,7 +108,7 @@ internal sealed class AddressHookGenerator : IIncrementalGenerator
 
         public void RenderSetupHook(IndentedStringBuilder builder)
         {
-            builder.AppendLine($"{MethodInfo.Name}Hook = HaselCommon.Service.GameInteropProvider.HookFromAddress<{MethodInfo.Name}Delegate>({addressName}, {MethodInfo.Name});");
+            builder.AppendLine($"{MethodInfo.Name}Hook = HaselCommon.Service.GameInteropProvider.HookFromAddress<{MethodInfo.Name}Delegate>((nint){structName}.Addresses.{addressName}.Value, {MethodInfo.Name});");
         }
     }
 
@@ -120,7 +125,7 @@ internal sealed class AddressHookGenerator : IIncrementalGenerator
             AddressHookInfos.Iter(mfi => mfi.RenderHook(builder));
 
             builder.AppendLine("");
-            builder.AppendLine("public override void SetupAddressHooks()");
+            builder.AppendLine("public override void SetupGenericAddressHooks()");
             builder.AppendLine("{");
             builder.Indent();
             AddressHookInfos.Iter(mfi => mfi.RenderSetupHook(builder));
@@ -134,7 +139,7 @@ internal sealed class AddressHookGenerator : IIncrementalGenerator
 
         public string GetFileName()
         {
-            return $"{ClassInfo.Namespace}.{ClassInfo.Name}.AddressHooks.g.cs";
+            return $"{ClassInfo.Namespace}.{ClassInfo.Name}.GenericAddressHooks.g.cs";
         }
     }
 }

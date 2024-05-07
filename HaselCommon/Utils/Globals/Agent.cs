@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using FFXIVClientStructs.Attributes;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
+using HaselCommon.Enums;
 
 namespace HaselCommon.Utils.Globals;
 
@@ -25,5 +26,18 @@ public static unsafe class Agent
         }
 
         return GetAgent<T>(id);
+    }
+
+    public static nint GetAgentVFuncAddress<T>(AgentInterfaceVfs vf) where T: unmanaged
+    {
+        var agent = GetAgent<T>();
+        if (agent == null)
+            return 0;
+
+        var agentVTableAddress = *(nint*)agent;
+        if (agentVTableAddress == 0)
+            return 0;
+
+        return *(nint*)(agentVTableAddress + 8 * (int)vf);
     }
 }
