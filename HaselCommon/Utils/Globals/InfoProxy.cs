@@ -10,7 +10,7 @@ public static unsafe class InfoProxy
     private static readonly Dictionary<Type, InfoProxyId> InfoProxyIdCache = [];
 
     public static T* GetInfoProxy<T>(InfoProxyId id) where T : unmanaged
-        => (T*)InfoModule.Instance()->GetInfoProxyById((uint)id);
+        => (T*)InfoModule.Instance()->GetInfoProxyById(id);
 
     public static T* GetInfoProxy<T>() where T : unmanaged
     {

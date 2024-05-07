@@ -10,7 +10,7 @@ public static unsafe class Agent
     private static readonly Dictionary<Type, AgentId> AgentIdCache = [];
 
     public static T* GetAgent<T>(AgentId id) where T : unmanaged
-        => (T*)AgentModule.Instance()->GetAgentByInternalID((uint)id);
+        => (T*)AgentModule.Instance()->GetAgentByInternalId(id);
 
     public static T* GetAgent<T>() where T : unmanaged
     {
