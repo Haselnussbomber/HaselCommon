@@ -22,8 +22,30 @@
         "resolved": "8.0.0",
         "contentHash": "dk9JPxTCIevS75HyEQ0E4OVAFhB2N+V9ShCXf8Q6FkUQZDkgLI12y679Nym1YqsiSysuQskT7Z+6nUf3yab6Vw=="
       },
+      "Reloaded.Memory": {
+        "type": "Transitive",
+        "resolved": "9.1.0",
+        "contentHash": "WMGpTORArGrijf9VQLVC1BjCnUxaTgSew4Kitk9jTIHWywIKk/K2PpqMuSGVO77ILV65cRmMvwpAu2azAqALeg=="
+      },
+      "Reloaded.Memory.Sigscan": {
+        "type": "Transitive",
+        "resolved": "3.1.8",
+        "contentHash": "06mopF0XD8wuJ/5R8fWYkIcnJ5w0VGJ99VRuaGvPEJv5qmc33+Za3mFzRQ8XVbxBjSyovxWwduK9IZaAYbWh7w==",
+        "dependencies": {
+          "Reloaded.Memory": "9.1.0",
+          "Reloaded.Memory.Sigscan.Definitions": "1.1.1"
+        }
+      },
+      "Reloaded.Memory.Sigscan.Definitions": {
+        "type": "Transitive",
+        "resolved": "1.1.1",
+        "contentHash": "yzlH3DJIc2XCEaH4aS9sJ9otiV/IVEoKOWrc53cKkx1hU8SHf3A3kE+VpPWlQmfVO5WwRKzRJ8vIr8u8RdGLGw=="
+      },
       "haselcommon": {
-        "type": "Project"
+        "type": "Project",
+        "dependencies": {
+          "Reloaded.Memory.Sigscan": "[3.1.8, )"
+        }
       }
     }
   }
