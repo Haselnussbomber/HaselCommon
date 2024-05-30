@@ -97,7 +97,7 @@ public class TextureManager : IDisposable
         if (!uld.AssetData.FindFirst((asset) => asset.Id == part.TextureId, out var asset))
             return Get(Texture.EmptyIconPath);
 
-        var colorThemePath = ThemePaths[RaptureAtkModule.Instance()->AtkModule.ActiveColorThemeType];
+        var colorThemePath = ThemePaths[RaptureAtkModule.Instance()->AtkUIColorHolder.ActiveColorThemeType];
 
         var assetPath = new string(asset.Path, 0, asset.Path.IndexOf('\0'));
 

@@ -35,14 +35,14 @@
 
   <ItemGroup>
     <Reference Include="Dalamud" Private="false" />
-    <Reference Include="FFXIVClientStructs" Private="false" />
     <Reference Include="Lumina" Private="false" />
     <Reference Include="Lumina.Excel" Private="false" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
-    <ProjectReference Include="..\HaselCommon.InteropSourceGenerators\HaselCommon.InteropSourceGenerators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\HaselCommon.HookGenerator\HaselCommon.HookGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\HaselCommon\HaselCommon.csproj" />
+    <ProjectReference Include="..\..\FFXIVClientStructs\FFXIVClientStructs\FFXIVClientStructs.csproj" Private="True" />
   </ItemGroup>
 </Project>

@@ -1,7 +1,7 @@
 namespace HaselCommon.Attributes;
 
 [AttributeUsage(AttributeTargets.Method)]
-public class AddressHookAttribute(string AddressName) : Attribute
+public class AddressHookAttribute<T>(string addressName) : HookAttribute
 {
-    public string AddressName { get; } = AddressName;
+    public string AddressName { get; } = addressName;
 }

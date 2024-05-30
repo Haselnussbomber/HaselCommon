@@ -25,7 +25,7 @@ public static class Colors
     public static HaselColor Grey4 { get; } = new(0.3f, 0.3f, 0.3f);
 
     public static unsafe bool IsLightTheme
-        => RaptureAtkModule.Instance()->AtkModule.ActiveColorThemeType == 1;
+        => RaptureAtkModule.Instance()->AtkUIColorHolder.ActiveColorThemeType == 1;
 
     private static readonly Lazy<Dictionary<byte, HaselColor>> ItemRarityColors = new(()
         => GetSheet<Item>()
@@ -47,7 +47,7 @@ public static class Colors
         if (expArrayIndex is null or -1)
             return White;
 
-        var level = PlayerState.Instance()->ClassJobLevelArray[(short)expArrayIndex];
+        var level = PlayerState.Instance()->ClassJobLevels[(short)expArrayIndex];
         if (level < 1 || !ItemUtils.MaxLevelRanges.TryGetValue(level, out var range))
             return White;
 

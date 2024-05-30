@@ -92,7 +92,7 @@ public static unsafe class ImGuiContextMenu
             Enabled = GameMain.IsInSanctuary(),
             Label = GetAddonText(4394),
             LoseFocusOnClick = true,
-            ClickCallback = () => GetAgent<AgentMiragePrismMiragePlate>()->OpenForGearset(gearset->ID, gearset->GlamourSetLink)
+            ClickCallback = () => GetAgent<AgentMiragePrismMiragePlate>()->OpenForGearset(gearset->Id, gearset->GlamourSetLink)
         };
 
     public static ImGuiContextMenuEntry CreateGearsetChangeGlamour(GearsetEntry* gearset)
@@ -101,7 +101,7 @@ public static unsafe class ImGuiContextMenu
             Visible = gearset != null && gearset->GlamourSetLink != 0 && UIState.Instance()->IsUnlockLinkUnlocked(15),
             Enabled = GameMain.IsInSanctuary(),
             Label = GetAddonText(4395),
-            ClickCallback = () => GetAgent<AgentMiragePrismMiragePlate>()->OpenForGearset(gearset->ID, gearset->GlamourSetLink)
+            ClickCallback = () => GetAgent<AgentMiragePrismMiragePlate>()->OpenForGearset(gearset->Id, gearset->GlamourSetLink)
         };
 
     public static ImGuiContextMenuEntry CreateGearsetUnlinkGlamour(GearsetEntry* gearset)
@@ -109,7 +109,7 @@ public static unsafe class ImGuiContextMenu
         {
             Visible = gearset != null && gearset->GlamourSetLink != 0 && UIState.Instance()->IsUnlockLinkUnlocked(15),
             Label = GetAddonText(4396),
-            ClickCallback = () => RaptureGearsetModule.Instance()->LinkGlamourPlate(gearset->ID, 0)
+            ClickCallback = () => RaptureGearsetModule.Instance()->LinkGlamourPlate(gearset->Id, 0)
         };
 
     public static ImGuiContextMenuEntry CreateGearsetChangePortrait(GearsetEntry* gearset)
@@ -120,7 +120,7 @@ public static unsafe class ImGuiContextMenu
             ClickCallback = () =>
             {
                 GetAgent<AgentBannerEditor>()->AgentInterface.Hide();
-                GetAgent<AgentBannerEditor>()->OpenForGearset(gearset->ID);
+                GetAgent<AgentBannerEditor>()->OpenForGearset(gearset->Id);
             }
         };
 

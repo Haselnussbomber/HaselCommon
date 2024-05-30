@@ -4,7 +4,7 @@ VisualStudioVersion = 17.0.31606.5
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HaselCommon", "HaselCommon\HaselCommon.csproj", "{66F84C6F-1F37-4331-AD98-92C10C931CCF}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HaselCommon.InteropSourceGenerators", "HaselCommon.InteropSourceGenerators\HaselCommon.InteropSourceGenerators.csproj", "{CD0993C3-F8BB-4136-8CF9-8AB28861ADCC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HaselCommon.HookGenerator", "HaselCommon.HookGenerator\HaselCommon.HookGenerator.csproj", "{CD0993C3-F8BB-4136-8CF9-8AB28861ADCC}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HaselCommon.Text", "HaselCommon.Text\HaselCommon.Text.csproj", "{321F3F00-A5CE-4E20-A786-8CDEEBB6507C}"
 EndProject

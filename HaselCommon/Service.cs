@@ -103,7 +103,6 @@ public static class Service
     {
         PluginInterface = pluginInterface;
         PluginAssembly = Assembly.GetCallingAssembly();
-        Interop.Resolver.GetInstance.Resolve();
     }
 
     public static void Dispose()

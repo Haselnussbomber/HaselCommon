@@ -43,7 +43,6 @@
 
   <ItemGroup>
     <Reference Include="Dalamud" Private="false" />
-    <Reference Include="FFXIVClientStructs" Private="false" />
     <Reference Include="ImGui.NET" Private="false" />
     <Reference Include="ImGuiScene" Private="false" />
     <Reference Include="Lumina" Private="false" />
@@ -51,6 +50,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\FFXIVClientStructs\FFXIVClientStructs\FFXIVClientStructs.csproj" Private="True" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
   </ItemGroup>
 </Project>

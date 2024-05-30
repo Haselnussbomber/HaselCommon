@@ -85,7 +85,7 @@ public class ParameterExpression : Expression
         if (ExpressionType is ExpressionType.ObjectParameter or ExpressionType.PlayerParameter)
         {
             var num = Operand.ResolveNumber(localParameters) - 1;
-            var param = RaptureTextModule.Instance()->TextModule.MacroDecoder.GlobalParameters.Get((ulong)num);
+            var param = RaptureTextModule.Instance()->TextModule.MacroDecoder.GlobalParameters[num];
 
             return param.Type switch
             {
@@ -120,7 +120,7 @@ public class ParameterExpression : Expression
         if (ExpressionType is ExpressionType.ObjectParameter or ExpressionType.PlayerParameter)
         {
             var num = Operand.ResolveNumber(localParameters) - 1;
-            var param = RaptureTextModule.Instance()->TextModule.MacroDecoder.GlobalParameters.Get((ulong)num);
+            var param = RaptureTextModule.Instance()->TextModule.MacroDecoder.GlobalParameters[num];
 
             return param.Type switch
             {

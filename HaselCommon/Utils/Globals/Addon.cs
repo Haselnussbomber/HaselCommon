@@ -10,7 +10,7 @@ public static unsafe class Addon
     {
         var raptureAtkModule = RaptureAtkModule.Instance();
         var addon = raptureAtkModule->RaptureAtkUnitManager.GetAddonByName(name, index);
-        var ready = addon != null && raptureAtkModule->AtkModule.IsAddonReady(addon->ID);
+        var ready = addon != null && raptureAtkModule->AtkModule.IsAddonReady(addon->Id);
         return ready ? (T*)addon : null;
     }
 
@@ -25,7 +25,7 @@ public static unsafe class Addon
     {
         var agent = GetAgent<AgentInterface>(agentId);
         var active = agent != null && agent->IsAgentActive();
-        return active ? GetAddon<T>((ushort)agent->GetAddonID()) : null;
+        return active ? GetAddon<T>((ushort)agent->GetAddonId()) : null;
     }
 
     // ---
