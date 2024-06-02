@@ -4,8 +4,6 @@ VisualStudioVersion = 17.0.31606.5
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HaselCommon", "HaselCommon\HaselCommon.csproj", "{66F84C6F-1F37-4331-AD98-92C10C931CCF}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HaselCommon.HookGenerator", "HaselCommon.HookGenerator\HaselCommon.HookGenerator.csproj", "{CD0993C3-F8BB-4136-8CF9-8AB28861ADCC}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HaselCommon.Text", "HaselCommon.Text\HaselCommon.Text.csproj", "{321F3F00-A5CE-4E20-A786-8CDEEBB6507C}"
 EndProject
 Global
@@ -24,14 +22,6 @@ Global
 		{66F84C6F-1F37-4331-AD98-92C10C931CCF}.Release|Any CPU.Build.0 = Release|x64
 		{66F84C6F-1F37-4331-AD98-92C10C931CCF}.Release|x64.ActiveCfg = Release|x64
 		{66F84C6F-1F37-4331-AD98-92C10C931CCF}.Release|x64.Build.0 = Release|x64
-		{CD0993C3-F8BB-4136-8CF9-8AB28861ADCC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{CD0993C3-F8BB-4136-8CF9-8AB28861ADCC}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{CD0993C3-F8BB-4136-8CF9-8AB28861ADCC}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{CD0993C3-F8BB-4136-8CF9-8AB28861ADCC}.Debug|x64.Build.0 = Debug|Any CPU
-		{CD0993C3-F8BB-4136-8CF9-8AB28861ADCC}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{CD0993C3-F8BB-4136-8CF9-8AB28861ADCC}.Release|Any CPU.Build.0 = Release|Any CPU
-		{CD0993C3-F8BB-4136-8CF9-8AB28861ADCC}.Release|x64.ActiveCfg = Release|Any CPU
-		{CD0993C3-F8BB-4136-8CF9-8AB28861ADCC}.Release|x64.Build.0 = Release|Any CPU
 		{321F3F00-A5CE-4E20-A786-8CDEEBB6507C}.Debug|Any CPU.ActiveCfg = Debug|x64
 		{321F3F00-A5CE-4E20-A786-8CDEEBB6507C}.Debug|Any CPU.Build.0 = Debug|x64
 		{321F3F00-A5CE-4E20-A786-8CDEEBB6507C}.Debug|x64.ActiveCfg = Debug|x64
