@@ -5,7 +5,7 @@ namespace HaselCommon.Text.Payloads.Macro;
 [SeStringPayload(MacroCodes.IfSelf)] // n . . x
 public class IfSelfPayload : MacroPayload
 {
-    public Expression? ObjectId { get; set; }
+    public Expression? EntityId { get; set; }
     public Expression? CaseTrue { get; set; }
     public Expression? CaseFalse { get; set; }
 
@@ -14,10 +14,10 @@ public class IfSelfPayload : MacroPayload
 
     public override unsafe SeString Resolve(List<Expression>? localParameters = null)
     {
-        if (ObjectId == null)
+        if (EntityId == null)
             return new();
 
-        var isSelf = (uint)ObjectId.ResolveNumber(localParameters) == PlayerState.Instance()->ObjectId;
+        var isSelf = (uint)EntityId.ResolveNumber(localParameters) == PlayerState.Instance()->EntityId;
         return (isSelf ? CaseTrue : CaseFalse)?.ResolveString(localParameters) ?? new();
     }
 }
