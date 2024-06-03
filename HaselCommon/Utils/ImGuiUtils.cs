@@ -139,7 +139,7 @@ public static class ImGuiUtils
     {
         using var color = col != null ? ImRaii.PushColor(ImGuiCol.Text, (uint)col) : null;
         using (ImRaii.PushFont(UiBuilder.IconFont))
-            ImGui.Text(icon.ToIconString());
+            ImGui.TextUnformatted(icon.ToIconString());
     }
 
     public static Vector2 GetIconButtonSize(FontAwesomeIcon icon)
@@ -174,7 +174,11 @@ public static class ImGuiUtils
         iconFont?.Dispose();
 
         if (ImGui.IsItemHovered())
-            ImGui.SetTooltip(tooltip);
+        {
+            ImGui.BeginTooltip();
+            ImGui.TextUnformatted(tooltip);
+            ImGui.EndTooltip();
+        }
 
         return pressed;
     }
