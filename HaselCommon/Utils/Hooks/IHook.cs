@@ -8,5 +8,6 @@ public interface IHook<T> : IDisposable where T : Delegate
     void Enable();
     void Disable();
     bool IsEnabled { get; }
+    T Original { get; }
     T OriginalDisposeSafe { get; }
 }

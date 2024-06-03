@@ -15,5 +15,6 @@ public sealed unsafe class AddressHook<T>(nint address, T detour) : IHook<T> whe
     void IDisposable.Dispose() => Hook.Dispose();
 
     public bool IsEnabled => Hook.IsEnabled;
+    public T Original => Hook.Original;
     public T OriginalDisposeSafe => Hook.OriginalDisposeSafe;
 }

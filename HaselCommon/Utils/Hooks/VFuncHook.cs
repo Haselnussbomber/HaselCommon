@@ -15,5 +15,6 @@ public sealed unsafe class VFuncHook<T>(nint vtblAddress, int vfIndex, T detour)
     void IDisposable.Dispose() => Hook.Dispose();
 
     public bool IsEnabled => Hook.IsEnabled;
+    public T Original => Hook.Original;
     public T OriginalDisposeSafe => Hook.OriginalDisposeSafe;
 }
