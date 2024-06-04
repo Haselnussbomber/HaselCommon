@@ -8,7 +8,7 @@ public sealed unsafe class VFuncHook<T>(nint vtblAddress, int vfIndex, T detour)
     {
     }
 
-    public Hook<T> Hook { get; } = Service.GameInteropProvider.HookFromFunctionPointerVariable(vtblAddress + vfIndex * 0x08, detour);
+    public Hook<T> Hook { get; } = Service.GameInteropProvider.HookFromAddress(*(nint*)(vtblAddress + vfIndex * 0x08), detour);
 
     public void Enable() => Hook.Enable();
     public void Disable() => Hook.Disable();
