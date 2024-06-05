@@ -1,6 +1,7 @@
 using FFXIVClientStructs.FFXIV.Client.System.String;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
+using HaselCommon.Extensions;
 using Lumina.Excel.GeneratedSheets;
 using Lumina.Text;
 using Lumina.Text.ReadOnly;
@@ -89,7 +90,7 @@ public class ExtendedFishingSpot : FishingSpot
             }
         }
 
-        using var title = new Utf8String(titleBuilder.ToArray());
+        using var title = new Utf8String(new ReadOnlySpan<byte>(titleBuilder.ToArray()).WithNullTerminator());
 
         var mapInfo = new OpenMapInfo
         {
