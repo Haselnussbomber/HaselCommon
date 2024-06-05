@@ -6,6 +6,7 @@ using System.Text.Json;
 using Dalamud;
 using Dalamud.Game.Text.SeStringHandling;
 using HaselCommon.Extensions;
+using HaselCommon.Services.Internal;
 using static Dalamud.Plugin.DalamudPluginInterface;
 
 namespace HaselCommon.Services;
@@ -60,8 +61,13 @@ public class TranslationManager : IDisposable
         LanguageCode = Service.PluginInterface.UiLanguage;
         ClientLanguage = Service.PluginInterface.UiLanguage.ToClientlanguage();
         CultureInfo = GetCultureInfoFromLangCode(LanguageCode);
-        Service.StringManager.NameCache.Clear();
-        Service.StringManager.TextCache.Clear();
+
+        if (Service.HasService<SheetTextCache>())
+            Service.GetService<SheetTextCache>().TextCache.Clear();
+
+        if (Service.HasService<CacheManager>())
+            Service.GetService<CacheManager>().ClearLocalizedCaches();
+
         LanguageChanged?.Invoke(langCode);
     }
 

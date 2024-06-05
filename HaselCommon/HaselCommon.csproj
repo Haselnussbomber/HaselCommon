@@ -12,6 +12,7 @@
     <OutputPath>..\bin\</OutputPath>
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
     <DebugType>embedded</DebugType>
+    <DisableRuntimeMarshalling>true</DisableRuntimeMarshalling>
   </PropertyGroup>
 
   <PropertyGroup>

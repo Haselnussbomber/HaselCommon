@@ -43,7 +43,7 @@ public class ExtendedItem : Item
             if (lookup.WVR.Row != 0 && lookup.WVR.Value != null) _recipes.Add(lookup.WVR.Value);
             if (lookup.ALC.Row != 0 && lookup.ALC.Value != null) _recipes.Add(lookup.ALC.Value);
             if (lookup.CUL.Row != 0 && lookup.CUL.Value != null) _recipes.Add(lookup.CUL.Value);
-            return recipes ??= _recipes.ToArray();
+            return recipes ??= [.. _recipes];
         }
     }
 
@@ -59,16 +59,16 @@ public class ExtendedItem : Item
         => _fishingSpots ??= ItemFishingSpotLookup.All(RowId);
 
     public bool IsCraftable
-        => _isCraftable ??= Recipes.Any();
+        => _isCraftable ??= Recipes.Length != 0;
 
     public bool IsCrystal
         => ItemUICategory.Row == 59;
 
     public bool IsGatherable
-        => GatheringPoints.Any();
+        => GatheringPoints.Length != 0;
 
     public bool IsFish
-        => _isFish ??= FishingSpots.Any();
+        => _isFish ??= FishingSpots.Length != 0;
 
     public bool IsSpearfishing
         => _isSpearfishing ??= GetSheet<SpearfishingItem>().Any(row => row.Item.Row == RowId);

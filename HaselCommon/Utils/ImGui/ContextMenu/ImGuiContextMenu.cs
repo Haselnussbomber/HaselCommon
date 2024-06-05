@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using System.Threading.Tasks;
-using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Interface;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
@@ -14,6 +13,7 @@ using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using HaselCommon.Records;
 using HaselCommon.Sheets;
 using ImGuiNET;
+using Lumina.Text.ReadOnly;
 using GearsetEntry = FFXIVClientStructs.FFXIV.Client.UI.Misc.RaptureGearsetModule.GearsetEntry;
 using TerritoryType = Lumina.Excel.GeneratedSheets.TerritoryType;
 
@@ -136,7 +136,7 @@ public static unsafe class ImGuiContextMenu
             }
         };
 
-    public static ImGuiContextMenuEntry CreateOpenMapForGatheringPoint(ExtendedItem item, TerritoryType? territoryType, SeString? prefix = null)
+    public static ImGuiContextMenuEntry CreateOpenMapForGatheringPoint(ExtendedItem item, TerritoryType? territoryType, ReadOnlySeString? prefix = null)
         => new()
         {
             Visible = territoryType != null && item.IsGatherable,
@@ -149,7 +149,7 @@ public static unsafe class ImGuiContextMenu
             }
         };
 
-    public static ImGuiContextMenuEntry CreateOpenMapForFishingSpot(ExtendedItem item, SeString? prefix = null)
+    public static ImGuiContextMenuEntry CreateOpenMapForFishingSpot(ExtendedItem item, ReadOnlySeString? prefix = null)
         => new()
         {
             Visible = item.IsFish,

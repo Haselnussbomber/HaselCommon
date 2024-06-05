@@ -4,7 +4,7 @@ using Dalamud.Interface.Utility.Raii;
 using ImGuiNET;
 using Lumina.Excel.GeneratedSheets;
 
-namespace HaselCommon.Structs;
+namespace HaselCommon.Utils;
 
 public struct HaselColor
 {

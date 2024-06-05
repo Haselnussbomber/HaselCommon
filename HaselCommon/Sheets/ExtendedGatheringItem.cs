@@ -30,6 +30,7 @@ public class ExtendedGatheringItem : GatheringItem
             var GatheringPointSheet = GetSheet<ExtendedGatheringPoint>();
 
             //! https://github.com/Ottermandias/GatherBuddy/blob/56da5c9/GatherBuddy.GameData/Data/HiddenItems.cs
+            // TODO: update to use game data https://github.com/Ottermandias/GatherBuddy/commit/23be42e9ecabe2dd658b569bf6dda3112f58cce5
             var pointBases = Item switch
             {
                 7758 => [203],  // Grade 1 La Noscean Topsoil

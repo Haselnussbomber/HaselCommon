@@ -10,15 +10,16 @@ public static unsafe class Addon
     {
         var raptureAtkModule = RaptureAtkModule.Instance();
         var addon = raptureAtkModule->RaptureAtkUnitManager.GetAddonByName(name, index);
-        var ready = addon != null && raptureAtkModule->AtkModule.IsAddonReady(addon->Id);
+        var ready = addon != null && addon->IsReady;
         return ready ? (T*)addon : null;
     }
 
     public static T* GetAddon<T>(ushort addonId) where T : unmanaged
     {
         var raptureAtkModule = RaptureAtkModule.Instance();
-        var ready = raptureAtkModule != null && raptureAtkModule->AtkModule.IsAddonReady(addonId);
-        return ready ? (T*)raptureAtkModule->RaptureAtkUnitManager.GetAddonById(addonId) : null;
+        var addon = raptureAtkModule->RaptureAtkUnitManager.GetAddonById(addonId);
+        var ready = addon != null && addon->IsReady;
+        return ready ? (T*)addon : null;
     }
 
     public static T* GetAddon<T>(AgentId agentId) where T : unmanaged

@@ -1,7 +1,7 @@
 using Dalamud.IoC;
 using Dalamud.Plugin;
 
-namespace HaselCommon;
+namespace HaselCommon.Services.Internal;
 
 internal class DalamudServiceWrapper<T>
 {

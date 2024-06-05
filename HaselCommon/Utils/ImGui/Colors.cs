@@ -4,7 +4,6 @@ using System.Numerics;
 using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using FFXIVClientStructs.FFXIV.Client.UI;
-using HaselCommon.Structs;
 using Lumina.Excel.GeneratedSheets;
 
 namespace HaselCommon.Utils;

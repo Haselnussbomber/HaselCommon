@@ -1,37 +1,13 @@
 using System.Collections.Generic;
 using System.Reflection;
-using Dalamud.Memory;
 using Dalamud.Utility;
-using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using Lumina.Excel;
 
-namespace HaselCommon.Services;
+namespace HaselCommon.Services.Internal;
 
-internal unsafe class StringManager
+internal unsafe class SheetTextCache
 {
-    internal readonly Dictionary<(NameFormatterPlaceholder placeholder, NameFormatterIdConverter idConverter, uint id), string> NameCache = [];
     internal readonly Dictionary<(string sheetName, uint rowId, string columnName), string> TextCache = [];
-
-    internal string? FormatName(NameFormatterPlaceholder placeholder, NameFormatterIdConverter idConverter, uint id)
-    {
-        var key = (placeholder, idConverter, id);
-
-        if (!NameCache.TryGetValue(key, out var value))
-        {
-            var ptr = (nint)RaptureTextModule.FormatName(placeholder, (int)id, idConverter, 1);
-            if (ptr != nint.Zero)
-            {
-                value = MemoryHelper.ReadSeStringNullTerminated(ptr).ToString();
-
-                if (string.IsNullOrWhiteSpace(value))
-                    return null;
-
-                NameCache.Add(key, value);
-            }
-        }
-
-        return value;
-    }
 
     internal string GetSheetText<T>(uint rowId, string columnName) where T : ExcelRow
     {

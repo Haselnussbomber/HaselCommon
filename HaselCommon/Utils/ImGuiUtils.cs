@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using Dalamud.Interface;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Utility;
-using HaselCommon.Structs;
 using ImGuiNET;
 
 namespace HaselCommon.Utils;

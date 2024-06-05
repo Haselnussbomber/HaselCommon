@@ -6,6 +6,7 @@ using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
 using HaselCommon.Extensions;
 using HaselCommon.Services;
+using HaselCommon.Services.Internal;
 
 namespace HaselCommon;
 
@@ -91,8 +92,6 @@ public static class Service
     #endregion
 
     #region HaselCommon Services
-    internal static StringManager StringManager => GetService<StringManager>();
-
     public static AddonObserver AddonObserver => GetService<AddonObserver>();
     public static TranslationManager TranslationManager => GetService<TranslationManager>();
     public static TextureManager TextureManager => GetService<TextureManager>();

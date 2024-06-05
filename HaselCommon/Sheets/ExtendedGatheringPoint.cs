@@ -1,8 +1,9 @@
-using Dalamud.Game.Text.SeStringHandling;
+using FFXIVClientStructs.FFXIV.Client.System.String;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
-using HaselCommon.Utils;
 using Lumina.Excel.GeneratedSheets;
+using Lumina.Text;
+using Lumina.Text.ReadOnly;
 
 namespace HaselCommon.Sheets;
 
@@ -26,7 +27,7 @@ public class ExtendedGatheringPoint : GatheringPoint
         }
     }
 
-    public unsafe bool OpenMap(ExtendedItem? item = null, SeString? prefix = null)
+    public unsafe bool OpenMap(ExtendedItem? item = null, ReadOnlySeString? prefix = null)
     {
         var agentMap = AgentMap.Instance();
         if (agentMap == null)
@@ -55,8 +56,11 @@ public class ExtendedGatheringPoint : GatheringPoint
             : raptureTextModule->FormatAddonText2(35, gatheringPointBase.GatheringLevel, 0);
         var gatheringPointName = GetGatheringPointName(RowId);
 
-        using var tooltip = new DisposableUtf8String(levelText);
-        tooltip.Append(" " + gatheringPointName);
+        using var tooltip = new Utf8String(
+            new SeStringBuilder()
+                .Append(MemoryMarshal.CreateReadOnlySpanFromNullTerminated(levelText))
+                .Append(" " + gatheringPointName)
+                .ToArray());
 
         var iconId = !IsGatheringTypeRare(exportedPoint.GatheringPointType)
             ? gatheringType.IconMain
@@ -69,7 +73,7 @@ public class ExtendedGatheringPoint : GatheringPoint
             (int)Math.Round(exportedPoint.Y),
             (uint)iconId,
             exportedPoint.Radius,
-            tooltip
+            &tooltip
         );
 
         var titleBuilder = new SeStringBuilder();
@@ -83,30 +87,32 @@ public class ExtendedGatheringPoint : GatheringPoint
         {
             if (prefix != null)
             {
-                titleBuilder.AddText(" (");
+                titleBuilder.Append(" (");
             }
 
             titleBuilder
-                .AddUiForeground(549)
-                .AddUiGlow(550)
-                .AddText(GetItemName(item.RowId))
-                .AddUiGlowOff()
-                .AddUiForegroundOff();
+                .PushColorType(549)
+                .PushEdgeColorType(550)
+                .Append(GetItemName(item.RowId))
+                .PopEdgeColorType()
+                .PopColorType();
 
             if (prefix != null)
             {
-                titleBuilder.AddText(")");
+                titleBuilder.Append(")");
             }
         }
 
-        using var title = new DisposableUtf8String(titleBuilder.BuiltString);
+        using var title = new Utf8String(titleBuilder.ToArray());
 
-        var mapInfo = stackalloc OpenMapInfo[1];
-        mapInfo->Type = FFXIVClientStructs.FFXIV.Client.UI.Agent.MapType.GatheringLog;
-        mapInfo->MapId = territoryType.Map.Row;
-        mapInfo->TerritoryId = territoryType.RowId;
-        mapInfo->TitleString = *title.Ptr;
-        agentMap->OpenMap(mapInfo);
+        var mapInfo = new OpenMapInfo
+        {
+            Type = FFXIVClientStructs.FFXIV.Client.UI.Agent.MapType.GatheringLog,
+            MapId = territoryType.Map.Row,
+            TerritoryId = territoryType.RowId,
+            TitleString = title
+        };
+        agentMap->OpenMap(&mapInfo);
 
         return true;
     }

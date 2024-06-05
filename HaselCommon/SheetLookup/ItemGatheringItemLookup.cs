@@ -23,7 +23,7 @@ public static class ItemGatheringItemLookup
 
     public static bool Any(uint itemId)
     {
-        if (!Cache.Any())
+        if (Cache.Count == 0)
             Load();
 
         return Cache.ContainsKey(itemId);
@@ -31,7 +31,7 @@ public static class ItemGatheringItemLookup
 
     public static ExtendedGatheringItem? First(uint itemId)
     {
-        if (!Cache.Any())
+        if (Cache.Count == 0)
             Load();
 
         return !Cache.TryGetValue(itemId, out var gatheringItems)
@@ -41,11 +41,11 @@ public static class ItemGatheringItemLookup
 
     public static ExtendedGatheringItem[] All(uint itemId)
     {
-        if (!Cache.Any())
+        if (Cache.Count == 0)
             Load();
 
         return !Cache.TryGetValue(itemId, out var gatheringItems)
                 ? []
-                : gatheringItems.ToArray();
+                : [.. gatheringItems];
     }
 }

@@ -27,7 +27,7 @@ public static class ItemFishingSpotLookup
 
     public static bool Any(uint itemId)
     {
-        if (!Cache.Any())
+        if (Cache.Count == 0)
             Load();
 
         return Cache.ContainsKey(itemId);
@@ -35,7 +35,7 @@ public static class ItemFishingSpotLookup
 
     public static ExtendedFishingSpot? First(uint itemId)
     {
-        if (!Cache.Any())
+        if (Cache.Count == 0)
             Load();
 
         return !Cache.TryGetValue(itemId, out var fishingSpots)
@@ -45,11 +45,11 @@ public static class ItemFishingSpotLookup
 
     public static ExtendedFishingSpot[] All(uint itemId)
     {
-        if (!Cache.Any())
+        if (Cache.Count == 0)
             Load();
 
         return !Cache.TryGetValue(itemId, out var fishingSpots)
                 ? []
-                : fishingSpots.ToArray();
+                : [.. fishingSpots];
     }
 }
