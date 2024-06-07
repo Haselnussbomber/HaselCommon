@@ -1,6 +1,6 @@
 using Dalamud.Hooking;
 
-namespace HaselCommon.Utils;
+namespace HaselCommon.Interfaces;
 
 public interface IHook<T> : IDisposable where T : Delegate
 {

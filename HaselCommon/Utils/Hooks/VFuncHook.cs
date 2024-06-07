@@ -1,4 +1,5 @@
 using Dalamud.Hooking;
+using HaselCommon.Interfaces;
 
 namespace HaselCommon.Utils;
 
