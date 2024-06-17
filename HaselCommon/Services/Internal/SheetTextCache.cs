@@ -5,11 +5,11 @@ using Lumina.Excel;
 
 namespace HaselCommon.Services.Internal;
 
-internal unsafe class SheetTextCache
+public class SheetTextCache
 {
-    internal readonly Dictionary<(string sheetName, uint rowId, string columnName), string> TextCache = [];
+    public readonly Dictionary<(string sheetName, uint rowId, string columnName), string> TextCache = [];
 
-    internal string GetSheetText<T>(uint rowId, string columnName) where T : ExcelRow
+    public string GetSheetText<T>(uint rowId, string columnName) where T : ExcelRow
     {
         var sheetType = typeof(T);
         var sheetName = sheetType.Name;

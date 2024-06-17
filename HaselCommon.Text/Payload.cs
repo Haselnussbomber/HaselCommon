@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Reflection;
+using Dalamud.Plugin.Services;
 using Lumina.Extensions;
 
 namespace HaselCommon.Text;
@@ -23,7 +24,7 @@ public abstract class Payload
             if (attr != null)
                 macroTypes[attr.Code] = type;
             else if (type != typeof(RawPayload) && type != typeof(TextPayload))
-                Service.PluginLog.Warning($"{type.FullName} is missing SeStringPayloadAttribute");
+                Service.Get<IPluginLog>().Warning($"{type.FullName} is missing SeStringPayloadAttribute");
         }
 
         return macroTypes;
@@ -84,7 +85,7 @@ public abstract class Payload
             }
             else
             {
-                Service.PluginLog.Warning($"Unhandled MacroCode 0x{(byte)macroCode:X02}");
+                Service.Get<IPluginLog>().Warning($"Unhandled MacroCode 0x{(byte)macroCode:X02}");
                 payload = new RawPayload();
             }
 

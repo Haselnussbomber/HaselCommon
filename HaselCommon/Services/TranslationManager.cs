@@ -5,6 +5,8 @@ using System.Reflection;
 using System.Text.Json;
 using Dalamud;
 using Dalamud.Game.Text.SeStringHandling;
+using Dalamud.Plugin;
+using Dalamud.Plugin.Services;
 using HaselCommon.Extensions;
 using HaselCommon.Services.Internal;
 using static Dalamud.Plugin.DalamudPluginInterface;
@@ -14,6 +16,10 @@ namespace HaselCommon.Services;
 public class TranslationManager : IDisposable
 {
     private readonly Dictionary<string, Dictionary<string, string>> _translations = [];
+    private readonly DalamudPluginInterface _pluginInterface;
+    private readonly IPluginLog _pluginLog;
+    private readonly SheetTextCache _sheetTextCache;
+    private readonly CacheManager _cacheManager;
 
     public CultureInfo CultureInfo { get; private set; } = new("en");
     public ClientLanguage ClientLanguage { get; private set; } = ClientLanguage.English;
@@ -21,21 +27,30 @@ public class TranslationManager : IDisposable
 
     public event LanguageChangedDelegate? LanguageChanged;
 
-    public TranslationManager()
+    public TranslationManager(
+        DalamudPluginInterface pluginInterface,
+        IPluginLog pluginLog,
+        SheetTextCache sheetTextCache,
+        CacheManager cacheManager)
     {
-        LoadEmbeddedResource(GetType().Assembly, "HaselCommon.Translations.json");
-        LoadEmbeddedResource(Service.PluginAssembly, $"{Service.PluginInterface.InternalName}.Translations.json");
+        _pluginInterface = pluginInterface;
+        _pluginLog = pluginLog;
+        _sheetTextCache = sheetTextCache;
+        _cacheManager = cacheManager;
 
-        LanguageCode = Service.PluginInterface.UiLanguage;
-        ClientLanguage = Service.PluginInterface.UiLanguage.ToClientlanguage();
+        LoadEmbeddedResource(GetType().Assembly, "HaselCommon.Translations.json");
+        LoadEmbeddedResource(Service.PluginAssembly, $"{_pluginInterface.InternalName}.Translations.json");
+
+        LanguageCode = _pluginInterface.UiLanguage;
+        ClientLanguage = _pluginInterface.UiLanguage.ToClientlanguage();
         CultureInfo = GetCultureInfoFromLangCode(LanguageCode);
 
-        Service.PluginInterface.LanguageChanged += PluginInterface_LanguageChanged;
+        _pluginInterface.LanguageChanged += PluginInterface_LanguageChanged;
     }
 
     public void Dispose()
     {
-        Service.PluginInterface.LanguageChanged -= PluginInterface_LanguageChanged;
+        _pluginInterface.LanguageChanged -= PluginInterface_LanguageChanged;
     }
 
     public void LoadEmbeddedResource(Assembly assembly, string filename)
@@ -43,7 +58,7 @@ public class TranslationManager : IDisposable
         using var stream = assembly.GetManifestResourceStream(filename);
         if (stream == null)
         {
-            Service.PluginLog.Warning("[TranslationManager] Could not find translations resource {filename} in assembly {assemblyName}", filename, assembly.ToString());
+            _pluginLog.Warning("[TranslationManager] Could not find translations resource {filename} in assembly {assemblyName}", filename, assembly.ToString());
             return;
         }
 
@@ -58,15 +73,12 @@ public class TranslationManager : IDisposable
 
     private void PluginInterface_LanguageChanged(string langCode)
     {
-        LanguageCode = Service.PluginInterface.UiLanguage;
-        ClientLanguage = Service.PluginInterface.UiLanguage.ToClientlanguage();
+        LanguageCode = _pluginInterface.UiLanguage;
+        ClientLanguage = _pluginInterface.UiLanguage.ToClientlanguage();
         CultureInfo = GetCultureInfoFromLangCode(LanguageCode);
 
-        if (Service.HasService<SheetTextCache>())
-            Service.GetService<SheetTextCache>().TextCache.Clear();
-
-        if (Service.HasService<CacheManager>())
-            Service.GetService<CacheManager>().ClearLocalizedCaches();
+        _sheetTextCache.TextCache.Clear();
+        _cacheManager.ClearLocalizedCaches();
 
         LanguageChanged?.Invoke(langCode);
     }

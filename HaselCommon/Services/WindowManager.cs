@@ -1,65 +1,47 @@
 using System.Linq;
 using Dalamud.Interface.Windowing;
+using Dalamud.Plugin;
 using HaselCommon.Extensions;
 
 namespace HaselCommon.Services;
 
-public class WindowManager : WindowSystem, IDisposable
+public class WindowManager : IDisposable
 {
-    public WindowManager() : base(Service.PluginInterface.InternalName)
+    private readonly DalamudPluginInterface PluginInterface;
+    private readonly WindowSystem WindowSystem;
+
+    public WindowManager(DalamudPluginInterface pluginInterface)
     {
-        Service.PluginInterface.UiBuilder.Draw += Draw;
+        PluginInterface = pluginInterface;
+
+        WindowSystem = new(PluginInterface.InternalName);
+
+        PluginInterface.UiBuilder.Draw += WindowSystem.Draw;
     }
 
-    public void Dispose()
+    void IDisposable.Dispose()
     {
-        Service.PluginInterface.UiBuilder.Draw -= Draw;
-        Windows.OfType<IDisposable>().ForEach(window => window.Dispose());
-        RemoveAllWindows();
+        PluginInterface.UiBuilder.Draw -= WindowSystem.Draw;
+
+        WindowSystem.Windows.OfType<IDisposable>().ForEach(window => window.Dispose());
+        WindowSystem.RemoveAllWindows();
     }
 
-    public T? GetWindow<T>() where T : Window
+    public bool AddWindow(Window window)
     {
-        return Windows.OfType<T>().FirstOrDefault();
+        if (WindowSystem.Windows.Contains(window))
+            return false;
+
+        WindowSystem.AddWindow(window);
+        return true;
     }
 
-    public bool IsWindowOpen<T>() where T : Window
+    public bool RemoveWindow(Window window)
     {
-        return GetWindow<T>() is not null;
-    }
+        if (!WindowSystem.Windows.Contains(window))
+            return false;
 
-    public T OpenWindow<T>() where T : Window, new()
-    {
-        var window = GetWindow<T>();
-        if (window is null)
-        {
-            AddWindow(window = new T());
-        }
-
-        window.IsOpen = true;
-
-        return window;
-    }
-
-    public void CloseWindow<T>() where T : Window
-    {
-        var window = GetWindow<T>();
-        if (window is null)
-            return;
-
-        (window as IDisposable)?.Dispose();
-        RemoveWindow(window);
-    }
-
-    public void ToggleWindow<T>() where T : Window, new()
-    {
-        if (GetWindow<T>() is null)
-        {
-            OpenWindow<T>();
-        }
-        else
-        {
-            CloseWindow<T>();
-        }
+        WindowSystem.RemoveWindow(window);
+        return true;
     }
 }

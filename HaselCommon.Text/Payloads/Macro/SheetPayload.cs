@@ -1,3 +1,5 @@
+using Dalamud.Plugin.Services;
+
 namespace HaselCommon.Text.Payloads.Macro;
 
 [SeStringPayload(MacroCodes.Sheet)] // s . . .
@@ -13,7 +15,7 @@ public class SheetPayload : MacroPayload
         if (SheetName == null || RowId == null || ColumnIndex == null)
             return new();
 
-        var sheet = Service.DataManager.Excel.GetSheetRaw(SheetName.ResolveString(localParameters).ToString());
+        var sheet = Service.Get<IDataManager>().Excel.GetSheetRaw(SheetName.ResolveString(localParameters).ToString());
         if (sheet == null)
             return new();
 

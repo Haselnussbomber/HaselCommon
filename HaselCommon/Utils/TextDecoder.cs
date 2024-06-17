@@ -1,9 +1,10 @@
 using System.Collections.Generic;
 using Dalamud;
-using Dalamud.Game.Text.SeStringHandling;
+using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.System.String;
 using HaselCommon.Extensions;
 using Lumina.Excel;
+using Lumina.Text.ReadOnly;
 using LuminaSeString = Lumina.Text.SeString;
 
 namespace HaselCommon.Utils;
@@ -61,24 +62,24 @@ public static unsafe class TextDecoder
         if (_cache.TryGetValue(key, out var value))
             return value;
 
-        var attributiveSheet = Service.DataManager.GameData.Excel.GetSheetRaw("Attributive", language.ToLumina());
+        var attributiveSheet = Service.Get<IDataManager>().GameData.Excel.GetSheetRaw("Attributive", language.ToLumina());
         if (attributiveSheet == null)
         {
-            Service.PluginLog.Warning("Sheet Attributive not found");
+            Service.Get<IPluginLog>().Warning("Sheet Attributive not found");
             return string.Empty;
         }
 
-        var sheet = Service.DataManager.GameData.Excel.GetSheetRaw(SheetName, language.ToLumina());
+        var sheet = Service.Get<IDataManager>().GameData.Excel.GetSheetRaw(SheetName, language.ToLumina());
         if (sheet == null)
         {
-            Service.PluginLog.Warning("Sheet {SheetName} not found", SheetName);
+            Service.Get<IPluginLog>().Warning("Sheet {SheetName} not found", SheetName);
             return string.Empty;
         }
 
         var row = sheet.GetRow((uint)RowId);
         if (row == null)
         {
-            Service.PluginLog.Warning("Sheet {SheetName} does not contain row #{RowId}", SheetName, RowId);
+            Service.Get<IPluginLog>().Warning("Sheet {SheetName} does not contain row #{RowId}", SheetName, RowId);
             return string.Empty;
         }
 
@@ -90,7 +91,7 @@ public static unsafe class TextDecoder
             _ => 0
         };
 
-        using Utf8String? output = language switch
+        var output = language switch
         {
             ClientLanguage.Japanese => ResolveNounJa(Amount, Person, attributiveSheet, row),
             ClientLanguage.English => ResolveNounEn(Amount, Person, attributiveSheet, row, columnOffset),
@@ -102,48 +103,50 @@ public static unsafe class TextDecoder
         if (output == null)
             return string.Empty;
 
-        var str = SeString.Parse(output.Value.StringPtr, (int)output.Value.BufUsed - 1).ToString();
+        var str = new ReadOnlySeStringSpan(output->AsSpan()).ExtractText();
         _cache.Add(key, str);
-
+        output->Dtor(true);
         return str;
     }
 
     // Component::Text::Localize::NounJa.Resolve
-    private static Utf8String ResolveNounJa(int Amount, int Person, RawExcelSheet attributiveSheet, RowParser row)
+    private static Utf8String* ResolveNounJa(int Amount, int Person, RawExcelSheet attributiveSheet, RowParser row)
     {
-        var output = new Utf8String();
-        using var placeholder = new Utf8String();
-        using var temp = new Utf8String();
+        var output = Utf8String.CreateEmpty();
+        var placeholder = Utf8String.CreateEmpty();
+        var temp = Utf8String.CreateEmpty();
 
         // Ko-So-A-Do
         var ksad = attributiveSheet.GetRow((uint)Person)?.ReadColumn<LuminaSeString>(Amount > 1 ? 1 : 0);
         if (ksad != null)
-            output.SetString(ksad.RawData.WithNullTerminator());
+            output->SetString(ksad.RawData.WithNullTerminator());
 
         if (Amount > 1)
         {
-            placeholder.SetString("[n]");
-            temp.SetString(Amount.ToString());
-            output.Replace(&placeholder, &temp);
+            placeholder->SetString("[n]");
+            temp->SetString(Amount.ToString());
+            output->Replace(placeholder, temp);
         }
 
         // UnkInt5 can only be 0, because the offsets array has only 1 entry, which is 0
         var text = row.ReadColumn<LuminaSeString>(0);
         if (text != null)
         {
-            temp.SetString(text.RawData.WithNullTerminator());
-            output.Append(&temp);
+            temp->SetString(text.RawData.WithNullTerminator());
+            output->Append(temp);
         }
 
+        placeholder->Dtor(true);
+        temp->Dtor(true);
         return output;
     }
 
     // Component::Text::Localize::NounEn.Resolve
-    private static Utf8String ResolveNounEn(int Amount, int Person, RawExcelSheet attributiveSheet, RowParser row, int columnOffset)
+    private static Utf8String* ResolveNounEn(int Amount, int Person, RawExcelSheet attributiveSheet, RowParser row, int columnOffset)
     {
-        var output = new Utf8String();
-        using var placeholder = new Utf8String();
-        using var temp = new Utf8String();
+        var output = Utf8String.CreateEmpty();
+        var placeholder = Utf8String.CreateEmpty();
+        var temp = Utf8String.CreateEmpty();
 
         /*
           a1->Offsets[0] = SingularColumnIdx
@@ -163,7 +166,7 @@ public static unsafe class TextDecoder
             var v17 = v14 + 2 * (v14 + 1);
             var article = attributiveSheet.GetRow((uint)Person)?.ReadColumn<LuminaSeString>(v17 + (Amount == 1 ? 0 : 1));
             if (article != null)
-                output.SetString(article.RawData.WithNullTerminator());
+                output->SetString(article.RawData.WithNullTerminator());
 
             // skipping link marker ("//")
         }
@@ -171,19 +174,21 @@ public static unsafe class TextDecoder
         var text = row.ReadColumn<LuminaSeString>(columnOffset + (Amount == 1 ? SingularColumnIdx : PluralColumnIdx));
         if (text != null)
         {
-            temp.SetString(text.RawData.WithNullTerminator());
-            output.Append(&temp);
+            temp->SetString(text.RawData.WithNullTerminator());
+            output->Append(temp);
         }
 
-        placeholder.SetString("[n]");
-        temp.SetString(Amount.ToString());
-        output.Replace(&placeholder, &temp);
+        placeholder->SetString("[n]");
+        temp->SetString(Amount.ToString());
+        output->Replace(placeholder, temp);
 
+        placeholder->Dtor(true);
+        temp->Dtor(true);
         return output;
     }
 
     // Component::Text::Localize::NounDe.Resolve
-    private static Utf8String ResolveNounDe(int Amount, int Person, int Case, RawExcelSheet attributiveSheet, RowParser row, int columnOffset)
+    private static Utf8String* ResolveNounDe(int Amount, int Person, int Case, RawExcelSheet attributiveSheet, RowParser row, int columnOffset)
     {
         /*
              a1->Offsets[0] = SingularColumnIdx
@@ -200,21 +205,23 @@ public static unsafe class TextDecoder
         if ((Case & 0x10000) != 0)
             Case = 0;
 
-        var output = new Utf8String();
-        using var placeholder = new Utf8String();
-        using var temp = new Utf8String();
+        var output = Utf8String.CreateEmpty();
+        var placeholder = Utf8String.CreateEmpty();
+        var temp = Utf8String.CreateEmpty();
 
         // TODO: I didn't try this out yet, see if it works
         if (readColumnDirectly)
         {
             var v15 = row.ReadColumn<LuminaSeString>(Case - 0x10000);
             if (v15 != null)
-                output.SetString(v15.RawData.WithNullTerminator());
+                output->SetString(v15.RawData.WithNullTerminator());
 
-            placeholder.SetString("[n]");
-            temp.SetString(Amount.ToString());
-            output.Replace(&placeholder, &temp);
+            placeholder->SetString("[n]");
+            temp->SetString(Amount.ToString());
+            output->Replace(placeholder, temp);
 
+            placeholder->Dtor(true);
+            temp->Dtor(true);
             return output;
         }
 
@@ -239,33 +246,33 @@ public static unsafe class TextDecoder
         var text = row.ReadColumn<LuminaSeString>(columnOffset + (Amount == 1 ? SingularColumnIdx : PluralColumnIdx));
         if (text != null)
         {
-            placeholder.SetString("[t]");
-            temp.SetString(text.RawData.WithNullTerminator());
-            has_t = temp.IndexOf(&placeholder) != -1; // v34
-            output.Clear();
+            placeholder->SetString("[t]");
+            temp->SetString(text.RawData.WithNullTerminator());
+            has_t = temp->IndexOf(placeholder) != -1; // v34
+            output->Clear();
 
             if (articleIndex == 0 && !has_t)
             {
                 var v36 = attributiveSheet.GetRow((uint)Person)?.ReadColumn<LuminaSeString>(caseColumnOffset + genderIdx);
                 if (v36 != null)
-                    output.SetString(v36.RawData.WithNullTerminator());
+                    output->SetString(v36.RawData.WithNullTerminator());
             }
 
             // skipping link marker ("//") (processed in "E8 ?? ?? ?? ?? 41 F6 86 ?? ?? ?? ?? ?? 74 1D")
 
-            temp.SetString(text.RawData.WithNullTerminator());
-            output.Append(&temp);
+            temp->SetString(text.RawData.WithNullTerminator());
+            output->Append(temp);
 
             var v43 = attributiveSheet.GetRow((uint)(v27 + 26))?.ReadColumn<LuminaSeString>(caseColumnOffset + genderIdx);
             if (v43 != null)
             {
-                placeholder.SetString("[p]");
-                temp.SetString(v43.RawData.WithNullTerminator());
-                var has_p = output.IndexOf(&placeholder) != -1; // inverted v38
+                placeholder->SetString("[p]");
+                temp->SetString(v43.RawData.WithNullTerminator());
+                var has_p = output->IndexOf(placeholder) != -1; // inverted v38
                 if (has_p)
-                    output.Replace(&placeholder, &temp);
+                    output->Replace(placeholder, temp);
                 else
-                    output.Append(&temp);
+                    output->Append(temp);
             }
 
             if (has_t)
@@ -273,9 +280,9 @@ public static unsafe class TextDecoder
                 var v46 = attributiveSheet.GetRow(39)?.ReadColumn<LuminaSeString>(caseColumnOffset + genderIdx); // Definiter Artikel
                 if (v46 != null)
                 {
-                    placeholder.SetString("[t]");
-                    temp.SetString(v46.RawData.WithNullTerminator());
-                    output.Replace(&placeholder, &temp);
+                    placeholder->SetString("[t]");
+                    temp->SetString(v46.RawData.WithNullTerminator());
+                    output->Replace(placeholder, temp);
                 }
             }
         }
@@ -283,9 +290,9 @@ public static unsafe class TextDecoder
         var v50 = attributiveSheet.GetRow(24)?.ReadColumn<LuminaSeString>(caseColumnOffset + genderIdx);
         if (v50 != null)
         {
-            placeholder.SetString("[pa]");
-            temp.SetString(v50.RawData.WithNullTerminator());
-            output.Replace(&placeholder, &temp);
+            placeholder->SetString("[pa]");
+            temp->SetString(v50.RawData.WithNullTerminator());
+            output->Replace(placeholder, temp);
         }
 
         var v52 = attributiveSheet.GetRow(26); // Starke Flexion eines Artikels?!
@@ -299,24 +306,26 @@ public static unsafe class TextDecoder
         var v54 = v52?.ReadColumn<LuminaSeString>(caseColumnOffset + genderIdx);
         if (v54 != null)
         {
-            placeholder.SetString("[a]");
-            temp.SetString(v54.RawData.WithNullTerminator());
-            output.Replace(&placeholder, &temp);
+            placeholder->SetString("[a]");
+            temp->SetString(v54.RawData.WithNullTerminator());
+            output->Replace(placeholder, temp);
         }
 
-        placeholder.SetString("[n]");
-        temp.SetString(Amount.ToString());
-        output.Replace(&placeholder, &temp);
+        placeholder->SetString("[n]");
+        temp->SetString(Amount.ToString());
+        output->Replace(placeholder, temp);
 
+        placeholder->Dtor(true);
+        temp->Dtor(true);
         return output;
     }
 
     // Component::Text::Localize::NounFr.Resolve
-    private static Utf8String ResolveNounFr(int Amount, int Person, RawExcelSheet attributiveSheet, RowParser row, int columnOffset)
+    private static Utf8String* ResolveNounFr(int Amount, int Person, RawExcelSheet attributiveSheet, RowParser row, int columnOffset)
     {
-        var output = new Utf8String();
-        using var placeholder = new Utf8String();
-        using var temp = new Utf8String();
+        var output = Utf8String.CreateEmpty();
+        var placeholder = Utf8String.CreateEmpty();
+        var temp = Utf8String.CreateEmpty();
 
         /*
             a1->Offsets[0] = SingularColumnIdx
@@ -341,22 +350,22 @@ public static unsafe class TextDecoder
         {
             var v21 = attributiveSheet.GetRow((uint)Person)?.ReadColumn<LuminaSeString>(v20);
             if (v21 != null)
-                output.SetString(v21.RawData.WithNullTerminator());
+                output->SetString(v21.RawData.WithNullTerminator());
 
             // skipping link marker ("//")
 
             var v30 = row.ReadColumn<LuminaSeString>(columnOffset + (Amount <= 1 ? SingularColumnIdx : PluralColumnIdx));
             if (v30 != null)
             {
-                temp.SetString(v30.RawData.WithNullTerminator());
-                output.Append(&temp);
+                temp->SetString(v30.RawData.WithNullTerminator());
+                output->Append(temp);
             }
 
             if (Amount <= 1)
             {
-                placeholder.SetString("[n]");
-                temp.SetString(Amount.ToString());
-                output.Replace(&placeholder, &temp);
+                placeholder->SetString("[n]");
+                temp->SetString(Amount.ToString());
+                output->Replace(placeholder, temp);
             }
         }
         else
@@ -366,15 +375,15 @@ public static unsafe class TextDecoder
                 var v29 = attributiveSheet.GetRow((uint)Person)?.ReadColumn<LuminaSeString>(v20 + 2);
                 if (v29 != null)
                 {
-                    output.SetString(v29.RawData.WithNullTerminator());
+                    output->SetString(v29.RawData.WithNullTerminator());
 
                     // skipping link marker ("//")
 
                     var v30 = row.ReadColumn<LuminaSeString>(columnOffset + PluralColumnIdx);
                     if (v30 != null)
                     {
-                        temp.SetString(v30.RawData.WithNullTerminator());
-                        output.Append(&temp);
+                        temp->SetString(v30.RawData.WithNullTerminator());
+                        output->Append(temp);
                     }
                 }
             }
@@ -382,23 +391,25 @@ public static unsafe class TextDecoder
             {
                 var v27 = attributiveSheet.GetRow((uint)Person)?.ReadColumn<LuminaSeString>(v20 + (v17 != 0 ? 1 : 3));
                 if (v27 != null)
-                    output.SetString(v27.RawData.WithNullTerminator());
+                    output->SetString(v27.RawData.WithNullTerminator());
 
                 // skipping link marker ("//")
 
                 var v30 = row.ReadColumn<LuminaSeString>(columnOffset + SingularColumnIdx);
                 if (v30 != null)
                 {
-                    temp.SetString(v30.RawData.WithNullTerminator());
-                    output.Append(&temp);
+                    temp->SetString(v30.RawData.WithNullTerminator());
+                    output->Append(temp);
                 }
             }
 
-            placeholder.SetString("[n]");
-            temp.SetString(Amount.ToString());
-            output.Replace(&placeholder, &temp);
+            placeholder->SetString("[n]");
+            temp->SetString(Amount.ToString());
+            output->Replace(placeholder, temp);
         }
 
+        placeholder->Dtor(true);
+        temp->Dtor(true);
         return output;
     }
 }

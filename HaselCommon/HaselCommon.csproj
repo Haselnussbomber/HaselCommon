@@ -52,6 +52,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\FFXIVClientStructs\FFXIVClientStructs\FFXIVClientStructs.csproj" Private="True" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.0" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
   </ItemGroup>
 </Project>

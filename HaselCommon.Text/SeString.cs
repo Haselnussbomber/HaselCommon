@@ -1,6 +1,8 @@
 using System.Linq;
+using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.System.String;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
+using HaselCommon.Services;
 using Addon = Lumina.Excel.GeneratedSheets.Addon;
 
 namespace HaselCommon.Text;
@@ -35,7 +37,7 @@ public class SeString
 
     public static unsafe SeString FromAddon(uint addonId)
     {
-        var row = Service.DataManager.GetExcelSheet<Addon>(Service.TranslationManager.ClientLanguage)?.GetRow(addonId);
+        var row = GetRow<Addon>(addonId, uint.MaxValue, Service.Get<TranslationManager>().ClientLanguage);
         return row == null
             ? new()
             : Parse(row.Text.RawData);

@@ -2,8 +2,11 @@ using System.IO;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Dalamud.Interface.Internal.Notifications;
+using Dalamud.Plugin;
+using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 using HaselCommon.Interfaces;
+using HaselCommon.Services;
 
 namespace HaselCommon;
 
@@ -22,7 +25,7 @@ public static class ConfigurationManager
     {
         try
         {
-            var configPath = Service.PluginInterface.ConfigFile.FullName;
+            var configPath = Service.Get<DalamudPluginInterface>().ConfigFile.FullName;
             if (!File.Exists(configPath))
                 return new();
 
@@ -42,7 +45,7 @@ public static class ConfigurationManager
 
             if (version < currentConfigVersion && migrateDelegate != null)
             {
-                Service.PluginLog.Information("Starting config migration: {currentVersion} -> {targetVersion}", version, currentConfigVersion);
+                Service.Get<IPluginLog>().Information("Starting config migration: {currentVersion} -> {targetVersion}", version, currentConfigVersion);
 
                 var success = migrateDelegate.Invoke(version, ref configObject);
 
@@ -50,13 +53,13 @@ public static class ConfigurationManager
 
                 if (success)
                 {
-                    Service.PluginLog.Information("Config migration completed successfully!");
+                    Service.Get<IPluginLog>().Information("Config migration completed successfully!");
                 }
                 else
                 {
                     var configBackupPath = $"{configPath}_v{version}.bak";
 
-                    Service.PluginLog.Warning("Config migration completed with errors! Writing backup of previous config to {configBackupPath}", configBackupPath);
+                    Service.Get<IPluginLog>().Warning("Config migration completed with errors! Writing backup of previous config to {configBackupPath}", configBackupPath);
 
                     try
                     {
@@ -88,12 +91,12 @@ public static class ConfigurationManager
         }
         catch (Exception ex)
         {
-            Service.PluginLog.Error(ex, "Could not load the configuration file. Creating a new one.");
+            Service.Get<IPluginLog>().Error(ex, "Could not load the configuration file. Creating a new one.");
 
-            if (!Service.TranslationManager.TryGetTranslation("Plugin.DisplayName", out var pluginName))
-                pluginName = Service.PluginInterface.InternalName;
+            if (!Service.Get<TranslationManager>().TryGetTranslation("Plugin.DisplayName", out var pluginName))
+                pluginName = Service.Get<DalamudPluginInterface>().InternalName;
 
-            Service.NotificationManager.AddNotification(new()
+            Service.Get<INotificationManager>().AddNotification(new()
             {
                 Content = t("Notification.CouldNotLoadConfig"),
                 Type = NotificationType.Error,
@@ -114,14 +117,14 @@ public static class ConfigurationManager
 
             if (config.LastSavedConfigHash != hash)
             {
-                Util.WriteAllTextSafe(Service.PluginInterface.ConfigFile.FullName, serialized);
+                Util.WriteAllTextSafe(Service.Get<DalamudPluginInterface>().ConfigFile.FullName, serialized);
                 config.LastSavedConfigHash = hash;
-                Service.PluginLog.Information("Configuration saved.");
+                Service.Get<IPluginLog>().Information("Configuration saved.");
             }
         }
         catch (Exception e)
         {
-            Service.PluginLog.Error(e, "Error saving config");
+            Service.Get<IPluginLog>().Error(e, "Error saving config");
         }
     }
 }

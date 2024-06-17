@@ -1,4 +1,5 @@
 using Dalamud.Game.ClientState.GamePad;
+using Dalamud.Plugin.Services;
 
 namespace HaselCommon.Utils;
 
@@ -29,7 +30,7 @@ public static unsafe class GamepadUtils
 
         foreach (var (configOption, gamepadButton) in Mapping)
         {
-            if (!Service.GameConfig.System.TryGet(configOption, out string value))
+            if (!Service.Get<IGameConfig>().System.TryGet(configOption, out string value))
                 continue;
 
             if (value == bindingName)
@@ -40,5 +41,5 @@ public static unsafe class GamepadUtils
     }
 
     public static bool IsPressed(GamepadBinding binding)
-        => Service.GamepadState.Pressed(GetButton(binding)) == 1;
+        => Service.Get<IGamepadState>().Pressed(GetButton(binding)) == 1;
 }

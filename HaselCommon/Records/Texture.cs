@@ -2,6 +2,7 @@ using System.IO;
 using System.Linq;
 using System.Numerics;
 using Dalamud.Interface.Internal;
+using Dalamud.Plugin.Services;
 using HaselCommon.Utils;
 using ImGuiNET;
 
@@ -144,8 +145,8 @@ public record Texture : IDisposable
     private IDalamudTextureWrap? LoadTexture()
     {
         var tex = System.IO.Path.IsPathRooted(Path)
-            ? Service.TextureProvider.GetTextureFromFile(new FileInfo(Path), true)
-            : Service.TextureProvider.GetTextureFromGame(Path, true);
+            ? Service.Get<ITextureProvider>().GetTextureFromFile(new FileInfo(Path), true)
+            : Service.Get<ITextureProvider>().GetTextureFromGame(Path, true);
 
         if (tex != null && !_sizesSet)
         {

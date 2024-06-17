@@ -15,15 +15,22 @@ public class TextureManager : IDisposable
     private readonly Dictionary<(string Path, int Version, Vector2? Uv0, Vector2? Uv1), Texture> _cache = [];
     private readonly Dictionary<(uint IconId, bool IsHq), Texture> _iconTexCache = [];
     private readonly Dictionary<(string UldName, uint PartListId, uint PartId), Texture> _uldTexCache = [];
+    private readonly IFramework _framework;
+    private readonly IDataManager _dataManager;
+    private readonly ITextureProvider _textureProvider;
 
-    public TextureManager()
+    public TextureManager(IFramework framework, IDataManager dataManager, ITextureProvider textureProvider)
     {
-        Service.Framework.Update += OnFrameworkUpdate;
+        _framework = framework;
+        _dataManager = dataManager;
+        _textureProvider = textureProvider;
+
+        _framework.Update += OnFrameworkUpdate;
     }
 
     public void Dispose()
     {
-        Service.Framework.Update -= OnFrameworkUpdate;
+        _framework.Update -= OnFrameworkUpdate;
 
         _iconTexCache.Clear();
         _uldTexCache.Clear();
@@ -65,7 +72,7 @@ public class TextureManager : IDisposable
         if (isHq)
             flags |= ITextureProvider.IconFlags.ItemHighQuality;
 
-        var path = Service.TextureProvider.GetIconPath(iconId, flags) ?? Texture.EmptyIconPath;
+        var path = _textureProvider.GetIconPath(iconId, flags) ?? Texture.EmptyIconPath;
         var version = path.EndsWith("_hr1.tex") ? 2 : 1;
 
         lock (_iconTexCache)
@@ -84,7 +91,7 @@ public class TextureManager : IDisposable
         if (_uldTexCache.TryGetValue(key, out var tex))
             return tex;
 
-        var uld = Service.DataManager.GetFile<UldFile>($"ui/uld/{uldName}.uld");
+        var uld = _dataManager.GetFile<UldFile>($"ui/uld/{uldName}.uld");
 
         if (uld == null)
             return Get(Texture.EmptyIconPath);
@@ -105,7 +112,7 @@ public class TextureManager : IDisposable
         var path = assetPath;
         path = path.Insert(7, colorThemePath);
         path = path.Insert(path.LastIndexOf('.'), "_hr1");
-        var exists = Service.DataManager.FileExists(path);
+        var exists = _dataManager.FileExists(path);
         var version = 2;
 
         // fallback to theme normal texture
@@ -113,7 +120,7 @@ public class TextureManager : IDisposable
         {
             path = assetPath;
             path = path.Insert(7, colorThemePath);
-            exists = Service.DataManager.FileExists(path);
+            exists = _dataManager.FileExists(path);
             version = 1;
         }
 
@@ -122,7 +129,7 @@ public class TextureManager : IDisposable
         {
             path = assetPath;
             path = path.Insert(path.LastIndexOf('.'), "_hr1");
-            exists = Service.DataManager.FileExists(path);
+            exists = _dataManager.FileExists(path);
             version = 2;
         }
 
@@ -130,7 +137,7 @@ public class TextureManager : IDisposable
         if (!exists)
         {
             path = assetPath;
-            exists = Service.DataManager.FileExists(path);
+            exists = _dataManager.FileExists(path);
             version = 1;
         }
 

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Numerics;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
+using Dalamud.Plugin.Services;
 using Lumina.Excel.GeneratedSheets;
 
 namespace HaselCommon.Sheets;
@@ -39,7 +40,7 @@ public class ExtendedLevel : Level
         if (terr == null)
             return;
 
-        Service.GameGui.OpenMapWithMapLink(new MapLinkPayload(
+        Service.Get<IGameGui>().OpenMapWithMapLink(new MapLinkPayload(
             terr.RowId,
             map.RowId,
             (int)(X * 1_000f),
@@ -49,8 +50,8 @@ public class ExtendedLevel : Level
 
     public float GetDistanceFromPlayer()
     {
-        var localPlayer = Service.ClientState.LocalPlayer;
-        if (localPlayer == null || Territory.Row != Service.ClientState.TerritoryType)
+        var localPlayer = Service.Get<IClientState>().LocalPlayer;
+        if (localPlayer == null || Territory.Row != Service.Get<IClientState>().TerritoryType)
             return float.MaxValue; // far, far away
 
         return Vector2.Distance(

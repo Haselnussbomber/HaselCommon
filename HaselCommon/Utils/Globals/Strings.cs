@@ -1,5 +1,6 @@
 using System.Linq;
 using Dalamud.Game.Text.SeStringHandling;
+using HaselCommon.Services;
 using HaselCommon.Services.Internal;
 using Lumina.Excel;
 using Lumina.Excel.GeneratedSheets;
@@ -11,19 +12,22 @@ namespace HaselCommon.Utils.Globals;
 public static unsafe class Strings
 {
     public static string t(string key)
-        => Service.TranslationManager.Translate(key);
+        => Service.Get<TranslationManager>().Translate(key);
 
     public static string t(string key, params object?[] args)
-        => Service.TranslationManager.Translate(key, args);
+        => Service.Get<TranslationManager>().Translate(key, args);
 
     public static SeString tSe(string key, params SeString[] args)
-        => Service.TranslationManager.TranslateSeString(key, args.Select(s => s.Payloads).ToArray());
+        => Service.Get<TranslationManager>().TranslateSeString(key, args.Select(s => s.Payloads).ToArray());
 
     public static string GetSheetText<T>(uint rowId, string columnName) where T : ExcelRow
-        => Service.GetService<SheetTextCache>().GetSheetText<T>(rowId, columnName);
+        => Service.Get<SheetTextCache>().GetSheetText<T>(rowId, columnName);
 
     private static string TitleCasedSingularNoun(string sheetName, uint id)
-        => Service.TranslationManager.CultureInfo.TextInfo.ToTitleCase(TextDecoder.ProcessNoun(Service.TranslationManager.ClientLanguage, sheetName, 5, (int)id));
+    {
+        var tm = Service.Get<TranslationManager>();
+        return tm.CultureInfo.TextInfo.ToTitleCase(TextDecoder.ProcessNoun(tm.ClientLanguage, sheetName, 5, (int)id));
+    }
 
     public static string GetAddonText(uint id)
         => GetSheetText<AddonSheet>(id, "Text");

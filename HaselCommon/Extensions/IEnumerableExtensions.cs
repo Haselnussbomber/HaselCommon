@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
+using HaselCommon.Services;
 using HaselCommon.Utils;
 
 namespace HaselCommon.Extensions;
@@ -23,7 +24,7 @@ public static partial class IEnumerableExtensions
     {
         var results = new PriorityQueue<T, int>(values.Count(), new ReverseComparer<int>());
 
-        cultureInfo ??= Service.TranslationManager.CultureInfo;
+        cultureInfo ??= Service.Get<TranslationManager>().CultureInfo;
 
         foreach (var value in values)
         {
