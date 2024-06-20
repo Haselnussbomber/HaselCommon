@@ -26,10 +26,11 @@ public static class Service
     public static T Get<T>() where T : notnull
         => Provider!.GetRequiredService<T>();
 
-    public static void Initialize(DalamudPluginInterface pluginInterface)
+    public static IServiceCollection Initialize(DalamudPluginInterface pluginInterface)
     {
         PluginAssembly = Assembly.GetCallingAssembly();
         AddDefaultServices(pluginInterface);
+        return Collection;
     }
 
     private static void AddDefaultServices(DalamudPluginInterface pi)
@@ -37,6 +38,7 @@ public static class Service
         T DalamudServiceFactory<T>(IServiceProvider serviceProvider) => new DalamudServiceWrapper<T>(pi).Service;
 
         Collection
+            // Dalamud
             .AddSingleton(pi)
             .AddSingleton(DalamudServiceFactory<IAddonEventManager>)
             .AddSingleton(DalamudServiceFactory<IAddonLifecycle>)
@@ -73,9 +75,8 @@ public static class Service
             .AddSingleton(DalamudServiceFactory<ITextureProvider>)
             .AddSingleton(DalamudServiceFactory<ITextureSubstitutionProvider>)
             .AddSingleton(DalamudServiceFactory<ITitleScreenMenu>)
-            .AddSingleton(DalamudServiceFactory<IToastGui>);
-
-        Collection
+            .AddSingleton(DalamudServiceFactory<IToastGui>)
+            // HaselCommon
             .AddSingleton<SheetTextCache>()
             .AddSingleton<CacheManager>()
             .AddSingleton<AddonObserver>()
