@@ -79,6 +79,6 @@ public abstract class NounPayload : MacroPayload
         var @case = (Case ?? DefaultCase).ResolveNumber(localParameters);
         var unkInt5 = (UnkInt5 ?? DefaultUnkInt5).ResolveNumber(localParameters);
 
-        return TextDecoder.ProcessNoun(Language, sheetName, person, rowId, amount, @case, unkInt5);
+        return Service.Get<TextDecoder>().ProcessNoun(Language, sheetName, person, rowId, amount, @case, unkInt5);
     }
 }

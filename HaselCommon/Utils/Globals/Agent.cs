@@ -12,6 +12,7 @@ public static unsafe class Agent
     public static T* GetAgent<T>(AgentId id) where T : unmanaged
         => (T*)AgentModule.Instance()->GetAgentByInternalId(id);
 
+    [Obsolete]
     public static T* GetAgent<T>() where T : unmanaged
     {
         var type = typeof(T);

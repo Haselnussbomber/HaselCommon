@@ -63,12 +63,15 @@ public struct HaselColor
     public static HaselColor FromABGR(uint abgr)
         => From(BinaryPrimitives.ReverseEndianness(abgr));
 
+    [Obsolete]
     public static HaselColor FromUiForeground(uint id)
         => FromABGR(GetRow<UIColor>(id)!.UIForeground);
 
+    [Obsolete]
     public static HaselColor FromUiGlow(uint id)
         => FromABGR(GetRow<UIColor>(id)!.UIGlow);
 
+    [Obsolete]
     public static HaselColor FromStain(uint id)
         => From(BinaryPrimitives.ReverseEndianness(GetRow<Stain>(id)!.Color) >> 8).WithAlpha(1);
 

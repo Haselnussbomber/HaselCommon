@@ -5,6 +5,7 @@ using FFXIVClientStructs.FFXIV.Client.System.String;
 using HaselCommon.Extensions;
 using Lumina.Excel;
 using Lumina.Text.ReadOnly;
+using Microsoft.Extensions.Logging;
 using LuminaSeString = Lumina.Text.SeString;
 
 namespace HaselCommon.Utils;
@@ -36,9 +37,9 @@ Attributive sheet:
     Unknown24 - Unknown40
 */
 
-public static unsafe class TextDecoder
+public unsafe class TextDecoder(ILogger<TextDecoder> Logger, IDataManager DataManager)
 {
-    private static readonly Dictionary<(ClientLanguage Language, string SheetName, int RowId, int Amount, int Person, int Case), string> _cache = [];
+    private readonly Dictionary<(ClientLanguage Language, string SheetName, int RowId, int Amount, int Person, int Case), string> _cache = [];
 
     private const int SingularColumnIdx = 0;
     private const int AdjectiveColumnIdx = 1;
@@ -51,7 +52,7 @@ public static unsafe class TextDecoder
 
     // <XXnoun(SheetName,Person,RowId,Amount,Case[,UnkInt5])>
     // UnkInt5 seems unused in En/Fr/De/Ja, so it's ignored for now
-    public static string ProcessNoun(ClientLanguage language, string SheetName, int Person, int RowId, int Amount = 1, int Case = 1, int UnkInt5 = 1)
+    public string ProcessNoun(ClientLanguage language, string SheetName, int Person, int RowId, int Amount = 1, int Case = 1, int UnkInt5 = 1)
     {
         Case--;
 
@@ -62,24 +63,24 @@ public static unsafe class TextDecoder
         if (_cache.TryGetValue(key, out var value))
             return value;
 
-        var attributiveSheet = Service.Get<IDataManager>().GameData.Excel.GetSheetRaw("Attributive", language.ToLumina());
+        var attributiveSheet = DataManager.GameData.Excel.GetSheetRaw("Attributive", language.ToLumina());
         if (attributiveSheet == null)
         {
-            Service.Get<IPluginLog>().Warning("Sheet Attributive not found");
+            Logger.LogWarning("Sheet Attributive not found");
             return string.Empty;
         }
 
-        var sheet = Service.Get<IDataManager>().GameData.Excel.GetSheetRaw(SheetName, language.ToLumina());
+        var sheet = DataManager.GameData.Excel.GetSheetRaw(SheetName, language.ToLumina());
         if (sheet == null)
         {
-            Service.Get<IPluginLog>().Warning("Sheet {SheetName} not found", SheetName);
+            Logger.LogWarning("Sheet {SheetName} not found", SheetName);
             return string.Empty;
         }
 
         var row = sheet.GetRow((uint)RowId);
         if (row == null)
         {
-            Service.Get<IPluginLog>().Warning("Sheet {SheetName} does not contain row #{RowId}", SheetName, RowId);
+            Logger.LogWarning("Sheet {SheetName} does not contain row #{RowId}", SheetName, RowId);
             return string.Empty;
         }
 

@@ -9,6 +9,7 @@ using HaselCommon.Commands.Interfaces;
 using HaselCommon.Services;
 using HaselCommon.Services.Internal;
 using HaselCommon.Textures;
+using HaselCommon.Utils;
 using HaselCommon.Windowing;
 using HaselCommon.Windowing.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
@@ -84,8 +85,11 @@ public static class Service
 
             // HaselCommon
             .AddSingleton(typeof(SheetTextCache<>))
+            .AddSingleton<TextDecoder>()
             .AddSingleton<AddonObserver>()
             .AddSingleton<TranslationManager>()
+            .AddSingleton<ExcelService>()
+            .AddSingleton<TextService>()
             .AddSingleton<ICommandRegistry, CommandRegistry>()
             .AddSingleton<TextureManager>()
             .AddSingleton<IWindowManager, WindowManager>();

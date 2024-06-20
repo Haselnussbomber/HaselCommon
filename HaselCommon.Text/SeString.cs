@@ -1,5 +1,4 @@
 using System.Linq;
-using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.System.String;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using HaselCommon.Services;
@@ -7,6 +6,7 @@ using Addon = Lumina.Excel.GeneratedSheets.Addon;
 
 namespace HaselCommon.Text;
 
+[Obsolete] // not really, but replace where possible
 public class SeString
 {
     public List<Payload> Payloads { get; set; } = [];

@@ -100,7 +100,7 @@ public class TranslationManager : IDisposable
             return key;
 
         var placeholders = format.Split(['{', '}']);
-        var sb = new SeStringBuilder();
+        var sb = new SeStringBuilder(); // TODO: switch to Luminas SeStringBuilder
 
         for (var i = 0; i < placeholders.Length; i++)
         {

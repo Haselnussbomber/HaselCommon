@@ -10,6 +10,7 @@ public static class Statics
     public static bool IsGatheringTypeRare(byte id)
         => id > 7 || (0x8B & (1 << id)) == 0;
 
+    [Obsolete]
     public static unsafe void ExecuteCommand(string command)
     {
         using var cmd = new Utf8String(command);
