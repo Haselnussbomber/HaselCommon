@@ -1,14 +1,16 @@
 using Dalamud.Interface.Windowing;
+using HaselCommon.Interfaces;
 using HaselCommon.Services;
 using ImGuiNET;
 
 namespace HaselCommon;
 
-public abstract class SimpleWindow : Window, IDisposable
+public abstract class SimpleWindow : Window, ISimpleWindow, IDisposable
 {
     public readonly WindowManager WindowManager;
 
-    public SimpleWindow(WindowManager windowManager, string name) : base(name, ImGuiWindowFlags.None, false)
+    public SimpleWindow(WindowManager windowManager, string name)
+        : base(name, ImGuiWindowFlags.None, false)
     {
         WindowManager = windowManager;
         Namespace = GetType().Name;
@@ -35,6 +37,7 @@ public abstract class SimpleWindow : Window, IDisposable
 
     public void Dispose()
     {
+        Close();
         OnClose();
         WindowManager.RemoveWindow(this);
         GC.SuppressFinalize(this);
