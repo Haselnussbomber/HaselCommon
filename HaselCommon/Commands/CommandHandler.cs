@@ -1,28 +1,29 @@
 using Dalamud.Game.Command;
 using Dalamud.Plugin.Services;
-using static Dalamud.Game.Command.CommandInfo;
+using HaselCommon.Commands.Interfaces;
+using HaselCommon.Services;
 
-namespace HaselCommon.Services.CommandManager;
+namespace HaselCommon.Commands;
 
-public class CommandHandler : IDisposable
+public class CommandHandler : ICommandHandler
 {
-    private readonly CommandManager CommandManager;
+    private readonly CommandRegistry CommandManager;
     private readonly ICommandManager DalamudCommandManager;
     private readonly TranslationManager TranslationManager;
     private CommandInfo? CommandInfo;
 
     public string Command { get; init; }
     public string HelpMessageKey { get; init; }
-    public HandlerDelegate Handler { get; init; }
+    public CommandInfo.HandlerDelegate Handler { get; init; }
     public bool IsEnabled { get; private set; }
 
     public CommandHandler(
-        CommandManager commandManager,
+        CommandRegistry commandManager,
         ICommandManager dalamudCommandManager,
         TranslationManager translationManager,
         string command,
         string helpMessageKey,
-        HandlerDelegate handler)
+        CommandInfo.HandlerDelegate handler)
     {
         CommandManager = commandManager;
         DalamudCommandManager = dalamudCommandManager;
@@ -38,6 +39,7 @@ public class CommandHandler : IDisposable
     {
         SetEnabled(false);
         TranslationManager.LanguageChanged -= TranslationManager_LanguageChanged;
+        GC.SuppressFinalize(this);
     }
 
     private void TranslationManager_LanguageChanged(string langCode)

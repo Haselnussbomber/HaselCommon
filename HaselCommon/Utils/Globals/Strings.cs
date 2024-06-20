@@ -1,7 +1,7 @@
 using System.Linq;
 using Dalamud.Game.Text.SeStringHandling;
+using HaselCommon.Caching;
 using HaselCommon.Services;
-using HaselCommon.Services.Internal;
 using Lumina.Excel;
 using Lumina.Excel.GeneratedSheets;
 using ActionSheet = Lumina.Excel.GeneratedSheets.Action;
@@ -21,7 +21,7 @@ public static unsafe class Strings
         => Service.Get<TranslationManager>().TranslateSeString(key, args.Select(s => s.Payloads).ToArray());
 
     public static string GetSheetText<T>(uint rowId, string columnName) where T : ExcelRow
-        => Service.Get<SheetTextCache>().GetSheetText<T>(rowId, columnName);
+        => Service.Get<SheetTextCache<T>>().TryGetValue((rowId, columnName), out var value) ? value! : string.Empty;
 
     private static string TitleCasedSingularNoun(string sheetName, uint id)
     {

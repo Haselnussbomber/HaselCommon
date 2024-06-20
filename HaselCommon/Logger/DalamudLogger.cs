@@ -1,11 +1,9 @@
-using System.Collections.Concurrent;
-using System.Linq;
 using Dalamud.Plugin.Services;
 using Microsoft.Extensions.Logging;
 
-namespace HaselCommon;
+namespace HaselCommon.Logger;
 
-public sealed class DalamudLogger(string name, IPluginLog pluginLog) : ILogger
+public class DalamudLogger(string name, IPluginLog pluginLog) : ILogger
 {
     public IDisposable? BeginScope<TState>(TState state) where TState : notnull => default!;
     public bool IsEnabled(LogLevel logLevel) => true;
@@ -53,18 +51,5 @@ public sealed class DalamudLogger(string name, IPluginLog pluginLog) : ILogger
                 pluginLog.Information(message);
                 break;
         }
-    }
-}
-
-public sealed class DalamudLoggerProvider(IPluginLog pluginLog) : ILoggerProvider
-{
-    private readonly ConcurrentDictionary<string, DalamudLogger> _loggers = new(StringComparer.OrdinalIgnoreCase);
-
-    public ILogger CreateLogger(string moduleName)
-        => _loggers.GetOrAdd(moduleName.Split('.').Last(), name => new DalamudLogger(name, pluginLog));
-
-    public void Dispose()
-    {
-        _loggers.Clear();
     }
 }

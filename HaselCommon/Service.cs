@@ -3,9 +3,14 @@ using Dalamud.Game;
 using Dalamud.Game.ClientState.Objects;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
+using HaselCommon.Caching;
+using HaselCommon.Commands;
+using HaselCommon.Commands.Interfaces;
 using HaselCommon.Services;
-using HaselCommon.Services.CommandManager;
 using HaselCommon.Services.Internal;
+using HaselCommon.Textures;
+using HaselCommon.Windowing;
+using HaselCommon.Windowing.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HaselCommon;
@@ -76,13 +81,13 @@ public static class Service
             .AddSingleton(DalamudServiceFactory<ITextureSubstitutionProvider>)
             .AddSingleton(DalamudServiceFactory<ITitleScreenMenu>)
             .AddSingleton(DalamudServiceFactory<IToastGui>)
+
             // HaselCommon
-            .AddSingleton<SheetTextCache>()
-            .AddSingleton<CacheManager>()
+            .AddSingleton(typeof(SheetTextCache<>))
             .AddSingleton<AddonObserver>()
             .AddSingleton<TranslationManager>()
-            .AddSingleton<CommandManager>()
+            .AddSingleton<ICommandRegistry, CommandRegistry>()
             .AddSingleton<TextureManager>()
-            .AddSingleton<WindowManager>();
+            .AddSingleton<IWindowManager, WindowManager>();
     }
 }

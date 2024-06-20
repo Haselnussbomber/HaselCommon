@@ -1,4 +1,4 @@
-namespace HaselCommon.Interfaces;
+namespace HaselCommon.Windowing.Interfaces;
 
 public interface ISimpleWindow
 {

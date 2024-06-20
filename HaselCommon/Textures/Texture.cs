@@ -6,17 +6,14 @@ using Dalamud.Plugin.Services;
 using HaselCommon.Utils;
 using ImGuiNET;
 
-namespace HaselCommon.Records;
+namespace HaselCommon.Textures;
 
 public record Texture : IDisposable
 {
     public static readonly string EmptyIconPath = "ui/icon/000000/000000.tex";
     private static readonly TimeSpan KeepAliveTime = TimeSpan.FromSeconds(2);
 
-    private IDalamudTextureWrap? _textureWrap;
-    private DateTime _lastAccess = DateTime.UtcNow;
-    private DateTime _lastRender = DateTime.MinValue;
-    private bool _sizesSet;
+    private bool SizesSet;
 
     public Texture(string path, int version, Vector2? uv0 = null, Vector2? uv1 = null)
     {
@@ -28,7 +25,8 @@ public record Texture : IDisposable
 
     public void Dispose()
     {
-        _textureWrap?.Dispose();
+        TextureWrap?.Dispose();
+        GC.SuppressFinalize(this);
     }
 
     public string Path { get; }
@@ -37,36 +35,40 @@ public record Texture : IDisposable
     public Vector2? Uv0 { get; private set; }
     public Vector2? Uv1 { get; private set; }
 
-    public bool IsExpired => _lastAccess < DateTime.UtcNow - KeepAliveTime;
+    public IDalamudTextureWrap? TextureWrap { get; private set; }
+    public DateTime LastAccess { get; private set; } = DateTime.UtcNow;
+    public DateTime LastRender { get; private set; } = DateTime.MinValue;
+
+    public bool IsExpired => LastAccess < DateTime.UtcNow - KeepAliveTime;
 
     public void Draw(Vector2? drawSize = null, Vector4? tintColor = null, Vector4? borderColor = null)
     {
         var size = drawSize ?? Size;
 
-        _lastAccess = DateTime.UtcNow;
+        LastAccess = DateTime.UtcNow;
 
         if (!ImGuiUtils.IsInViewport(size) || Path == EmptyIconPath)
         {
             ImGui.Dummy(size);
 
-            if (_textureWrap != null && _lastRender < DateTime.UtcNow - KeepAliveTime)
+            if (TextureWrap != null && LastRender < DateTime.UtcNow - KeepAliveTime)
             {
-                _textureWrap?.Dispose();
-                _textureWrap = null;
+                TextureWrap?.Dispose();
+                TextureWrap = null;
             }
             return;
         }
 
-        _textureWrap ??= LoadTexture();
-        _lastRender = DateTime.UtcNow;
+        TextureWrap ??= LoadTexture();
+        LastRender = DateTime.UtcNow;
 
-        if (_textureWrap == null || _textureWrap.ImGuiHandle == nint.Zero)
+        if (TextureWrap == null || TextureWrap.ImGuiHandle == nint.Zero)
         {
             ImGui.Dummy(size);
             return;
         }
 
-        ImGui.Image(_textureWrap.ImGuiHandle, size, Uv0 ?? Vector2.Zero, Uv1 ?? Vector2.One, tintColor ?? Vector4.One, borderColor ?? Vector4.Zero);
+        ImGui.Image(TextureWrap.ImGuiHandle, size, Uv0 ?? Vector2.Zero, Uv1 ?? Vector2.One, tintColor ?? Vector4.One, borderColor ?? Vector4.Zero);
     }
 
     public void DrawRotated(float angle, Vector2? drawSize = null, Vector4? tintColor = null, bool noDummy = false)
@@ -91,25 +93,25 @@ public record Texture : IDisposable
             yPositions.Max() - yPositions.Min()
         );
 
-        _lastAccess = DateTime.UtcNow;
+        LastAccess = DateTime.UtcNow;
 
         if (!ImGuiUtils.IsInViewport(boxSize) || Path == EmptyIconPath)
         {
             if (!noDummy)
                 ImGui.Dummy(boxSize);
 
-            if (_textureWrap != null && _lastRender < DateTime.UtcNow - KeepAliveTime)
+            if (TextureWrap != null && LastRender < DateTime.UtcNow - KeepAliveTime)
             {
-                _textureWrap?.Dispose();
-                _textureWrap = null;
+                TextureWrap?.Dispose();
+                TextureWrap = null;
             }
             return;
         }
 
-        _textureWrap ??= LoadTexture();
-        _lastRender = DateTime.UtcNow;
+        TextureWrap ??= LoadTexture();
+        LastRender = DateTime.UtcNow;
 
-        if (_textureWrap != null && _textureWrap.ImGuiHandle != nint.Zero)
+        if (TextureWrap != null && TextureWrap.ImGuiHandle != nint.Zero)
         {
             var position = ImGui.GetCursorPos() + size / 2;
 
@@ -120,7 +122,7 @@ public record Texture : IDisposable
 
             // Draw the image quad
             ImGui.GetWindowDrawList().AddImageQuad(
-                _textureWrap.ImGuiHandle,
+                TextureWrap.ImGuiHandle,
                 position + corners[0],
                 position + corners[1],
                 position + corners[2],
@@ -148,7 +150,7 @@ public record Texture : IDisposable
             ? Service.Get<ITextureProvider>().GetTextureFromFile(new FileInfo(Path), true)
             : Service.Get<ITextureProvider>().GetTextureFromGame(Path, true);
 
-        if (tex != null && !_sizesSet)
+        if (tex != null && !SizesSet)
         {
             var texSize = new Vector2(tex.Width, tex.Height);
 
@@ -163,7 +165,7 @@ public record Texture : IDisposable
             Uv0 = Uv0.Value / texSize;
             Uv1 = Uv1.Value / texSize;
 
-            _sizesSet = true;
+            SizesSet = true;
         }
 
         return tex;

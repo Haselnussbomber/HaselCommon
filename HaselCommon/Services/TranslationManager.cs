@@ -8,49 +8,42 @@ using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
 using HaselCommon.Extensions;
-using HaselCommon.Services.Internal;
-using static Dalamud.Plugin.DalamudPluginInterface;
 
 namespace HaselCommon.Services;
 
 public class TranslationManager : IDisposable
 {
-    private readonly Dictionary<string, Dictionary<string, string>> _translations = [];
-    private readonly DalamudPluginInterface _pluginInterface;
-    private readonly IPluginLog _pluginLog;
-    private readonly SheetTextCache _sheetTextCache;
-    private readonly CacheManager _cacheManager;
+    private readonly Dictionary<string, Dictionary<string, string>> Translations = [];
+    private readonly DalamudPluginInterface PluginInterface;
+    private readonly IPluginLog PluginLog;
 
     public CultureInfo CultureInfo { get; private set; } = new("en");
     public ClientLanguage ClientLanguage { get; private set; } = ClientLanguage.English;
     public string LanguageCode { get; private set; } = "en";
 
-    public event LanguageChangedDelegate? LanguageChanged;
+    public event DalamudPluginInterface.LanguageChangedDelegate? LanguageChanged;
 
     public TranslationManager(
         DalamudPluginInterface pluginInterface,
-        IPluginLog pluginLog,
-        SheetTextCache sheetTextCache,
-        CacheManager cacheManager)
+        IPluginLog pluginLog)
     {
-        _pluginInterface = pluginInterface;
-        _pluginLog = pluginLog;
-        _sheetTextCache = sheetTextCache;
-        _cacheManager = cacheManager;
+        PluginInterface = pluginInterface;
+        PluginLog = pluginLog;
 
         LoadEmbeddedResource(GetType().Assembly, "HaselCommon.Translations.json");
-        LoadEmbeddedResource(Service.PluginAssembly, $"{_pluginInterface.InternalName}.Translations.json");
+        LoadEmbeddedResource(Service.PluginAssembly, $"{PluginInterface.InternalName}.Translations.json");
 
-        LanguageCode = _pluginInterface.UiLanguage;
-        ClientLanguage = _pluginInterface.UiLanguage.ToClientlanguage();
+        LanguageCode = PluginInterface.UiLanguage;
+        ClientLanguage = PluginInterface.UiLanguage.ToClientlanguage();
         CultureInfo = GetCultureInfoFromLangCode(LanguageCode);
 
-        _pluginInterface.LanguageChanged += PluginInterface_LanguageChanged;
+        PluginInterface.LanguageChanged += PluginInterface_LanguageChanged;
     }
 
     public void Dispose()
     {
-        _pluginInterface.LanguageChanged -= PluginInterface_LanguageChanged;
+        PluginInterface.LanguageChanged -= PluginInterface_LanguageChanged;
+        GC.SuppressFinalize(this);
     }
 
     public void LoadEmbeddedResource(Assembly assembly, string filename)
@@ -58,7 +51,7 @@ public class TranslationManager : IDisposable
         using var stream = assembly.GetManifestResourceStream(filename);
         if (stream == null)
         {
-            _pluginLog.Warning("[TranslationManager] Could not find translations resource {filename} in assembly {assemblyName}", filename, assembly.ToString());
+            PluginLog.Warning("[TranslationManager] Could not find translations resource {filename} in assembly {assemblyName}", filename, assembly.ToString());
             return;
         }
 
@@ -68,17 +61,14 @@ public class TranslationManager : IDisposable
     public void LoadDictionary(Dictionary<string, Dictionary<string, string>> translations)
     {
         foreach (var key in translations.Keys)
-            _translations.Add(key, translations[key]);
+            Translations.Add(key, translations[key]);
     }
 
     private void PluginInterface_LanguageChanged(string langCode)
     {
-        LanguageCode = _pluginInterface.UiLanguage;
-        ClientLanguage = _pluginInterface.UiLanguage.ToClientlanguage();
+        LanguageCode = PluginInterface.UiLanguage;
+        ClientLanguage = PluginInterface.UiLanguage.ToClientlanguage();
         CultureInfo = GetCultureInfoFromLangCode(LanguageCode);
-
-        _sheetTextCache.TextCache.Clear();
-        _cacheManager.ClearLocalizedCaches();
 
         LanguageChanged?.Invoke(langCode);
     }
@@ -95,7 +85,7 @@ public class TranslationManager : IDisposable
     public bool TryGetTranslation(string key, [MaybeNullWhen(false)] out string text)
     {
         text = default;
-        return _translations.TryGetValue(key, out var entry) && (entry.TryGetValue(LanguageCode, out text) || entry.TryGetValue("en", out text));
+        return Translations.TryGetValue(key, out var entry) && (entry.TryGetValue(LanguageCode, out text) || entry.TryGetValue("en", out text));
     }
 
     public string Translate(string key)

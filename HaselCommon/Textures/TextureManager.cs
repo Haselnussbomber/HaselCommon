@@ -3,10 +3,9 @@ using System.Numerics;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using HaselCommon.Extensions;
-using HaselCommon.Records;
 using Lumina.Data.Files;
 
-namespace HaselCommon.Services;
+namespace HaselCommon.Textures;
 
 public class TextureManager : IDisposable
 {
@@ -35,6 +34,8 @@ public class TextureManager : IDisposable
         _iconTexCache.Clear();
         _uldTexCache.Clear();
         _cache.Dispose();
+
+        GC.SuppressFinalize(this);
     }
 
     private void OnFrameworkUpdate(IFramework framework)

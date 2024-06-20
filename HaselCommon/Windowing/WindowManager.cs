@@ -2,10 +2,11 @@ using System.Linq;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin;
 using HaselCommon.Extensions;
+using HaselCommon.Windowing.Interfaces;
 
-namespace HaselCommon.Services;
+namespace HaselCommon.Windowing;
 
-public class WindowManager : IDisposable
+public class WindowManager : IWindowManager
 {
     private readonly DalamudPluginInterface PluginInterface;
     private readonly WindowSystem WindowSystem;

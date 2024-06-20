@@ -1,4 +1,4 @@
-namespace HaselCommon.Attributes;
+namespace HaselCommon.Commands.Attributes;
 
 [AttributeUsage(AttributeTargets.Method)]
 public class CommandHandlerAttribute(string Command, string HelpMessageKey) : Attribute

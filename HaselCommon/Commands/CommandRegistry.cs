@@ -1,39 +1,44 @@
 using System.Collections.Generic;
 using System.Reflection;
+using Dalamud.Game.Command;
 using Dalamud.Plugin.Services;
-using HaselCommon.Attributes;
+using HaselCommon.Commands.Attributes;
+using HaselCommon.Commands.Interfaces;
 using HaselCommon.Extensions;
+using HaselCommon.Services;
 using Microsoft.Extensions.Logging;
-using static Dalamud.Game.Command.CommandInfo;
 
-namespace HaselCommon.Services.CommandManager;
+namespace HaselCommon.Commands;
 
-public sealed class CommandManager(
+public class CommandRegistry(
+    ILogger<CommandRegistry> Logger,
     ICommandManager DalamudCommandManager,
-    TranslationManager TranslationManager,
-    ILogger<CommandManager> Logger)
-    : IDisposable
+    TranslationManager TranslationManager)
+    : ICommandRegistry, IDisposable
 {
-    private readonly Dictionary<string, CommandHandler> CommandHandlers = [];
+    private readonly Dictionary<string, ICommandHandler> CommandHandlers = [];
 
     public void Dispose()
     {
         CommandHandlers.Dispose();
+        GC.SuppressFinalize(this);
     }
 
-    public CommandHandler? Register(HandlerDelegate handler)
+    public ICommandHandler? Register(string command, string helpMessageKey, CommandInfo.HandlerDelegate handler)
     {
-        var attr = handler.Method.GetCustomAttribute<CommandHandlerAttribute>()
-            ?? throw new Exception($"Missing CommandHandlerAttribute on {handler.Method.Name}");
-
-        var command = attr.Command;
-        var helpMessageKey = attr.HelpMessageKey;
-
         Logger.LogDebug("Registring {command}", command);
 
         var commandHandler = new CommandHandler(this, DalamudCommandManager, TranslationManager, command, helpMessageKey, handler);
         CommandHandlers.Add(command, commandHandler);
         return commandHandler;
+    }
+
+    public ICommandHandler? Register(CommandInfo.HandlerDelegate handler)
+    {
+        var attr = handler.Method.GetCustomAttribute<CommandHandlerAttribute>()
+            ?? throw new Exception($"Missing CommandHandlerAttribute on {handler.Method.Name}");
+
+        return Register(attr.Command, attr.HelpMessageKey, handler);
     }
 
     public void Unregister(string command)
@@ -45,12 +50,12 @@ public sealed class CommandManager(
         }
     }
 
-    public void Unregister(CommandHandler commandHandler)
+    public void Unregister(ICommandHandler commandHandler)
     {
         Unregister(commandHandler.Command);
     }
 
-    public void Unregister(HandlerDelegate handler)
+    public void Unregister(CommandInfo.HandlerDelegate handler)
     {
         var attr = handler.Method.GetCustomAttribute<CommandHandlerAttribute>()
             ?? throw new Exception($"Missing CommandHandlerAttribute on {handler.Method.Name}");
