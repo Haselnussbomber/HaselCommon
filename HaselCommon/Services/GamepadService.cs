@@ -1,12 +1,12 @@
 using Dalamud.Game.ClientState.GamePad;
 using Dalamud.Plugin.Services;
 
-namespace HaselCommon.Utils;
+namespace HaselCommon.Services;
 
-public static unsafe class GamepadUtils
+public class GamepadService(IGamepadState GamepadState, IGameConfig GameConfig)
 {
     // Mapping between SystemConfigOption and Dalamuds GamepadButtons
-    private static readonly (string, GamepadButtons)[] Mapping =
+    private readonly (string, GamepadButtons)[] Mapping =
     [
         ("PadButton_Triangle", GamepadButtons.North),
         ("PadButton_Circle", GamepadButtons.East),
@@ -14,23 +14,13 @@ public static unsafe class GamepadUtils
         ("PadButton_Square", GamepadButtons.West)
     ];
 
-    public enum GamepadBinding
-    {
-        Jump,
-        Accept,
-        Cancel,
-        Map_Sub,
-        MainCommand,
-        HUD_Select
-    }
-
-    public static GamepadButtons GetButton(GamepadBinding binding)
+    public GamepadButtons GetButton(GamepadBinding binding)
     {
         var bindingName = binding.ToString();
 
         foreach (var (configOption, gamepadButton) in Mapping)
         {
-            if (!Service.Get<IGameConfig>().System.TryGet(configOption, out string value))
+            if (!GameConfig.System.TryGet(configOption, out string value))
                 continue;
 
             if (value == bindingName)
@@ -40,6 +30,16 @@ public static unsafe class GamepadUtils
         return GamepadButtons.South; // Default
     }
 
-    public static bool IsPressed(GamepadBinding binding)
-        => Service.Get<IGamepadState>().Pressed(GetButton(binding)) == 1;
+    public bool IsPressed(GamepadBinding binding)
+        => GamepadState.Pressed(GetButton(binding)) == 1;
+}
+
+public enum GamepadBinding
+{
+    Jump,
+    Accept,
+    Cancel,
+    Map_Sub,
+    MainCommand,
+    HUD_Select
 }

@@ -85,13 +85,14 @@ public static class Service
 
             // HaselCommon
             .AddSingleton(typeof(SheetTextCache<>))
-            .AddSingleton<TextDecoder>()
             .AddSingleton<AddonObserver>()
-            .AddSingleton<TranslationManager>()
             .AddSingleton<ExcelService>()
-            .AddSingleton<TextService>()
+            .AddSingleton<GamepadService>()
             .AddSingleton<ICommandRegistry, CommandRegistry>()
+            .AddSingleton<IWindowManager, WindowManager>()
+            .AddSingleton<TextDecoder>()
+            .AddSingleton<TextService>()
             .AddSingleton<TextureManager>()
-            .AddSingleton<IWindowManager, WindowManager>();
+            .AddSingleton<TranslationManager>();
     }
 }

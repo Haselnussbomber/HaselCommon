@@ -11,6 +11,7 @@ using HaselCommon.Extensions;
 
 namespace HaselCommon.Services;
 
+// TODO: merge with TextService?!
 public class TranslationManager : IDisposable
 {
     private readonly Dictionary<string, Dictionary<string, string>> Translations = [];

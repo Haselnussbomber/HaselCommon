@@ -1,7 +1,9 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
+using Dalamud.Plugin;
 using HaselCommon.Extensions;
 using HaselCommon.Utils;
 using ImGuiNET;
@@ -10,8 +12,28 @@ using ActionSheet = Lumina.Excel.GeneratedSheets.Action;
 
 namespace HaselCommon.Services;
 
-public class TextService(ExcelService ExcelService, TranslationManager TranslationManager, TextDecoder TextDecoder)
+public class TextService : IDisposable
 {
+    private readonly ExcelService ExcelService;
+    private readonly TranslationManager TranslationManager;
+    private readonly TextDecoder TextDecoder;
+
+    public event DalamudPluginInterface.LanguageChangedDelegate? LanguageChanged;
+
+    public TextService(ExcelService excelService, TranslationManager translationManager, TextDecoder textDecoder)
+    {
+        ExcelService = excelService;
+        TranslationManager = translationManager;
+        TextDecoder = textDecoder;
+
+        TranslationManager.LanguageChanged += LanguageChanged;
+    }
+
+    public void Dispose()
+    {
+        TranslationManager.LanguageChanged -= LanguageChanged;
+    }
+
     // [GeneratedRegex("^[\\ue000-\\uf8ff]+ ")]
     // private partial Regex Utf8PrivateUseAreaRegex();
 
@@ -23,6 +45,9 @@ public class TextService(ExcelService ExcelService, TranslationManager Translati
 
     public SeString TranslateSe(string key, params SeString[] args)
         => TranslationManager.TranslateSeString(key, args.Select(s => s.Payloads).ToArray());
+
+    public bool TryGetTranslation(string key, [MaybeNullWhen(false)] out string text)
+        => TranslationManager.TryGetTranslation(key, out text);
 
     public void Draw(string key)
         => ImGui.TextUnformatted(Translate(key));
@@ -92,6 +117,9 @@ public class TextService(ExcelService ExcelService, TranslationManager Translati
 
     public string GetActionName(uint id)
         => ExcelService.GetRow<ActionSheet>(id)?.Name.ExtractText() ?? $"Action#{id}";
+
+    public string GetEmoteName(uint id)
+        => ExcelService.GetRow<Emote>(id)?.Name.ExtractText() ?? $"Emote#{id}";
 
     public string GetEventActionName(uint id)
         => ExcelService.GetRow<EventAction>(id)?.Name.ExtractText() ?? $"EventAction#{id}";
