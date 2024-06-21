@@ -6,5 +6,5 @@ namespace HaselCommon.Extensions;
 public static class LuminaSeStringExtensions
 {
     public static string ExtractText(this SeString str)
-        => new ReadOnlySeStringSpan(str.RawData).ExtractText();
+        => new ReadOnlySeStringSpan(str.RawData).ExtractText().Replace("\u00AD", "");
 }
