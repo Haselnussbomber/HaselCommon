@@ -37,7 +37,7 @@ public static unsafe class ImGuiContextMenu
     public static ImGuiContextMenuSeparator CreateSeparator()
         => new();
 
-    public static ImGuiContextMenuEntry CreateTryOn(ExtendedItem item, uint glamourItemId = 0, byte stainId = 0)
+    public static ImGuiContextMenuEntry CreateTryOn(ExtendedItem item, uint glamourItemId = 0, byte stain1Id = 0, byte stain2Id = 0)
         => new()
         {
             Visible = item.CanTryOn,
@@ -46,9 +46,9 @@ public static unsafe class ImGuiContextMenu
             ClickCallback = () =>
             {
                 if (ImGui.IsKeyDown(ImGuiKey.LeftShift) || ImGui.IsKeyDown(ImGuiKey.RightShift))
-                    AgentTryon.TryOn(0, item.RowId, stainId, 0, 0);
+                    AgentTryon.TryOn(0, item.RowId, stain1Id, stain2Id);
                 else
-                    AgentTryon.TryOn(0, item.RowId, stainId, glamourItemId, stainId);
+                    AgentTryon.TryOn(0, item.RowId, stain1Id, stain2Id, glamourItemId);
             }
         };
 

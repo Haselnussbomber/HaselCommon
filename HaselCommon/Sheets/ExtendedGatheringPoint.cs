@@ -54,7 +54,7 @@ public class ExtendedGatheringPoint : GatheringPoint
 
         var levelText = gatheringPointBase.GatheringLevel == 1
             ? raptureTextModule->GetAddonText(242) // "Lv. ???"
-            : raptureTextModule->FormatAddonText2(35, gatheringPointBase.GatheringLevel, 0);
+            : raptureTextModule->FormatAddonText1IntIntUInt(35, gatheringPointBase.GatheringLevel, 0, 0);
         var gatheringPointName = GetGatheringPointName(RowId);
 
         using var tooltip = new Utf8String(

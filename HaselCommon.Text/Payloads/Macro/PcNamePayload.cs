@@ -6,24 +6,24 @@ namespace HaselCommon.Text.Payloads.Macro;
 [SeStringPayload(MacroCodes.PcName)] // n x
 public class PcNamePayload : MacroPayload
 {
-    public Expression? ObjectId { get; set; }
+    public Expression? EntityId { get; set; }
 
     [TerminatorExpression]
     private Expression? Terminator { get; set; }
 
     public override SeString Resolve(List<Expression>? localParameters = null)
     {
-        if (ObjectId == null)
+        if (EntityId == null)
             return new();
 
-        var objectId = (uint)ObjectId.ResolveNumber(localParameters);
+        var entityId = (uint)EntityId.ResolveNumber(localParameters);
 
-        return GetNameForObjectId(objectId);
+        return GetNameForEntityId(entityId);
     }
 
-    private static unsafe string GetNameForObjectId(uint objectId)
+    private static unsafe string GetNameForEntityId(uint entityId)
     {
-        var chara = CharacterManager.Instance()->LookupBattleCharaByObjectId(objectId);
+        var chara = CharacterManager.Instance()->LookupBattleCharaByEntityId(entityId);
         return chara == null
             ? string.Empty
             : MemoryHelper.ReadStringNullTerminated((nint)chara->Character.GameObject.GetName());

@@ -22,7 +22,7 @@ public static unsafe class Agent
             var attr = type.GetCustomAttribute<AgentAttribute>(false)
                 ?? throw new Exception($"Agent {type.FullName} is missing AgentAttribute");
 
-            AgentIdCache.Add(type, id = attr.ID);
+            AgentIdCache.Add(type, id = attr.Id);
         }
 
         return GetAgent<T>(id);

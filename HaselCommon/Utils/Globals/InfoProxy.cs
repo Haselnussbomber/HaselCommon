@@ -21,7 +21,7 @@ public static unsafe class InfoProxy
             var attr = type.GetCustomAttribute<InfoProxyAttribute>(false)
                 ?? throw new Exception($"Agent {type.FullName} is missing InfoProxyAttribute");
 
-            InfoProxyIdCache.Add(type, id = attr.ID);
+            InfoProxyIdCache.Add(type, id = attr.InfoProxyId);
         }
 
         return GetInfoProxy<T>(id);

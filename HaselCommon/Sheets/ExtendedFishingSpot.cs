@@ -44,7 +44,7 @@ public class ExtendedFishingSpot : FishingSpot
 
         var levelText = gatheringItemLevel == 0
             ? raptureTextModule->GetAddonText(242) // "Lv. ???"
-            : raptureTextModule->FormatAddonText2(35, gatheringItemLevel, 0);
+            : raptureTextModule->FormatAddonText1IntIntUInt(35, gatheringItemLevel, 0, 0);
 
         using var tooltip = new Utf8String(
             new SeStringBuilder()
