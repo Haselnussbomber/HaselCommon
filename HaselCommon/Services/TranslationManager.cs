@@ -3,7 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Reflection;
 using System.Text.Json;
-using Dalamud;
+using Dalamud.Game;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
@@ -22,7 +22,7 @@ public class TranslationManager : IDisposable
     public ClientLanguage ClientLanguage { get; private set; } = ClientLanguage.English;
     public string LanguageCode { get; private set; } = "en";
 
-    public event DalamudPluginInterface.LanguageChangedDelegate? LanguageChanged;
+    public event IDalamudPluginInterface.LanguageChangedDelegate? LanguageChanged;
 
     public TranslationManager(
         DalamudPluginInterface pluginInterface,

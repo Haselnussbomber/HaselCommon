@@ -14,7 +14,7 @@ public class CommandHandler : ICommandHandler
 
     public string Command { get; init; }
     public string HelpMessageKey { get; init; }
-    public CommandInfo.HandlerDelegate Handler { get; init; }
+    public IReadOnlyCommandInfo.HandlerDelegate Handler { get; init; }
     public bool IsEnabled { get; private set; }
 
     public CommandHandler(
@@ -23,7 +23,7 @@ public class CommandHandler : ICommandHandler
         TranslationManager translationManager,
         string command,
         string helpMessageKey,
-        CommandInfo.HandlerDelegate handler)
+        IReadOnlyCommandInfo.HandlerDelegate handler)
     {
         CommandManager = commandManager;
         DalamudCommandManager = dalamudCommandManager;

@@ -18,7 +18,7 @@ public class TextService : IDisposable
     private readonly TranslationManager TranslationManager;
     private readonly TextDecoder TextDecoder;
 
-    public event DalamudPluginInterface.LanguageChangedDelegate? LanguageChanged;
+    public event IDalamudPluginInterface.LanguageChangedDelegate? LanguageChanged;
 
     public TextService(ExcelService excelService, TranslationManager translationManager, TextDecoder textDecoder)
     {

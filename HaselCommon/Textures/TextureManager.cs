@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Numerics;
+using Dalamud.Interface.Textures;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using HaselCommon.Extensions;
@@ -68,12 +69,9 @@ public class TextureManager : IDisposable
         if (_iconTexCache.TryGetValue(key, out var tex))
             return tex;
 
-        var flags = ITextureProvider.IconFlags.HiRes;
+        if (!_textureProvider.TryGetIconPath(new GameIconLookup(iconId, isHq), out var path))
+            return Get(Texture.EmptyIconPath);
 
-        if (isHq)
-            flags |= ITextureProvider.IconFlags.ItemHighQuality;
-
-        var path = _textureProvider.GetIconPath(iconId, flags) ?? Texture.EmptyIconPath;
         var version = path.EndsWith("_hr1.tex") ? 2 : 1;
 
         lock (_iconTexCache)

@@ -70,7 +70,6 @@ public static class Service
             .AddSingleton(DalamudServiceFactory<IGamepadState>)
             .AddSingleton(DalamudServiceFactory<IJobGauges>)
             .AddSingleton(DalamudServiceFactory<IKeyState>)
-            .AddSingleton(DalamudServiceFactory<ILibcFunction>)
             .AddSingleton(DalamudServiceFactory<INotificationManager>)
             .AddSingleton(DalamudServiceFactory<IObjectTable>)
             .AddSingleton(DalamudServiceFactory<IPartyFinderGui>)

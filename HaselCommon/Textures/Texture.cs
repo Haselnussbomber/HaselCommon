@@ -1,18 +1,19 @@
-using System.IO;
 using System.Linq;
 using System.Numerics;
-using Dalamud.Interface.Internal;
+using Dalamud.Interface.Textures;
+using Dalamud.Interface.Textures.TextureWraps;
 using Dalamud.Plugin.Services;
 using HaselCommon.Utils;
 using ImGuiNET;
 
 namespace HaselCommon.Textures;
 
-public record Texture : IDisposable
+public record Texture
 {
     public static readonly string EmptyIconPath = "ui/icon/000000/000000.tex";
     private static readonly TimeSpan KeepAliveTime = TimeSpan.FromSeconds(2);
 
+    private ISharedImmediateTexture? SharedTexture;
     private bool SizesSet;
 
     public Texture(string path, int version, Vector2? uv0 = null, Vector2? uv1 = null)
@@ -51,24 +52,22 @@ public record Texture : IDisposable
         {
             ImGui.Dummy(size);
 
-            if (TextureWrap != null && LastRender < DateTime.UtcNow - KeepAliveTime)
-            {
-                TextureWrap?.Dispose();
-                TextureWrap = null;
-            }
+            if (SharedTexture != null && LastRender < DateTime.UtcNow - KeepAliveTime)
+                SharedTexture = null;
+
             return;
         }
 
-        TextureWrap ??= LoadTexture();
+        SharedTexture ??= LoadTexture();
         LastRender = DateTime.UtcNow;
 
-        if (TextureWrap == null || TextureWrap.ImGuiHandle == nint.Zero)
+        if (SharedTexture == null || !SharedTexture.TryGetWrap(out var textureWrap, out var _))
         {
             ImGui.Dummy(size);
             return;
         }
 
-        ImGui.Image(TextureWrap.ImGuiHandle, size, Uv0 ?? Vector2.Zero, Uv1 ?? Vector2.One, tintColor ?? Vector4.One, borderColor ?? Vector4.Zero);
+        ImGui.Image(textureWrap.ImGuiHandle, size, Uv0 ?? Vector2.Zero, Uv1 ?? Vector2.One, tintColor ?? Vector4.One, borderColor ?? Vector4.Zero);
     }
 
     public void DrawRotated(float angle, Vector2? drawSize = null, Vector4? tintColor = null, bool noDummy = false)
@@ -100,18 +99,16 @@ public record Texture : IDisposable
             if (!noDummy)
                 ImGui.Dummy(boxSize);
 
-            if (TextureWrap != null && LastRender < DateTime.UtcNow - KeepAliveTime)
-            {
-                TextureWrap?.Dispose();
-                TextureWrap = null;
-            }
+            if (SharedTexture != null && LastRender < DateTime.UtcNow - KeepAliveTime)
+                SharedTexture = null;
+
             return;
         }
 
-        TextureWrap ??= LoadTexture();
+        SharedTexture ??= LoadTexture();
         LastRender = DateTime.UtcNow;
 
-        if (TextureWrap != null && TextureWrap.ImGuiHandle != nint.Zero)
+        if (SharedTexture != null && SharedTexture.TryGetWrap(out var textureWrap, out var _))
         {
             var position = ImGui.GetCursorPos() + size / 2;
 
@@ -122,7 +119,7 @@ public record Texture : IDisposable
 
             // Draw the image quad
             ImGui.GetWindowDrawList().AddImageQuad(
-                TextureWrap.ImGuiHandle,
+                textureWrap.ImGuiHandle,
                 position + corners[0],
                 position + corners[1],
                 position + corners[2],
@@ -144,15 +141,13 @@ public record Texture : IDisposable
     public void Draw(float dimensions, Vector4? tintColor = null, Vector4? borderColor = null)
         => Draw(new Vector2(dimensions), tintColor, borderColor);
 
-    private IDalamudTextureWrap? LoadTexture()
+    private ISharedImmediateTexture LoadTexture()
     {
-        var tex = System.IO.Path.IsPathRooted(Path)
-            ? Service.Get<ITextureProvider>().GetTextureFromFile(new FileInfo(Path), true)
-            : Service.Get<ITextureProvider>().GetTextureFromGame(Path, true);
+        var tex = Service.Get<ITextureProvider>().GetFromGame(Path);
 
-        if (tex != null && !SizesSet)
+        if (tex.TryGetWrap(out var texture, out var _) && !SizesSet)
         {
-            var texSize = new Vector2(tex.Width, tex.Height);
+            var texSize = new Vector2(texture.Width, texture.Height);
 
             // defaults
             Uv0 ??= Vector2.Zero;

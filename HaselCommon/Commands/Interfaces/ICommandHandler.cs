@@ -6,7 +6,7 @@ public interface ICommandHandler : IDisposable
 {
     string Command { get; }
     string HelpMessageKey { get; }
-    CommandInfo.HandlerDelegate Handler { get; }
+    IReadOnlyCommandInfo.HandlerDelegate Handler { get; }
     bool IsEnabled { get; }
 
     void SetEnabled(bool enabled);

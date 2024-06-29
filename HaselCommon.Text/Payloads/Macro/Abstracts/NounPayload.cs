@@ -1,3 +1,4 @@
+using Dalamud.Game;
 using HaselCommon.Utils;
 
 namespace HaselCommon.Text.Payloads.Macro.Abstracts;

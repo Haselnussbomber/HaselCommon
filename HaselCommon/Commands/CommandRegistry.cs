@@ -24,7 +24,7 @@ public class CommandRegistry(
         GC.SuppressFinalize(this);
     }
 
-    public ICommandHandler? Register(string command, string helpMessageKey, CommandInfo.HandlerDelegate handler)
+    public ICommandHandler? Register(string command, string helpMessageKey, IReadOnlyCommandInfo.HandlerDelegate handler)
     {
         Logger.LogDebug("Registring {command}", command);
 
@@ -33,7 +33,7 @@ public class CommandRegistry(
         return commandHandler;
     }
 
-    public ICommandHandler? Register(CommandInfo.HandlerDelegate handler)
+    public ICommandHandler? Register(IReadOnlyCommandInfo.HandlerDelegate handler)
     {
         var attr = handler.Method.GetCustomAttribute<CommandHandlerAttribute>()
             ?? throw new Exception($"Missing CommandHandlerAttribute on {handler.Method.Name}");
@@ -55,7 +55,7 @@ public class CommandRegistry(
         Unregister(commandHandler.Command);
     }
 
-    public void Unregister(CommandInfo.HandlerDelegate handler)
+    public void Unregister(IReadOnlyCommandInfo.HandlerDelegate handler)
     {
         var attr = handler.Method.GetCustomAttribute<CommandHandlerAttribute>()
             ?? throw new Exception($"Missing CommandHandlerAttribute on {handler.Method.Name}");

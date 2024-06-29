@@ -1,3 +1,5 @@
+using Dalamud.Game;
+
 namespace HaselCommon.Text.Payloads.Macro;
 
 [SeStringPayload(MacroCodes.FrNoun)] // s . .
