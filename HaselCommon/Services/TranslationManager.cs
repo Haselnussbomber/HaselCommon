@@ -15,7 +15,7 @@ namespace HaselCommon.Services;
 public class TranslationManager : IDisposable
 {
     private readonly Dictionary<string, Dictionary<string, string>> Translations = [];
-    private readonly DalamudPluginInterface PluginInterface;
+    private readonly IDalamudPluginInterface PluginInterface;
     private readonly IPluginLog PluginLog;
 
     public CultureInfo CultureInfo { get; private set; } = new("en");
@@ -25,7 +25,7 @@ public class TranslationManager : IDisposable
     public event IDalamudPluginInterface.LanguageChangedDelegate? LanguageChanged;
 
     public TranslationManager(
-        DalamudPluginInterface pluginInterface,
+        IDalamudPluginInterface pluginInterface,
         IPluginLog pluginLog)
     {
         PluginInterface = pluginInterface;

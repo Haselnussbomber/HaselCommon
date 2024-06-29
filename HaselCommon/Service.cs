@@ -32,14 +32,14 @@ public static class Service
     public static T Get<T>() where T : notnull
         => Provider!.GetRequiredService<T>();
 
-    public static IServiceCollection Initialize(DalamudPluginInterface pluginInterface)
+    public static IServiceCollection Initialize(IDalamudPluginInterface pluginInterface)
     {
         PluginAssembly = Assembly.GetCallingAssembly();
         AddDefaultServices(pluginInterface);
         return Collection;
     }
 
-    private static void AddDefaultServices(DalamudPluginInterface pi)
+    private static void AddDefaultServices(IDalamudPluginInterface pi)
     {
         T DalamudServiceFactory<T>(IServiceProvider serviceProvider) => new DalamudServiceWrapper<T>(pi).Service;
 

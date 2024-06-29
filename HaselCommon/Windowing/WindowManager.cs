@@ -8,10 +8,10 @@ namespace HaselCommon.Windowing;
 
 public class WindowManager : IWindowManager
 {
-    private readonly DalamudPluginInterface PluginInterface;
+    private readonly IDalamudPluginInterface PluginInterface;
     private readonly WindowSystem WindowSystem;
 
-    public WindowManager(DalamudPluginInterface pluginInterface)
+    public WindowManager(IDalamudPluginInterface pluginInterface)
     {
         PluginInterface = pluginInterface;
 
