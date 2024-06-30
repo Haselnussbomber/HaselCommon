@@ -12,14 +12,17 @@ using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using HaselCommon.Records;
 using HaselCommon.Sheets;
+using HaselCommon.Utils;
 using ImGuiNET;
 using Lumina.Text.ReadOnly;
 using GearsetEntry = FFXIVClientStructs.FFXIV.Client.UI.Misc.RaptureGearsetModule.GearsetEntry;
 using TerritoryType = Lumina.Excel.GeneratedSheets.TerritoryType;
 
-namespace HaselCommon.Utils;
+namespace HaselCommon.Services;
 
-public static unsafe class ImGuiContextMenu
+// TODO: convert to builder
+
+public unsafe class ImGuiContextMenuService(TextService TextService)
 {
     public static void Draw(string key, IEnumerable<IImGuiContextMenuEntry> entries)
     {
@@ -37,11 +40,11 @@ public static unsafe class ImGuiContextMenu
     public static ImGuiContextMenuSeparator CreateSeparator()
         => new();
 
-    public static ImGuiContextMenuEntry CreateTryOn(ExtendedItem item, uint glamourItemId = 0, byte stain1Id = 0, byte stain2Id = 0)
+    public ImGuiContextMenuEntry CreateTryOn(ExtendedItem item, uint glamourItemId = 0, byte stain1Id = 0, byte stain2Id = 0)
         => new()
         {
             Visible = item.CanTryOn,
-            Label = GetAddonText(2426), // "Try On"
+            Label = TextService.GetAddonText(2426), // "Try On"
             LoseFocusOnClick = true,
             ClickCallback = () =>
             {
@@ -52,10 +55,10 @@ public static unsafe class ImGuiContextMenu
             }
         };
 
-    public static ImGuiContextMenuEntry CreateItemFinder(uint itemId)
+    public ImGuiContextMenuEntry CreateItemFinder(uint itemId)
         => new()
         {
-            Label = GetAddonText(4379), // "Search for Item"
+            Label = TextService.GetAddonText(4379), // "Search for Item"
             LoseFocusOnClick = true,
             ClickCallback = () =>
             {
@@ -63,21 +66,21 @@ public static unsafe class ImGuiContextMenu
             }
         };
 
-    public static ImGuiContextMenuEntry CreateCopyItemName(uint itemId)
+    public ImGuiContextMenuEntry CreateCopyItemName(uint itemId)
         => new()
         {
-            Label = GetAddonText(159), // "Copy Item Name"
+            Label = TextService.GetAddonText(159), // "Copy Item Name"
             ClickCallback = () =>
             {
-                ImGui.SetClipboardText(GetItemName(itemId));
+                ImGui.SetClipboardText(TextService.GetItemName(itemId));
             }
         };
 
-    public static ImGuiContextMenuEntry CreateItemSearch(ExtendedItem item)
+    public ImGuiContextMenuEntry CreateItemSearch(ExtendedItem item)
         => new()
         {
             Visible = item.CanSearchForItem,
-            Label = t("ItemContextMenu.SearchTheMarkets"),
+            Label = TextService.Translate("ItemContextMenu.SearchTheMarkets"),
             LoseFocusOnClick = true,
             ClickCallback = () =>
             {
@@ -85,50 +88,50 @@ public static unsafe class ImGuiContextMenu
             }
         };
 
-    public static ImGuiContextMenuEntry CreateGearsetLinkGlamour(GearsetEntry* gearset)
+    public ImGuiContextMenuEntry CreateGearsetLinkGlamour(GearsetEntry* gearset)
         => new()
         {
             Visible = gearset != null && gearset->GlamourSetLink == 0 && UIState.Instance()->IsUnlockLinkUnlocked(15),
             Enabled = GameMain.IsInSanctuary(),
-            Label = GetAddonText(4394),
+            Label = TextService.GetAddonText(4394),
             LoseFocusOnClick = true,
-            ClickCallback = () => GetAgent<AgentMiragePrismMiragePlate>()->OpenForGearset(gearset->Id, gearset->GlamourSetLink)
+            ClickCallback = () => AgentMiragePrismMiragePlate.Instance()->OpenForGearset(gearset->Id, gearset->GlamourSetLink)
         };
 
-    public static ImGuiContextMenuEntry CreateGearsetChangeGlamour(GearsetEntry* gearset)
+    public ImGuiContextMenuEntry CreateGearsetChangeGlamour(GearsetEntry* gearset)
         => new()
         {
             Visible = gearset != null && gearset->GlamourSetLink != 0 && UIState.Instance()->IsUnlockLinkUnlocked(15),
             Enabled = GameMain.IsInSanctuary(),
-            Label = GetAddonText(4395),
-            ClickCallback = () => GetAgent<AgentMiragePrismMiragePlate>()->OpenForGearset(gearset->Id, gearset->GlamourSetLink)
+            Label = TextService.GetAddonText(4395),
+            ClickCallback = () => AgentMiragePrismMiragePlate.Instance()->OpenForGearset(gearset->Id, gearset->GlamourSetLink)
         };
 
-    public static ImGuiContextMenuEntry CreateGearsetUnlinkGlamour(GearsetEntry* gearset)
+    public ImGuiContextMenuEntry CreateGearsetUnlinkGlamour(GearsetEntry* gearset)
         => new()
         {
             Visible = gearset != null && gearset->GlamourSetLink != 0 && UIState.Instance()->IsUnlockLinkUnlocked(15),
-            Label = GetAddonText(4396),
+            Label = TextService.GetAddonText(4396),
             ClickCallback = () => RaptureGearsetModule.Instance()->LinkGlamourPlate(gearset->Id, 0)
         };
 
-    public static ImGuiContextMenuEntry CreateGearsetChangePortrait(GearsetEntry* gearset)
+    public ImGuiContextMenuEntry CreateGearsetChangePortrait(GearsetEntry* gearset)
         => new()
         {
             Visible = gearset != null,
-            Label = GetAddonText(4411),
+            Label = TextService.GetAddonText(4411),
             ClickCallback = () =>
             {
-                GetAgent<AgentBannerEditor>()->AgentInterface.Hide();
-                GetAgent<AgentBannerEditor>()->OpenForGearset(gearset->Id);
+                AgentBannerEditor.Instance()->AgentInterface.Hide();
+                AgentBannerEditor.Instance()->OpenForGearset(gearset->Id);
             }
         };
 
-    public static ImGuiContextMenuEntry CreateSearchCraftingMethod(ExtendedItem item)
+    public ImGuiContextMenuEntry CreateSearchCraftingMethod(ExtendedItem item)
         => new()
         {
             Visible = item.IsCraftable,
-            Label = GetAddonText(1414), // "Search for Item by Crafting Method"
+            Label = TextService.GetAddonText(1414), // "Search for Item by Crafting Method"
             LoseFocusOnClick = true,
             ClickCallback = () =>
             {
@@ -136,11 +139,11 @@ public static unsafe class ImGuiContextMenu
             }
         };
 
-    public static ImGuiContextMenuEntry CreateOpenMapForGatheringPoint(ExtendedItem item, TerritoryType? territoryType, ReadOnlySeString? prefix = null)
+    public ImGuiContextMenuEntry CreateOpenMapForGatheringPoint(ExtendedItem item, TerritoryType? territoryType, ReadOnlySeString? prefix = null)
         => new()
         {
             Visible = territoryType != null && item.IsGatherable,
-            Label = GetAddonText(8506), // "Open Map"
+            Label = TextService.GetAddonText(8506), // "Open Map"
             LoseFocusOnClick = true,
             ClickCallback = () =>
             {
@@ -149,11 +152,11 @@ public static unsafe class ImGuiContextMenu
             }
         };
 
-    public static ImGuiContextMenuEntry CreateOpenMapForFishingSpot(ExtendedItem item, ReadOnlySeString? prefix = null)
+    public ImGuiContextMenuEntry CreateOpenMapForFishingSpot(ExtendedItem item, ReadOnlySeString? prefix = null)
         => new()
         {
             Visible = item.IsFish,
-            Label = GetAddonText(8506), // "Open Map"
+            Label = TextService.GetAddonText(8506), // "Open Map"
             LoseFocusOnClick = true,
             ClickCallback = () =>
             {
@@ -161,11 +164,11 @@ public static unsafe class ImGuiContextMenu
             }
         };
 
-    public static ImGuiContextMenuEntry CreateSearchGatheringMethod(ExtendedItem item)
+    public ImGuiContextMenuEntry CreateSearchGatheringMethod(ExtendedItem item)
         => new()
         {
             Visible = item.IsGatherable,
-            Label = GetAddonText(1472), // "Search for Item by Gathering Method"
+            Label = TextService.GetAddonText(1472), // "Search for Item by Gathering Method"
             LoseFocusOnClick = true,
             ClickCallback = () =>
             {
@@ -173,11 +176,11 @@ public static unsafe class ImGuiContextMenu
             }
         };
 
-    public static ImGuiContextMenuEntry CreateOpenInFishGuide(ExtendedItem item)
+    public ImGuiContextMenuEntry CreateOpenInFishGuide(ExtendedItem item)
         => new()
         {
             Visible = item.IsFish,
-            Label = t("ItemContextMenu.OpenInFishGuide"),
+            Label = TextService.Translate("ItemContextMenu.OpenInFishGuide"),
             LoseFocusOnClick = true,
             ClickCallback = () =>
             {
@@ -186,10 +189,10 @@ public static unsafe class ImGuiContextMenu
             }
         };
 
-    public static ImGuiContextMenuEntry CreateOpenOnGarlandTools(string type, uint id)
+    public ImGuiContextMenuEntry CreateOpenOnGarlandTools(string type, uint id)
         => new()
         {
-            Label = t("ItemContextMenu.OpenOnGarlandTools"),
+            Label = TextService.Translate("ItemContextMenu.OpenOnGarlandTools"),
             ClickCallback = () =>
             {
                 Task.Run(() => Util.OpenLink($"https://www.garlandtools.org/db/#{type}/{id}"));
@@ -209,4 +212,58 @@ public static unsafe class ImGuiContextMenu
                 ImGuiUtils.TextUnformattedColored(Colors.Grey, $"https://www.garlandtools.org/db/#{type}/{id}");
             }
         };
+}
+
+public interface IImGuiContextMenuEntry
+{
+    public bool Visible { get; set; }
+    public bool Enabled { get; set; }
+    public string Label { get; set; }
+    public bool LoseFocusOnClick { get; set; }
+    public Action? ClickCallback { get; set; }
+    public Action? HoverCallback { get; set; }
+    public void Draw(IterationArgs args);
+}
+
+public struct ImGuiContextMenuEntry : IImGuiContextMenuEntry
+{
+    public bool Visible { get; set; } = true;
+    public bool Enabled { get; set; } = true;
+    public bool LoseFocusOnClick { get; set; } = false;
+    public string Label { get; set; } = string.Empty;
+    public Action? ClickCallback { get; set; } = null;
+    public Action? HoverCallback { get; set; } = null;
+
+    public ImGuiContextMenuEntry() { }
+
+    public void Draw(IterationArgs args)
+    {
+        if (ImGui.MenuItem(Label, Enabled))
+        {
+            ClickCallback?.Invoke();
+
+            if (LoseFocusOnClick)
+                ImGui.SetWindowFocus(null);
+        }
+        if (ImGui.IsItemHovered())
+            HoverCallback?.Invoke();
+    }
+}
+
+public struct ImGuiContextMenuSeparator : IImGuiContextMenuEntry
+{
+    public bool Visible { get; set; } = true;
+    public bool Enabled { get; set; } = true;
+    public bool LoseFocusOnClick { get; set; } = false;
+    public string Label { get; set; } = string.Empty;
+    public Action? ClickCallback { get; set; } = null;
+    public Action? HoverCallback { get; set; } = null;
+
+    public ImGuiContextMenuSeparator() { }
+
+    public void Draw(IterationArgs args)
+    {
+        if (!args.IsFirst && !args.IsLast)
+            ImGui.Separator();
+    }
 }

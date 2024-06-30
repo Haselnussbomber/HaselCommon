@@ -25,7 +25,7 @@ public static unsafe class Addon
 
     public static T* GetAddon<T>(AgentId agentId) where T : unmanaged
     {
-        var agent = GetAgent<AgentInterface>(agentId);
+        var agent = AgentModule.Instance()->GetAgentByInternalId(agentId);
         var active = agent != null && agent->IsAgentActive();
         return active ? GetAddon<T>((ushort)agent->GetAddonId()) : null;
     }
