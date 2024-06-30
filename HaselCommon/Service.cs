@@ -8,7 +8,6 @@ using HaselCommon.Commands;
 using HaselCommon.Commands.Interfaces;
 using HaselCommon.Services;
 using HaselCommon.Services.Internal;
-using HaselCommon.Textures;
 using HaselCommon.Utils;
 using HaselCommon.Windowing;
 using HaselCommon.Windowing.Interfaces;
@@ -91,7 +90,7 @@ public static class Service
             .AddSingleton<IWindowManager, WindowManager>()
             .AddSingleton<TextDecoder>()
             .AddSingleton<TextService>()
-            .AddSingleton<TextureManager>()
+            .AddSingleton<TextureService>()
             .AddSingleton<TranslationManager>();
     }
 }
