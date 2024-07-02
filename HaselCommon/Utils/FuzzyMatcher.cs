@@ -242,7 +242,7 @@ public static class FuzzyMatcher
         private int start = -1;
         private int end = 0;
 
-        public readonly ReadOnlySpan<char> Current
+        public ReadOnlySpan<char> Current
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get => fullNeedle[start..end];
@@ -268,6 +268,6 @@ public static class FuzzyMatcher
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly WordEnumerator GetEnumerator() => this;
+        public WordEnumerator GetEnumerator() => this;
     }
 }

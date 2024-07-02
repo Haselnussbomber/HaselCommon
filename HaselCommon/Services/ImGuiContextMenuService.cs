@@ -34,7 +34,6 @@ public class ImGuiContextMenuService(TextService TextService)
     }
 }
 
-
 public unsafe struct ImGuiContextMenuBuilder(TextService TextService)
 {
     private readonly List<IImGuiContextMenuEntry> Entries = [];
