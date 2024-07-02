@@ -53,7 +53,6 @@ public static class Service
             .AddSingleton(DalamudServiceFactory<IClientState>)
             .AddSingleton(DalamudServiceFactory<ICommandManager>)
             .AddSingleton(DalamudServiceFactory<ICondition>)
-            .AddSingleton(DalamudServiceFactory<IConsole>)
             .AddSingleton(DalamudServiceFactory<IContextMenu>)
             .AddSingleton(DalamudServiceFactory<IDataManager>)
             .AddSingleton(DalamudServiceFactory<IDtrBar>)
