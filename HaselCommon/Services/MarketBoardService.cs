@@ -42,6 +42,7 @@ public unsafe class MarketBoardService : IDisposable
 
     public void Dispose()
     {
+        MarketBoard.OfferingsReceived -= OnOfferingsReceived;
         ProcessRequestResultHook?.Dispose();
         EndRequestHook?.Dispose();
 
