@@ -95,6 +95,7 @@ public static class Service
             .AddSingleton<TextService>()
             .AddSingleton<TextureService>()
             .AddSingleton<TranslationManager>()
-            .AddSingleton<ImGuiContextMenuService>();
+            .AddSingleton<ImGuiContextMenuService>()
+            .AddSingleton<MarketBoardService>();
     }
 }
