@@ -7,9 +7,10 @@ using Lumina.Excel.GeneratedSheets;
 
 namespace HaselCommon.Sheets;
 
+[Obsolete]
 public class ExtendedGatheringItem : GatheringItem
 {
-    private ExtendedGatheringPoint[]? _gatheringPoints = null;
+    private GatheringPoint[]? _gatheringPoints = null;
 
     public LazyRow<ExtendedItem> ItemRow { get; set; } = null!;
 
@@ -20,7 +21,7 @@ public class ExtendedGatheringItem : GatheringItem
         ItemRow = new LazyRow<ExtendedItem>(gameData, Item, language);
     }
 
-    public ExtendedGatheringPoint[] GatheringPoints
+    public GatheringPoint[] GatheringPoints
     {
         get
         {
@@ -43,7 +44,7 @@ public class ExtendedGatheringItem : GatheringItem
                 }
             }
 
-            var gatheringPointSheet = GetSheet<ExtendedGatheringPoint>();
+            var gatheringPointSheet = GetSheet<GatheringPoint>();
 
             foreach (var point in gatheringPointSheet)
             {
@@ -71,7 +72,7 @@ public class ExtendedGatheringItem : GatheringItem
             return _gatheringPoints ??= pointBases
                 .Select((baseId) => gatheringPointSheet.Where((row) => row.TerritoryType.Row > 1 && row.GatheringPointBase.Row == baseId))
                 .SelectMany(e => e)
-                .OfType<ExtendedGatheringPoint>()
+                .OfType<GatheringPoint>()
                 .ToArray();
         }
     }

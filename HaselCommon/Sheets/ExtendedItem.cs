@@ -9,6 +9,7 @@ using Lumina.Excel.GeneratedSheets;
 
 namespace HaselCommon.Sheets;
 
+[Obsolete]
 public class ExtendedItem : Item
 {
     private Recipe[]? recipes { get; set; } = null;
@@ -17,7 +18,7 @@ public class ExtendedItem : Item
     private bool? _isSpearfishing { get; set; } = null;
     private bool? _isUnlockable { get; set; } = null;
     private ExtendedGatheringItem[]? _gatheringItems { get; set; } = null;
-    private ExtendedGatheringPoint[]? _gatheringPoints { get; set; } = null;
+    private GatheringPoint[]? _gatheringPoints { get; set; } = null;
     private ExtendedFishingSpot[]? _fishingSpots { get; set; } = null;
 
     public new string Name
@@ -50,7 +51,7 @@ public class ExtendedItem : Item
     public ExtendedGatheringItem[] GatheringItems
         => _gatheringItems ??= ItemGatheringItemLookup.All(RowId);
 
-    public ExtendedGatheringPoint[] GatheringPoints
+    public GatheringPoint[] GatheringPoints
         => _gatheringPoints ??= GatheringItems
             .SelectMany(row => row.GatheringPoints)
             .ToArray();
@@ -131,6 +132,9 @@ public class ExtendedItem : Item
 
                 case ItemActionType.Ornament:
                     return PlayerState.Instance()->IsOrnamentUnlocked(ItemAction.Value.Data[0]);
+
+                case ItemActionType.Glasses:
+                    return PlayerState.Instance()->IsGlassesUnlocked((ushort)AdditionalData);
             }
 
             var row = ExdModule.GetItemRowById(RowId);

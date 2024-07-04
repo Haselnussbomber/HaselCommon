@@ -5,6 +5,7 @@ using Lumina.Excel.GeneratedSheets;
 
 namespace HaselCommon.Sheets;
 
+[Obsolete]
 public class ExtendedSpecialShop : SpecialShop
 {
     private const int NumItems = 60;

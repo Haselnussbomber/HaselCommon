@@ -20,7 +20,7 @@ using TerritoryType = Lumina.Excel.GeneratedSheets.TerritoryType;
 
 namespace HaselCommon.Services;
 
-public class ImGuiContextMenuService(TextService TextService)
+public class ImGuiContextMenuService(TextService TextService, MapService MapService)
 {
     public void Draw(string id, Action<ImGuiContextMenuBuilder> buildAction)
     {
@@ -28,13 +28,13 @@ public class ImGuiContextMenuService(TextService TextService)
         if (!popup)
             return;
 
-        var builder = new ImGuiContextMenuBuilder(TextService);
+        var builder = new ImGuiContextMenuBuilder(TextService, MapService);
         buildAction(builder);
         builder.Draw();
     }
 }
 
-public unsafe struct ImGuiContextMenuBuilder(TextService TextService)
+public unsafe struct ImGuiContextMenuBuilder(TextService TextService, MapService MapService)
 {
     private readonly List<IImGuiContextMenuEntry> Entries = [];
 
@@ -198,6 +198,8 @@ public unsafe struct ImGuiContextMenuBuilder(TextService TextService)
 
     public ImGuiContextMenuBuilder AddOpenMapForGatheringPoint(ExtendedItem item, TerritoryType? territoryType, ReadOnlySeString? prefix = null)
     {
+        var mapService = MapService;
+
         Entries.Add(new ImGuiContextMenuEntry()
         {
             Visible = territoryType != null && item.IsGatherable,
@@ -206,7 +208,7 @@ public unsafe struct ImGuiContextMenuBuilder(TextService TextService)
             ClickCallback = () =>
             {
                 var point = item.GatheringPoints.First(point => point.TerritoryType.Row == territoryType!.RowId);
-                point.OpenMap(item, prefix);
+                mapService.OpenMap(point, item, prefix);
             }
         });
 

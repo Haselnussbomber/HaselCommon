@@ -5,6 +5,7 @@ using Lumina.Excel.GeneratedSheets;
 
 namespace HaselCommon.Sheets;
 
+[Obsolete]
 public class ExtendedClassJobCategory : ClassJobCategory
 {
     private const int NumClasses = 43;

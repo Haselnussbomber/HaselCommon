@@ -8,6 +8,7 @@ using Lumina.Text.ReadOnly;
 
 namespace HaselCommon.Sheets;
 
+[Obsolete]
 public class ExtendedFishingSpot : FishingSpot
 {
     private uint? _icon { get; set; } = null;

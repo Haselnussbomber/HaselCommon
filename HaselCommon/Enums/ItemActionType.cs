@@ -13,4 +13,5 @@ public enum ItemActionType : ushort
     FramersKit = 29459,
     // FieldNotes = 19743, // bozjan field notes (server side, but cached)
     Ornament = 20086,
+    Glasses = 37312,
 }

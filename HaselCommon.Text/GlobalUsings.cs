@@ -2,7 +2,6 @@ global using System;
 global using System.Collections.Generic;
 global using System.IO;
 global using System.Text;
-global using Dalamud;
 global using HaselCommon.Extensions;
 global using HaselCommon.Text.Attributes;
 global using HaselCommon.Text.Enums;
