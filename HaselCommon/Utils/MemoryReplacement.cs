@@ -1,16 +1,8 @@
 namespace HaselCommon.Utils;
 
-public class MemoryReplacement : IDisposable
+public class MemoryReplacement(nint address, byte[] replacementBytes) : IDisposable
 {
-    private readonly nint address;
-    private readonly byte[] replacementBytes;
     private byte[]? originalBytes;
-
-    public MemoryReplacement(nint address, byte[] replacementBytes)
-    {
-        this.address = address;
-        this.replacementBytes = replacementBytes;
-    }
 
     public void Enable()
     {
@@ -32,5 +24,6 @@ public class MemoryReplacement : IDisposable
     public void Dispose()
     {
         Disable();
+        GC.SuppressFinalize(this);
     }
 }
