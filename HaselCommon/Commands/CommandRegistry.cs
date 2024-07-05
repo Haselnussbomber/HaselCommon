@@ -14,7 +14,7 @@ public class CommandRegistry(
     ILogger<CommandRegistry> Logger,
     ICommandManager DalamudCommandManager,
     TranslationManager TranslationManager)
-    : ICommandRegistry, IDisposable
+    : IDisposable
 {
     private readonly Dictionary<string, ICommandHandler> CommandHandlers = [];
 

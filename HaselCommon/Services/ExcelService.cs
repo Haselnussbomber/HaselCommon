@@ -18,4 +18,7 @@ public class ExcelService(IDataManager DataManager, TranslationManager Translati
 
     public T? FindRow<T>(Func<T?, bool> predicate) where T : ExcelRow
         => GetSheet<T>().FirstOrDefault(predicate, null);
+
+    public T[] FindRows<T>(Func<T?, bool> predicate) where T : ExcelRow
+        => GetSheet<T>().Where(row => row != null && predicate(row)).ToArray();
 }

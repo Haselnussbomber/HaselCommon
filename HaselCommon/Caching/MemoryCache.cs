@@ -38,9 +38,9 @@ public abstract class MemoryCache<TKey, TValue> : ICache<TKey, TValue>
             return true;
         }
 
-        _value = CreateEntry(key);
+        Data.TryAdd(key, _value = CreateEntry(key));
 
-        if (_value == null || !Data.TryAdd(key, _value))
+        if (_value == null)
         {
             value = default;
             return false;

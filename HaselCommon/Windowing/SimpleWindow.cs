@@ -1,14 +1,14 @@
 using Dalamud.Interface.Windowing;
-using HaselCommon.Windowing.Interfaces;
+using HaselCommon.Services;
 using ImGuiNET;
 
 namespace HaselCommon.Windowing;
 
-public abstract class SimpleWindow : Window, ISimpleWindow, IDisposable
+public abstract class SimpleWindow : Window, IDisposable
 {
-    private readonly IWindowManager WindowManager;
+    private readonly WindowManager WindowManager;
 
-    protected SimpleWindow(IWindowManager windowManager, string windowName)
+    protected SimpleWindow(WindowManager windowManager, string windowName)
         : base(windowName, ImGuiWindowFlags.None, false)
     {
         WindowManager = windowManager;

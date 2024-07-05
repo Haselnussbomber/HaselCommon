@@ -5,12 +5,9 @@ using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
 using HaselCommon.Caching;
 using HaselCommon.Commands;
-using HaselCommon.Commands.Interfaces;
 using HaselCommon.Services;
 using HaselCommon.Services.Internal;
 using HaselCommon.Utils;
-using HaselCommon.Windowing;
-using HaselCommon.Windowing.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HaselCommon;
@@ -86,18 +83,19 @@ public static class Service
             // HaselCommon
             .AddSingleton(typeof(SheetTextCache<>))
             .AddSingleton<AddonObserver>()
+            .AddSingleton<CommandRegistry>()
             .AddSingleton<ExcelService>()
             .AddSingleton<GamepadService>()
-            .AddSingleton<ICommandRegistry, CommandRegistry>()
-            .AddSingleton<IWindowManager, WindowManager>()
+            .AddSingleton<ImGuiContextMenuService>()
+            .AddSingleton<ItemService>()
+            .AddSingleton<LeveService>()
+            .AddSingleton<MapService>()
+            .AddSingleton<MarketBoardService>()
+            .AddSingleton<TeleportService>()
             .AddSingleton<TextDecoder>()
             .AddSingleton<TextService>()
             .AddSingleton<TextureService>()
             .AddSingleton<TranslationManager>()
-            .AddSingleton<ImGuiContextMenuService>()
-            .AddSingleton<MarketBoardService>()
-            .AddSingleton<MapService>()
-            .AddSingleton<TeleportService>()
-            .AddSingleton<LeveService>();
+            .AddSingleton<WindowManager>();
     }
 }
