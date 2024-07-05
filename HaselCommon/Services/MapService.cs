@@ -61,7 +61,6 @@ public class MapService(IClientState ClientState, IGameGui GameGui, TextService 
             .PopColorType()
             .ToReadOnlySeString();
 
-        // TODO: TEST
         var sb = new SeStringBuilder()
             .PushLinkMapPosition(territoryId, territoryType.Map.Row, (int)(obj.Position.X * 1_000f), (int)(obj.Position.Z * 1_000f))
             .Append(marker)
