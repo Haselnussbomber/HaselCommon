@@ -85,11 +85,13 @@ public unsafe class TextDecoder(ILogger<TextDecoder> Logger, IDataManager DataMa
             return string.Empty;
         }
 
-        // see "E8 ?? ?? ?? ?? 41 8B 5F 08 44 8B E0"
+        // see "E8 ?? ?? ?? ?? 44 8B 6B 08"
         var columnOffset = SheetName switch
         {
             "BeastTribe" => 10,
             "DeepDungeonItem" or "DeepDungeonEquipment" or "DeepDungeonMagicStone" or "DeepDungeonDemiclone" => 1,
+            "Glasses" => 4,
+            "GlassesStyle" => 15,
             _ => 0
         };
 
@@ -260,7 +262,7 @@ public unsafe class TextDecoder(ILogger<TextDecoder> Logger, IDataManager DataMa
                     output->SetString(v36.RawData.WithNullTerminator());
             }
 
-            // skipping link marker ("//") (processed in "E8 ?? ?? ?? ?? 41 F6 86 ?? ?? ?? ?? ?? 74 1D")
+            // skipping link marker ("//") (processed in "E8 ?? ?? ?? ?? F6 87 ?? ?? ?? ?? ?? 74 1D")
 
             temp->SetString(text.RawData.WithNullTerminator());
             output->Append(temp);
