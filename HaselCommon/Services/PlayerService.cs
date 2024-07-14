@@ -51,10 +51,6 @@ public unsafe class PlayerService : IDisposable
                 case UIModulePacketType.Logout:
                     LoggingOut?.Invoke();
                     break;
-
-                default:
-                    Logger.LogDebug("UIModulePacketType {type}", type);
-                    break;
             }
         }
         catch (Exception e)
