@@ -175,8 +175,8 @@ public unsafe struct ImGuiContextMenuBuilder(TextService TextService, MapService
             Label = TextService.GetAddonText(4411),
             ClickCallback = () =>
             {
-                AgentBannerEditor.Instance()->AgentInterface.Hide();
-                AgentBannerEditor.Instance()->OpenForGearset(gearset->Id);
+                AgentBannerEditor.Instance()->Hide();
+                AgentGearSet.Instance()->OpenBannerEditorForGearset(gearset->Id);
             }
         });
 
