@@ -15,7 +15,7 @@ public class TextureService(ITextureProvider TextureProvider, IDataManager DataM
 {
     private static readonly string[] ThemePaths = ["", "light/", "third/", "fourth/"];
 
-    private readonly Dictionary<(byte ThemeType, string UldName, uint PartListId, uint PartId), (string Path, Vector2 Uv0, Vector2 Uv1)> UldPartCache = [];
+    private readonly Dictionary<(byte ThemeType, string UldName, uint PartListId, uint PartId), (string Path, Vector2 Uv0, Vector2 Uv1)?> UldPartCache = [];
 
     public void Draw(string path, DrawInfo drawInfo)
     {
@@ -45,10 +45,16 @@ public class TextureService(ITextureProvider TextureProvider, IDataManager DataM
 
         if (UldPartCache.TryGetValue(key, out var tuple))
         {
-            drawInfo.Uv0 = tuple.Uv0;
-            drawInfo.Uv1 = tuple.Uv1;
+            if (tuple == null || !tuple.HasValue)
+            {
+                ImGui.Dummy(drawInfo.DrawSize ?? Vector2.Zero);
+                return;
+            }
+
+            drawInfo.Uv0 = tuple.Value.Uv0;
+            drawInfo.Uv1 = tuple.Value.Uv1;
             drawInfo.TransformUv = true;
-            Draw(tuple.Path, drawInfo);
+            Draw(tuple.Value.Path, drawInfo);
             return;
         }
 
@@ -56,12 +62,14 @@ public class TextureService(ITextureProvider TextureProvider, IDataManager DataM
 
         if (uld == null)
         {
+            lock (UldPartCache) UldPartCache.Add(key, null);
             ImGui.Dummy(drawInfo.DrawSize ?? Vector2.Zero);
             return;
         }
 
         if (!uld.Parts.FindFirst((partList) => partList.Id == partListId, out var partList) || partList.PartCount < partIndex)
         {
+            lock (UldPartCache) UldPartCache.Add(key, null);
             ImGui.Dummy(drawInfo.DrawSize ?? Vector2.Zero);
             return;
         }
@@ -70,6 +78,7 @@ public class TextureService(ITextureProvider TextureProvider, IDataManager DataM
 
         if (!uld.AssetData.FindFirst((asset) => asset.Id == part.TextureId, out var asset))
         {
+            lock (UldPartCache) UldPartCache.Add(key, null);
             ImGui.Dummy(drawInfo.DrawSize ?? Vector2.Zero);
             return;
         }
@@ -111,9 +120,10 @@ public class TextureService(ITextureProvider TextureProvider, IDataManager DataM
             version = 1;
         }
 
-        // fallback to transparent texture
+        // fallback to dummy
         if (!exists)
         {
+            lock (UldPartCache) UldPartCache.Add(key, null);
             ImGui.Dummy(drawInfo.DrawSize ?? Vector2.Zero);
             return;
         }
