@@ -20,6 +20,7 @@ public class ItemService(IClientState ClientState, ExcelService ExcelService, Te
 {
     private readonly GatheringItemGatheringPointsCache GatheringItemGatheringPointsCache = new(ExcelService);
     private readonly ItemFishingSpotsCache ItemFishingSpotsCache = new(ExcelService);
+    private readonly SpearfishingItemGatheringPointsCache SpearfishingItemGatheringPointsCache = new(ExcelService);
     private readonly ItemGatheringItemsCache ItemGatheringItemsCache = new(ExcelService);
     private readonly ItemRecipesCache ItemRecipesCache = new(ExcelService);
     private readonly ItemSpearfishingItemCache ItemSpearfishingItemCache = new(ExcelService);
@@ -57,6 +58,14 @@ public class ItemService(IClientState ClientState, ExcelService ExcelService, Te
 
     public FishingSpot[] GetFishingSpots(Item item) => GetFishingSpots(item.RowId);
     public FishingSpot[] GetFishingSpots(uint itemId) => ItemFishingSpotsCache.GetValue(itemId) ?? [];
+
+    public GatheringPoint[] GetSpearfishingGatheringPoints(Item item) => GetSpearfishingGatheringPoints(item.RowId);
+    public GatheringPoint[] GetSpearfishingGatheringPoints(uint itemId)
+    {
+        if (!ItemSpearfishingItemCache.TryGetValue(itemId, out var spearfishingItem))
+            return [];
+        return SpearfishingItemGatheringPointsCache.GetValue(spearfishingItem.RowId) ?? [];
+    }
 
     public bool IsCraftable(Item item) => IsCraftable(item.RowId);
     public bool IsCraftable(uint itemId) => GetRecipes(itemId).Length != 0;

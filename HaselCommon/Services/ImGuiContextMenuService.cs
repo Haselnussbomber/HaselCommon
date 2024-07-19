@@ -223,15 +223,20 @@ public unsafe struct ImGuiContextMenuBuilder(TextService TextService, MapService
     {
         var mapService = MapService;
         var itemService = ItemService;
+        var isFish = itemService.IsFish(item);
+        var isSpearfish = itemService.IsSpearfish(item);
 
         Entries.Add(new ImGuiContextMenuEntry()
         {
-            Visible = ItemService.IsFish(item),
+            Visible = isFish || isSpearfish,
             Label = TextService.GetAddonText(8506), // "Open Map"
             LoseFocusOnClick = true,
             ClickCallback = () =>
             {
-                mapService.OpenMap(itemService.GetFishingSpots(item).First(), item, prefix);
+                if (isSpearfish)
+                    mapService.OpenMap(itemService.GetSpearfishingGatheringPoints(item).First(), item, prefix);
+                else
+                    mapService.OpenMap(itemService.GetFishingSpots(item).First(), item, prefix);
             }
         });
 
@@ -257,16 +262,18 @@ public unsafe struct ImGuiContextMenuBuilder(TextService TextService, MapService
     public ImGuiContextMenuBuilder AddOpenInFishGuide(Item item)
     {
         var itemService = ItemService;
+        var isFish = itemService.IsFish(item);
+        var isSpearfish = itemService.IsSpearfish(item);
 
         Entries.Add(new ImGuiContextMenuEntry()
         {
-            Visible = ItemService.IsFish(item),
+            Visible = isFish || isSpearfish,
             Label = TextService.Translate("ItemContextMenu.OpenInFishGuide"),
             LoseFocusOnClick = true,
             ClickCallback = () =>
             {
                 var agent = (AgentFishGuide*)AgentModule.Instance()->GetAgentByInternalId(AgentId.FishGuide);
-                agent->OpenForItemId(item.RowId, itemService.IsSpearfish(item));
+                agent->OpenForItemId(item.RowId, isSpearfish);
             }
         });
 

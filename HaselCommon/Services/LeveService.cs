@@ -86,4 +86,7 @@ public class LeveService(ExcelService ExcelService)
 
     public bool IsCraftLeve(Leve leve)
         => leve.LeveAssignmentType.Row is >= 5 and <= 12;
+
+    public bool IsFishingLeve(Leve leve)
+        => leve.LeveAssignmentType.Row is 4;
 }
