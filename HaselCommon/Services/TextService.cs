@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using Dalamud.Game;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
@@ -88,8 +89,8 @@ public class TextService : IDisposable
     public string GetAddonText(uint id)
         => ExcelService.GetRow<Addon>(id)?.Text.ExtractText() ?? $"Addon#{id}";
 
-    public string GetItemName(uint id)
-        => ExcelService.GetRow<Item>(id)?.Name.ExtractText() ?? $"Item#{id}";
+    public string GetItemName(uint id, ClientLanguage? language = null)
+        => ExcelService.GetRow<Item>(id, uint.MaxValue, language)?.Name.ExtractText() ?? $"Item#{id}";
 
     public string GetQuestName(uint id)
         => ExcelService.GetRow<Quest>(id)?.Name.ExtractText() ?? $"Quest#{id}";

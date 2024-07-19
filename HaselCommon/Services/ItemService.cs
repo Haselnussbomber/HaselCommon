@@ -2,6 +2,7 @@ using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using FFXIVClientStructs.FFXIV.Client.UI;
@@ -15,7 +16,7 @@ using Lumina.Excel.GeneratedSheets;
 
 namespace HaselCommon.Services;
 
-public class ItemService(ExcelService ExcelService, TextService TextService)
+public class ItemService(IClientState ClientState, ExcelService ExcelService, TextService TextService)
 {
     private readonly GatheringItemGatheringPointsCache GatheringItemGatheringPointsCache = new(ExcelService);
     private readonly ItemFishingSpotsCache ItemFishingSpotsCache = new(ExcelService);
@@ -176,7 +177,7 @@ public class ItemService(ExcelService ExcelService, TextService TextService)
         if (TryGetAddon<AtkUnitBase>("ItemSearchResult", out var itemSearchResult))
             itemSearchResult->Hide2();
 
-        var itemName = TextService.GetItemName(item.RowId);
+        var itemName = TextService.GetItemName(item.RowId, ClientState.ClientLanguage);
         if (itemName.Length > 40)
             itemName = itemName[..40];
 
