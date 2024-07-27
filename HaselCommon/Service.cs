@@ -7,6 +7,7 @@ using HaselCommon.Caching;
 using HaselCommon.Commands;
 using HaselCommon.Services;
 using HaselCommon.Services.Internal;
+using HaselCommon.Services.SeStringEvaluation;
 using HaselCommon.Utils;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -97,6 +98,7 @@ public static class Service
             .AddSingleton<TextService>()
             .AddSingleton<TextureService>()
             .AddSingleton<TranslationManager>()
-            .AddSingleton<WindowManager>();
+            .AddSingleton<WindowManager>()
+            .AddSingleton<SeStringEvaluatorService>();
     }
 }
