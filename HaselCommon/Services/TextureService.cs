@@ -1,7 +1,9 @@
 using System.Collections.Generic;
 using System.Numerics;
+using Dalamud.Game.Config;
 using Dalamud.Interface.Textures;
 using Dalamud.Interface.Textures.TextureWraps;
+using Dalamud.Interface.Utility;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using HaselCommon.Extensions;
@@ -11,11 +13,19 @@ using Lumina.Data.Files;
 
 namespace HaselCommon.Services;
 
-public class TextureService(ITextureProvider TextureProvider, IDataManager DataManager)
+public class TextureService(ITextureProvider TextureProvider, IDataManager DataManager, IGameConfig GameConfig)
 {
     private static readonly string[] ThemePaths = ["", "light/", "third/", "fourth/"];
+    private static readonly string[] GfdTextures = [
+        "common/font/fonticon_xinput.tex",
+        "common/font/fonticon_ps3.tex",
+        "common/font/fonticon_ps4.tex",
+        "common/font/fonticon_ps5.tex",
+        "common/font/fonticon_lys.tex",
+    ];
 
     private readonly Dictionary<(byte ThemeType, string UldName, uint PartListId, uint PartId), (string Path, Vector2 Uv0, Vector2 Uv1)?> UldPartCache = [];
+    public readonly Lazy<GfdFileView> GfdFileView = new(() => new(DataManager.GetFile("common/font/gfdata.gfd")!.Data));
 
     public void Draw(string path, DrawInfo drawInfo)
     {
@@ -37,6 +47,28 @@ public class TextureService(ITextureProvider TextureProvider, IDataManager DataM
 
     public void DrawIcon(int iconId, DrawInfo drawInfo)
         => DrawIcon(new GameIconLookup((uint)iconId), drawInfo);
+
+    public void DrawGfd(uint gfdIconId, DrawInfo drawInfo)
+    {
+        if (!GfdFileView.Value.TryGetEntry(gfdIconId, out var entry))
+        {
+            ImGui.Dummy(drawInfo.DrawSize ?? new(20));
+            return;
+        }
+
+        var startPos = new Vector2(entry.Left, entry.Top) * 2 + new Vector2(0, 340);
+        var size = new Vector2(entry.Width, entry.Height) * 2;
+
+        GameConfig.TryGet(SystemConfigOption.PadSelectButtonIcon, out uint padSelectButtonIcon);
+
+        Draw(GfdTextures[padSelectButtonIcon], new()
+        {
+            DrawSize = drawInfo.DrawSize ?? ImGuiHelpers.ScaledVector2(size.X, size.Y) / 2,
+            Uv0 = startPos,
+            Uv1 = startPos + size,
+            TransformUv = true,
+        });
+    }
 
     public unsafe void DrawPart(string uldName, uint partListId, uint partIndex, DrawInfo drawInfo)
     {
