@@ -39,9 +39,17 @@
     <Reference Include="Lumina.Excel" Private="false" />
   </ItemGroup>
 
+  <ItemGroup Condition="!Exists('$(ProjectDir)..\..\FFXIVClientStructs')">
+    <Reference Include="InteropGenerator.Runtime" Private="false" />
+    <Reference Include="FFXIVClientStructs" Private="false" />
+  </ItemGroup>
+
+  <ItemGroup Condition="Exists('$(ProjectDir)..\..\FFXIVClientStructs')">
+    <ProjectReference Include="..\..\FFXIVClientStructs\FFXIVClientStructs\FFXIVClientStructs.csproj" Private="True" />
+  </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
     <ProjectReference Include="..\HaselCommon\HaselCommon.csproj" />
-    <ProjectReference Include="..\..\FFXIVClientStructs\FFXIVClientStructs\FFXIVClientStructs.csproj" Private="True" />
   </ItemGroup>
 </Project>
