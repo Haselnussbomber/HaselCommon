@@ -90,7 +90,7 @@ public class TextService : IDisposable
         => ExcelService.GetRow<Addon>(id)?.Text.ExtractText() ?? $"Addon#{id}";
 
     public string GetItemName(uint id, ClientLanguage? language = null)
-        => ExcelService.GetRow<Item>(id, uint.MaxValue, language)?.Name.ExtractText() ?? $"Item#{id}";
+        => ExcelService.GetRow<Item>(id, language)?.Name.ExtractText() ?? $"Item#{id}";
 
     public string GetQuestName(uint id)
         => ExcelService.GetRow<Quest>(id)?.Name.ExtractText() ?? $"Quest#{id}";

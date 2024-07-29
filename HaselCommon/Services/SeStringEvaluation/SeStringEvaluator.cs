@@ -1,4 +1,5 @@
 using System.Runtime.CompilerServices;
+using Dalamud.Game;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
@@ -16,35 +17,41 @@ public partial class SeStringEvaluatorService(
     ILogger<SeStringEvaluatorService> Logger,
     IDataManager dataManager,
     ExcelService excelService,
+    TranslationManager translationManager,
     TextureService textureService)
 {
     private readonly IDataManager DataManager = dataManager;
     private readonly ExcelService ExcelService = excelService;
+    private readonly TranslationManager TranslationManager = translationManager;
     private readonly TextureService TextureService = textureService;
 
-    public ReadOnlySeString Evaluate(ReadOnlySeStringSpan str, SeStringContext context)
+    public ReadOnlySeString Evaluate(ReadOnlySeStringSpan str, SeStringContext context, ClientLanguage? language = null)
     {
+        context.Language ??= language ?? TranslationManager.ClientLanguage;
+
         foreach (var payload in str)
             ResolveStringPayload(ref context, payload);
 
         return context.Builder.ToReadOnlySeString();
     }
 
-    public ReadOnlySeString Evaluate(ReadOnlySeString str, SeStringContext context)
+    public ReadOnlySeString Evaluate(ReadOnlySeString str, SeStringContext context, ClientLanguage? language = null)
     {
+        context.Language ??= language ?? TranslationManager.ClientLanguage;
+
         foreach (var payload in str)
             ResolveStringPayload(ref context, payload.AsSpan());
 
         return context.Builder.ToReadOnlySeString();
     }
 
-    public ReadOnlySeString EvaluateFromAddon(uint addonId, SeStringContext context)
+    public ReadOnlySeString EvaluateFromAddon(uint addonId, SeStringContext context, ClientLanguage? language = null)
     {
-        var addonRow = ExcelService.GetRow<Addon>(addonId);
+        var addonRow = ExcelService.GetRow<Addon>(addonId, language);
         if (addonRow == null)
             return new();
 
-        return Evaluate(new ReadOnlySeStringSpan(addonRow.Text.RawData), context);
+        return Evaluate(new ReadOnlySeStringSpan(addonRow.Text.RawData), context.LocalParameters, language);
     }
 
     public unsafe bool TryGetGNumDefault(uint parameterIndex, out uint value)
@@ -409,66 +416,49 @@ public partial class SeStringEvaluatorService(
                     return true;
                 }
 
-            /*
-        case MacroCode.Sheet:
-            {
-                if (!payload.TryGetExpression(out var eSheetName, out var eRowId, out var eColIndex)
-                    || !TryResolveUInt(ref context, eRowId, out var eRowIdValue)
-                    || !TryResolveUInt(ref context, eColIndex, out var eColIndexValue)
-                    || ExpressionToString(ref context, eSheetName) is not { } sheetName)
+            case MacroCode.Sheet:
                 {
+                    if (!payload.TryGetExpression(out var eSheetName, out var eRowId, out var eColIndex)
+                        || !TryResolveUInt(ref context, eRowId, out var eRowIdValue)
+                        || !TryResolveUInt(ref context, eColIndex, out var eColIndexValue)
+                        || !eSheetName.TryGetString(out var eSheetNameStr))
+                    {
+                        return false;
+                    }
+
+                    var resolvedSheetName = Evaluate(eSheetNameStr, context.LocalParameters, context.Language).ExtractText();
+
+                    var sheet = DataManager.Excel.GetSheetRaw(resolvedSheetName, (context.Language ?? TranslationManager.ClientLanguage).ToLumina());
+                    if (sheet == null)
+                        return false;
+
+                    var row = sheet.GetRow(eRowIdValue);
+                    if (row == null)
+                        return false;
+
+                    var column = row.ReadColumnRaw((int)eColIndexValue);
+                    if (column == null)
+                        return false;
+
+                    var expressions = payload.Body[(eSheetName.Body.Length + eRowId.Body.Length + eColIndex.Body.Length)..];
+
+                    switch (column)
+                    {
+                        case bool val:
+                            context.Builder.Append(val ? "true"u8 : "false"u8);
+                            return true;
+
+                        case Lumina.Text.SeString val:
+                            context.Builder.Append(Evaluate(val, context.LocalParameters, context.Language));
+                            return true;
+
+                        case { } val:
+                            context.Builder.Append(val.ToString());
+                            return true;
+                    }
+
                     return false;
                 }
-
-                var sheet = DataManager.Excel.GetSheetRaw(sheetName);
-                if (sheet == null)
-                    return false;
-
-                var row = sheet.GetRow(eRowIdValue);
-                if (row == null)
-                    return false;
-
-                var column = row.ReadColumnRaw((int)eColIndexValue);
-                if (column == null)
-                    return false;
-
-                var expressions = payload.Body[(eSheetName.Body.Length + eRowId.Body.Length + eColIndex.Body.Length)..];
-
-                switch (column)
-                {
-                    case bool val:
-                        context.Builder.Append(val ? "true"u8 : "false"u8);
-                        return true;
-
-                    case SeString val:
-                        {
-#pragma warning disable CS8500 // This takes the address of, gets the size of, or declares a pointer to a managed type
-#pragma warning disable SA1519
-                            unsafe
-                            {
-                                fixed (byte* expr = expressions)
-                                fixed (SeStringContext* pcontext = &context)
-                                {
-                                    var helper = new ParameterEvaluationHelper(
-                                        this,
-                                        pcontext,
-                                    expr,
-                                        expressions.Length);
-                                    return ResolveString(ref helper, val.RawData);
-                                }
-                            }
-#pragma warning restore SA1519
-#pragma warning restore CS8500 // This takes the address of, gets the size of, or declares a pointer to a managed type
-                        }
-
-                    case { } val:
-                        context.Builder.Append(val.ToString());
-                        return true;
-                }
-            
-                return false;
-            }
-            */
 
             case MacroCode.String:
                 return payload.TryGetExpression(out var eStr) && ResolveStringExpression(ref context, eStr);
@@ -515,11 +505,11 @@ public partial class SeStringEvaluatorService(
                     if (level == null || level.Map.Value == null)
                         goto invalidLevelPos;
 
-                    var placeName = ExcelService.GetRow<PlaceName>(level.Map.Value.PlaceName.Row);
+                    var placeName = ExcelService.GetRow<PlaceName>(level.Map.Value.PlaceName.Row, context.Language);
                     if (placeName == null)
                         goto invalidLevelPos;
 
-                    var levelFormatRow = ExcelService.GetRow<Addon>(1637);
+                    var levelFormatRow = ExcelService.GetRow<Addon>(1637, context.Language);
                     if (levelFormatRow == null)
                         goto invalidLevelPos;
 
@@ -710,7 +700,7 @@ invalidLevelPos:
 
         if (expression.TryGetString(out var innerString))
         {
-            ctx.Builder.Append(innerString);
+            Evaluate(innerString, ctx);
             return true;
         }
 

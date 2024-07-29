@@ -1,12 +1,32 @@
+using Dalamud.Game;
 using Lumina.Text;
 using Lumina.Text.ReadOnly;
 
 namespace HaselCommon.Services.SeStringEvaluation;
 
-public struct SeStringContext(SeStringParameter[]? localParameters = null, SeStringBuilder? builder = null)
+public struct SeStringContext
 {
-    public SeStringParameter[] LocalParameters = localParameters ?? [];
-    public SeStringBuilder Builder = builder ?? new();
+    public SeStringParameter[] LocalParameters;
+    public SeStringBuilder Builder;
+    internal ClientLanguage? Language;
+
+    public SeStringContext()
+    {
+        LocalParameters = [];
+        Builder = new();
+    }
+
+    public SeStringContext(SeStringParameter[] localParameters)
+    {
+        LocalParameters = localParameters;
+        Builder = new();
+    }
+
+    public SeStringContext(SeStringParameter[] localParameters, SeStringBuilder builder)
+    {
+        LocalParameters = localParameters;
+        Builder = builder;
+    }
 
     public bool TryGetLNum(int index, out uint value)
     {

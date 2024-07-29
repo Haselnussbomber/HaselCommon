@@ -13,7 +13,10 @@ public class ExcelService(IDataManager DataManager, TranslationManager Translati
     public uint GetRowCount<T>() where T : ExcelRow
         => GetSheet<T>().RowCount;
 
-    public T? GetRow<T>(uint rowId, uint subRowId = uint.MaxValue, ClientLanguage? language = null) where T : ExcelRow
+    public T? GetRow<T>(uint rowId, ClientLanguage? language = null) where T : ExcelRow
+        => GetSheet<T>(language).GetRow(rowId);
+
+    public T? GetRow<T>(uint rowId, uint subRowId, ClientLanguage? language = null) where T : ExcelRow
         => GetSheet<T>(language).GetRow(rowId, subRowId);
 
     public T? FindRow<T>(Func<T?, bool> predicate) where T : ExcelRow
