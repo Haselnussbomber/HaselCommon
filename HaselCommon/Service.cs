@@ -3,7 +3,6 @@ using Dalamud.Game;
 using Dalamud.Game.ClientState.Objects;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
-using HaselCommon.Caching;
 using HaselCommon.Commands;
 using HaselCommon.Services;
 using HaselCommon.Services.Internal;
@@ -82,7 +81,6 @@ public static class Service
             .AddSingleton(DalamudServiceFactory<IToastGui>)
 
             // HaselCommon
-            .AddSingleton(typeof(SheetTextCache<>))
             .AddSingleton<AddonObserver>()
             .AddSingleton<CommandRegistry>()
             .AddSingleton<ExcelService>()
