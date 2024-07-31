@@ -2,7 +2,6 @@ using System.Buffers.Binary;
 using System.Numerics;
 using Dalamud.Interface.Utility.Raii;
 using ImGuiNET;
-using Lumina.Excel.GeneratedSheets;
 
 namespace HaselCommon.Utils;
 
@@ -62,10 +61,6 @@ public struct HaselColor
 
     public static HaselColor FromABGR(uint abgr)
         => From(BinaryPrimitives.ReverseEndianness(abgr));
-
-    [Obsolete]
-    public static HaselColor FromUiForeground(uint id)
-        => FromABGR(GetRow<UIColor>(id)!.UIForeground);
 
     public static implicit operator Vector4(HaselColor col)
         => new(col.R, col.G, col.B, col.A);

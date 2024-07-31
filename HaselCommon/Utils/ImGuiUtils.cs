@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Dalamud.Interface;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Utility;
+using HaselCommon.Extensions;
 using ImGuiNET;
 
 namespace HaselCommon.Utils;
@@ -19,7 +20,7 @@ public static class ImGuiUtils
         PushCursorY(style.ItemSpacing.Y - 1);
     }
 
-    public static void DrawSection(string Label, bool PushDown = true, bool RespectUiTheme = false, uint UIColor = 1)
+    public static void DrawSection(string Label, bool PushDown = true, bool RespectUiTheme = false, Lumina.Excel.GeneratedSheets.UIColor? UIColor = null)
     {
         var style = ImGui.GetStyle();
 
@@ -28,8 +29,8 @@ public static class ImGuiUtils
             PushCursorY(style.ItemSpacing.Y * 2);
 
         var color = Colors.Gold;
-        if (RespectUiTheme && Colors.IsLightTheme)
-            color = HaselColor.FromUiForeground(UIColor);
+        if (RespectUiTheme && UIColor != null && Colors.IsLightTheme)
+            color = UIColor.GetForegroundColor();
 
         TextUnformattedColored(color, Label);
 
