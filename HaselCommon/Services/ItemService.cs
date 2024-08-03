@@ -24,6 +24,7 @@ public class ItemService(IClientState ClientState, ExcelService ExcelService, Te
     private readonly ItemGatheringItemsCache ItemGatheringItemsCache = new(ExcelService);
     private readonly ItemRecipesCache ItemRecipesCache = new(ExcelService);
     private readonly ItemSpearfishingItemCache ItemSpearfishingItemCache = new(ExcelService);
+    private readonly ItemIconIdCache ItemIconIdCache = new(ExcelService);
 
     private static FrozenDictionary<short, (uint Min, uint Max)>? MaxLevelRanges = null;
 
@@ -46,6 +47,8 @@ public class ItemService(IClientState ClientState, ExcelService ExcelService, Te
 
     public bool IsEventItem(Item item) => IsEventItem(item.RowId);
     public bool IsEventItem(uint itemId) => itemId is > 2_000_000;
+
+    public uint GetIconId(uint itemId) => ItemIconIdCache.GetValue(itemId);
 
     public Recipe[] GetRecipes(Item item) => GetRecipes(item.RowId);
     public Recipe[] GetRecipes(uint itemId) => ItemRecipesCache.GetValue(itemId) ?? [];
