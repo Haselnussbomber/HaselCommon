@@ -94,8 +94,22 @@ public class TextService : IDisposable
     public string GetAddonText(uint id)
         => ExcelService.GetRow<Addon>(id)?.Text.ExtractText() ?? $"Addon#{id}";
 
-    public string GetItemName(uint id, ClientLanguage? language = null)
-        => ExcelService.GetRow<Item>(id, language)?.Name.ExtractText() ?? $"Item#{id}";
+    public string GetItemName(uint itemId, ClientLanguage? language = null)
+    {
+        // EventItem
+        if (itemId is > 2_000_000)
+            return ExcelService.GetRow<EventItem>(itemId)?.Name.ExtractText() ?? $"EventItem#{itemId}";
+
+        // HighQuality
+        if (itemId is > 1_000_000 and < 2_000_000)
+            itemId -= 1_000_000;
+
+        // Collectible
+        if (itemId is > 500_000 and < 1_000_000)
+            itemId -= 500_000;
+
+        return ExcelService.GetRow<Item>(itemId)?.Name.ExtractText() ?? $"Item#{itemId}";
+    }
 
     public string GetQuestName(uint id)
         => ExcelService.GetRow<Quest>(id)?.Name.ExtractText() ?? $"Quest#{id}";
