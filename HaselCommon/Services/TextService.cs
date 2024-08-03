@@ -27,12 +27,17 @@ public class TextService : IDisposable
         TranslationManager = translationManager;
         TextDecoder = textDecoder;
 
-        TranslationManager.LanguageChanged += LanguageChanged;
+        TranslationManager.LanguageChanged += OnLanguageChanged;
     }
 
     public void Dispose()
     {
-        TranslationManager.LanguageChanged -= LanguageChanged;
+        TranslationManager.LanguageChanged -= OnLanguageChanged;
+    }
+
+    private void OnLanguageChanged(string langCode)
+    {
+        LanguageChanged?.Invoke(langCode);
     }
 
     // [GeneratedRegex("^[\\ue000-\\uf8ff]+ ")]
