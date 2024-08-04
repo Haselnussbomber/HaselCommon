@@ -24,11 +24,11 @@ public class CommandRegistry(
         GC.SuppressFinalize(this);
     }
 
-    public ICommandHandler? Register(string command, string helpMessageKey, IReadOnlyCommandInfo.HandlerDelegate handler)
+    public ICommandHandler? Register(string command, string helpMessageKey, bool showInHelp, IReadOnlyCommandInfo.HandlerDelegate handler)
     {
         Logger.LogDebug("Registring {command}", command);
 
-        var commandHandler = new CommandHandler(this, DalamudCommandManager, TranslationManager, command, helpMessageKey, handler);
+        var commandHandler = new CommandHandler(this, DalamudCommandManager, TranslationManager, command, helpMessageKey, showInHelp, handler);
         CommandHandlers.Add(command, commandHandler);
         return commandHandler;
     }
@@ -38,7 +38,7 @@ public class CommandRegistry(
         var attr = handler.Method.GetCustomAttribute<CommandHandlerAttribute>()
             ?? throw new Exception($"Missing CommandHandlerAttribute on {handler.Method.Name}");
 
-        return Register(attr.Command, attr.HelpMessageKey, handler);
+        return Register(attr.Command, attr.HelpMessageKey, attr.ShowInHelp, handler);
     }
 
     public void Unregister(string command)

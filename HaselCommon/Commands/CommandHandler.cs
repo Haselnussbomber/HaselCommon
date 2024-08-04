@@ -14,6 +14,7 @@ public class CommandHandler : ICommandHandler
 
     public string Command { get; init; }
     public string HelpMessageKey { get; init; }
+    public bool ShowInHelp { get; init; }
     public IReadOnlyCommandInfo.HandlerDelegate Handler { get; init; }
     public bool IsEnabled { get; private set; }
 
@@ -23,6 +24,7 @@ public class CommandHandler : ICommandHandler
         TranslationManager translationManager,
         string command,
         string helpMessageKey,
+        bool showInHelp,
         IReadOnlyCommandInfo.HandlerDelegate handler)
     {
         CommandManager = commandManager;
@@ -30,6 +32,7 @@ public class CommandHandler : ICommandHandler
         TranslationManager = translationManager;
         Command = command;
         HelpMessageKey = helpMessageKey;
+        ShowInHelp = showInHelp;
         Handler = handler;
 
         TranslationManager.LanguageChanged += TranslationManager_LanguageChanged;
@@ -56,7 +59,8 @@ public class CommandHandler : ICommandHandler
         {
             DalamudCommandManager.AddHandler(Command, CommandInfo = new CommandInfo(Handler)
             {
-                HelpMessage = !string.IsNullOrEmpty(HelpMessageKey) ? TranslationManager.Translate(HelpMessageKey) : string.Empty
+                HelpMessage = !string.IsNullOrEmpty(HelpMessageKey) ? TranslationManager.Translate(HelpMessageKey) : string.Empty,
+                ShowInHelp = ShowInHelp,
             });
 
             IsEnabled = true;
