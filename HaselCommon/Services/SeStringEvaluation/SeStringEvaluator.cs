@@ -51,7 +51,7 @@ public partial class SeStringEvaluatorService(
         if (addonRow == null)
             return new();
 
-        return Evaluate(new ReadOnlySeStringSpan(addonRow.Text.RawData), context.LocalParameters, language);
+        return Evaluate(addonRow.Text.AsReadOnly(), context.LocalParameters, language);
     }
 
     public unsafe bool TryGetGNumDefault(uint parameterIndex, out uint value)

@@ -1,10 +1,9 @@
 using Lumina.Text;
-using Lumina.Text.ReadOnly;
 
 namespace HaselCommon.Extensions;
 
 public static class LuminaSeStringExtensions
 {
     public static string ExtractText(this SeString str)
-        => new ReadOnlySeStringSpan(str.RawData).ExtractText().Replace("\u00AD", "");
+        => str.AsReadOnly().ExtractText().Replace("\u00AD", "");
 }
