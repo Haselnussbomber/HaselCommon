@@ -1,3 +1,4 @@
+using System.Buffers.Binary;
 using System.Runtime.CompilerServices;
 using Dalamud.Game;
 using Dalamud.Plugin.Services;
@@ -486,7 +487,7 @@ public partial class SeStringEvaluatorService(
                         if (eColorTypeVal == 0)
                             context.Builder.PopEdgeColor();
                         else if (ExcelService.GetRow<UIColor>(eColorTypeVal) is { } row)
-                            context.Builder.PushEdgeColorRgba((row.UIGlow >> 8) | (row.UIGlow << 24));
+                            context.Builder.PushEdgeColorRgba((row.UIForeground >> 8) | (row.UIForeground << 24));
                         return true;
                     }
 
