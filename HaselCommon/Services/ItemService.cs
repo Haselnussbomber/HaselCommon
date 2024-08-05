@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using Dalamud.Plugin.Services;
-using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
@@ -11,6 +10,7 @@ using FFXIVClientStructs.FFXIV.Component.Exd;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using HaselCommon.Caches.Internal;
 using HaselCommon.Enums;
+using HaselCommon.Extensions;
 using HaselCommon.Utils;
 using Lumina.Excel.GeneratedSheets;
 
@@ -28,13 +28,13 @@ public class ItemService(IClientState ClientState, ExcelService ExcelService, Te
 
     private static FrozenDictionary<short, (uint Min, uint Max)>? MaxLevelRanges = null;
 
-    private readonly Lazy<Dictionary<byte, HaselColor>> ItemRarityColors = new(()
-        => ExcelService.GetSheet<Item>()
-            .Where(item => !string.IsNullOrEmpty(item.Name.ToDalamudString().ToString()))
-            .Select(item => item.Rarity)
-            .Distinct()
-            .Select(rarity => (Rarity: rarity, Color: HaselColor.FromABGR(ExcelService.GetRow<UIColor>(547u + rarity * 2u)!.UIForeground)))
-            .ToDictionary(tuple => tuple.Rarity, tuple => tuple.Color));
+    public uint GetBaseItemId(uint itemId)
+    {
+        if (IsEventItem(itemId)) return itemId; // uses EventItem sheet
+        if (IsHighQuality(itemId)) return itemId - 1_000_000;
+        if (IsCollectible(itemId)) return itemId - 500_000;
+        return itemId;
+    }
 
     public bool IsNormalItem(Item item) => IsNormalItem(item.RowId);
     public bool IsNormalItem(uint itemId) => itemId is < 500_000;
@@ -230,12 +230,34 @@ public class ItemService(IClientState ClientState, ExcelService ExcelService, Te
         return MaxLevelRanges = dict.ToFrozenDictionary();
     }
 
-    public HaselColor GetItemRarityColor(byte rarity) => ItemRarityColors.Value[rarity];
-    public HaselColor GetItemRarityColor(Item item) => GetItemRarityColor(item.Rarity);
-    public HaselColor GetItemRarityColor(uint itemId)
+    public uint GetItemRarityColorType(Item item, bool isEdgeColor = false)
+        => (isEdgeColor ? 548u : 547u) + item.Rarity * 2u;
+
+    public uint GetItemRarityColorType(uint itemId, bool isEdgeColor = false)
     {
-        var item = ExcelService.GetRow<Item>(itemId);
-        return item != null ? GetItemRarityColor(item) : Colors.White;
+        if (IsEventItem(itemId))
+            return GetItemRarityColorType(1, isEdgeColor);
+
+        var item = ExcelService.GetRow<Item>(GetBaseItemId(itemId));
+        if (item == null)
+            return GetItemRarityColorType(1, isEdgeColor);
+
+        return GetItemRarityColorType(item, isEdgeColor);
+    }
+
+    public HaselColor GetItemRarityColor(Item item, bool isEdgeColor = false)
+        => ExcelService.GetRow<UIColor>(GetItemRarityColorType(item, isEdgeColor))?.GetForegroundColor() ?? Colors.White;
+
+    public HaselColor GetItemRarityColor(uint itemId, bool isEdgeColor = false)
+    {
+        if (IsEventItem(itemId))
+            return isEdgeColor ? HaselColor.FromABGR(0x000000FF) : Colors.White;
+
+        var item = ExcelService.GetRow<Item>(GetBaseItemId(itemId));
+        if (item == null)
+            return isEdgeColor ? HaselColor.FromABGR(0x000000FF) : Colors.White;
+
+        return GetItemRarityColor(item, isEdgeColor);
     }
 
     public unsafe HaselColor GetItemLevelColor(byte classJob, Item item, params Vector4[] colors)
