@@ -3,7 +3,6 @@ using Dalamud.Game;
 using Dalamud.Game.ClientState.Objects;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
-using HaselCommon.Commands;
 using HaselCommon.Services;
 using HaselCommon.Services.Internal;
 using HaselCommon.Services.SeStringEvaluation;
@@ -82,7 +81,7 @@ public static class Service
 
             // HaselCommon
             .AddSingleton<AddonObserver>()
-            .AddSingleton<CommandRegistry>()
+            .AddSingleton<CommandService>()
             .AddSingleton<ExcelService>()
             .AddSingleton<GamepadService>()
             .AddSingleton<ImGuiContextMenuService>()
