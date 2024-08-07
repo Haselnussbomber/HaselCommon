@@ -162,11 +162,44 @@ public class TextService : IDisposable
     public string GetCompanyActionName(uint id)
         => ExcelService.GetRow<CompanyAction>(id)?.Name.ExtractText() ?? $"CompanyAction#{id}";
 
+    public string GetMarkerName(uint id)
+        => ExcelService.GetRow<Marker>(id)?.Name.ExtractText() ?? $"Marker#{id}";
+
+    public string GetFieldMarkerName(uint id)
+        => ExcelService.GetRow<FieldMarker>(id)?.Name.ExtractText() ?? $"FieldMarker#{id}";
+
+    public string GetChocoboRaceAbilityName(uint id)
+        => ExcelService.GetRow<ChocoboRaceAbility>(id)?.Name.ExtractText() ?? $"ChocoboRaceAbility#{id}";
+
+    public string GetChocoboRaceItemName(uint id)
+        => ExcelService.GetRow<ChocoboRaceItem>(id)?.Name.ExtractText() ?? $"ChocoboRaceItem#{id}";
+
+    public string GetExtraCommandName(uint id)
+        => ExcelService.GetRow<ExtraCommand>(id)?.Name.ExtractText() ?? $"ExtraCommand#{id}";
+
+    public string GetQuickChatName(uint id)
+        => ExcelService.GetRow<QuickChat>(id)?.NameAction.ExtractText() ?? $"QuickChat#{id}";
+
+    public string GetActionComboRouteName(uint id)
+        => ExcelService.GetRow<ActionComboRoute>(id)?.Name.ExtractText() ?? $"ActionComboRoute#{id}";
+
+    public string GetBgcArmyActionName(uint id)
+        => ExcelService.GetRow<Lumina.Excel.GeneratedSheets2.BgcArmyAction>(id)?.Unknown0.ExtractText() ?? $"BgcArmyAction#{id}";
+
+    public string GetPerformanceInstrumentName(uint id)
+        => ExcelService.GetRow<Perform>(id)?.Instrument.ExtractText() ?? $"Perform#{id}";
+
+    public string GetMcGuffinName(uint id)
+        => ExcelService.GetRow<McGuffinUIData>(ExcelService.GetRow<McGuffin>(id)?.UIData.Row ?? 0)?.Name.ExtractText() ?? $"McGuffin#{id}";
+
     public string GetMountName(uint id)
         => TitleCasedSingularNoun("Mount", id);
 
     public string GetOrnamentName(uint id)
         => TitleCasedSingularNoun("Ornament", id);
+
+    public string GetGlassesName(uint id)
+        => TitleCasedSingularNoun("Glasses", id);
 
     private string TitleCasedSingularNoun(string sheetName, uint id)
         => TranslationManager.CultureInfo.TextInfo.ToTitleCase(TextDecoder.ProcessNoun(TranslationManager.ClientLanguage, sheetName, 5, (int)id));

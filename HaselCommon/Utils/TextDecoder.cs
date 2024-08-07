@@ -92,6 +92,7 @@ public unsafe class TextDecoder(ILogger<TextDecoder> Logger, IDataManager DataMa
             "DeepDungeonItem" or "DeepDungeonEquipment" or "DeepDungeonMagicStone" or "DeepDungeonDemiclone" => 1,
             "Glasses" => 4,
             "GlassesStyle" => 15,
+            "Ornament" => 8, // not part of that function, but still shifted
             _ => 0
         };
 
