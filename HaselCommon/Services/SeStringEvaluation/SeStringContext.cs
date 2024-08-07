@@ -8,24 +8,13 @@ public struct SeStringContext
 {
     public SeStringParameter[] LocalParameters;
     public SeStringBuilder Builder;
-    internal ClientLanguage? Language;
+    public ClientLanguage? Language;
+    public bool StripSoftHypen;
 
     public SeStringContext()
     {
         LocalParameters = [];
         Builder = new();
-    }
-
-    public SeStringContext(SeStringParameter[] localParameters)
-    {
-        LocalParameters = localParameters;
-        Builder = new();
-    }
-
-    public SeStringContext(SeStringParameter[] localParameters, SeStringBuilder builder)
-    {
-        LocalParameters = localParameters;
-        Builder = builder;
     }
 
     public bool TryGetLNum(int index, out uint value)
@@ -52,8 +41,9 @@ public struct SeStringContext
         return false;
     }
 
+    /*
     public static implicit operator SeStringContext(SeStringParameter[] localParameters)
-        => new(localParameters);
+        => new() { LocalParameters = localParameters };
 
     public static implicit operator SeStringContext(uint[] uintParameters)
     {
@@ -86,4 +76,5 @@ public struct SeStringContext
             parameters[i] = stringParameters[i];
         return parameters;
     }
+    */
 }

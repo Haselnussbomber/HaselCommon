@@ -1,17 +1,16 @@
-using System.Buffers.Binary;
 using System.Runtime.CompilerServices;
-using Dalamud.Game;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using FFXIVClientStructs.FFXIV.Component.Text;
+using HaselCommon.Services.SeStringEvaluation;
 using Lumina.Excel.GeneratedSheets;
 using Lumina.Text.Expressions;
 using Lumina.Text.Payloads;
 using Lumina.Text.ReadOnly;
 using Microsoft.Extensions.Logging;
 
-namespace HaselCommon.Services.SeStringEvaluation;
+namespace HaselCommon.Services;
 
 /// <summary>Evaluator for SeStrings.</summary>
 public partial class SeStringEvaluatorService(
@@ -26,9 +25,24 @@ public partial class SeStringEvaluatorService(
     private readonly TranslationManager TranslationManager = translationManager;
     private readonly TextureService TextureService = textureService;
 
-    public ReadOnlySeString Evaluate(ReadOnlySeStringSpan str, SeStringContext context, ClientLanguage? language = null)
+    public ReadOnlySeString Evaluate(byte[] str)
+        => Evaluate(str, new());
+
+    public ReadOnlySeString Evaluate(ReadOnlySeString str)
+        => Evaluate(str, new());
+
+    public ReadOnlySeString Evaluate(ReadOnlySeStringSpan str)
+        => Evaluate(str, new());
+
+    public ReadOnlySeString Evaluate(byte[] str, SeStringContext context)
+        => Evaluate(str.AsSpan(), context);
+
+    public ReadOnlySeString Evaluate(ReadOnlySeString str, SeStringContext context)
+        => Evaluate(str.AsSpan(), context);
+
+    public ReadOnlySeString Evaluate(ReadOnlySeStringSpan str, SeStringContext context)
     {
-        context.Language ??= language ?? TranslationManager.ClientLanguage;
+        context.Language ??= TranslationManager.ClientLanguage;
 
         foreach (var payload in str)
             ResolveStringPayload(ref context, payload);
@@ -36,23 +50,15 @@ public partial class SeStringEvaluatorService(
         return context.Builder.ToReadOnlySeString();
     }
 
-    public ReadOnlySeString Evaluate(ReadOnlySeString str, SeStringContext context, ClientLanguage? language = null)
+    public ReadOnlySeString EvaluateFromAddon(uint addonId, SeStringContext context)
     {
-        context.Language ??= language ?? TranslationManager.ClientLanguage;
+        context.Language ??= TranslationManager.ClientLanguage;
 
-        foreach (var payload in str)
-            ResolveStringPayload(ref context, payload.AsSpan());
-
-        return context.Builder.ToReadOnlySeString();
-    }
-
-    public ReadOnlySeString EvaluateFromAddon(uint addonId, SeStringContext context, ClientLanguage? language = null)
-    {
-        var addonRow = ExcelService.GetRow<Addon>(addonId, language);
+        var addonRow = ExcelService.GetRow<Addon>(addonId, context.Language);
         if (addonRow == null)
             return new();
 
-        return Evaluate(addonRow.Text.AsReadOnly(), context.LocalParameters, language);
+        return Evaluate(addonRow.Text.AsReadOnly(), context);
     }
 
     public unsafe bool TryGetGNumDefault(uint parameterIndex, out uint value)
@@ -249,7 +255,7 @@ public partial class SeStringEvaluatorService(
                     if (eColor.TryGetPlaceholderExpression(out var ph) && ph == (int)ExpressionType.StackColor)
                         context.Builder.PopColor();
                     else if (TryResolveUInt(ref context, eColor, out var eColorVal))
-                        context.Builder.PushColorBgra(eColorVal | 0xFF000000u);
+                        context.Builder.PushColorBgra(eColorVal);
                     return true;
                 }
 
@@ -260,12 +266,13 @@ public partial class SeStringEvaluatorService(
                     if (eColor.TryGetPlaceholderExpression(out var ph) && ph == (int)ExpressionType.StackColor)
                         context.Builder.PopEdgeColor();
                     else if (TryResolveUInt(ref context, eColor, out var eColorVal))
-                        context.Builder.PushEdgeColorBgra(eColorVal | 0xFF000000u);
+                        context.Builder.PushEdgeColorBgra(eColorVal);
                     return true;
                 }
 
             case MacroCode.SoftHyphen:
-                context.Builder.Append("\u00AD"u8);
+                if (!context.StripSoftHypen)
+                    context.Builder.Append("\u00AD"u8);
                 return true;
 
             case MacroCode.Bold:
@@ -427,7 +434,11 @@ public partial class SeStringEvaluatorService(
                         return false;
                     }
 
-                    var resolvedSheetName = Evaluate(eSheetNameStr, context.LocalParameters, context.Language).ExtractText();
+                    var resolvedSheetName = Evaluate(eSheetNameStr, new SeStringContext() {
+                        LocalParameters = context.LocalParameters,
+                        Language = context.Language,
+                        StripSoftHypen = context.StripSoftHypen
+                    }).ExtractText();
 
                     var sheet = DataManager.Excel.GetSheetRaw(resolvedSheetName, (context.Language ?? TranslationManager.ClientLanguage).ToLumina());
                     if (sheet == null)
@@ -450,7 +461,11 @@ public partial class SeStringEvaluatorService(
                             return true;
 
                         case Lumina.Text.SeString val:
-                            context.Builder.Append(Evaluate(val, context.LocalParameters, context.Language));
+                            context.Builder.Append(Evaluate(val, new SeStringContext() {
+                                LocalParameters = context.LocalParameters,
+                                Language = context.Language,
+                                StripSoftHypen = context.StripSoftHypen
+                            }));
                             return true;
 
                         case { } val:
@@ -472,7 +487,7 @@ public partial class SeStringEvaluatorService(
                         if (eColorTypeVal == 0)
                             context.Builder.PopColor();
                         else if (ExcelService.GetRow<UIColor>(eColorTypeVal) is { } row)
-                            context.Builder.PushColorRgba((row.UIForeground >> 8) | (row.UIForeground << 24));
+                            context.Builder.PushColorBgra((row.UIForeground >> 8) | (row.UIForeground << 24));
                         return true;
                     }
 
@@ -487,7 +502,7 @@ public partial class SeStringEvaluatorService(
                         if (eColorTypeVal == 0)
                             context.Builder.PopEdgeColor();
                         else if (ExcelService.GetRow<UIColor>(eColorTypeVal) is { } row)
-                            context.Builder.PushEdgeColorRgba((row.UIForeground >> 8) | (row.UIForeground << 24));
+                            context.Builder.PushEdgeColorBgra((row.UIForeground >> 8) | (row.UIForeground << 24));
                         return true;
                     }
 
@@ -521,7 +536,7 @@ public partial class SeStringEvaluatorService(
                     context.Builder.Append(
                         Evaluate(
                             (ReadOnlySeString)addonSeString.ToArray(),
-                            new([placeName.Name, mapPosX, mapPosY])));
+                            new SeStringContext() { LocalParameters = [placeName.Name, mapPosX, mapPosY] }));
                     return true;
 
 invalidLevelPos:
@@ -543,6 +558,7 @@ invalidLevelPos:
                 }
 
             default:
+                context.Builder.Append(payload);
                 return false;
         }
     }
