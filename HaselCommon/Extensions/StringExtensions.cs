@@ -1,3 +1,6 @@
+using System.Text;
+using Lumina.Text.ReadOnly;
+
 namespace HaselCommon.Extensions;
 
 public static class StringExtensions
@@ -8,4 +11,7 @@ public static class StringExtensions
 
     public static string FirstCharToLower(this string input)
         => string.IsNullOrEmpty(input) ? string.Empty : string.Concat(input[0].ToString().ToLower(), input.AsSpan(1));
+
+    public static ReadOnlySeString ToReadOnlySeString(this string input)
+        => new(Encoding.UTF8.GetBytes(input));
 }
