@@ -1,7 +1,9 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin;
 using HaselCommon.Extensions;
+using HaselCommon.Windowing;
 
 namespace HaselCommon.Services;
 
@@ -27,6 +29,34 @@ public class WindowManager : IDisposable
         WindowSystem.RemoveAllWindows();
     }
 
+    public bool TryGetWindow<T>(string windowName, [NotNullWhen(returnValue: true)] out T? outWindow) where T : Window
+    {
+        outWindow = null;
+
+        foreach (var window in WindowSystem.Windows)
+        {
+            if (window is not T typedWindow)
+                continue;
+
+            if (window.WindowName != windowName)
+                continue;
+
+            outWindow = typedWindow;
+            return true;
+        }
+
+        return false;
+    }
+
+    public T CreateOrOpen<T>(string windowName, Func<WindowManager, string, T> factory) where T : SimpleWindow
+    {
+        if (!TryGetWindow<T>(windowName, out var window))
+            WindowSystem.AddWindow(window = factory(this, windowName));
+
+        window.Open();
+        return window;
+    }
+
     public bool AddWindow(Window window)
     {
         if (WindowSystem.Windows.Contains(window))
@@ -36,10 +66,19 @@ public class WindowManager : IDisposable
         return true;
     }
 
+    public void RemoveWindow(string windowName)
+    {
+        if (TryGetWindow<SimpleWindow>(windowName, out var window))
+            RemoveWindow(window);
+    }
+
     public bool RemoveWindow(Window window)
     {
         if (!WindowSystem.Windows.Contains(window))
             return false;
+
+        if (window is IDisposable disposeWindow)
+            disposeWindow.Dispose();
 
         WindowSystem.RemoveWindow(window);
         return true;

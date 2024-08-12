@@ -6,10 +6,10 @@ namespace HaselCommon.Windowing;
 
 public abstract class SimpleWindow : Window, IDisposable
 {
-    private readonly WindowManager WindowManager;
+    protected readonly WindowManager WindowManager;
 
-    protected SimpleWindow(WindowManager windowManager, string windowName)
-        : base(windowName, ImGuiWindowFlags.None, false)
+    protected SimpleWindow(WindowManager windowManager, string windowName, ImGuiWindowFlags flags = ImGuiWindowFlags.None, bool forceMainWindow = false)
+        : base(windowName, flags, forceMainWindow)
     {
         WindowManager = windowManager;
         Namespace = GetType().Name;
@@ -19,6 +19,8 @@ public abstract class SimpleWindow : Window, IDisposable
     {
         WindowManager.AddWindow(this);
         IsOpen = true;
+        Collapsed = false;
+        BringToFront();
     }
 
     public void Close()
@@ -34,11 +36,20 @@ public abstract class SimpleWindow : Window, IDisposable
             Close();
     }
 
-    public void Dispose()
+    public override void OnClose()
     {
-        Close();
-        OnClose();
         WindowManager.RemoveWindow(this);
+    }
+
+    public override void PostDraw()
+    {
+        base.PostDraw();
+        if (Collapsed != null)
+            Collapsed = null;
+    }
+
+    public virtual void Dispose()
+    {
         GC.SuppressFinalize(this);
     }
 }
