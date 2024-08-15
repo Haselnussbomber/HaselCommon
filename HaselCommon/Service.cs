@@ -5,8 +5,6 @@ using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
 using HaselCommon.Services;
 using HaselCommon.Services.Internal;
-using HaselCommon.Services.SeStringEvaluation;
-using HaselCommon.Utils;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HaselCommon;

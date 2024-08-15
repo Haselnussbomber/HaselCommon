@@ -202,5 +202,5 @@ public class TextService : IDisposable
         => TitleCasedSingularNoun("Glasses", id);
 
     private string TitleCasedSingularNoun(string sheetName, uint id)
-        => TranslationManager.CultureInfo.TextInfo.ToTitleCase(TextDecoder.ProcessNoun(TranslationManager.ClientLanguage, sheetName, 5, (int)id));
+        => TranslationManager.CultureInfo.TextInfo.ToTitleCase(TextDecoder.ProcessNoun(TranslationManager.ClientLanguage, sheetName, 5, (int)id).ExtractText());
 }

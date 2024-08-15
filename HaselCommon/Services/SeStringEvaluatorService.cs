@@ -434,7 +434,8 @@ public partial class SeStringEvaluatorService(
                         return false;
                     }
 
-                    var resolvedSheetName = Evaluate(eSheetNameStr, new SeStringContext() {
+                    var resolvedSheetName = Evaluate(eSheetNameStr, new SeStringContext()
+                    {
                         LocalParameters = context.LocalParameters,
                         Language = context.Language,
                         StripSoftHypen = context.StripSoftHypen
@@ -461,7 +462,8 @@ public partial class SeStringEvaluatorService(
                             return true;
 
                         case Lumina.Text.SeString val:
-                            context.Builder.Append(Evaluate(val, new SeStringContext() {
+                            context.Builder.Append(Evaluate(val, new SeStringContext()
+                            {
                                 LocalParameters = context.LocalParameters,
                                 Language = context.Language,
                                 StripSoftHypen = context.StripSoftHypen
