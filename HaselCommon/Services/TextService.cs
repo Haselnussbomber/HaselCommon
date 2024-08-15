@@ -98,7 +98,7 @@ public class TextService : IDisposable
     {
         // EventItem
         if (itemId is > 2_000_000)
-            return ExcelService.GetRow<EventItem>(itemId)?.Name.ExtractText() ?? $"EventItem#{itemId}";
+            return ExcelService.GetRow<EventItem>(itemId, language)?.Name.ExtractText() ?? $"EventItem#{itemId}";
 
         // HighQuality
         if (itemId is > 1_000_000 and < 2_000_000)
@@ -108,7 +108,7 @@ public class TextService : IDisposable
         if (itemId is > 500_000 and < 1_000_000)
             itemId -= 500_000;
 
-        return ExcelService.GetRow<Item>(itemId)?.Name.ExtractText() ?? $"Item#{itemId}";
+        return ExcelService.GetRow<Item>(itemId, language)?.Name.ExtractText() ?? $"Item#{itemId}";
     }
 
     public string GetQuestName(uint id)
