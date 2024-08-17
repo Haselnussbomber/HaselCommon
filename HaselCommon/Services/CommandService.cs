@@ -21,7 +21,7 @@ public class CommandService(
         GC.SuppressFinalize(this);
     }
 
-    public CommandHandler? Register(IReadOnlyCommandInfo.HandlerDelegate handler, bool enabled = true)
+    public CommandHandler? Register(IReadOnlyCommandInfo.HandlerDelegate handler, bool autoEnable = false)
     {
         var attr = handler.Method.GetCustomAttribute<CommandHandlerAttribute>()
             ?? throw new Exception($"Missing CommandHandlerAttribute on {handler.Method.Name}");
@@ -34,7 +34,7 @@ public class CommandService(
             attr.HelpMessageKey,
             attr.ShowInHelp,
             handler,
-            enabled);
+            autoEnable);
     }
 
     public CommandHandler Register(CommandHandler commandHandler)
