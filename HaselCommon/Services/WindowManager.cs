@@ -48,11 +48,18 @@ public class WindowManager : IDisposable
         return false;
     }
 
-    public T CreateOrOpen<T>(string windowName, Func<WindowManager, string, T> factory) where T : SimpleWindow
+    public T CreateOrOpen<T>(string windowName, Func<T> factory) where T : SimpleWindow
     {
         if (!TryGetWindow<T>(windowName, out var window))
-            WindowSystem.AddWindow(window = factory(this, windowName));
+            WindowSystem.AddWindow(window = factory());
 
+        window.Open();
+        return window;
+    }
+
+    public T Open<T>(T window) where T : SimpleWindow
+    {
+        WindowSystem.AddWindow(window);
         window.Open();
         return window;
     }
@@ -64,6 +71,16 @@ public class WindowManager : IDisposable
 
         WindowSystem.AddWindow(window);
         return true;
+    }
+
+    public bool Contains(string windowName)
+    {
+        return WindowSystem.Windows.Any(win => win.WindowName == windowName);
+    }
+
+    public bool Contains(Window window)
+    {
+        return WindowSystem.Windows.Contains(window);
     }
 
     public void RemoveWindow(string windowName)
