@@ -134,10 +134,10 @@ public partial class SeStringEvaluatorService(
                 return false;
 
             case TextParameterType.String:
-                return ResolveStringPayload(
-                    ref ctx,
-                    ReadOnlySePayloadSpan.FromText(MemoryMarshal.CreateReadOnlySpanFromNullTerminated(p.StringValue)));
-
+                str = new ReadOnlySeStringSpan(p.StringValue);
+                foreach (var payload in str)
+                    return ResolveStringPayload(ref ctx, payload);
+                return false;
             case TextParameterType.Uninitialized:
             default:
                 return false;
