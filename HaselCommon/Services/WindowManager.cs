@@ -89,6 +89,11 @@ public class WindowManager : IDisposable
             RemoveWindow(window);
     }
 
+    public void Close<T>() where T : SimpleWindow
+    {
+        WindowSystem.Windows.OfType<T>().ForEach(window => window.Close());
+    }
+
     public bool RemoveWindow(Window window)
     {
         if (!WindowSystem.Windows.Contains(window))
