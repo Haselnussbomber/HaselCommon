@@ -1,8 +1,11 @@
 using System.Runtime.CompilerServices;
+using System.Text;
+using Dalamud.Game;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using FFXIVClientStructs.FFXIV.Component.Text;
+using HaselCommon.Extensions;
 using HaselCommon.Services.SeStringEvaluation;
 using Lumina.Excel.GeneratedSheets;
 using Lumina.Text.Expressions;
@@ -18,12 +21,14 @@ public partial class SeStringEvaluatorService(
     IDataManager dataManager,
     ExcelService excelService,
     TranslationManager translationManager,
-    TextureService textureService)
+    TextureService textureService,
+    TextDecoder textDecoder)
 {
     private readonly IDataManager DataManager = dataManager;
     private readonly ExcelService ExcelService = excelService;
     private readonly TranslationManager TranslationManager = translationManager;
     private readonly TextureService TextureService = textureService;
+    private readonly TextDecoder TextDecoder = textDecoder;
 
     public ReadOnlySeString Evaluate(byte[] str)
         => Evaluate(str, new());
@@ -356,6 +361,12 @@ public partial class SeStringEvaluatorService(
                             eIntVal = -eIntVal;
                         }
 
+                        if (eIntVal == 0)
+                        {
+                            context.Builder.Append('0');
+                            return true;
+                        }
+
                         var anyDigitPrinted = false;
                         for (var i = 1_000_000_000; i > 0; i /= 10)
                         {
@@ -377,6 +388,21 @@ public partial class SeStringEvaluatorService(
                     }
 
                     context.Builder.Append('0');
+                    return true;
+                }
+
+            case MacroCode.Digit:
+                {
+                    if (!payload.TryGetExpression(out var eValue, out var eTargetLength))
+                        return false;
+
+                    if (!TryResolveInt(ref context, eValue, out var eValueVal))
+                        return false;
+
+                    if (!TryResolveInt(ref context, eTargetLength, out var eTargetLengthVal))
+                        return false;
+
+                    context.Builder.Append(eValueVal.ToString($"{new string('0', eTargetLengthVal)}"));
                     return true;
                 }
 
@@ -434,12 +460,7 @@ public partial class SeStringEvaluatorService(
                         return false;
                     }
 
-                    var resolvedSheetName = Evaluate(eSheetNameStr, new SeStringContext()
-                    {
-                        LocalParameters = context.LocalParameters,
-                        Language = context.Language,
-                        StripSoftHypen = context.StripSoftHypen
-                    }).ExtractText();
+                    var resolvedSheetName = Evaluate(eSheetNameStr, context with { Builder = new() }).ExtractText();
 
                     var sheet = DataManager.Excel.GetSheetRaw(resolvedSheetName, (context.Language ?? TranslationManager.ClientLanguage).ToLumina());
                     if (sheet == null)
@@ -457,10 +478,6 @@ public partial class SeStringEvaluatorService(
 
                     switch (column)
                     {
-                        case bool val:
-                            context.Builder.Append(val ? "true"u8 : "false"u8);
-                            return true;
-
                         case Lumina.Text.SeString val:
                             context.Builder.Append(Evaluate(val, new SeStringContext()
                             {
@@ -468,6 +485,34 @@ public partial class SeStringEvaluatorService(
                                 Language = context.Language,
                                 StripSoftHypen = context.StripSoftHypen
                             }));
+                            return true;
+
+                        case bool val:
+                            context.Builder.BeginMacro(MacroCode.Num).AppendUIntExpression(val ? 1u : 0).EndMacro();
+                            return true;
+
+                        case sbyte val:
+                            context.Builder.BeginMacro(MacroCode.Num).AppendIntExpression(val).EndMacro();
+                            return true;
+
+                        case byte val:
+                            context.Builder.BeginMacro(MacroCode.Num).AppendUIntExpression(val).EndMacro();
+                            return true;
+
+                        case short val:
+                            context.Builder.BeginMacro(MacroCode.Num).AppendIntExpression(val).EndMacro();
+                            return true;
+
+                        case ushort val:
+                            context.Builder.BeginMacro(MacroCode.Num).AppendUIntExpression(val).EndMacro();
+                            return true;
+
+                        case int val:
+                            context.Builder.BeginMacro(MacroCode.Num).AppendIntExpression(val).EndMacro();
+                            return true;
+
+                        case uint val:
+                            context.Builder.BeginMacro(MacroCode.Num).AppendUIntExpression(val).EndMacro();
                             return true;
 
                         case { } val:
@@ -480,6 +525,70 @@ public partial class SeStringEvaluatorService(
 
             case MacroCode.String:
                 return payload.TryGetExpression(out var eStr) && ResolveStringExpression(ref context, eStr);
+
+            case MacroCode.Head:
+                {
+                    if (!payload.TryGetExpression(out eStr))
+                        return false;
+
+                    var headContext = context with { Builder = new() };
+
+                    if (!ResolveStringExpression(ref headContext, eStr))
+                        return false;
+
+                    var str = headContext.Builder.ToReadOnlySeString();
+                    var pIdx = 0;
+
+                    foreach (var p in str)
+                    {
+                        pIdx++;
+
+                        if (p.Type == ReadOnlySePayloadType.Invalid)
+                            continue;
+
+                        if (pIdx == 1 && p.Type == ReadOnlySePayloadType.Text)
+                        {
+                            context.Builder.Append(Encoding.UTF8.GetString(p.Body.ToArray()).FirstCharToUpper());
+                            continue;
+                        }
+
+                        context.Builder.Append(p);
+                    }
+
+                    return true;
+                }
+
+            case MacroCode.HeadAll:
+                {
+                    if (!payload.TryGetExpression(out eStr))
+                        return false;
+
+                    var headContext = context with { Builder = new() };
+
+                    if (!ResolveStringExpression(ref headContext, eStr))
+                        return false;
+
+                    var str = headContext.Builder.ToReadOnlySeString();
+
+                    foreach (var p in str)
+                    {
+                        if (p.Type == ReadOnlySePayloadType.Invalid)
+                            continue;
+
+                        if (p.Type == ReadOnlySePayloadType.Text)
+                        {
+                            var cultureInfo = TranslationManager.ClientLanguage == context.Language
+                                ? TranslationManager.CultureInfo
+                                : TranslationManager.GetCultureInfoFromLangCode((context.Language ?? ClientLanguage.English).ToCode());
+                            context.Builder.Append(cultureInfo.TextInfo.ToTitleCase(Encoding.UTF8.GetString(p.Body.ToArray())));
+                            continue;
+                        }
+
+                        context.Builder.Append(p);
+                    }
+
+                    return true;
+                }
 
             case MacroCode.ColorType:
                 {
@@ -558,6 +667,18 @@ invalidLevelPos:
                     static uint ConvertRawToMapPosY(Map map, float y)
                         => ConvertRawToMapPos(map, map.OffsetY, y);
                 }
+
+            case MacroCode.JaNoun:
+                return TryResolveNoun(ClientLanguage.Japanese, ref context, ref payload);
+
+            case MacroCode.EnNoun:
+                return TryResolveNoun(ClientLanguage.English, ref context, ref payload);
+
+            case MacroCode.DeNoun:
+                return TryResolveNoun(ClientLanguage.German, ref context, ref payload);
+
+            case MacroCode.FrNoun:
+                return TryResolveNoun(ClientLanguage.French, ref context, ref payload);
 
             default:
                 context.Builder.Append(payload);
@@ -684,6 +805,21 @@ invalidLevelPos:
             }
         }
 
+        if (expression.TryGetString(out var str))
+        {
+            var evaluatedStr = Evaluate(str, context with { Builder = new() });
+            
+            foreach (var payload in evaluatedStr)
+            {
+                if (!payload.TryGetExpression(out var expr))
+                    return false;
+
+                return TryResolveUInt(ref context, expr, out value);
+            }
+
+            return false;
+        }
+
         return false;
     }
 
@@ -774,6 +910,64 @@ invalidLevelPos:
             return false;
 
         ctx.Builder.Append(((int)u32).ToString());
+        return true;
+    }
+
+    private bool TryResolveNoun(ClientLanguage language, ref SeStringContext context, ref ReadOnlySePayloadSpan payload)
+    {
+        var eAmountVal = 1;
+        var eCaseVal = 1;
+        var eUnkInt5Val = 1;
+
+        var enu = payload.GetEnumerator();
+        if (!enu.MoveNext())
+            return false;
+
+        var eSheetName = enu.Current;
+
+        if (!eSheetName.TryGetString(out var eSheetNameStr))
+            return false;
+
+        var resolvedSheetName = Evaluate(eSheetNameStr, context with { Builder = new() }).ExtractText();
+
+        if (!enu.MoveNext())
+            return false;
+
+        var ePerson = enu.Current;
+        if (!TryResolveInt(ref context, ePerson, out var ePersonVal))
+            return false;
+
+        if (!enu.MoveNext())
+            return false;
+
+        var eRowId = enu.Current;
+        if (!TryResolveInt(ref context, eRowId, out var eRowIdVal))
+            return false;
+
+        if (!enu.MoveNext())
+            goto decode;
+
+        var eAmount = enu.Current;
+        if (!TryResolveInt(ref context, eAmount, out eAmountVal))
+            return false;
+
+        if (!enu.MoveNext())
+            goto decode;
+
+        var eCase = enu.Current;
+        if (!TryResolveInt(ref context, eCase, out eCaseVal))
+            return false;
+
+        if (!enu.MoveNext())
+            goto decode;
+
+        var eUnkInt5 = enu.Current;
+        if (!TryResolveInt(ref context, eUnkInt5, out eUnkInt5Val))
+            return false;
+
+decode:
+        context.Builder.Append(TextDecoder.ProcessNoun(language, resolvedSheetName, ePersonVal, eRowIdVal, eAmountVal, eCaseVal, eUnkInt5Val));
+
         return true;
     }
 }

@@ -75,7 +75,7 @@ public class TranslationManager : IDisposable
     }
 
     /// copied from <see cref="Dalamud.Localization.GetCultureInfoFromLangCode"/>
-    private static CultureInfo GetCultureInfoFromLangCode(string langCode) =>
+    public static CultureInfo GetCultureInfoFromLangCode(string langCode) =>
         CultureInfo.GetCultureInfo(langCode switch
         {
             "tw" => "zh-hant",

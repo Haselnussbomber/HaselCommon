@@ -21,7 +21,7 @@ public struct SeStringContext
     {
         if (LocalParameters.Length > index && LocalParameters[index] is SeStringParameter { } val)
         {
-            value = val.AsUInt();
+            value = val.UIntValue;
             return true;
         }
 
@@ -33,7 +33,7 @@ public struct SeStringContext
     {
         if (LocalParameters.Length > index && LocalParameters[index] is SeStringParameter { } val)
         {
-            value = val.AsString();
+            value = val.StringValue;
             return true;
         }
 

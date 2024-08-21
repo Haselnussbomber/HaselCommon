@@ -5,49 +5,62 @@ namespace HaselCommon.Services.SeStringEvaluation;
 
 public struct SeStringParameter
 {
-    private readonly uint? val = null;
-    private bool isString;
+    private uint? num = null;
     private ReadOnlySeString? str = null;
 
-    public uint AsUInt()
+    public bool IsString { get; private set; }
+
+    public uint UIntValue
     {
-        if (!isString)
-            return val ?? 0;
+        get
+        {
+            if (!IsString)
+                return num ?? 0;
 
-        var text = (str ?? new()).ExtractText();
-        if (string.IsNullOrWhiteSpace(text) || !uint.TryParse(text, out var value))
-            return 0;
+            var text = (str ?? new()).ExtractText();
+            if (string.IsNullOrWhiteSpace(text) || !uint.TryParse(text, out var value))
+                return 0;
 
-        return value;
+            return value;
+        }
+        set
+        {
+            num = value;
+            str = null;
+            IsString = false;
+        }
     }
 
-    public ReadOnlySeString AsString()
+    public ReadOnlySeString StringValue
     {
-        if (!isString && str == null)
+        get
         {
-            str = new SeStringBuilder().Append(val.ToString()).ToReadOnlySeString();
-            isString = true;
-        }
+            if (!IsString && num != null)
+                return new SeStringBuilder().Append((num ?? 0).ToString()).ToReadOnlySeString();
 
-        return str ?? new();
+            return str ?? new();
+        }
+        set
+        {
+            num = null;
+            str = value;
+            IsString = true;
+        }
     }
 
     public SeStringParameter(uint value)
     {
-        isString = false;
-        val = value;
+        UIntValue = value;
     }
 
     public SeStringParameter(ReadOnlySeString value)
     {
-        isString = true;
-        str = value;
+        StringValue = value;
     }
 
     public SeStringParameter(string value)
     {
-        isString = true;
-        str = new SeStringBuilder().Append(value).ToReadOnlySeString();
+        StringValue = new SeStringBuilder().Append(value).ToReadOnlySeString();
     }
 
     public static implicit operator SeStringParameter(int value)
