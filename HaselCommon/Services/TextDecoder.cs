@@ -55,25 +55,25 @@ public class TextDecoder(ILogger<TextDecoder> Logger, IDataManager DataManager)
 
     // <XXnoun(SheetName,Person,RowId,Amount,Case[,UnkInt5])>
     // UnkInt5 seems unused in En/Fr/De/Ja, so it's ignored for now
-    public ReadOnlySeString ProcessNoun(ClientLanguage language, string SheetName, int Person, int RowId, int Amount = 1, int Case = 1, int UnkInt5 = 1)
+    public ReadOnlySeString ProcessNoun(ClientLanguage Language, string SheetName, int Person, int RowId, int Amount = 1, int Case = 1, int UnkInt5 = 1)
     {
         Case--;
 
-        if (Case > 5 || (language != ClientLanguage.German && Case != 0))
+        if (Case > 5 || (Language != ClientLanguage.German && Case != 0))
             return Empty;
 
-        var key = (language, SheetName, RowId, Amount, Person, Case);
+        var key = (Language, SheetName, RowId, Amount, Person, Case);
         if (Cache.TryGetValue(key, out var value))
             return value;
 
-        var attributiveSheet = DataManager.GameData.Excel.GetSheetRaw("Attributive", language.ToLumina());
+        var attributiveSheet = DataManager.GameData.Excel.GetSheetRaw("Attributive", Language.ToLumina());
         if (attributiveSheet == null)
         {
             Logger.LogWarning("Sheet Attributive not found");
             return Empty;
         }
 
-        var sheet = DataManager.GameData.Excel.GetSheetRaw(SheetName, language.ToLumina());
+        var sheet = DataManager.GameData.Excel.GetSheetRaw(SheetName, Language.ToLumina());
         if (sheet == null)
         {
             Logger.LogWarning("Sheet {SheetName} not found", SheetName);
@@ -98,7 +98,7 @@ public class TextDecoder(ILogger<TextDecoder> Logger, IDataManager DataManager)
             _ => 0
         };
 
-        var output = language switch
+        var output = Language switch
         {
             ClientLanguage.Japanese => ResolveNounJa(Amount, Person, attributiveSheet, row),
             ClientLanguage.English => ResolveNounEn(Amount, Person, attributiveSheet, row, columnOffset),

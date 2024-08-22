@@ -452,14 +452,37 @@ public partial class SeStringEvaluatorService(
 
             case MacroCode.Sheet:
                 {
-                    if (!payload.TryGetExpression(out var eSheetName, out var eRowId, out var eColIndex)
-                        || !TryResolveUInt(ref context, eRowId, out var eRowIdValue)
-                        || !TryResolveUInt(ref context, eColIndex, out var eColIndexValue)
-                        || !eSheetName.TryGetString(out var eSheetNameStr))
-                    {
-                        return false;
-                    }
+                    var eColParamValue = 0u;
 
+                    var enu = payload.GetEnumerator();
+                    if (!enu.MoveNext())
+                        return false;
+
+                    var eSheetName = enu.Current;
+                    if (!eSheetName.TryGetString(out var eSheetNameStr))
+                        return false;
+
+                    if (!enu.MoveNext())
+                        return false;
+
+                    var eRowId = enu.Current;
+                    if (!TryResolveUInt(ref context, eRowId, out var eRowIdValue))
+                        return false;
+
+                    if (!enu.MoveNext())
+                        return false;
+
+                    var eColIndex = enu.Current;
+                    if (!TryResolveUInt(ref context, eColIndex, out var eColIndexValue))
+                        return false;
+
+                    if (!enu.MoveNext())
+                        goto processSheet;
+
+                    if (!TryResolveUInt(ref context, enu.Current, out eColParamValue))
+                        return false;
+
+                    processSheet:
                     var resolvedSheetName = Evaluate(eSheetNameStr, context with { Builder = new() }).ExtractText();
 
                     var sheet = DataManager.Excel.GetSheetRaw(resolvedSheetName, (context.Language ?? TranslationManager.ClientLanguage).ToLumina());
@@ -479,7 +502,7 @@ public partial class SeStringEvaluatorService(
                     switch (column)
                     {
                         case Lumina.Text.SeString val:
-                            context.Builder.Append(Evaluate(val, context with { Builder = new() }));
+                            context.Builder.Append(Evaluate(val, context with { Builder = new(), LocalParameters = [eColParamValue] }));
                             return true;
 
                         case bool val:
