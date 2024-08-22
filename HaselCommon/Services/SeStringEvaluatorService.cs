@@ -479,12 +479,7 @@ public partial class SeStringEvaluatorService(
                     switch (column)
                     {
                         case Lumina.Text.SeString val:
-                            context.Builder.Append(Evaluate(val, new SeStringContext()
-                            {
-                                LocalParameters = context.LocalParameters,
-                                Language = context.Language,
-                                StripSoftHypen = context.StripSoftHypen
-                            }));
+                            context.Builder.Append(Evaluate(val, context with { Builder = new() }));
                             return true;
 
                         case bool val:
