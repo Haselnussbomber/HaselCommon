@@ -505,6 +505,8 @@ public partial class SeStringEvaluatorService(
                             context.Builder.Append(Evaluate(val, context with { Builder = new(), LocalParameters = [eColParamValue] }));
                             return true;
 
+                        // TODO: these should be strings. see Client::UI::Misc::RaptureTextModule___Component::Text::MacroDecoder_vf32 into Component::Text::TextModule_vf15
+                        // need to parse the raw number string then in TryResolveUInt
                         case bool val:
                             context.Builder.BeginMacro(MacroCode.Num).AppendUIntExpression(val ? 1u : 0).EndMacro();
                             return true;
