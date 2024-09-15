@@ -5,7 +5,7 @@ namespace HaselCommon.Logger;
 
 public class DalamudLogger(string name, IPluginLog pluginLog) : ILogger
 {
-    public IDisposable? BeginScope<TState>(TState state) where TState : notnull => default!;
+    public IDisposable? BeginScope<TState>(TState state) where TState : notnull => default;
     public bool IsEnabled(LogLevel logLevel) => true;
 
     public void Log<TState>(
@@ -15,6 +15,9 @@ public class DalamudLogger(string name, IPluginLog pluginLog) : ILogger
         Exception? exception,
         Func<TState, Exception?, string> formatter)
     {
+        if (!IsEnabled(logLevel))
+            return;
+
         var message = $"[{name}] {formatter(state, exception)}";
 
         switch (logLevel)
