@@ -29,14 +29,31 @@ public class TextureService(ITextureProvider TextureProvider, IDataManager DataM
 
     public void Draw(string path, DrawInfo drawInfo)
     {
+        if (drawInfo.DrawSize.HasValue && !ImGuiUtils.IsInViewport(drawInfo.DrawSize.Value))
+        {
+            ImGui.Dummy(drawInfo.DrawSize.Value);
+            return;
+        }
+
         var textureWrap = TextureProvider.GetFromGame(path).GetWrapOrEmpty();
         Draw(textureWrap, drawInfo);
     }
 
     public void DrawIcon(GameIconLookup gameIconLookup, DrawInfo drawInfo)
     {
-        var textureWrap = TextureProvider.GetFromGameIcon(gameIconLookup).GetWrapOrEmpty();
-        Draw(textureWrap, drawInfo);
+        if (drawInfo.DrawSize.HasValue && !ImGuiUtils.IsInViewport(drawInfo.DrawSize.Value))
+        {
+            ImGui.Dummy(drawInfo.DrawSize.Value);
+            return;
+        }
+
+        if (!TextureProvider.TryGetFromGameIcon(gameIconLookup, out var texture))
+        {
+            ImGui.Dummy(Vector2.Zero);
+            return;
+        }
+
+        Draw(texture.GetWrapOrEmpty(), drawInfo);
     }
 
     public void DrawIcon(int iconId, bool isHq, DrawInfo drawInfo)
@@ -182,13 +199,6 @@ public class TextureService(ITextureProvider TextureProvider, IDataManager DataM
         }
 
         var size = drawInfo.DrawSize ?? textureWrap.Size;
-
-        if (!ImGuiUtils.IsInViewport(size))
-        {
-            ImGui.Dummy(size);
-            return;
-        }
-
         var uv0 = drawInfo.Uv0 ?? Vector2.Zero;
         var uv1 = drawInfo.Uv1 ?? Vector2.One;
 
