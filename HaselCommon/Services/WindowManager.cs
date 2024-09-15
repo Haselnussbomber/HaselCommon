@@ -99,9 +99,6 @@ public class WindowManager : IDisposable
         if (!WindowSystem.Windows.Contains(window))
             return false;
 
-        if (window is IDisposable disposeWindow)
-            disposeWindow.Dispose();
-
         WindowSystem.RemoveWindow(window);
         return true;
     }
