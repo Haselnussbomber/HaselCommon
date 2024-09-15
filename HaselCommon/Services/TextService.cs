@@ -13,7 +13,6 @@ using HaselCommon.Utils;
 using ImGuiNET;
 using Lumina.Excel.GeneratedSheets;
 using Microsoft.Extensions.Logging;
-using R3;
 using ActionSheet = Lumina.Excel.GeneratedSheets.Action;
 
 namespace HaselCommon.Services;
@@ -26,9 +25,11 @@ public class TextService : IDisposable
     private readonly ExcelService _excelService;
     private readonly TextDecoder _textDecoder;
 
-    public ReactiveProperty<CultureInfo> CultureInfo { get; init; }
-    public ReactiveProperty<ClientLanguage> ClientLanguage { get; init; }
-    public ReactiveProperty<string> LanguageCode { get; init; }
+    public CultureInfo CultureInfo { get; private set; }
+    public ClientLanguage ClientLanguage { get; private set; }
+    public string LanguageCode { get; private set; }
+
+    public event Action<string>? LanguageChanged;
 
     public TextService(
         ILogger<TextService> logger,
@@ -44,9 +45,9 @@ public class TextService : IDisposable
         LoadEmbeddedResource(GetType().Assembly, "HaselCommon.Translations.json");
         LoadEmbeddedResource(Service.PluginAssembly, $"{_pluginInterface.InternalName}.Translations.json");
 
-        LanguageCode = new(_pluginInterface.UiLanguage);
-        ClientLanguage = new(_pluginInterface.UiLanguage.ToClientlanguage());
-        CultureInfo = new(GetCultureInfoFromLangCode(LanguageCode.Value));
+        LanguageCode = _pluginInterface.UiLanguage;
+        ClientLanguage = _pluginInterface.UiLanguage.ToClientlanguage();
+        CultureInfo = GetCultureInfoFromLangCode(LanguageCode);
 
         _pluginInterface.LanguageChanged += PluginInterface_LanguageChanged;
     }
@@ -54,7 +55,6 @@ public class TextService : IDisposable
     public void Dispose()
     {
         _pluginInterface.LanguageChanged -= PluginInterface_LanguageChanged;
-        Disposable.Dispose(CultureInfo, ClientLanguage, LanguageCode);
         GC.SuppressFinalize(this);
     }
 
@@ -78,15 +78,16 @@ public class TextService : IDisposable
 
     private void PluginInterface_LanguageChanged(string langCode)
     {
-        LanguageCode.Value = _pluginInterface.UiLanguage;
-        ClientLanguage.Value = _pluginInterface.UiLanguage.ToClientlanguage();
-        CultureInfo.Value = GetCultureInfoFromLangCode(LanguageCode.Value);
+        LanguageCode = _pluginInterface.UiLanguage;
+        ClientLanguage = _pluginInterface.UiLanguage.ToClientlanguage();
+        CultureInfo = GetCultureInfoFromLangCode(LanguageCode);
+        LanguageChanged?.Invoke(LanguageCode);
     }
 
     /// copied from <see cref="Dalamud.Localization.GetCultureInfoFromLangCode"/>
     public static CultureInfo GetCultureInfoFromLangCode(string langCode)
     {
-        return System.Globalization.CultureInfo.GetCultureInfo(langCode switch
+        return CultureInfo.GetCultureInfo(langCode switch
         {
             "tw" => "zh-hant",
             "zh" => "zh-hans",
@@ -97,14 +98,14 @@ public class TextService : IDisposable
     public bool TryGetTranslation(string key, [MaybeNullWhen(false)] out string text)
     {
         text = default;
-        return _translations.TryGetValue(key, out var entry) && (entry.TryGetValue(LanguageCode.Value, out text) || entry.TryGetValue("en", out text));
+        return _translations.TryGetValue(key, out var entry) && (entry.TryGetValue(LanguageCode, out text) || entry.TryGetValue("en", out text));
     }
 
     public string Translate(string key)
         => TryGetTranslation(key, out var text) ? text : key;
 
     public string Translate(string key, params object?[] args)
-        => TryGetTranslation(key, out var text) ? string.Format(CultureInfo.Value, text, args) : key;
+        => TryGetTranslation(key, out var text) ? string.Format(CultureInfo, text, args) : key;
 
     public SeString TranslateSeString(string key, params IEnumerable<Payload>[] args)
     {
@@ -286,5 +287,5 @@ public class TextService : IDisposable
         => TitleCasedSingularNoun("Glasses", id);
 
     private string TitleCasedSingularNoun(string sheetName, uint id)
-        => CultureInfo.Value.TextInfo.ToTitleCase(_textDecoder.ProcessNoun(ClientLanguage.Value, sheetName, 5, (int)id).ExtractText());
+        => CultureInfo.TextInfo.ToTitleCase(_textDecoder.ProcessNoun(ClientLanguage, sheetName, 5, (int)id).ExtractText());
 }

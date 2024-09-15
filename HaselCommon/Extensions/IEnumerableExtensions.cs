@@ -24,7 +24,7 @@ public static partial class IEnumerableExtensions
     {
         var results = new PriorityQueue<T, int>(values.Count(), new ReverseComparer<int>());
 
-        cultureInfo ??= Service.Get<TextService>().CultureInfo.Value;
+        cultureInfo ??= Service.Get<TextService>().CultureInfo;
 
         foreach (var value in values)
         {

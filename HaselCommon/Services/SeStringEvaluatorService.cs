@@ -48,7 +48,7 @@ public partial class SeStringEvaluatorService(
 
     public ReadOnlySeString Evaluate(ReadOnlySeStringSpan str, SeStringContext context)
     {
-        context.Language ??= TextService.ClientLanguage.Value;
+        context.Language ??= TextService.ClientLanguage;
 
         foreach (var payload in str)
             ResolveStringPayload(ref context, payload);
@@ -58,7 +58,7 @@ public partial class SeStringEvaluatorService(
 
     public ReadOnlySeString EvaluateFromAddon(uint addonId, SeStringContext context)
     {
-        context.Language ??= TextService.ClientLanguage.Value;
+        context.Language ??= TextService.ClientLanguage;
 
         var addonRow = ExcelService.GetRow<Addon>(addonId, context.Language);
         if (addonRow == null)
@@ -486,7 +486,7 @@ public partial class SeStringEvaluatorService(
 processSheet:
                     var resolvedSheetName = Evaluate(eSheetNameStr, context with { Builder = new() }).ExtractText();
 
-                    var sheet = DataManager.Excel.GetSheetRaw(resolvedSheetName, (context.Language ?? TextService.ClientLanguage.Value).ToLumina());
+                    var sheet = DataManager.Excel.GetSheetRaw(resolvedSheetName, (context.Language ?? TextService.ClientLanguage).ToLumina());
                     if (sheet == null)
                         return false;
 
@@ -598,8 +598,8 @@ processSheet:
 
                         if (p.Type == ReadOnlySePayloadType.Text)
                         {
-                            var cultureInfo = TextService.ClientLanguage.Value == context.Language
-                                ? TextService.CultureInfo.Value
+                            var cultureInfo = TextService.ClientLanguage == context.Language
+                                ? TextService.CultureInfo
                                 : TextService.GetCultureInfoFromLangCode((context.Language ?? ClientLanguage.English).ToCode());
                             context.Builder.Append(cultureInfo.TextInfo.ToTitleCase(Encoding.UTF8.GetString(p.Body.ToArray())));
                             continue;

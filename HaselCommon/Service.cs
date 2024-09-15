@@ -3,9 +3,13 @@ using Dalamud.Game;
 using Dalamud.Game.ClientState.Objects;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
+using HaselCommon.Events;
+using HaselCommon.Logger;
 using HaselCommon.Services;
+using HaselCommon.Services.Events;
 using HaselCommon.Services.Internal;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace HaselCommon;
 
@@ -17,7 +21,10 @@ public static class Service
     public static ServiceProvider? Provider { get; private set; }
 
     public static void BuildProvider()
-        => Provider = Collection.BuildServiceProvider();
+    {
+        Provider = Collection.BuildServiceProvider();
+        Provider.GetRequiredService<DalamudEvents>();
+    }
 
     public static void Dispose()
         => Provider?.Dispose();
@@ -25,20 +32,20 @@ public static class Service
     public static T Get<T>() where T : notnull
         => Provider!.GetRequiredService<T>();
 
-    public static IServiceCollection Initialize(IDalamudPluginInterface pluginInterface)
+    public static IServiceCollection Initialize(IDalamudPluginInterface pluginInterface, IPluginLog pluginLog)
     {
         PluginAssembly = Assembly.GetCallingAssembly();
-        AddDefaultServices(pluginInterface);
+        AddDefaultServices(pluginInterface, pluginLog);
         return Collection;
     }
 
-    private static void AddDefaultServices(IDalamudPluginInterface pi)
+    private static void AddDefaultServices(IDalamudPluginInterface pluginInterface, IPluginLog pluginLog)
     {
-        T DalamudServiceFactory<T>(IServiceProvider serviceProvider) => new DalamudServiceWrapper<T>(pi).Service;
+        T DalamudServiceFactory<T>(IServiceProvider serviceProvider) => new DalamudServiceWrapper<T>(pluginInterface).Service;
 
         Collection
             // Dalamud
-            .AddSingleton(pi)
+            .AddSingleton(pluginInterface)
             .AddSingleton(DalamudServiceFactory<IAddonEventManager>)
             .AddSingleton(DalamudServiceFactory<IAddonLifecycle>)
             .AddSingleton(DalamudServiceFactory<IAetheryteList>)
@@ -77,7 +84,24 @@ public static class Service
             .AddSingleton(DalamudServiceFactory<ITitleScreenMenu>)
             .AddSingleton(DalamudServiceFactory<IToastGui>)
 
+            // Logger
+            .AddLogging(builder =>
+            {
+                builder.ClearProviders();
+                builder.SetMinimumLevel(LogLevel.Trace);
+                builder.AddProvider(new DalamudLoggerProvider(pluginLog));
+            })
+
+            // HaselCommon internal
+            .AddSingleton<DalamudEvents>()
+            .AddSingleton<ClientStateEventEmitter>()
+            .AddSingleton<ConditionEventEmitter>()
+            .AddSingleton<GameObjectManager>()
+
             // HaselCommon
+            .AddSingleton<EventDispatcher>()
+            .AddSingleton<IEventEmitter, EventEmitter>()
+            .AddTransient<IEventController, EventController>()
             .AddSingleton<AddonObserver>()
             .AddSingleton<CommandService>()
             .AddSingleton<ExcelService>()
@@ -93,7 +117,6 @@ public static class Service
             .AddSingleton<TextDecoder>()
             .AddSingleton<TextService>()
             .AddSingleton<TextureService>()
-            .AddSingleton<TranslationManager>()
             .AddSingleton<WindowManager>()
             .AddSingleton<SeStringEvaluatorService>();
     }

@@ -8,7 +8,7 @@ namespace HaselCommon.Services;
 public class ExcelService(IDataManager DataManager, TextService TextService)
 {
     public ExcelSheet<T> GetSheet<T>(ClientLanguage? language = null) where T : ExcelRow
-        => DataManager.GetExcelSheet<T>(language ?? TextService.ClientLanguage.Value)!;
+        => DataManager.GetExcelSheet<T>(language ?? TextService.ClientLanguage)!;
 
     public uint GetRowCount<T>() where T : ExcelRow
         => GetSheet<T>().RowCount;

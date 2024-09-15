@@ -1,7 +1,6 @@
 using Dalamud.Game.Command;
 using Dalamud.Plugin.Services;
 using HaselCommon.Services;
-using R3;
 
 namespace HaselCommon.Commands;
 
@@ -17,8 +16,6 @@ public class CommandHandler : IDisposable
     public string HelpMessageKey { get; init; }
     public bool ShowInHelp { get; init; }
     public IReadOnlyCommandInfo.HandlerDelegate Handler { get; init; }
-
-    private readonly IDisposable OnLanguageChangedSubscription;
 
     public bool IsEnabled { get; private set; }
 
@@ -41,7 +38,7 @@ public class CommandHandler : IDisposable
         ShowInHelp = showInHelp;
         Handler = handler;
 
-        OnLanguageChangedSubscription = TextService.LanguageCode.Subscribe(OnLanguageChanged);
+        TextService.LanguageChanged += OnLanguageChanged;
 
         CommandService.Register(this);
 
@@ -52,7 +49,7 @@ public class CommandHandler : IDisposable
     {
         if (IsDisposed) return;
 
-        OnLanguageChangedSubscription.Dispose();
+        TextService.LanguageChanged -= OnLanguageChanged;
 
         SetEnabled(false);
         CommandService.Unregister(this);
