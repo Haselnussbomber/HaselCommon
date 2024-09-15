@@ -1,6 +1,7 @@
 using Dalamud.Game.Command;
 using Dalamud.Plugin.Services;
 using HaselCommon.Services;
+using R3;
 
 namespace HaselCommon.Commands;
 
@@ -8,7 +9,7 @@ public class CommandHandler : IDisposable
 {
     private readonly CommandService CommandService;
     private readonly ICommandManager DalamudCommandManager;
-    private readonly TranslationManager TranslationManager;
+    private readonly TextService TextService;
     private CommandInfo? CommandInfo;
     private bool IsDisposed;
 
@@ -16,12 +17,15 @@ public class CommandHandler : IDisposable
     public string HelpMessageKey { get; init; }
     public bool ShowInHelp { get; init; }
     public IReadOnlyCommandInfo.HandlerDelegate Handler { get; init; }
+
+    private readonly IDisposable OnLanguageChangedSubscription;
+
     public bool IsEnabled { get; private set; }
 
     public CommandHandler(
         CommandService commandService,
         ICommandManager dalamudCommandManager,
-        TranslationManager translationManager,
+        TextService textService,
         string command,
         string helpMessageKey,
         bool showInHelp,
@@ -30,14 +34,14 @@ public class CommandHandler : IDisposable
     {
         CommandService = commandService;
         DalamudCommandManager = dalamudCommandManager;
-        TranslationManager = translationManager;
+        TextService = textService;
 
         Command = command;
         HelpMessageKey = helpMessageKey;
         ShowInHelp = showInHelp;
         Handler = handler;
 
-        TranslationManager.LanguageChanged += TranslationManager_LanguageChanged;
+        OnLanguageChangedSubscription = TextService.LanguageCode.Subscribe(OnLanguageChanged);
 
         CommandService.Register(this);
 
@@ -48,7 +52,7 @@ public class CommandHandler : IDisposable
     {
         if (IsDisposed) return;
 
-        TranslationManager.LanguageChanged -= TranslationManager_LanguageChanged;
+        OnLanguageChangedSubscription.Dispose();
 
         SetEnabled(false);
         CommandService.Unregister(this);
@@ -57,12 +61,12 @@ public class CommandHandler : IDisposable
         GC.SuppressFinalize(this);
     }
 
-    private void TranslationManager_LanguageChanged(string langCode)
+    private void OnLanguageChanged(string langCode)
     {
         if (CommandInfo == null || string.IsNullOrEmpty(HelpMessageKey))
             return;
 
-        CommandInfo.HelpMessage = TranslationManager.Translate(HelpMessageKey);
+        CommandInfo.HelpMessage = TextService.Translate(HelpMessageKey);
     }
 
     public void SetEnabled(bool enabled)
@@ -73,7 +77,7 @@ public class CommandHandler : IDisposable
         {
             DalamudCommandManager.AddHandler(Command, CommandInfo = new CommandInfo(Handler)
             {
-                HelpMessage = !string.IsNullOrEmpty(HelpMessageKey) ? TranslationManager.Translate(HelpMessageKey) : string.Empty,
+                HelpMessage = !string.IsNullOrEmpty(HelpMessageKey) ? TextService.Translate(HelpMessageKey) : string.Empty,
                 ShowInHelp = ShowInHelp,
             });
 

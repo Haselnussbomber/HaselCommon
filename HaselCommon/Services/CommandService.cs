@@ -11,7 +11,7 @@ namespace HaselCommon.Services;
 public class CommandService(
     ILogger<CommandService> Logger,
     ICommandManager CommandManager,
-    TranslationManager TranslationManager) : IDisposable
+    TextService TextService) : IDisposable
 {
     private readonly Dictionary<string, CommandHandler> CommandHandlers = [];
 
@@ -29,7 +29,7 @@ public class CommandService(
         return new CommandHandler(
             this,
             CommandManager,
-            TranslationManager,
+            TextService,
             attr.Command,
             attr.HelpMessageKey,
             attr.ShowInHelp,

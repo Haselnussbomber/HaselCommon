@@ -5,10 +5,10 @@ using Lumina.Excel;
 
 namespace HaselCommon.Services;
 
-public class ExcelService(IDataManager DataManager, TranslationManager TranslationManager)
+public class ExcelService(IDataManager DataManager, TextService TextService)
 {
     public ExcelSheet<T> GetSheet<T>(ClientLanguage? language = null) where T : ExcelRow
-        => DataManager.GetExcelSheet<T>(language ?? TranslationManager.ClientLanguage)!;
+        => DataManager.GetExcelSheet<T>(language ?? TextService.ClientLanguage.Value)!;
 
     public uint GetRowCount<T>() where T : ExcelRow
         => GetSheet<T>().RowCount;

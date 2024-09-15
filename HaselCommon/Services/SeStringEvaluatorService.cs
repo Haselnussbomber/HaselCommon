@@ -8,6 +8,7 @@ using FFXIVClientStructs.FFXIV.Component.Text;
 using HaselCommon.Extensions;
 using HaselCommon.Services.SeStringEvaluation;
 using Lumina.Excel.GeneratedSheets;
+using Lumina.Text;
 using Lumina.Text.Expressions;
 using Lumina.Text.Payloads;
 using Lumina.Text.ReadOnly;
@@ -20,13 +21,13 @@ public partial class SeStringEvaluatorService(
     ILogger<SeStringEvaluatorService> Logger,
     IDataManager dataManager,
     ExcelService excelService,
-    TranslationManager translationManager,
+    TextService textService,
     TextureService textureService,
     TextDecoder textDecoder)
 {
     private readonly IDataManager DataManager = dataManager;
     private readonly ExcelService ExcelService = excelService;
-    private readonly TranslationManager TranslationManager = translationManager;
+    private readonly TextService TextService = textService;
     private readonly TextureService TextureService = textureService;
     private readonly TextDecoder TextDecoder = textDecoder;
 
@@ -47,7 +48,7 @@ public partial class SeStringEvaluatorService(
 
     public ReadOnlySeString Evaluate(ReadOnlySeStringSpan str, SeStringContext context)
     {
-        context.Language ??= TranslationManager.ClientLanguage;
+        context.Language ??= TextService.ClientLanguage.Value;
 
         foreach (var payload in str)
             ResolveStringPayload(ref context, payload);
@@ -57,7 +58,7 @@ public partial class SeStringEvaluatorService(
 
     public ReadOnlySeString EvaluateFromAddon(uint addonId, SeStringContext context)
     {
-        context.Language ??= TranslationManager.ClientLanguage;
+        context.Language ??= TextService.ClientLanguage.Value;
 
         var addonRow = ExcelService.GetRow<Addon>(addonId, context.Language);
         if (addonRow == null)
@@ -482,10 +483,10 @@ public partial class SeStringEvaluatorService(
                     if (!TryResolveUInt(ref context, enu.Current, out eColParamValue))
                         return false;
 
-                    processSheet:
+processSheet:
                     var resolvedSheetName = Evaluate(eSheetNameStr, context with { Builder = new() }).ExtractText();
 
-                    var sheet = DataManager.Excel.GetSheetRaw(resolvedSheetName, (context.Language ?? TranslationManager.ClientLanguage).ToLumina());
+                    var sheet = DataManager.Excel.GetSheetRaw(resolvedSheetName, (context.Language ?? TextService.ClientLanguage.Value).ToLumina());
                     if (sheet == null)
                         return false;
 
@@ -501,7 +502,7 @@ public partial class SeStringEvaluatorService(
 
                     switch (column)
                     {
-                        case Lumina.Text.SeString val:
+                        case SeString val:
                             context.Builder.Append(Evaluate(val, context with { Builder = new(), LocalParameters = [eColParamValue] }));
                             return true;
 
@@ -597,9 +598,9 @@ public partial class SeStringEvaluatorService(
 
                         if (p.Type == ReadOnlySePayloadType.Text)
                         {
-                            var cultureInfo = TranslationManager.ClientLanguage == context.Language
-                                ? TranslationManager.CultureInfo
-                                : TranslationManager.GetCultureInfoFromLangCode((context.Language ?? ClientLanguage.English).ToCode());
+                            var cultureInfo = TextService.ClientLanguage.Value == context.Language
+                                ? TextService.CultureInfo.Value
+                                : TextService.GetCultureInfoFromLangCode((context.Language ?? ClientLanguage.English).ToCode());
                             context.Builder.Append(cultureInfo.TextInfo.ToTitleCase(Encoding.UTF8.GetString(p.Body.ToArray())));
                             continue;
                         }
@@ -828,7 +829,7 @@ invalidLevelPos:
         if (expression.TryGetString(out var str))
         {
             var evaluatedStr = Evaluate(str, context with { Builder = new() });
-            
+
             foreach (var payload in evaluatedStr)
             {
                 if (!payload.TryGetExpression(out var expr))
