@@ -1,6 +1,9 @@
 using Lumina.Text;
 using Lumina.Text.ReadOnly;
 
+using DSeString = Dalamud.Game.Text.SeStringHandling.SeString;
+using LSeString = Lumina.Text.SeString;
+
 namespace HaselCommon.Services.SeStringEvaluation;
 
 public struct SeStringParameter
@@ -75,8 +78,11 @@ public struct SeStringParameter
     public static implicit operator SeStringParameter(ReadOnlySeStringSpan value)
         => new(new ReadOnlySeString(new ReadOnlyMemory<byte>(value.Data.ToArray())));
 
-    public static implicit operator SeStringParameter(SeString value)
+    public static implicit operator SeStringParameter(LSeString value)
         => new(new ReadOnlySeString(new ReadOnlyMemory<byte>(value.RawData.ToArray())));
+
+    public static implicit operator SeStringParameter(DSeString value)
+        => new(new ReadOnlySeString(new ReadOnlyMemory<byte>(value.Encode())));
 
     public static implicit operator SeStringParameter(string value)
         => new(value);

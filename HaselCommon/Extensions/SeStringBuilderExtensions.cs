@@ -1,9 +1,15 @@
 using Lumina.Text;
+using DSeString = Dalamud.Game.Text.SeStringHandling.SeString;
 
 namespace HaselCommon.Extensions;
 
 public static class SeStringBuilderExtensions
 {
+    public static DSeString ToDalamudString(this SeStringBuilder sb)
+    {
+        return DSeString.Parse(sb.ToArray());
+    }
+
     public static bool Contains(this SeStringBuilder builder, ReadOnlySpan<byte> needle)
     {
         return builder.ToArray().AsSpan().IndexOf(needle) != -1;
