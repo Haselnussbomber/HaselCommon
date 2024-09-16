@@ -2,6 +2,7 @@ using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using Dalamud.Game;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using FFXIVClientStructs.FFXIV.Client.UI;
@@ -11,12 +12,15 @@ using FFXIVClientStructs.FFXIV.Component.GUI;
 using HaselCommon.Caches.Internal;
 using HaselCommon.Enums;
 using HaselCommon.Extensions;
+using HaselCommon.Services.SeStringEvaluation;
 using HaselCommon.Utils;
 using Lumina.Excel.GeneratedSheets;
+using Lumina.Text;
+using Lumina.Text.ReadOnly;
 
 namespace HaselCommon.Services;
 
-public class ItemService(IClientState ClientState, ExcelService ExcelService, TextService TextService)
+public class ItemService(IClientState ClientState, ExcelService ExcelService, SeStringEvaluatorService SeStringEvaluatorService)
 {
     private readonly GatheringItemGatheringPointsCache GatheringItemGatheringPointsCache = new(ExcelService);
     private readonly ItemFishingSpotsCache ItemFishingSpotsCache = new(ExcelService);
@@ -49,6 +53,15 @@ public class ItemService(IClientState ClientState, ExcelService ExcelService, Te
     public bool IsEventItem(uint itemId) => itemId is > 2_000_000;
 
     public uint GetIconId(uint itemId) => ItemIconIdCache.GetValue(itemId);
+
+    public string GetItemName(uint itemId, ClientLanguage? language = null)
+    {
+        if (IsEventItem(itemId))
+            return ExcelService.GetRow<EventItem>(itemId, language)?.Name.ExtractText() ?? $"EventItem#{itemId}";
+
+        return ExcelService.GetRow<Item>(GetBaseItemId(itemId), language)?.Name.ExtractText() ?? $"Item#{itemId}";
+    }
+    public string GetItemName(Item item) => GetItemName(item.RowId);
 
     public Recipe[] GetRecipes(Item item) => GetRecipes(item.RowId);
     public Recipe[] GetRecipes(uint itemId) => ItemRecipesCache.GetValue(itemId) ?? [];
@@ -189,7 +202,7 @@ public class ItemService(IClientState ClientState, ExcelService ExcelService, Te
         if (TryGetAddon<AtkUnitBase>("ItemSearchResult", out var itemSearchResult))
             itemSearchResult->Hide2();
 
-        var itemName = TextService.GetItemName(item.RowId, ClientState.ClientLanguage);
+        var itemName = GetItemName(item.RowId, ClientState.ClientLanguage);
         if (itemName.Length > 40)
             itemName = itemName[..40];
 
@@ -297,4 +310,30 @@ public class ItemService(IClientState ClientState, ExcelService ExcelService, Te
 
     public GatheringPoint[] GetGatheringPoints(GatheringItem gatheringItem)
         => GatheringItemGatheringPointsCache.GetValue(gatheringItem.RowId) ?? [];
+
+    public ReadOnlySeString GetItemLink(uint id, ClientLanguage? language = null)
+    {
+        var itemName = GetItemName(id, language);
+
+        if (IsHighQuality(id))
+            itemName += " \uE03C";
+        else if (IsCollectible(id))
+            itemName += " \uE03D";
+
+        var itemLink = new SeStringBuilder()
+            .PushColorType(GetItemRarityColorType(id, false))
+            .PushEdgeColorType(GetItemRarityColorType(id, true))
+            .PushLinkItem(id, itemName)
+            .Append(itemName)
+            .PopLink()
+            .PopEdgeColorType()
+            .PopColorType()
+            .ToReadOnlySeString();
+
+        return SeStringEvaluatorService.EvaluateFromAddon(371, new SeStringContext()
+        {
+            Language = language,
+            LocalParameters = [itemLink]
+        });
+    }
 }

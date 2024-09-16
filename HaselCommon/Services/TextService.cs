@@ -4,14 +4,16 @@ using System.Globalization;
 using System.Reflection;
 using System.Text.Json;
 using Dalamud.Game;
-using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Plugin;
 using HaselCommon.Extensions;
+using HaselCommon.Services.SeStringEvaluation;
 using HaselCommon.Utils;
 using ImGuiNET;
 using Lumina.Excel.GeneratedSheets;
+using Lumina.Text;
+using Lumina.Text.ReadOnly;
 using Microsoft.Extensions.Logging;
 using ActionSheet = Lumina.Excel.GeneratedSheets.Action;
 
@@ -22,8 +24,9 @@ public class TextService : IDisposable
     private readonly Dictionary<string, Dictionary<string, string>> _translations = [];
     private readonly ILogger<TextService> _logger;
     private readonly IDalamudPluginInterface _pluginInterface;
-    private readonly ExcelService _excelService;
     private readonly TextDecoder _textDecoder;
+
+    private ExcelService? _excelService;
 
     public CultureInfo CultureInfo { get; private set; }
     public ClientLanguage ClientLanguage { get; private set; }
@@ -31,15 +34,15 @@ public class TextService : IDisposable
 
     public event Action<string>? LanguageChanged;
 
+    private ExcelService ExcelService => _excelService ??= Service.Get<ExcelService>();
+
     public TextService(
         ILogger<TextService> logger,
         IDalamudPluginInterface pluginInterface,
-        ExcelService excelService,
         TextDecoder textDecoder)
     {
         _logger = logger;
         _pluginInterface = pluginInterface;
-        _excelService = excelService;
         _textDecoder = textDecoder;
 
         LoadEmbeddedResource(GetType().Assembly, "HaselCommon.Translations.json");
@@ -107,13 +110,13 @@ public class TextService : IDisposable
     public string Translate(string key, params object?[] args)
         => TryGetTranslation(key, out var text) ? string.Format(CultureInfo, text, args) : key;
 
-    public SeString TranslateSeString(string key, params IEnumerable<Payload>[] args)
+    public ReadOnlySeString TranslateSeString(string key, params SeStringParameter[] args)
     {
+        var sb = new SeStringBuilder();
         if (!TryGetTranslation(key, out var format))
-            return key;
+            return sb.Append(key).ToReadOnlySeString();
 
         var placeholders = format.Split(['{', '}']);
-        var sb = new SeStringBuilder(); // TODO: switch to Luminas SeStringBuilder
 
         for (var i = 0; i < placeholders.Length; i++)
         {
@@ -123,21 +126,29 @@ public class TextService : IDisposable
                 {
                     if (placeholderIndex < args.Length)
                     {
-                        sb.BuiltString.Payloads.AddRange(args[placeholderIndex]);
+                        var arg = args[placeholderIndex];
+                        if (arg.IsString)
+                        {
+                            sb.Append(arg.StringValue);
+                        }
+                        else
+                        {
+                            sb.Append(arg.UIntValue);
+                        }
                     }
                     else
                     {
-                        sb.AddText($"{placeholderIndex}"); // fallback
+                        sb.Append($"{placeholderIndex}"); // fallback
                     }
                 }
             }
             else
             {
-                sb.AddText(placeholders[i]);
+                sb.Append(placeholders[i]);
             }
         }
 
-        return sb.Build();
+        return sb.ToReadOnlySeString();
     }
 
     public void Draw(string key)
@@ -177,13 +188,13 @@ public class TextService : IDisposable
     }
 
     public string GetAddonText(uint id)
-        => _excelService.GetRow<Addon>(id)?.Text.ExtractText() ?? $"Addon#{id}";
+        => ExcelService.GetRow<Addon>(id)?.Text.ExtractText() ?? $"Addon#{id}";
 
     public string GetItemName(uint itemId, ClientLanguage? language = null)
     {
         // EventItem
         if (itemId is > 2_000_000)
-            return _excelService.GetRow<EventItem>(itemId, language)?.Name.ExtractText() ?? $"EventItem#{itemId}";
+            return ExcelService.GetRow<EventItem>(itemId, language)?.Name.ExtractText() ?? $"EventItem#{itemId}";
 
         // HighQuality
         if (itemId is > 1_000_000 and < 2_000_000)
@@ -193,11 +204,11 @@ public class TextService : IDisposable
         if (itemId is > 500_000 and < 1_000_000)
             itemId -= 500_000;
 
-        return _excelService.GetRow<Item>(itemId, language)?.Name.ExtractText() ?? $"Item#{itemId}";
+        return ExcelService.GetRow<Item>(itemId, language)?.Name.ExtractText() ?? $"Item#{itemId}";
     }
 
     public string GetQuestName(uint id)
-        => _excelService.GetRow<Quest>(id)?.Name.ExtractText() ?? $"Quest#{id}";
+        => ExcelService.GetRow<Quest>(id)?.Name.ExtractText() ?? $"Quest#{id}";
 
     public string GetBNpcName(uint id)
         => TitleCasedSingularNoun("BNpcName", id);
@@ -218,64 +229,64 @@ public class TextService : IDisposable
         => TitleCasedSingularNoun("Companion", id);
 
     public string GetTraitName(uint id)
-        => _excelService.GetRow<Trait>(id)?.Name.ExtractText() ?? $"Trait#{id}";
+        => ExcelService.GetRow<Trait>(id)?.Name.ExtractText() ?? $"Trait#{id}";
 
     public string GetActionName(uint id)
-        => _excelService.GetRow<ActionSheet>(id)?.Name.ExtractText() ?? $"Action#{id}";
+        => ExcelService.GetRow<ActionSheet>(id)?.Name.ExtractText() ?? $"Action#{id}";
 
     public string GetEmoteName(uint id)
-        => _excelService.GetRow<Emote>(id)?.Name.ExtractText() ?? $"Emote#{id}";
+        => ExcelService.GetRow<Emote>(id)?.Name.ExtractText() ?? $"Emote#{id}";
 
     public string GetEventActionName(uint id)
-        => _excelService.GetRow<EventAction>(id)?.Name.ExtractText() ?? $"EventAction#{id}";
+        => ExcelService.GetRow<EventAction>(id)?.Name.ExtractText() ?? $"EventAction#{id}";
 
     public string GetGeneralActionName(uint id)
-        => _excelService.GetRow<GeneralAction>(id)?.Name.ExtractText() ?? $"GeneralAction#{id}";
+        => ExcelService.GetRow<GeneralAction>(id)?.Name.ExtractText() ?? $"GeneralAction#{id}";
 
     public string GetBuddyActionName(uint id)
-        => _excelService.GetRow<BuddyAction>(id)?.Name.ExtractText() ?? $"BuddyAction#{id}";
+        => ExcelService.GetRow<BuddyAction>(id)?.Name.ExtractText() ?? $"BuddyAction#{id}";
 
     public string GetMainCommandName(uint id)
-        => _excelService.GetRow<MainCommand>(id)?.Name.ExtractText() ?? $"MainCommand#{id}";
+        => ExcelService.GetRow<MainCommand>(id)?.Name.ExtractText() ?? $"MainCommand#{id}";
 
     public string GetCraftActionName(uint id)
-        => _excelService.GetRow<CraftAction>(id)?.Name.ExtractText() ?? $"CraftAction#{id}";
+        => ExcelService.GetRow<CraftAction>(id)?.Name.ExtractText() ?? $"CraftAction#{id}";
 
     public string GetPetActionName(uint id)
-        => _excelService.GetRow<PetAction>(id)?.Name.ExtractText() ?? $"PetAction#{id}";
+        => ExcelService.GetRow<PetAction>(id)?.Name.ExtractText() ?? $"PetAction#{id}";
 
     public string GetCompanyActionName(uint id)
-        => _excelService.GetRow<CompanyAction>(id)?.Name.ExtractText() ?? $"CompanyAction#{id}";
+        => ExcelService.GetRow<CompanyAction>(id)?.Name.ExtractText() ?? $"CompanyAction#{id}";
 
     public string GetMarkerName(uint id)
-        => _excelService.GetRow<Marker>(id)?.Name.ExtractText() ?? $"Marker#{id}";
+        => ExcelService.GetRow<Marker>(id)?.Name.ExtractText() ?? $"Marker#{id}";
 
     public string GetFieldMarkerName(uint id)
-        => _excelService.GetRow<FieldMarker>(id)?.Name.ExtractText() ?? $"FieldMarker#{id}";
+        => ExcelService.GetRow<FieldMarker>(id)?.Name.ExtractText() ?? $"FieldMarker#{id}";
 
     public string GetChocoboRaceAbilityName(uint id)
-        => _excelService.GetRow<ChocoboRaceAbility>(id)?.Name.ExtractText() ?? $"ChocoboRaceAbility#{id}";
+        => ExcelService.GetRow<ChocoboRaceAbility>(id)?.Name.ExtractText() ?? $"ChocoboRaceAbility#{id}";
 
     public string GetChocoboRaceItemName(uint id)
-        => _excelService.GetRow<ChocoboRaceItem>(id)?.Name.ExtractText() ?? $"ChocoboRaceItem#{id}";
+        => ExcelService.GetRow<ChocoboRaceItem>(id)?.Name.ExtractText() ?? $"ChocoboRaceItem#{id}";
 
     public string GetExtraCommandName(uint id)
-        => _excelService.GetRow<ExtraCommand>(id)?.Name.ExtractText() ?? $"ExtraCommand#{id}";
+        => ExcelService.GetRow<ExtraCommand>(id)?.Name.ExtractText() ?? $"ExtraCommand#{id}";
 
     public string GetQuickChatName(uint id)
-        => _excelService.GetRow<QuickChat>(id)?.NameAction.ExtractText() ?? $"QuickChat#{id}";
+        => ExcelService.GetRow<QuickChat>(id)?.NameAction.ExtractText() ?? $"QuickChat#{id}";
 
     public string GetActionComboRouteName(uint id)
-        => _excelService.GetRow<ActionComboRoute>(id)?.Name.ExtractText() ?? $"ActionComboRoute#{id}";
+        => ExcelService.GetRow<ActionComboRoute>(id)?.Name.ExtractText() ?? $"ActionComboRoute#{id}";
 
     public string GetBgcArmyActionName(uint id)
-        => _excelService.GetRow<Lumina.Excel.GeneratedSheets2.BgcArmyAction>(id)?.Unknown0.ExtractText() ?? $"BgcArmyAction#{id}";
+        => ExcelService.GetRow<Lumina.Excel.GeneratedSheets2.BgcArmyAction>(id)?.Unknown0.ExtractText() ?? $"BgcArmyAction#{id}";
 
     public string GetPerformanceInstrumentName(uint id)
-        => _excelService.GetRow<Perform>(id)?.Instrument.ExtractText() ?? $"Perform#{id}";
+        => ExcelService.GetRow<Perform>(id)?.Instrument.ExtractText() ?? $"Perform#{id}";
 
     public string GetMcGuffinName(uint id)
-        => _excelService.GetRow<McGuffinUIData>(_excelService.GetRow<McGuffin>(id)?.UIData.Row ?? 0)?.Name.ExtractText() ?? $"McGuffin#{id}";
+        => ExcelService.GetRow<McGuffinUIData>(ExcelService.GetRow<McGuffin>(id)?.UIData.Row ?? 0)?.Name.ExtractText() ?? $"McGuffin#{id}";
 
     public string GetMountName(uint id)
         => TitleCasedSingularNoun("Mount", id);
