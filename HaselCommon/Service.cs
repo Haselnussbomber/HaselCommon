@@ -23,7 +23,6 @@ public static class Service
     public static void BuildProvider()
     {
         Provider = Collection.BuildServiceProvider();
-        Provider.GetRequiredService<DalamudEvents>();
     }
 
     public static void Dispose()
@@ -93,10 +92,11 @@ public static class Service
             })
 
             // HaselCommon internal
-            .AddSingleton<DalamudEvents>()
+            .AddSingleton<GameEvents>()
             .AddSingleton<ClientStateEventEmitter>()
             .AddSingleton<ConditionEventEmitter>()
             .AddSingleton<GameObjectManager>()
+            .AddSingleton<PlayerStateEventEmitter>()
 
             // HaselCommon
             .AddSingleton<EventDispatcher>()

@@ -1,8 +1,11 @@
 using System.Collections.Generic;
+using HaselCommon.Events;
 
 namespace HaselCommon.Services.Events;
 
-internal class EventDispatcher : IDisposable
+#pragma warning disable CS9113
+internal class EventDispatcher(GameEvents GameEvents) : IDisposable
+#pragma warning restore CS9113
 {
     private HashSet<EventController> _controllers { get; } = [];
 

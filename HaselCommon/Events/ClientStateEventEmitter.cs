@@ -34,16 +34,23 @@ internal class ClientStateEventEmitter : IDisposable
         _clientState.Login -= OnLogin;
         _clientState.Logout -= OnLogout;
         _clientState.TerritoryChanged -= OnTerritoryChanged;
+        GC.SuppressFinalize(this);
     }
 
     private void OnCfPop(ContentFinderCondition cfc)
     {
-        _eventEmitter.TriggerEvent(ClientStateEvents.CfPop, ClientStateEvents.CfPopEventArgs.With(cfc));
+        _eventEmitter.TriggerEvent(ClientStateEvents.CfPop, new ClientStateEvents.CfPopEventArgs
+        {
+            ContentFinderCondition = cfc
+        });
     }
 
     private void OnClassJobChanged(uint classJobId)
     {
-        _eventEmitter.TriggerEvent(ClientStateEvents.ClassJobChange, ClientStateEvents.ClassJobChangeEventArgs.With(classJobId));
+        _eventEmitter.TriggerEvent(ClientStateEvents.ClassJobChange, new ClientStateEvents.ClassJobChangeEventArgs
+        {
+            ClassJobId = classJobId
+        });
     }
 
     private void OnEnterPvP()
@@ -58,7 +65,11 @@ internal class ClientStateEventEmitter : IDisposable
 
     private void OnLevelChanged(uint classJobId, uint level)
     {
-        _eventEmitter.TriggerEvent(ClientStateEvents.LevelChange, ClientStateEvents.LevelChangeEventArgs.With(classJobId, level));
+        _eventEmitter.TriggerEvent(ClientStateEvents.LevelChange, new ClientStateEvents.LevelChangeEventArgs
+        {
+            ClassJobId = classJobId,
+            Level = level
+        });
     }
 
     private void OnLogin()
@@ -73,6 +84,10 @@ internal class ClientStateEventEmitter : IDisposable
 
     private void OnTerritoryChanged(ushort territoryTypeId)
     {
-        _eventEmitter.TriggerEvent(ClientStateEvents.TerritoryChange, ClientStateEvents.TerritoryChangeEventArgs.With(territoryTypeId));
+        _eventEmitter.TriggerEvent(ClientStateEvents.TerritoryChange, new ClientStateEvents.TerritoryChangeEventArgs
+        {
+            TerritoryTypeId =
+            territoryTypeId
+        });
     }
 }

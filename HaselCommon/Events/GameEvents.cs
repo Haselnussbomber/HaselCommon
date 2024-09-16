@@ -1,9 +1,10 @@
 namespace HaselCommon.Events;
 
 #pragma warning disable CS9113
-internal class DalamudEvents(
+internal class GameEvents(
     ClientStateEventEmitter clientStateEventEmitter,
     ConditionEventEmitter conditionEventEmitter,
-    GameObjectManager gameObjectManager
+    GameObjectManager gameObjectManager,
+    PlayerStateEventEmitter playerStateEventEmitter
 );
 #pragma warning restore CS9113

@@ -13,17 +13,21 @@ internal sealed class ConditionEventEmitter : IDisposable
     {
         _eventEmitter = eventEmitter;
         _condition = condition;
-
         _condition.ConditionChange += OnConditionChange;
     }
 
     public void Dispose()
     {
         _condition.ConditionChange -= OnConditionChange;
+        GC.SuppressFinalize(this);
     }
 
     private void OnConditionChange(ConditionFlag flag, bool value)
     {
-        _eventEmitter.TriggerEvent(ConditionEvents.Update, ConditionEvents.ConditionUpdateEventArgs.With(flag, value));
+        _eventEmitter.TriggerEvent(ConditionEvents.Changed, new ConditionEvents.ConditionChangedEventArgs
+        {
+            Flag = flag,
+            Value = value
+        });
     }
 }

@@ -45,7 +45,11 @@ internal class GameObjectManager : IDisposable
             if (!GameObjectIdSorted.TryGetValue(gameObjectId, out var gameObject))
             {
                 GameObjectIdSorted.Add(gameObjectId, gameObject = new GameObject(_eventEmitter, gameObjectId));
-                _eventEmitter.TriggerEvent(GameObjectEvents.Created, GameObjectEvents.GameObjectCreatedEventArgs.With(gameObject));
+                _eventEmitter.TriggerEvent(GameObjectEvents.Created, new GameObjectEvents.GameObjectCreatedEventArgs
+                {
+                    ObjectId = gameObjectId,
+                    Pointer = (nint)gameObjectPointer.Value
+                });
             }
 
             CurrentGameObjectIds.Add(gameObjectId, gameObjectPointer);
@@ -54,10 +58,16 @@ internal class GameObjectManager : IDisposable
         foreach (var (objectId, gameObject) in GameObjectIdSorted)
         {
             if (CurrentGameObjectIds.TryGetValue(objectId, out var gameObjectPointer))
+            {
                 gameObject.Update(gameObjectPointer);
+            }
             else
             {
-                _eventEmitter.TriggerEvent(GameObjectEvents.Destroyed, GameObjectEvents.GameObjectDestroyedEventArgs.With(objectId));
+                _eventEmitter.TriggerEvent(GameObjectEvents.Destroyed, new GameObjectEvents.GameObjectDestroyedEventArgs
+                {
+                    ObjectId = objectId
+                });
+
                 GameObjectIdSorted.Remove(objectId);
             }
         }
