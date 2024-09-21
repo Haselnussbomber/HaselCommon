@@ -3,10 +3,8 @@ using Dalamud.Game;
 using Dalamud.Game.ClientState.Objects;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
-using HaselCommon.Events;
 using HaselCommon.Logger;
 using HaselCommon.Services;
-using HaselCommon.Services.Events;
 using HaselCommon.Services.Internal;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -91,17 +89,7 @@ public static class Service
                 builder.AddProvider(new DalamudLoggerProvider(pluginLog));
             })
 
-            // HaselCommon internal
-            .AddSingleton<GameEvents>()
-            .AddSingleton<ClientStateEventEmitter>()
-            .AddSingleton<ConditionEventEmitter>()
-            .AddSingleton<GameObjectManager>()
-            .AddSingleton<PlayerStateEventEmitter>()
-
             // HaselCommon
-            .AddSingleton<EventDispatcher>()
-            .AddSingleton<IEventEmitter, EventEmitter>()
-            .AddTransient<IEventController, EventController>()
             .AddSingleton<AddonObserver>()
             .AddSingleton<CommandService>()
             .AddSingleton<ExcelService>()
