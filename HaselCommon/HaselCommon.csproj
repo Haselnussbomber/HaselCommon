@@ -35,6 +35,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="$(AssemblyName).Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Remove="Translations.json" />
   </ItemGroup>
 
@@ -49,6 +53,7 @@
     <Reference Include="Lumina" Private="false" />
     <Reference Include="Lumina.Excel" Private="false" />
     <Reference Include="InteropGenerator.Runtime" Private="false" />
+    <Reference Include="Reloaded.Memory" Private="false" />
   </ItemGroup>
 
   <ItemGroup Condition="!Exists('$(ProjectDir)..\..\FFXIVClientStructs')">
@@ -61,6 +66,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="ExCSS" Version="4.2.5" />
+    <PackageReference Include="Haselnussbomber.YogaSharp" Version="1.0.3" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.0" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />

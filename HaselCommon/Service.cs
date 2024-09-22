@@ -33,6 +33,9 @@ public static class Service
     {
         PluginAssembly = Assembly.GetCallingAssembly();
         AddDefaultServices(pluginInterface, pluginLog);
+        // TODO: how else
+        BuildProvider();
+        _ = Get<YogaLoggerService>();
         return Collection;
     }
 
@@ -88,6 +91,9 @@ public static class Service
                 builder.SetMinimumLevel(LogLevel.Trace);
                 builder.AddProvider(new DalamudLoggerProvider(pluginLog));
             })
+
+            // Yoga
+            .AddSingleton<YogaLoggerService>()
 
             // HaselCommon
             .AddSingleton<AddonObserver>()
