@@ -4,17 +4,21 @@ using Dalamud.Game;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Game.Text;
 using Dalamud.Plugin.Services;
+using FFXIVClientStructs.FFXIV.Client.Game;
+using FFXIVClientStructs.FFXIV.Client.Game.UI;
+using FFXIVClientStructs.FFXIV.Client.System.Framework;
 using FFXIVClientStructs.FFXIV.Client.System.String;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using HaselCommon.Extensions;
+using HaselCommon.Services.SeStringEvaluation;
 using Lumina.Excel.GeneratedSheets;
 using Lumina.Text;
 using Lumina.Text.ReadOnly;
 
 namespace HaselCommon.Services;
 
-public class MapService(IClientState ClientState, IGameGui GameGui, TextService TextService, ExcelService ExcelService)
+public class MapService(IClientState ClientState, IGameGui GameGui, TextService TextService, ExcelService ExcelService, SeStringEvaluatorService SeStringEvaluatorService)
 {
     public static Vector2 GetCoords(Level level)
     {
@@ -37,9 +41,9 @@ public class MapService(IClientState ClientState, IGameGui GameGui, TextService 
         );
     }
 
-    public ReadOnlySeString? GetMapLink(IGameObject obj)
+    public unsafe ReadOnlySeString? GetMapLink(IGameObject obj, ClientLanguage? language = null)
     {
-        var territoryId = ClientState.TerritoryType;
+        var territoryId = GameMain.Instance()->CurrentTerritoryTypeId;
         if (territoryId == 0)
             return null;
 
@@ -47,30 +51,68 @@ public class MapService(IClientState ClientState, IGameGui GameGui, TextService 
         if (territoryType == null)
             return null;
 
-        // TODO: evaluate addon string?
-        var marker = new SeStringBuilder()
-            .PushColorType(500)
-            .PushEdgeColorType(501)
-            .Append($"{(char)SeIconChar.LinkMarker}{ClientState.ClientLanguage switch
+        var mapId = *(uint*)((nint)TerritoryInfo.Instance() + 0x18); // TODO: https://github.com/aers/FFXIVClientStructs/pull/1120
+        if (mapId == 0)
+            mapId = GameMain.Instance()->CurrentMapId;
+        if (mapId == 0)
+            return null;
+
+        var map = ExcelService.GetRow<Lumina.Excel.GeneratedSheets.Map>(mapId);
+        if (map == null)
+            return null;
+
+        var placeName = ExcelService.GetRow<PlaceName>(territoryType.PlaceName.Row, language);
+        if (placeName == null)
+            return null;
+
+        var placeNameWithInstanceBuilder = new SeStringBuilder().Append(placeName.Name);
+
+        var instanceId = Framework.Instance()->GetNetworkModuleProxy()->GetCurrentInstance();
+        if (instanceId > 0)
+            placeNameWithInstanceBuilder.Append((char)(SeIconChar.Instance1 + (byte)(instanceId - 1)));
+
+        var placeNameWithInstance = placeNameWithInstanceBuilder.ToReadOnlySeString();
+
+        var mapPosX = map.ConvertRawToMapPosX(obj.Position.X);
+        var mapPosY = map.ConvertRawToMapPosY(obj.Position.Z);
+
+        ReadOnlySeString linkText;
+        var territoryTransient = ExcelService.GetRow<TerritoryTypeTransient>(territoryId);
+        if (territoryTransient != null && territoryTransient.OffsetZ != -10000)
+        {
+            var zFloat = obj.Position.Y - territoryTransient.OffsetZ;
+            var z = (uint)(int)zFloat;
+            if (zFloat < 0.0 && zFloat != (int)z)
+                z -= 10;
+            z /= 10;
+
+            linkText = SeStringEvaluatorService.EvaluateFromAddon(1636, new SeStringContext()
             {
-                ClientLanguage.German => " ",
-                ClientLanguage.French => " ",
-                _ => string.Empty,
-            }}")
-            .PopEdgeColorType()
-            .PopColorType()
+                Language = language,
+                LocalParameters = [placeNameWithInstance, mapPosX, mapPosY, z]
+            });
+        }
+        else
+        {
+            linkText = SeStringEvaluatorService.EvaluateFromAddon(1635, new SeStringContext()
+            {
+                Language = language,
+                LocalParameters = [placeNameWithInstance, mapPosX, mapPosY]
+            });
+        }
+
+        var mapLink = new SeStringBuilder()
+            .PushLinkMapPosition(territoryId, mapId, (int)(obj.Position.X * 1000f), (int)(obj.Position.Z * 1000f))
+            .Append(linkText)
+            .PopLink()
             .ToReadOnlySeString();
 
-        var sb = new SeStringBuilder()
-            .PushLinkMapPosition(territoryId, territoryType.Map.Row, (int)(obj.Position.X * 1_000f), (int)(obj.Position.Z * 1_000f))
-            .Append(marker)
-            .Append(" ")
-            .PushColorType(1)
-            .Append(obj.Name.Encode())
-            .PopColorType()
-            .PopLink();
-
-        return sb.ToReadOnlySeString();
+        // Link Marker
+        return SeStringEvaluatorService.EvaluateFromAddon(371, new SeStringContext()
+        {
+            Language = language,
+            LocalParameters = [mapLink]
+        });
     }
 
     public void OpenMap(Level? level)
