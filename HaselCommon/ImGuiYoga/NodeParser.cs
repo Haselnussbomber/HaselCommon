@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Xml;
 using ExCSS;
 using HaselCommon.ImGuiYoga.Elements;
@@ -13,7 +14,7 @@ using YogaSharp;
 
 namespace HaselCommon.ImGuiYoga;
 
-public static class NodeParser
+public static partial class NodeParser
 {
     public record struct BorderResult(float[] LineWidth, HaselColor? Color);
 
@@ -39,7 +40,10 @@ public static class NodeParser
         { "uld-part", typeof(UldPartElement) },
     };
 
-    public static Node? ParseXmlNode(Document document, XmlNode xmlNode, Node? parentNode = null, XmlNode? templateUserNode = null, XmlAttributeCollection? templateParameters = null)
+    [GeneratedRegex(@"\s{2,}")]
+    private static partial Regex RegexCollapsibleWhitespace();
+
+    public static Node? ParseXmlNode(Document document, XmlNode xmlNode, Node? parentNode = null)
     {
         // document.Logger?.LogTrace("Processing {nodeType} {nodeName}", xmlNode.NodeType, xmlNode.Name);
 
@@ -54,29 +58,22 @@ public static class NodeParser
             if (string.IsNullOrWhiteSpace(xmlNode.InnerText))
                 return null;
 
-            // handle {children} placeholder in template nodes
-            if (templateUserNode != null && parentNode != null && xmlNode.InnerText.Trim() == "{children}")
-            {
-                foreach (XmlNode templateUserChild in templateUserNode.ChildNodes)
-                {
-                    var userChildNode = ParseXmlNode(document, templateUserChild, parentNode, templateUserNode, templateParameters);
-                    if (userChildNode != null)
-                        parentNode.Add(userChildNode);
-                }
-                return null;
-            }
+            var text = xmlNode.InnerText.TrimStart();
+
+            // TODO: follow https://drafts.csswg.org/css-text-3/#collapsible-white-space
+            text = RegexCollapsibleWhitespace().Replace(text, " ");
 
             // handle text in span tag
             if (parentNode is Text parentTextNode)
             {
-                parentTextNode.Data = new ReadOnlySeString(Encoding.UTF8.GetBytes(xmlNode.InnerText.Trim())); // TODO: use ReadOnlySeString.FromText() when https://github.com/goatcorp/Dalamud/pull/2033 is merged
+                parentTextNode.Data = new ReadOnlySeString(Encoding.UTF8.GetBytes(text)); // TODO: use ReadOnlySeString.FromText() when https://github.com/goatcorp/Dalamud/pull/2033 is merged
                 return null;
             }
 
             // handle loose #text node
             if (parentNode != null)
             {
-                return new Text(xmlNode.InnerText.Trim());
+                return new Text(text);
             }
         }
 
@@ -93,45 +90,10 @@ public static class NodeParser
                 document.Stylesheets.Add(xmlNode.InnerText);
                 return null;
             }
-
-            if (xmlNode.Name == "template")
-            {
-                if (xmlNode.Attributes == null || string.IsNullOrEmpty(xmlNode.Attributes["id"]?.Value))
-                {
-                    document.Logger?.LogError("Template is missing an id attribute.");
-                    return null;
-                }
-
-                if (!xmlNode.HasChildNodes)
-                {
-                    document.Logger?.LogError("Template is missing a child nodes.");
-                    return null;
-                }
-
-                document.Templates.Add(xmlNode.Attributes["id"]!.Value, xmlNode);
-                return null;
-            }
         }
 
         if (!document.CustomElements.TryGetValue(xmlNode.Name, out var yogaNodeType) && !BuiltInTypes.TryGetValue(xmlNode.Name, out yogaNodeType))
         {
-            // apply template (cursed edition)
-            if (xmlNode.NodeType is XmlNodeType.Element && document.Templates.TryGetValue(xmlNode.Name, out var templateNode) && parentNode != null)
-            {
-                var clonedTemplateNode = templateNode.CloneNode(true);
-                templateUserNode = xmlNode;
-                templateParameters = xmlNode.Attributes;
-
-                foreach (XmlNode clonedTemplateChild in clonedTemplateNode.ChildNodes)
-                {
-                    var childNode = ParseXmlNode(document, clonedTemplateChild, parentNode, templateUserNode, templateParameters);
-                    if (childNode != null)
-                        parentNode.Add(childNode);
-                }
-
-                return null;
-            }
-
             document.Logger?.LogError("Type {nodeName} is not registered", xmlNode.Name);
             return null;
         }
@@ -144,12 +106,19 @@ public static class NodeParser
         }
 
         node.Parent = parentNode;
-        node.ApplyXmlAttributes(templateParameters);
-        node.ApplyXmlNode(xmlNode);
+
+        if (xmlNode.Attributes != null)
+        {
+            foreach (XmlAttribute attr in xmlNode.Attributes)
+            {
+                document.Logger?.LogError("{nodeName}.Attributes[{name}] = {value}", xmlNode.Name, attr.Name, attr.Value);
+                node.Attributes[attr.Name] = attr.Value;
+            }
+        }
 
         foreach (XmlNode child in xmlNode.ChildNodes)
         {
-            var childNode = ParseXmlNode(document, child, node, templateUserNode);
+            var childNode = ParseXmlNode(document, child, node);
             if (childNode != null)
                 node.Add(childNode);
         }
@@ -258,6 +227,16 @@ public static class NodeParser
             .Select(float.Parse);
 
         return new BorderResult(widths.ToArray(), color);
+    }
+
+    public static float ParseFloat(string input)
+    {
+        if (input.EndsWith("px", StringComparison.OrdinalIgnoreCase))
+        {
+            input = input[..^2].Trim();
+        }
+
+        return float.Parse(input);
     }
 
     public static YGValue ParseYGValue(string input)

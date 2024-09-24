@@ -80,7 +80,7 @@ public class Document : Node
                         node.Style.Apply(rules.Style);
                     }
 
-                    node.Style.ApplyStyleAttribute();
+                    node.Style.ApplyInlineStyle();
                 }
                 catch (Exception ex)
                 {

@@ -20,10 +20,10 @@ namespace HaselCommon.ImGuiYoga;
 public unsafe class Text : CharacterData
 {
     private bool isSeString = false;
-    private float? fontSize;
-    private string? fontName;
     private bool fontDirty;
     private IFontHandle? fontHandle;
+
+    public override string AsHtmlOpenTag => TextValue.Replace('\n', ' ');
 
     public Text() : base()
     {
@@ -76,42 +76,13 @@ public unsafe class Text : CharacterData
         }
     }
 
-    public float? FontSize
-    {
-        get => fontSize;
-        set
-        {
-            if (fontSize != value)
-            {
-                fontSize = value;
-                IsDirty = true;
-                fontDirty = true;
-            }
-        }
-    }
-
-    public string? FontName
-    {
-        get => fontName;
-        set
-        {
-            if (fontName != value)
-            {
-                fontName = value;
-                IsDirty = true;
-                fontDirty = true;
-            }
-        }
-    }
-
     public SeStringDrawParams DrawParams { get; set; } = default;
-    public HaselColor? TextColor { get; set; }
 
     public void GenerateFont()
     {
         var fontAtlas = Service.Get<IDalamudPluginInterface>().UiBuilder.FontAtlas;
-        var size = fontSize ?? ImGui.GetFontSize();
-        var fontStyle = (fontName ?? "axis").ToLowerInvariant() switch
+        var size = Style.FontSize.Resolve();
+        var fontStyle = Style.FontName.Resolve().ToLowerInvariant() switch
         {
             "jupiter" => new GameFontStyle(GameFontFamily.Jupiter, size),
             "jupiternumeric" => new GameFontStyle(GameFontFamily.JupiterNumeric, size),
@@ -131,42 +102,10 @@ public unsafe class Text : CharacterData
         IsDirty = true;
     }
 
-    // TODO: re-implement somehow
-    private bool OnStylePropertyChanged(string property, string value)
-    {
-        switch (property)
-        {
-            case "color":
-                TextColor = NodeParser.ParseStyleColor(value);
-                return true;
-
-            case "font":
-                var splitted = value.Split(' ');
-                if (splitted.Length == 2)
-                {
-                    FontSize = float.Parse(splitted[0]);
-                    FontName = splitted[1];
-                }
-                else
-                {
-                    FontName = value;
-                }
-                fontDirty = true;
-                return true;
-
-            case "font-size":
-                FontSize = float.Parse(value);
-                fontDirty = true;
-                return true;
-        }
-
-        return false;
-    }
-
     private SeStringDrawParams TextDrawParams => DrawParams with
     {
-        Color = TextColor.HasValue ? TextColor.Value : null,
-        FontSize = FontSize,
+        Color = Style.Color.Resolve(),
+        FontSize = Style.FontSize.Resolve(),
     };
 
     private YGSize Measure(YGNode* node, float width, MeasureMode widthMode, float height, MeasureMode heightMode)
@@ -198,7 +137,9 @@ public unsafe class Text : CharacterData
         using var font = fontHandle?.Push();
 
         if (IsSeString)
+        {
             RenderSeString();
+        }
         else
         {
             RenderString();
@@ -224,13 +165,8 @@ public unsafe class Text : CharacterData
     {
         ImGui.PushTextWrapPos(CumulativePosition.X + ComputedWidth);
 
-        if (TextColor != null)
-            ImGui.PushStyleColor(ImGuiCol.Text, (uint)TextColor);
-
-        ImGui.TextUnformatted(Data.ExtractText());
-
-        if (TextColor != null)
-            ImGui.PopStyleColor();
+        using (Style.Color.Resolve().Push(ImGuiCol.Text))
+            ImGui.TextUnformatted(Data.ExtractText());
 
         ImGui.PopTextWrapPos();
     }

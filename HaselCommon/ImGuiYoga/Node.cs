@@ -1,7 +1,5 @@
-using System.Collections.Generic;
 using System.Numerics;
 using System.Reflection;
-using System.Xml;
 using Dalamud.Interface.Utility.Raii;
 using HaselCommon.ImGuiYoga.Attributes;
 using ImGuiNET;
@@ -10,83 +8,47 @@ using YogaSharp;
 
 namespace HaselCommon.ImGuiYoga;
 
+// TODO: dirty flags for style and font
 public unsafe partial class Node : EventTarget
 {
     public Guid Guid { get; } = Guid.NewGuid();
-    public string DisplayName => !string.IsNullOrEmpty(Id) ? Id : Guid.ToString();
+    public virtual string TagName => "div";
+    public virtual string DisplayName => !string.IsNullOrEmpty(Id) ? $"#{Id}" : ClassList.Count > 0 ? ClassList.ToString() : string.Empty;
+    public virtual string AsHtmlOpenTag => $"<{TagName}{(Attributes.Count > 0 ? $" {Attributes}" : string.Empty)}{(Count == 0 ? " /" : string.Empty)}>";
 
     private Type CachedType { get; }
     public string TypeName => CachedType.Name;
-    public bool IsDebugHovered { get; set; }
     public bool IsSetupComplete { get; private set; }
 
-    public Node? Parent { get; internal set; } // set when attached as child to another node
+    public Node? Parent { get; internal set; }
 
     public NodeStyle Style { get; }
-    public DOMTokenList ClassList { get; }
-    public NamedNodeMap Attributes { get; }
+    public ClassList ClassList { get; }
+    public AttributeMap Attributes { get; }
 
-    [NodeProperty("id")]
     public string Id
     {
         get => Attributes["id"] ?? string.Empty;
         set => Attributes["id"] = value;
     }
 
-    [NodeProperty("class")]
     public string ClassName
     {
         get => Attributes["class"] ?? string.Empty;
         set => Attributes["class"] = value;
     }
 
-    // Interactables
-    [NodeProperty("enableMouse")]
-    public bool EnableMouse { get; set; }
-    public bool IsHovered { get; private set; } = false;
-
     private bool IsDisposed;
     private readonly ImRaii.Style ChildFrameStyle = new();
     private readonly ImRaii.Color ChildFrameColor = new();
     private GCHandle? MeasureFuncHandle;
-    private Vector2 InteractableLastMousePos = Vector2.Zero;
-
-    #region for react reconciler
-
-    private readonly Dictionary<string, dynamic> Props = [];
-
-    public void SetProp(string key, dynamic value)
-    {
-        Props[key] = value;
-
-        switch (key)
-        {
-            case "id":
-                Id = (string)value;
-                break;
-
-            case "className":
-                ClassName = (string)value;
-                break;
-        }
-    }
-
-    public void UnsetProp(string key)
-    {
-        Props.Remove(key);
-    }
-
-    #endregion
 
     public Node()
     {
         CachedType = GetType();
         Style = new NodeStyle(this);
-        ClassList = new DOMTokenList(this, "class");
-        Attributes = new NamedNodeMap(this);
-
-        Style.FlexDirection = YGFlexDirection.Row;
-        Style.FlexWrap = YGWrap.Wrap;
+        ClassList = new ClassList(this);
+        Attributes = new AttributeMap(this);
     }
 
     ~Node()
@@ -125,92 +87,6 @@ public unsafe partial class Node : EventTarget
     internal void ThrowIfDisposed()
     {
         ObjectDisposedException.ThrowIf(IsDisposed, this);
-    }
-
-    public virtual void ApplyXmlNode(XmlNode xmlNode)
-    {
-        // handled in ParseXmlNode
-        if (CachedType != typeof(Text))
-        {
-            // TODO: check type for ReadOnlySeString/string
-
-            foreach (var field in CachedType.GetFields())
-            {
-                if (field.GetCustomAttribute<NodePropertyAttribute>() is NodePropertyAttribute propAttr && propAttr.UseChildrenInnerText)
-                {
-                    field.SetValue(this, xmlNode.InnerText.Trim());
-                    break;
-                }
-            }
-
-            foreach (var prop in CachedType.GetProperties())
-            {
-                if (prop.GetCustomAttribute<NodePropertyAttribute>() is NodePropertyAttribute propAttr && propAttr.UseChildrenInnerText)
-                {
-                    prop.SetValue(this, xmlNode.InnerText.Trim());
-                    break;
-                }
-            }
-        }
-
-        ApplyXmlAttributes(xmlNode?.Attributes);
-    }
-
-    public void ApplyXmlAttributes(XmlAttributeCollection? attributes)
-    {
-        if (attributes == null)
-            return;
-
-        foreach (XmlAttribute attr in attributes)
-        {
-            ApplyXmlAttribute(attr.Name, attr.Value);
-        }
-    }
-
-    public virtual void ApplyXmlAttribute(string name, string value)
-    {
-        foreach (var prop in CachedType.GetProperties())
-        {
-            if (prop.GetCustomAttribute<NodePropertyAttribute>() is NodePropertyAttribute propAttr) // TODO: cache?!
-            {
-                if ((propAttr.AttrName != null && propAttr.AttrName.Equals(name, StringComparison.InvariantCultureIgnoreCase)) || prop.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase))
-                {
-                    prop.SetValue(this, prop.PropertyType.IsEnum
-                        ? Enum.Parse(prop.PropertyType, value)
-                        : Convert.ChangeType(value, prop.PropertyType));
-                    return;
-                }
-            }
-        }
-
-        foreach (var field in CachedType.GetFields())
-        {
-            if (field.GetCustomAttribute<NodePropertyAttribute>() is NodePropertyAttribute propAttr) // TODO: cache?!
-            {
-                if ((propAttr.AttrName != null && propAttr.AttrName.Equals(name, StringComparison.InvariantCultureIgnoreCase)) || field.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase))
-                {
-                    field.SetValue(this, field.FieldType.IsEnum
-                        ? Enum.Parse(field.FieldType, value)
-                        : Convert.ChangeType(value, field.FieldType));
-                    return;
-                }
-            }
-        }
-
-        switch (name)
-        {
-            case "style":
-                Style.Set(value);
-                break;
-
-            case "class":
-                ClassName = value;
-                break;
-
-            default:
-                GetDocument()?.Logger?.LogWarning("Unsupported attribute \"{attrName}\" with value \"{attrValue}\" on {typeName} {displayName}", name, value, TypeName, DisplayName);
-                break;
-        }
     }
 
     public virtual void Setup()

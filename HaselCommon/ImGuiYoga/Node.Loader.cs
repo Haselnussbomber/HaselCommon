@@ -39,7 +39,13 @@ public partial class Node
         if (xmlNode.NodeType != XmlNodeType.Element)
             throw new Exception("Could not find Element node.");
 
-        ApplyXmlNode(xmlNode);
+        if (xmlNode.Attributes != null)
+        {
+            foreach (XmlAttribute attr in xmlNode.Attributes)
+            {
+                Attributes[attr.Name] = attr.Value;
+            }
+        }
 
         foreach (XmlNode child in xmlNode.ChildNodes)
         {

@@ -1,6 +1,7 @@
 using Lumina.Text;
 using Lumina.Text.ReadOnly;
 using YogaSharp;
+using static FFXIVClientStructs.FFXIV.Component.GUI.AtkComponentNumericInput.Delegates;
 
 namespace HaselCommon.ImGuiYoga;
 
@@ -20,4 +21,6 @@ public class Comment : CharacterData
     {
         Data = new SeStringBuilder().Append(data).ToReadOnlySeString(); // TODO: use ReadOnlySeString.FromText() when https://github.com/goatcorp/Dalamud/pull/2033 is merged
     }
+
+    public override string AsHtmlOpenTag => $"<!-- {Data.ExtractText().Replace('\n', ' ')} -->";
 }

@@ -2,11 +2,12 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using HaselCommon.ImGuiYoga.Events;
 
 namespace HaselCommon.ImGuiYoga;
 
 // https://dom.spec.whatwg.org/#namednodemap
-public class NamedNodeMap(Node OwnerNode) : IDictionary<string, string>
+public class AttributeMap(Node OwnerNode) : IDictionary<string, string>
 {
     private Dictionary<string, string> Map { get; set; } = [];
 
@@ -27,13 +28,24 @@ public class NamedNodeMap(Node OwnerNode) : IDictionary<string, string>
                     Map[attrName] = value;
                 }
 
-                if (attrName is "id" or "class" or "style")
+                OwnerNode.DispatchEvent(new AttributeChangedEvent()
                 {
-                    if (attrName is "class")
-                        OwnerNode.ClassList.ClearCache();
+                    Name = attrName,
+                    Value = value
+                });
 
-                    OwnerNode.GetDocument()?.SetStyleDirty();
+                switch (attrName)
+                {
+                    case "class":
+                        OwnerNode.ClassList.ClearCache();
+                        break;
+
+                    case "style":
+                        OwnerNode.Style.ApplyInlineStyle();
+                        break;
                 }
+
+                OwnerNode.GetDocument()?.SetStyleDirty();
             }
         }
     }
@@ -107,5 +119,10 @@ public class NamedNodeMap(Node OwnerNode) : IDictionary<string, string>
     IEnumerator IEnumerable.GetEnumerator()
     {
         return Map.GetEnumerator();
+    }
+
+    public override string ToString()
+    {
+        return string.Join(" ", Map.Select(kv => $"{kv.Key}=\"{kv.Value}\"")); // TODO: escape strings
     }
 }

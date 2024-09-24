@@ -196,7 +196,7 @@ public partial class Node
 
         if (selector.Class == PseudoClassNames.Hover)
         {
-            if (!EnableMouse) EnableMouse = true;
+            if (!Interactive) Interactive = true;
             return IsHovered == true;
         }
 

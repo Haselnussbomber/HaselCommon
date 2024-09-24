@@ -10,7 +10,7 @@ public partial class Node
         if (Style.BackgroundColor.A == 0)
             return;
 
-        // gradients???? good luck
+        // gradients???? maybe with Skia?
 
         var drawList = ImGui.GetWindowDrawList();
         var pos = ImGui.GetWindowPos() + CumulativePosition - new Vector2(ImGui.GetScrollX(), ImGui.GetScrollY());

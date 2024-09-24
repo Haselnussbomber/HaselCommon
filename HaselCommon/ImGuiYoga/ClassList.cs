@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 namespace HaselCommon.ImGuiYoga;
 
 // https://dom.spec.whatwg.org/#interface-domtokenlist
-public partial class DOMTokenList(Node OwnerNode, string AttributeName) : ICollection<string>
+public partial class ClassList(Node OwnerNode) : ICollection<string>
 {
     [GeneratedRegex(@"\s")]
     private static partial Regex RegexWhitespace();
@@ -13,12 +13,18 @@ public partial class DOMTokenList(Node OwnerNode, string AttributeName) : IColle
     private List<string>? Cache { get; set; }
 
     private List<string> GetList()
-        => Cache ??= [.. OwnerNode.Attributes[AttributeName].Split(' ', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)];
+    {
+        return Cache ??= [.. OwnerNode.Attributes["class"].Split(' ', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)];
+    }
+
+    public override string ToString()
+    {
+        return Count == 0 ? string.Empty : ("." + string.Join(".", GetList()));
+    }
 
     internal void ClearCache()
     {
         Cache = null;
-        OwnerNode.GetDocument()?.SetStyleDirty();
     }
 
     public int IndexOf(string item)
@@ -39,14 +45,12 @@ public partial class DOMTokenList(Node OwnerNode, string AttributeName) : IColle
         if (RegexWhitespace().IsMatch(item))
             throw new ArgumentException("Item may not contain whitespaces.", nameof(item));
 
-        OwnerNode.Attributes[AttributeName] += " " + item;
-        ClearCache();
+        OwnerNode.Attributes["class"] += " " + item;
     }
 
     public void Clear()
     {
-        OwnerNode.Attributes[AttributeName] = string.Empty;
-        ClearCache();
+        OwnerNode.Attributes["class"] = string.Empty;
     }
 
     public bool Contains(string item)
@@ -69,8 +73,7 @@ public partial class DOMTokenList(Node OwnerNode, string AttributeName) : IColle
         var list = GetList();
         if (list.Remove(item))
         {
-            OwnerNode.Attributes[AttributeName] = string.Join(' ', list);
-            ClearCache();
+            OwnerNode.Attributes["class"] = string.Join(' ', list);
             return true;
         }
         return false;

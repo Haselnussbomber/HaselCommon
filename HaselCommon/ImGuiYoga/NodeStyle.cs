@@ -1,22 +1,31 @@
 using System.Linq;
 using ExCSS;
 using HaselCommon.Enums;
+using HaselCommon.ImGuiYoga.Style;
 using HaselCommon.Utils;
-using ImGuiNET;
 using Microsoft.Extensions.Logging;
 using YogaSharp;
 
 namespace HaselCommon.ImGuiYoga;
 
-// TODO: make StyleDeclaration somehow and bind attribute to it
-// TODO: inherit styles??
 public unsafe class NodeStyle
 {
     private readonly Node OwnerNode;
+    public ColorProperty Color { get; init; }
+    public CursorProperty Cursor { get; init; }
+    public FontNameProperty FontName { get; init; }
+    public FontSizeProperty FontSize { get; init; }
+    public HaselColor BackgroundColor { get; set; }
 
     internal NodeStyle(Node ownerNode)
     {
         OwnerNode = ownerNode;
+
+        Color = new(OwnerNode);
+        Cursor = new(OwnerNode);
+        FontName = new(OwnerNode);
+        FontSize = new(OwnerNode);
+
         Reset();
     }
 
@@ -56,6 +65,10 @@ public unsafe class NodeStyle
         // Custom
         BorderColor = new();
         BorderRadius = 0;
+        Color.SetInherited();
+        Cursor.SetInherited();
+        FontName.SetInherited();
+        FontSize.SetInherited();
     }
 
     #region YGNode API
@@ -1213,17 +1226,9 @@ public unsafe class NodeStyle
 
     #endregion
 
-    public ImGuiMouseCursor Cursor { get; set; } = ImGuiMouseCursor.Arrow;
-    public HaselColor BackgroundColor { get; set; }
-
-    internal void ApplyStyleAttribute()
+    internal void ApplyInlineStyle()
     {
-        Set(OwnerNode.Attributes["style"]);
-    }
-
-    public void Set(string style)
-    {
-        var stylesheet = NodeParser.StylesheetParser.Parse(".s{" + style + "}");
+        var stylesheet = NodeParser.StylesheetParser.Parse(".s{" + OwnerNode.Attributes["style"] + "}");
         var rule = stylesheet.StyleRules.First();
         Apply(rule.Style);
     }
@@ -1237,6 +1242,32 @@ public unsafe class NodeStyle
     }
 
     // TODO: handle property.IsInherited
+    // https://stackoverflow.com/a/5612360
+    /*
+    border-collapse
+    border-spacing
+    direction
+    font-family
+    font-size
+    font-style
+    font-variant
+    font-weight
+    font
+    letter-spacing
+    line-height
+    list-style-image
+    list-style-position
+    list-style-type
+    list-style
+    text-align
+    text-indent
+    text-transform
+    visibility
+    white-space
+    word-spacing
+    */
+
+    // TODO: update sub-nodes style
     private void ApplyProperty(string property, string value)
     {
         switch (property)
@@ -1363,15 +1394,15 @@ public unsafe class NodeStyle
                 break;
 
             case "flex":
-                Flex = NodeParser.ParseYGValue(value).value; // TODO: not handled like in css
+                Flex = NodeParser.ParseFloat(value); // TODO: not handled like in css
                 break;
 
             case "flex-grow":
-                FlexGrow = NodeParser.ParseYGValue(value).value;
+                FlexGrow = NodeParser.ParseFloat(value);
                 break;
 
             case "flex-shrink":
-                FlexShrink = NodeParser.ParseYGValue(value).value;
+                FlexShrink = NodeParser.ParseFloat(value);
                 break;
 
             case "flex-basis":
@@ -1386,10 +1417,8 @@ public unsafe class NodeStyle
                 PositionLeft = NodeParser.ParseYGValue(value);
                 break;
 
-            case "size":
-                var size = NodeParser.ParseYGValue(value);
-                Width = size;
-                Height = size;
+            case "aspect-ratio":
+                AspectRatio = NodeParser.ParseFloat(value);
                 break;
 
             case "width":
@@ -1489,19 +1518,19 @@ public unsafe class NodeStyle
                 break;
 
             case "border-top-width":
-                BorderTop = NodeParser.ParseYGValue(value).value;
+                BorderTop = NodeParser.ParseFloat(value);
                 break;
 
             case "border-right-width":
-                BorderRight = NodeParser.ParseYGValue(value).value;
+                BorderRight = NodeParser.ParseFloat(value);
                 break;
 
             case "border-bottom-width":
-                BorderBottom = NodeParser.ParseYGValue(value).value;
+                BorderBottom = NodeParser.ParseFloat(value);
                 break;
 
             case "border-left-width":
-                BorderLeft = NodeParser.ParseYGValue(value).value;
+                BorderLeft = NodeParser.ParseFloat(value);
                 break;
 
             case "border-color":
@@ -1526,34 +1555,34 @@ public unsafe class NodeStyle
 
             case "border-top-left-radius":
                 value = !value.Contains(' ') ? value : value[value.IndexOf(' ')..];
-                BorderRadiusTopLeft = NodeParser.ParseYGValue(value).value;
+                BorderRadiusTopLeft = NodeParser.ParseFloat(value);
                 break;
 
             case "border-top-right-radius":
                 value = !value.Contains(' ') ? value : value[value.IndexOf(' ')..];
-                BorderRadiusTopRight = NodeParser.ParseYGValue(value).value;
+                BorderRadiusTopRight = NodeParser.ParseFloat(value);
                 break;
 
             case "border-bottom-left-radius":
                 value = !value.Contains(' ') ? value : value[value.IndexOf(' ')..];
-                BorderRadiusBottomLeft = NodeParser.ParseYGValue(value).value;
+                BorderRadiusBottomLeft = NodeParser.ParseFloat(value);
                 break;
 
             case "border-bottom-right-radius":
                 value = !value.Contains(' ') ? value : value[value.IndexOf(' ')..];
-                BorderRadiusBottomRight = NodeParser.ParseYGValue(value).value;
+                BorderRadiusBottomRight = NodeParser.ParseFloat(value);
                 break;
 
             case "gap":
-                Gap = NodeParser.ParseYGValue(value).value; // TODO: not handled like in css
+                Gap = NodeParser.ParseFloat(value); // TODO: not handled like in css
                 break;
 
             case "column-gap":
-                GapColumn = NodeParser.ParseYGValue(value).value;
+                GapColumn = NodeParser.ParseFloat(value);
                 break;
 
             case "row-gap":
-                GapRow = NodeParser.ParseYGValue(value).value;
+                GapRow = NodeParser.ParseFloat(value);
                 break;
 
             case "background-color":
@@ -1561,18 +1590,42 @@ public unsafe class NodeStyle
                 break;
 
             case "cursor":
-                Cursor = value switch
+                if (value == "inherit")
                 {
-                    "hand" => ImGuiMouseCursor.Hand,
-                    "not-allowed" => ImGuiMouseCursor.NotAllowed,
-                    "text" => ImGuiMouseCursor.TextInput,
-                    "ns-resize" => ImGuiMouseCursor.ResizeNS,
-                    "ew-resize" => ImGuiMouseCursor.ResizeEW,
-                    //"" => ImGuiMouseCursor.ResizeAll,
-                    //"" => ImGuiMouseCursor.ResizeNESW,
-                    //"" => ImGuiMouseCursor.ResizeNWSE,
-                    _ => ImGuiMouseCursor.Arrow,
-                };
+                    Cursor.SetInherited();
+                    break;
+                }
+
+                Cursor.SetValue(value switch
+                {
+                    "hand" => Enums.Cursor.Hand,
+                    "not-allowed" => Enums.Cursor.NotAllowed,
+                    "text" => Enums.Cursor.Text,
+                    "ns-resize" => Enums.Cursor.ResizeNS,
+                    "ew-resize" => Enums.Cursor.ResizeEW,
+                    _ => Enums.Cursor.Pointer
+                });
+                break;
+
+            case "color":
+                if (value == "inherit")
+                    Color.SetInherited();
+                else
+                    Color.SetValue(NodeParser.ParseStyleColor(value));
+                break;
+
+            case "font-name":
+                if (value == "inherit")
+                    FontName.SetInherited();
+                else
+                    FontName.SetValue(value);
+                break;
+
+            case "font-size":
+                if (value == "inherit")
+                    FontSize.SetInherited();
+                else
+                    FontSize.SetValue(NodeParser.ParseFloat(value));
                 break;
 
             default:

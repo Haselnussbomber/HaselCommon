@@ -1,4 +1,3 @@
-using HaselCommon.ImGuiYoga.Attributes;
 using HaselCommon.Utils;
 using ImGuiNET;
 using YogaSharp;
@@ -8,20 +7,30 @@ namespace HaselCommon.ImGuiYoga.Elements;
 
 public unsafe class AnchorElement : Node
 {
+    public override string TagName => "a";
+
     public AnchorElement() : base()
     {
         SetMeasureFunc(new YGMeasureFuncDelegate(Measure));
     }
 
-    // TODO: use {children}??
-    [NodeProperty("label")]
-    public string Label { get; set; } = string.Empty;
+    public string Label
+    {
+        get => Attributes["label"];
+        set => Attributes["label"] = value;
+    }
 
-    [NodeProperty("title")]
-    public string Title { get; set; } = string.Empty;
+    public string Title
+    {
+        get => Attributes["title"];
+        set => Attributes["title"] = value;
+    }
 
-    [NodeProperty("href")]
-    public string Href { get; set; } = string.Empty;
+    public string Href
+    {
+        get => Attributes["href"];
+        set => Attributes["href"] = value;
+    }
 
     private YGSize Measure(YGNode* node, float width, MeasureMode widthMode, float height, MeasureMode heightMode)
     {

@@ -2,10 +2,12 @@ using System.Diagnostics;
 using System.Numerics;
 using System.Reflection;
 using Dalamud.Interface.Utility.Raii;
+using FFXIVClientStructs.FFXIV.Common.Lua;
 using HaselCommon.ImGuiYoga.Attributes;
 using HaselCommon.Utils;
 using ImGuiNET;
 using YogaSharp;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace HaselCommon.ImGuiYoga;
 
@@ -62,7 +64,7 @@ public partial class Window
         if (node.Count == 0)
             flags |= ImGuiTreeNodeFlags.Leaf;
 
-        using var treeNode = ImRaii.TreeNode($"[{node.TypeName}] {node.DisplayName}##Node{node.DisplayName}", flags);
+        using var treeNode = ImRaii.TreeNode($"{node.AsHtmlOpenTag}##NodeOpen{node.Guid}", flags);
 
         if (ImGui.IsItemHovered())
             node.IsDebugHovered = true;
@@ -70,13 +72,25 @@ public partial class Window
         if (ImGui.IsItemClicked(ImGuiMouseButton.Left))
             SelectedDebugNode = node;
 
-        if (!treeNode) return;
+        if (!treeNode)
+        {
+            ImGui.SameLine(0, 0);
+            ImGui.TextUnformatted($"...</{node.TagName}>");
+            return;
+        }
 
         if (node.Count > 0)
         {
             foreach (var child in node)
             {
                 DrawNodeTree(child);
+            }
+
+            treeNode.Dispose();
+            using (ImRaii.TreeNode($"</{node.TagName}>##NodeClose{node.Guid}", flags | ImGuiTreeNodeFlags.Leaf))
+            {
+                if (ImGui.IsItemClicked(ImGuiMouseButton.Left))
+                    SelectedDebugNode = node;
             }
         }
     }
@@ -95,54 +109,44 @@ public partial class Window
         {
             if (tab)
             {
-                using var table = ImRaii.Table("NodeTable", 2);
-                if (!table) return;
-
-                foreach (var prop in node.GetType().GetProperties())
+                using (var table = ImRaii.Table("NodeTable", 2))
                 {
-                    if (prop.GetCustomAttribute<NodePropertyAttribute>() is NodePropertyAttribute propAttr) // TODO: cache?!
+                    if (table)
                     {
-                        var value = prop.GetValue(node);
-                        switch (value)
-                        {
-                            case string val:
-                                PrintRow(prop.Name, val);
-                                break;
+                        ImGui.TableSetupColumn("Key", ImGuiTableColumnFlags.WidthStretch, 33);
+                        ImGui.TableSetupColumn("Value", ImGuiTableColumnFlags.WidthStretch, 67);
 
-                            case uint val:
-                                PrintRow(prop.Name, val);
-                                break;
-
-                            case bool val:
-                                PrintRow(prop.Name, val);
-                                break;
-
-                            case float val:
-                                PrintRow(prop.Name, val);
-                                break;
-
-                            case HaselColor val:
-                                PrintRowColor(prop.Name, val);
-                                break;
-
-                            default:
-                                PrintRow(prop.Name, value?.ToString() ?? string.Empty);
-                                break;
-                        }
+                        PrintRow("Type", node.TypeName);
+                        PrintRow("Guid", node.Guid.ToString());
+                        PrintRow("IsDirty", node.IsDirty);
+                        PrintRow("HasNewLayout", node.HasNewLayout);
                     }
                 }
 
-                if (node is Text textNode)
+                if (node.Attributes.Count > 0)
                 {
-                    PrintRow("Text", textNode.TextValue);
-                    PrintRowColor("TextColor", textNode.TextColor);
+                    ImGui.Separator();
+                    ImGui.TextUnformatted("Attributes:");
+
+                    using (var table = ImRaii.Table("NodeAttributeTable", 2))
+                    {
+                        if (table)
+                        {
+                            ImGui.TableSetupColumn("Key", ImGuiTableColumnFlags.WidthStretch, 33);
+                            ImGui.TableSetupColumn("Value", ImGuiTableColumnFlags.WidthStretch, 67);
+
+                            foreach (var attr in node.Attributes)
+                            {
+                                PrintRow(attr.Key, attr.Value);
+                            }
+
+                            if (node is Text textNode)
+                            {
+                                PrintRow("Text", textNode.TextValue);
+                            }
+                        }
+                    }
                 }
-
-                PrintRow("Guid", node.Guid.ToString());
-                PrintRow("IsDirty", node.IsDirty);
-                PrintRow("HasNewLayout", node.HasNewLayout);
-
-                PrintRow("ClassList", string.Join(' ', node.ClassList));
             }
         }
 
@@ -246,6 +250,7 @@ public partial class Window
         ImGui.TextUnformatted(text);
         ImGui.TableNextColumn();
         ImGui.TextUnformatted(value);
+        //ImGui.InputText($"##{text}", ref value, (uint)value.Length, ImGuiInputTextFlags.ReadOnly);
     }
 
     private void PrintRow<T>(string text, T value) where T : Enum
