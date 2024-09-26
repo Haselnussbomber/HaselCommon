@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using HaselCommon.ImGuiYoga.Events;
 using YogaSharp;
 
 namespace HaselCommon.ImGuiYoga;
@@ -96,7 +97,11 @@ public unsafe partial class Node : IList<Node>
     public Node this[int index]
     {
         get => Children[index];
-        set => Children[index] = value;
+        set
+        {
+            Children[index] = value;
+            DispatchEvent(new ChildrenChangedEvent());
+        }
     }
 
     public int Count => Children.Count;
@@ -110,6 +115,7 @@ public unsafe partial class Node : IList<Node>
         child.Parent = this;
         YGNode->InsertChild(child.YGNode, Count);
         Children.Add(child);
+        DispatchEvent(new ChildrenChangedEvent());
     }
 
     public void Clear()
@@ -120,6 +126,8 @@ public unsafe partial class Node : IList<Node>
         {
             Remove(this[i]);
         }
+
+        DispatchEvent(new ChildrenChangedEvent());
     }
 
     public bool Contains(Node item)
@@ -139,6 +147,9 @@ public unsafe partial class Node : IList<Node>
 
     public void CopyTo(Node[] array, int arrayIndex)
     {
+        if (array.Length == 0)
+            return;
+
         ThrowIfDisposed();
 
         for (var i = 0; i < array.Length; i++)
@@ -148,6 +159,7 @@ public unsafe partial class Node : IList<Node>
         }
 
         Children.InsertRange(arrayIndex, array);
+        DispatchEvent(new ChildrenChangedEvent());
     }
 
     public IEnumerator<Node> GetEnumerator()
@@ -179,6 +191,7 @@ public unsafe partial class Node : IList<Node>
         child.Parent = this;
         YGNode->InsertChild(child.YGNode, index);
         Children.Insert(index, child);
+        DispatchEvent(new ChildrenChangedEvent());
     }
 
     public bool Remove(Node child)
@@ -190,6 +203,7 @@ public unsafe partial class Node : IList<Node>
             child.Parent = null;
             YGNode->RemoveChild(child.YGNode);
             Children.Remove(child);
+            DispatchEvent(new ChildrenChangedEvent());
             return true;
         }
 
@@ -203,6 +217,7 @@ public unsafe partial class Node : IList<Node>
         this[index].Parent = null;
         YGNode->RemoveChild(this[index].YGNode);
         Children.RemoveAt(index);
+        DispatchEvent(new ChildrenChangedEvent());
     }
 
     public class YogaNodeEnumerator<T>(Node node) : IEnumerator<T> where T : Node

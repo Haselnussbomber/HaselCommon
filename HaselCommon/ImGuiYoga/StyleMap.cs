@@ -33,7 +33,7 @@ public class StyleMap(Node OwnerNode) : IDictionary<string, string>
                     PropertyName = propertyName
                 });
 
-                OwnerNode.GetDocument()?.SetStyleDirty();
+                OwnerNode.ComputedStyle.ResetCache();
             }
         }
     }
@@ -46,7 +46,7 @@ public class StyleMap(Node OwnerNode) : IDictionary<string, string>
     public void Add(string key, string value)
     {
         if (Map.TryAdd(key, value))
-            OwnerNode.GetDocument()?.SetStyleDirty();
+            OwnerNode.ComputedStyle.ResetCache();
     }
 
     public bool ContainsKey(string key)
@@ -59,7 +59,7 @@ public class StyleMap(Node OwnerNode) : IDictionary<string, string>
         var success = Map.Remove(key);
 
         if (success)
-            OwnerNode.GetDocument()?.SetStyleDirty();
+            OwnerNode.ComputedStyle.ResetCache();
 
         return success;
     }
@@ -77,7 +77,7 @@ public class StyleMap(Node OwnerNode) : IDictionary<string, string>
     public void Clear()
     {
         Map.Clear();
-        OwnerNode.GetDocument()?.SetStyleDirty();
+        OwnerNode.ComputedStyle.ResetCache();
     }
 
     public bool Contains(KeyValuePair<string, string> item)

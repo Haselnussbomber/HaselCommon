@@ -1,4 +1,7 @@
+using System.Reflection;
+using HaselCommon.ImGuiYoga.Attributes;
 using HaselCommon.ImGuiYoga.Events;
+using Microsoft.Extensions.Logging;
 using YogaSharp;
 
 namespace HaselCommon.ImGuiYoga;
@@ -7,7 +10,12 @@ public partial class Node
 {
     public override void DispatchEvent(Event evt)
     {
-        UpdateStyles(evt);
+        if (evt is ChildrenChangedEvent)
+            UpdateRefs();
+
+        if (evt is StyleChangedEvent styleChangedEvent)
+            UpdateStyles(styleChangedEvent);
+
         base.DispatchEvent(evt);
 
         if (evt.Bubbles) // can be stopped by the nodes implementation of OnEvent through evt.StopPropagation()
@@ -16,12 +24,30 @@ public partial class Node
         }
     }
 
-    private void UpdateStyles(Event evt)
+    private void UpdateRefs()
     {
-        if (evt is not StyleChangedEvent styleChangedEvent)
-            return;
+        GetDocument()?.Logger?.LogDebug("Updating refs of {node}", Guid.ToString());
 
-        var propName = styleChangedEvent.PropertyName;
+        foreach (var propInfo in CachedType.GetProperties(BindingFlags.Instance | BindingFlags.NonPublic))
+        {
+            if (propInfo.GetCustomAttribute<NodeRefAttribute>() is NodeRefAttribute refAttr)
+            {
+                propInfo.SetValue(this, QuerySelector(refAttr.Selector));
+            }
+        }
+
+        foreach (var fieldInfo in CachedType.GetFields(BindingFlags.Instance | BindingFlags.NonPublic))
+        {
+            if (fieldInfo.GetCustomAttribute<NodeRefAttribute>() is NodeRefAttribute refAttr)
+            {
+                fieldInfo.SetValue(this, QuerySelector(refAttr.Selector));
+            }
+        }
+    }
+
+    private void UpdateStyles(StyleChangedEvent evt)
+    {
+        var propName = evt.PropertyName;
         var value = ResolveStyleValue(propName);
         if (string.IsNullOrEmpty(value) || value == "initial")
             return;

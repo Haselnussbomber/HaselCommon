@@ -1,11 +1,8 @@
 using System.Collections.Generic;
 using System.Numerics;
-using System.Reflection;
 using Dalamud.Interface.Utility.Raii;
 using ExCSS;
-using HaselCommon.ImGuiYoga.Attributes;
 using ImGuiNET;
-using Microsoft.Extensions.Logging;
 
 namespace HaselCommon.ImGuiYoga;
 
@@ -107,30 +104,6 @@ public unsafe partial class Node : EventTarget
         }
 
         UpdateChildNodes();
-        UpdateRefs();
-    }
-
-    protected void UpdateRefs()
-    {
-        if (!IsDirty) return;
-
-        GetDocument()?.Logger?.LogDebug("Updating refs of {node}", Guid.ToString());
-
-        foreach (var propInfo in CachedType.GetProperties(BindingFlags.Instance | BindingFlags.NonPublic))
-        {
-            if (propInfo.GetCustomAttribute<NodeRefAttribute>() is NodeRefAttribute refAttr)
-            {
-                propInfo.SetValue(this, QuerySelector(refAttr.Selector));
-            }
-        }
-
-        foreach (var fieldInfo in CachedType.GetFields(BindingFlags.Instance | BindingFlags.NonPublic))
-        {
-            if (fieldInfo.GetCustomAttribute<NodeRefAttribute>() is NodeRefAttribute refAttr)
-            {
-                fieldInfo.SetValue(this, QuerySelector(refAttr.Selector));
-            }
-        }
     }
 
     public void Draw()

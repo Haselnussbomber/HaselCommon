@@ -45,7 +45,8 @@ public class AttributeMap(Node OwnerNode) : IDictionary<string, string?>
                         OwnerNode.Style.Clear();
                         foreach (var property in rule.Style.Declarations)
                             OwnerNode.Style[property.Name] = property.Value;
-                        break;
+                        OwnerNode.ComputedStyle.ResetCache();
+                        return; // don't invalidate style
                 }
 
                 OwnerNode.GetDocument()?.SetStyleDirty();
