@@ -16,19 +16,19 @@ public unsafe class AnchorElement : Node
 
     public string Label
     {
-        get => Attributes["label"];
+        get => Attributes["label"] ?? string.Empty;
         set => Attributes["label"] = value;
     }
 
     public string Title
     {
-        get => Attributes["title"];
+        get => Attributes["title"] ?? string.Empty;
         set => Attributes["title"] = value;
     }
 
     public string Href
     {
-        get => Attributes["href"];
+        get => Attributes["href"] ?? string.Empty;
         set => Attributes["href"] = value;
     }
 

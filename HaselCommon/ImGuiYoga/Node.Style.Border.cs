@@ -22,20 +22,20 @@ public unsafe partial class Node
             return;
         }
 
-        var borderRadiusTopLeft = Style.BorderRadiusTopLeft;
-        var borderRadiusTopRight = Style.BorderRadiusTopRight;
-        var borderRadiusBottomLeft = Style.BorderRadiusBottomLeft;
-        var borderRadiusBottomRight = Style.BorderRadiusBottomRight;
+        var borderRadiusTopLeft = ComputedStyle.BorderTopLeftRadius;
+        var borderRadiusTopRight = ComputedStyle.BorderTopRightRadius;
+        var borderRadiusBottomLeft = ComputedStyle.BorderBottomLeftRadius;
+        var borderRadiusBottomRight = ComputedStyle.BorderBottomRightRadius;
 
         var cursorScreenPos = ImGui.GetWindowPos() + CumulativePosition - new Vector2(ImGui.GetScrollX(), ImGui.GetScrollY());
         var drawList = ImGui.GetWindowDrawList();
         var width = YGNode->GetComputedWidth();
         var height = YGNode->GetComputedHeight();
 
-        var borderColorTop = IsDebugHovered ? Colors.Red : Style.BorderColorTop;
-        var borderColorRight = IsDebugHovered ? Colors.Red : Style.BorderColorRight;
-        var borderColorLeft = IsDebugHovered ? Colors.Red : Style.BorderColorLeft;
-        var borderColorBottom = IsDebugHovered ? Colors.Red : Style.BorderColorBottom;
+        var borderColorTop = IsDebugHovered ? Colors.Red : ComputedStyle.BorderTopColor;
+        var borderColorRight = IsDebugHovered ? Colors.Red : ComputedStyle.BorderRightColor;
+        var borderColorLeft = IsDebugHovered ? Colors.Red : ComputedStyle.BorderLeftColor;
+        var borderColorBottom = IsDebugHovered ? Colors.Red : ComputedStyle.BorderBottomColor;
 
         if (IsDebugHovered)
             IsDebugHovered = false;

@@ -1,4 +1,5 @@
 using System.Numerics;
+using HaselCommon.Enums;
 using HaselCommon.ImGuiYoga.Events;
 using ImGuiNET;
 
@@ -27,7 +28,15 @@ public unsafe partial class Node
 
         if (ImGui.IsItemHovered())
         {
-            ImGui.SetMouseCursor(Style.Cursor.ResolveImGuiMouseCursor());
+            ImGui.SetMouseCursor(ComputedStyle.Cursor switch
+            {
+                Cursor.Hand => ImGuiMouseCursor.Hand,
+                Cursor.NotAllowed => ImGuiMouseCursor.NotAllowed,
+                Cursor.Text => ImGuiMouseCursor.TextInput,
+                Cursor.ResizeNS => ImGuiMouseCursor.ResizeNS,
+                Cursor.ResizeEW => ImGuiMouseCursor.ResizeEW,
+                _ => ImGuiMouseCursor.Arrow,
+            });
 
             if (IsHovered != true)
             {

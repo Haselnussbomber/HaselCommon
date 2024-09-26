@@ -7,14 +7,13 @@ using HaselCommon.ImGuiYoga.Events;
 namespace HaselCommon.ImGuiYoga;
 
 // https://dom.spec.whatwg.org/#namednodemap
-public class AttributeMap(Node OwnerNode) : IDictionary<string, string>
+public class AttributeMap(Node OwnerNode) : IDictionary<string, string?>
 {
-    private Dictionary<string, string> Map { get; set; } = [];
+    private Dictionary<string, string?> Map { get; set; } = [];
 
-    public string this[string attrName]
+    public string? this[string attrName]
     {
-        get => Map.TryGetValue(attrName, out var value) ? value : string.Empty;
-
+        get => Map.TryGetValue(attrName, out var value) ? value : null;
         set
         {
             if (this[attrName] != value)
@@ -41,7 +40,11 @@ public class AttributeMap(Node OwnerNode) : IDictionary<string, string>
                         break;
 
                     case "style":
-                        OwnerNode.Style.ApplyInlineStyle();
+                        var stylesheet = NodeParser.StylesheetParser.Parse(".s{" + value + "}");
+                        var rule = stylesheet.StyleRules.First();
+                        OwnerNode.Style.Clear();
+                        foreach (var property in rule.Style.Declarations)
+                            OwnerNode.Style[property.Name] = property.Value;
                         break;
                 }
 
@@ -51,11 +54,11 @@ public class AttributeMap(Node OwnerNode) : IDictionary<string, string>
     }
 
     public ICollection<string> Keys => ((IDictionary<string, string>)Map).Keys;
-    public ICollection<string> Values => ((IDictionary<string, string>)Map).Values;
+    public ICollection<string?> Values => ((IDictionary<string, string?>)Map).Values;
     public int Count => Map.Count;
     public bool IsReadOnly => false;
 
-    public void Add(string key, string value)
+    public void Add(string key, string? value)
     {
         Map.Add(key, value);
 
@@ -83,7 +86,7 @@ public class AttributeMap(Node OwnerNode) : IDictionary<string, string>
         return Map.TryGetValue(key, out value);
     }
 
-    public void Add(KeyValuePair<string, string> item)
+    public void Add(KeyValuePair<string, string?> item)
     {
         Add(item.Key, item.Value);
     }
@@ -96,22 +99,22 @@ public class AttributeMap(Node OwnerNode) : IDictionary<string, string>
         Map.Clear();
     }
 
-    public bool Contains(KeyValuePair<string, string> item)
+    public bool Contains(KeyValuePair<string, string?> item)
     {
         return Map.ContainsKey(item.Key);
     }
 
-    public void CopyTo(KeyValuePair<string, string>[] array, int arrayIndex)
+    public void CopyTo(KeyValuePair<string, string?>[] array, int arrayIndex)
     {
         Map.ToArray().CopyTo(array, arrayIndex);
     }
 
-    public bool Remove(KeyValuePair<string, string> item)
+    public bool Remove(KeyValuePair<string, string?> item)
     {
         return Remove(item.Key);
     }
 
-    public IEnumerator<KeyValuePair<string, string>> GetEnumerator()
+    public IEnumerator<KeyValuePair<string, string?>> GetEnumerator()
     {
         return Map.GetEnumerator();
     }
@@ -123,6 +126,6 @@ public class AttributeMap(Node OwnerNode) : IDictionary<string, string>
 
     public override string ToString()
     {
-        return string.Join(" ", Map.Select(kv => $"{kv.Key}=\"{kv.Value}\"")); // TODO: escape strings
+        return string.Join(" ", Map.Select(kv => $"{kv.Key}=\"{kv.Value ?? string.Empty}\"")); // TODO: escape strings
     }
 }

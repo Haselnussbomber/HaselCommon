@@ -8,6 +8,7 @@ namespace HaselCommon.ImGuiYoga;
 
 public class Document : Node
 {
+    public override string TagName => "document";
     internal Dictionary<string, XmlNode> Templates { get; } = []; // key is id
     public CustomElementRegistry CustomElements { get; } = [];
     public Stylesheets Stylesheets { get; } = [];
@@ -69,7 +70,7 @@ public class Document : Node
             {
                 try
                 {
-                    node.Style.Reset();
+                    node.StyleDeclarations.Clear();
 
                     // TODO: this doesn't respect !important at all
 
@@ -77,10 +78,10 @@ public class Document : Node
                     {
                         Logger?.LogTrace("Applying StyleRule {rule} to {displayName}", rules.ToCss(), node.DisplayName);
 
-                        node.Style.Apply(rules.Style);
+                        node.StyleDeclarations.Add((rules.SelectorText, rules.Style));
                     }
 
-                    node.Style.ApplyInlineStyle();
+                    node.ComputedStyle.ResetCache();
                 }
                 catch (Exception ex)
                 {

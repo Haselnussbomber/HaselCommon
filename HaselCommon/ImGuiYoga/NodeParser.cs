@@ -224,19 +224,24 @@ public static partial class NodeParser
 
         var widths = value
             .Split(' ', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
-            .Select(float.Parse);
+            .Select(value => float.Parse(value, CultureInfo.InvariantCulture));
 
         return new BorderResult(widths.ToArray(), color);
     }
 
     public static float ParseFloat(string input)
     {
+        if (input.Contains(' '))
+        {
+            input = input.Split(' ', 2)[0];
+        }
+
         if (input.EndsWith("px", StringComparison.OrdinalIgnoreCase))
         {
             input = input[..^2].Trim();
         }
 
-        return float.Parse(input);
+        return float.Parse(input, CultureInfo.InvariantCulture);
     }
 
     public static YGValue ParseYGValue(string input)
@@ -253,6 +258,6 @@ public static partial class NodeParser
             unit = YGUnit.Percent;
         }
 
-        return new() { unit = unit, value = float.Parse(input) };
+        return new() { unit = unit, value = float.Parse(input, CultureInfo.InvariantCulture) };
     }
 }

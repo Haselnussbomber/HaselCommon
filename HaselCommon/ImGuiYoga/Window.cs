@@ -4,7 +4,6 @@ using HaselCommon.Services;
 using HaselCommon.Windowing;
 using ImGuiNET;
 using Microsoft.Extensions.Logging;
-using YogaSharp;
 
 namespace HaselCommon.ImGuiYoga;
 
@@ -48,9 +47,9 @@ public partial class Window(WindowManager wm, string name, ImGuiWindowFlags flag
     {
         WindowStyle.Dispose();
 
-        Document.Style.PositionType = YGPositionType.Absolute;
-        Document.Style.PositionTop = ImGui.GetCursorPosY();
-        Document.Style.PositionLeft = ImGui.GetCursorPosX();
+        Document.Style["position"] = "absolute";
+        Document.Style["position-top"] = $"{ImGui.GetCursorPosY()}px";
+        Document.Style["position-left"] = $"{ImGui.GetCursorPosX()}px";
 
         try
         {

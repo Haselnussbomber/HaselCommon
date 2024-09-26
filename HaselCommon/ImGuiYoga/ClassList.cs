@@ -14,7 +14,7 @@ public partial class ClassList(Node OwnerNode) : ICollection<string>
 
     private List<string> GetList()
     {
-        return Cache ??= [.. OwnerNode.Attributes["class"].Split(' ', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)];
+        return Cache ??= [.. OwnerNode.Attributes["class"]?.Split(' ', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries) ?? []];
     }
 
     public override string ToString()

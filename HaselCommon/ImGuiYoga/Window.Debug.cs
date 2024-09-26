@@ -1,13 +1,9 @@
 using System.Diagnostics;
 using System.Numerics;
-using System.Reflection;
 using Dalamud.Interface.Utility.Raii;
-using FFXIVClientStructs.FFXIV.Common.Lua;
-using HaselCommon.ImGuiYoga.Attributes;
 using HaselCommon.Utils;
 using ImGuiNET;
 using YogaSharp;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace HaselCommon.ImGuiYoga;
 
@@ -32,6 +28,10 @@ public partial class Window
         ImGuiUtils.VerticalSeparator();
         ImGui.SameLine();
         ImGui.TextUnformatted($"DrawTime: {DebugDrawTime.ToString("0.000") + " ms"}");
+        ImGuiUtils.VerticalSeparator();
+        ImGui.SameLine();
+        if (ImGui.Button("Set Style Dirty"))
+            Document.SetStyleDirty();
         ImGui.Separator();
 
         using (var table = ImRaii.Table("TabBar", 2, ImGuiTableFlags.BordersInnerV, new Vector2(-1)))
@@ -100,8 +100,6 @@ public partial class Window
         if (node == null)
             return;
 
-        using var id = ImRaii.PushId($"NodeInfo_{node.Guid}");
-
         using var tabs = ImRaii.TabBar("TabBar", ImGuiTabBarFlags.NoCloseWithMiddleMouseButton);
         if (!tabs) return;
 
@@ -137,7 +135,7 @@ public partial class Window
 
                             foreach (var attr in node.Attributes)
                             {
-                                PrintRow(attr.Key, attr.Value);
+                                PrintRow(attr.Key, attr.Value ?? string.Empty);
                             }
 
                             if (node is Text textNode)
@@ -154,68 +152,40 @@ public partial class Window
         {
             if (tab)
             {
-                using var _table = ImRaii.Table("StyleTable", 2);
-                if (_table)
+                using var childFrame = ImRaii.Child("StyleChild", new Vector2(-1));
+                if (!childFrame) return;
+
+                if (node.Style.Count > 0)
                 {
-                    if (node.Style.AlignContent != YGAlign.FlexStart) PrintRow("AlignContent", node.Style.AlignContent);
-                    if (node.Style.AlignItems != YGAlign.Stretch) PrintRow("AlignItems", node.Style.AlignItems);
-                    if (node.Style.AlignSelf != YGAlign.Auto) PrintRow("AlignSelf", node.Style.AlignSelf);
-                    PrintRow("AspectRatio", node.Style.AspectRatio);
-                    PrintRow("Border", node.Style.Border);
-                    PrintRow("BorderTop", node.Style.BorderTop);
-                    PrintRow("BorderRight", node.Style.BorderRight);
-                    PrintRow("BorderBottom", node.Style.BorderBottom);
-                    PrintRow("BorderLeft", node.Style.BorderLeft);
-                    PrintRow("BorderHorizontal", node.Style.BorderHorizontal);
-                    PrintRow("BorderVertical", node.Style.BorderVertical);
-                    PrintRow("BorderRadius", node.Style.BorderRadius);
-                    PrintRow("BorderRadiusTopLeft", node.Style.BorderRadiusTopLeft);
-                    PrintRow("BorderRadiusTopRight", node.Style.BorderRadiusTopRight);
-                    PrintRow("BorderRadiusBottomLeft", node.Style.BorderRadiusBottomLeft);
-                    PrintRow("BorderRadiusBottomRight", node.Style.BorderRadiusBottomRight);
-                    PrintRow("BorderRadiusTop", node.Style.BorderRadiusTop);
-                    PrintRow("BorderRadiusBottom", node.Style.BorderRadiusBottom);
-                    PrintRowColor("BorderColor", node.Style.BorderColor);
-                    PrintRowColor("BorderColorTop", node.Style.BorderColorTop);
-                    PrintRowColor("BorderColorRight", node.Style.BorderColorRight);
-                    PrintRowColor("BorderColorBottom", node.Style.BorderColorBottom);
-                    PrintRowColor("BorderColorLeft", node.Style.BorderColorLeft);
-                    PrintRowColor("BorderColorHorizontal", node.Style.BorderColorHorizontal);
-                    PrintRowColor("BorderColorVertical", node.Style.BorderColorVertical);
-                    if (node.Style.Direction != YGDirection.Inherit) PrintRow("Direction", node.Style.Direction);
-                    if (node.Style.Display != YGDisplay.Flex) PrintRow("Display", node.Style.Display);
-                    if (node.Style.PositionType != YGPositionType.Relative) PrintRow("PositionType", node.Style.PositionType);
-                    PrintRow("PositionTop", node.Style.PositionTop);
-                    PrintRow("PositionLeft", node.Style.PositionLeft);
-                    PrintRow("Flex", node.Style.Flex);
-                    PrintRow("FlexBasis", node.Style.FlexBasis);
-                    if (node.Style.FlexDirection != YGFlexDirection.Column) PrintRow("FlexDirection", node.Style.FlexDirection);
-                    PrintRow("FlexGrow", node.Style.FlexGrow);
-                    PrintRow("FlexShrink", node.Style.FlexShrink);
-                    if (node.Style.FlexWrap != YGWrap.NoWrap) PrintRow("FlexWrap", node.Style.FlexWrap);
-                    PrintRow("Gap", node.Style.Gap);
-                    PrintRow("GapColumn", node.Style.GapColumn);
-                    PrintRow("GapRow", node.Style.GapRow);
-                    PrintRow("MinHeight", node.Style.MinHeight);
-                    PrintRow("MinWidth", node.Style.MinWidth);
-                    PrintRow("Height", node.Style.Height);
-                    PrintRow("Width", node.Style.Width);
-                    if (node.Style.JustifyContent != YGJustify.FlexStart) PrintRow("JustifyContent", node.Style.JustifyContent);
-                    PrintRow("Margin", node.Style.Margin);
-                    PrintRow("MarginTop", node.Style.MarginTop);
-                    PrintRow("MarginRight", node.Style.MarginRight);
-                    PrintRow("MarginBottom", node.Style.MarginBottom);
-                    PrintRow("MarginLeft", node.Style.MarginLeft);
-                    PrintRow("MarginHorizontal", node.Style.MarginHorizontal);
-                    PrintRow("MarginVertical", node.Style.MarginVertical);
-                    if (node.Style.Overflow != YGOverflow.Visible) PrintRow("Overflow", node.Style.Overflow);
-                    PrintRow("Padding", node.Style.Padding);
-                    PrintRow("PaddingTop", node.Style.PaddingTop);
-                    PrintRow("PaddingRight", node.Style.PaddingRight);
-                    PrintRow("PaddingBottom", node.Style.PaddingBottom);
-                    PrintRow("PaddingLeft", node.Style.PaddingLeft);
-                    PrintRow("PaddingHorizontal", node.Style.PaddingHorizontal);
-                    PrintRow("PaddingVertical", node.Style.PaddingVertical);
+                    ImGui.TextUnformatted("Inline");
+                    using (var _table = ImRaii.Table("StyleTable", 2))
+                    {
+                        if (_table)
+                        {
+                            foreach (var attr in node.Style)
+                            {
+                                PrintRow(attr.Key, attr.Value);
+                            }
+                        }
+                    }
+                }
+
+                var i = 0;
+                foreach (var (selectorText, declaration) in node.StyleDeclarations)
+                {
+                    if (i > 0 || node.Style.Count > 0)
+                        ImGui.Separator();
+                    ImGui.TextUnformatted(selectorText);
+                    using (var _table = ImRaii.Table($"StyleDeclarationTable{i++}", 2))
+                    {
+                        if (_table)
+                        {
+                            foreach (var attr in declaration)
+                            {
+                                PrintRow(attr.Name, attr.Value);
+                            }
+                        }
+                    }
                 }
             }
         }

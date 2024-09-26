@@ -86,7 +86,7 @@ public unsafe partial class Node : IList<Node>
     {
         foreach (var child in this)
         {
-            if (child.Style.Display != YGDisplay.None)
+            if (child.Display != YGDisplay.None)
             {
                 child.Draw();
             }

@@ -1,4 +1,3 @@
-using HaselCommon.ImGuiYoga.Attributes;
 using HaselCommon.ImGuiYoga.Events;
 using HaselCommon.Services;
 
@@ -14,7 +13,7 @@ public class UldPartElement : Node
 
     public required string UldName
     {
-        get => Attributes["uld"];
+        get => Attributes["uld"] ?? string.Empty;
         set => Attributes["uld"] = value;
     }
 
@@ -24,7 +23,6 @@ public class UldPartElement : Node
         set => Attributes["part-list-id"] = value.ToString();
     }
 
-    [NodeProperty("part-index")]
     public required uint PartIndex
     {
         get => _partIndex;
@@ -38,11 +36,11 @@ public class UldPartElement : Node
             switch (attributeChangedEvent.Name)
             {
                 case "part-list-id":
-                    _partListId = uint.Parse(attributeChangedEvent.Value);
+                    _partListId = uint.Parse(attributeChangedEvent.Value ?? "0");
                     break;
 
                 case "part-index":
-                    _partIndex = uint.Parse(attributeChangedEvent.Value);
+                    _partIndex = uint.Parse(attributeChangedEvent.Value ?? "0");
                     break;
             }
         }

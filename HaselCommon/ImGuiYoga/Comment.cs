@@ -1,7 +1,5 @@
 using Lumina.Text;
 using Lumina.Text.ReadOnly;
-using YogaSharp;
-using static FFXIVClientStructs.FFXIV.Component.GUI.AtkComponentNumericInput.Delegates;
 
 namespace HaselCommon.ImGuiYoga;
 
@@ -9,7 +7,7 @@ public class Comment : CharacterData
 {
     public Comment() : base()
     {
-        Style.Display = YGDisplay.None;
+        Style["display"] = "none";
     }
 
     public Comment(ReadOnlySeString data) : this()

@@ -7,8 +7,14 @@ public partial class Node
 {
     private void DrawBackground()
     {
-        if (Style.BackgroundColor.A == 0)
+        var backgroundColor = ComputedStyle.BackgroundColor;
+        if (backgroundColor.A == 0)
             return;
+
+        var borderTopLeftRadius = ComputedStyle.BorderTopLeftRadius;
+        var borderTopRightRadius = ComputedStyle.BorderTopRightRadius;
+        var borderBottomRightRadius = ComputedStyle.BorderBottomRightRadius;
+        var borderBottomLeftRadius = ComputedStyle.BorderBottomLeftRadius;
 
         // gradients???? maybe with Skia?
 
@@ -17,9 +23,9 @@ public partial class Node
         var size = ComputedSize;
 
         // Rectangular background without rounded corners
-        if (Style.BorderRadiusTopLeft == 0 && Style.BorderRadiusTopRight == 0 && Style.BorderRadiusBottomRight == 0 && Style.BorderRadiusBottomLeft == 0)
+        if (borderTopLeftRadius == 0 && borderTopRightRadius == 0 && borderBottomRightRadius == 0 && borderBottomLeftRadius == 0)
         {
-            drawList.AddRectFilled(pos, pos + size, Style.BackgroundColor);
+            drawList.AddRectFilled(pos, pos + size, backgroundColor);
             return;
         }
 
@@ -29,39 +35,39 @@ public partial class Node
         Vector2 center;
 
         // Top-left corner
-        if (Style.BorderRadiusTopLeft > 0)
+        if (borderTopLeftRadius > 0)
         {
-            center = pos + new Vector2(Style.BorderRadiusTopLeft);
-            drawList.PathArcTo(center, Style.BorderRadiusTopLeft, MathF.PI, MathF.PI * 1.5f);
+            center = pos + new Vector2(borderTopLeftRadius);
+            drawList.PathArcTo(center, borderTopLeftRadius, MathF.PI, MathF.PI * 1.5f);
             drawList.PathLineTo(center);
-            drawList.PathFillConvex(Style.BackgroundColor);
+            drawList.PathFillConvex(backgroundColor);
         }
 
         // Top-right corner
-        if (Style.BorderRadiusTopRight > 0)
+        if (borderTopRightRadius > 0)
         {
-            center = pos + new Vector2(size.X - Style.BorderRadiusTopRight, Style.BorderRadiusTopRight);
-            drawList.PathArcTo(center, Style.BorderRadiusTopRight, -MathF.PI * 0.5f, 0);
+            center = pos + new Vector2(size.X - borderTopRightRadius, borderTopRightRadius);
+            drawList.PathArcTo(center, borderTopRightRadius, -MathF.PI * 0.5f, 0);
             drawList.PathLineTo(center);
-            drawList.PathFillConvex(Style.BackgroundColor);
+            drawList.PathFillConvex(backgroundColor);
         }
 
         // Bottom-right corner
-        if (Style.BorderRadiusBottomRight > 0)
+        if (borderBottomRightRadius > 0)
         {
-            center = pos + size - new Vector2(Style.BorderRadiusBottomRight);
-            drawList.PathArcTo(center, Style.BorderRadiusBottomRight, 0, MathF.PI * 0.5f);
+            center = pos + size - new Vector2(borderBottomRightRadius);
+            drawList.PathArcTo(center, borderBottomRightRadius, 0, MathF.PI * 0.5f);
             drawList.PathLineTo(center);
-            drawList.PathFillConvex(Style.BackgroundColor);
+            drawList.PathFillConvex(backgroundColor);
         }
 
         // Bottom-left corner
-        if (Style.BorderRadiusBottomLeft > 0)
+        if (borderBottomLeftRadius > 0)
         {
-            center = pos + new Vector2(Style.BorderRadiusBottomLeft, size.Y - Style.BorderRadiusBottomLeft);
-            drawList.PathArcTo(center, Style.BorderRadiusBottomLeft, MathF.PI * 0.5f, MathF.PI);
+            center = pos + new Vector2(borderBottomLeftRadius, size.Y - borderBottomLeftRadius);
+            drawList.PathArcTo(center, borderBottomLeftRadius, MathF.PI * 0.5f, MathF.PI);
             drawList.PathLineTo(center);
-            drawList.PathFillConvex(Style.BackgroundColor);
+            drawList.PathFillConvex(backgroundColor);
         }
 
         // Step 2: Draw Triangles to fill the middle portion
@@ -72,60 +78,60 @@ public partial class Node
         // TODO: clamp values (example case: border-radius: 100px; on a node that's 20x20)
 
         // Top edge
-        drawList.PathLineTo(pos + new Vector2(Style.BorderRadiusTopLeft, 0));
-        drawList.PathLineTo(pos + new Vector2(size.X - Style.BorderRadiusTopRight, 0));
-        drawList.PathLineTo(pos + new Vector2(size.X - Style.BorderRadiusTopRight, Style.BorderRadiusTopRight));
-        drawList.PathFillConvex(Style.BackgroundColor);
+        drawList.PathLineTo(pos + new Vector2(borderTopLeftRadius, 0));
+        drawList.PathLineTo(pos + new Vector2(size.X - borderTopRightRadius, 0));
+        drawList.PathLineTo(pos + new Vector2(size.X - borderTopRightRadius, borderTopRightRadius));
+        drawList.PathFillConvex(backgroundColor);
 
-        drawList.PathLineTo(pos + new Vector2(Style.BorderRadiusTopLeft, 0));
-        drawList.PathLineTo(pos + new Vector2(size.X - Style.BorderRadiusTopRight, Style.BorderRadiusTopRight));
-        drawList.PathLineTo(pos + new Vector2(Style.BorderRadiusTopLeft));
-        drawList.PathFillConvex(Style.BackgroundColor);
+        drawList.PathLineTo(pos + new Vector2(borderTopLeftRadius, 0));
+        drawList.PathLineTo(pos + new Vector2(size.X - borderTopRightRadius, borderTopRightRadius));
+        drawList.PathLineTo(pos + new Vector2(borderTopLeftRadius));
+        drawList.PathFillConvex(backgroundColor);
 
         // Left edge
-        drawList.PathLineTo(pos + new Vector2(0, Style.BorderRadiusTopLeft));
-        drawList.PathLineTo(pos + new Vector2(Style.BorderRadiusTopLeft));
-        drawList.PathLineTo(pos + new Vector2(Style.BorderRadiusBottomLeft, size.Y - Style.BorderRadiusBottomLeft));
-        drawList.PathFillConvex(Style.BackgroundColor);
+        drawList.PathLineTo(pos + new Vector2(0, borderTopLeftRadius));
+        drawList.PathLineTo(pos + new Vector2(borderTopLeftRadius));
+        drawList.PathLineTo(pos + new Vector2(borderBottomLeftRadius, size.Y - borderBottomLeftRadius));
+        drawList.PathFillConvex(backgroundColor);
 
-        drawList.PathLineTo(pos + new Vector2(0, Style.BorderRadiusTopLeft));
-        drawList.PathLineTo(pos + new Vector2(Style.BorderRadiusBottomLeft, size.Y - Style.BorderRadiusBottomLeft));
-        drawList.PathLineTo(pos + new Vector2(0, size.Y - Style.BorderRadiusBottomLeft));
-        drawList.PathFillConvex(Style.BackgroundColor);
+        drawList.PathLineTo(pos + new Vector2(0, borderTopLeftRadius));
+        drawList.PathLineTo(pos + new Vector2(borderBottomLeftRadius, size.Y - borderBottomLeftRadius));
+        drawList.PathLineTo(pos + new Vector2(0, size.Y - borderBottomLeftRadius));
+        drawList.PathFillConvex(backgroundColor);
 
         // Bottom edge
-        drawList.PathLineTo(pos + new Vector2(Style.BorderRadiusBottomLeft, size.Y - Style.BorderRadiusBottomLeft));
-        drawList.PathLineTo(pos + new Vector2(size.X - Style.BorderRadiusBottomRight, size.Y - Style.BorderRadiusBottomRight));
-        drawList.PathLineTo(pos + new Vector2(size.X - Style.BorderRadiusBottomRight, size.Y));
-        drawList.PathFillConvex(Style.BackgroundColor);
+        drawList.PathLineTo(pos + new Vector2(borderBottomLeftRadius, size.Y - borderBottomLeftRadius));
+        drawList.PathLineTo(pos + new Vector2(size.X - borderBottomRightRadius, size.Y - borderBottomRightRadius));
+        drawList.PathLineTo(pos + new Vector2(size.X - borderBottomRightRadius, size.Y));
+        drawList.PathFillConvex(backgroundColor);
 
-        drawList.PathLineTo(pos + new Vector2(Style.BorderRadiusBottomLeft, size.Y - Style.BorderRadiusBottomLeft));
-        drawList.PathLineTo(pos + new Vector2(Style.BorderRadiusBottomLeft, size.Y));
-        drawList.PathLineTo(pos + new Vector2(size.X - Style.BorderRadiusBottomRight, size.Y));
-        drawList.PathFillConvex(Style.BackgroundColor);
+        drawList.PathLineTo(pos + new Vector2(borderBottomLeftRadius, size.Y - borderBottomLeftRadius));
+        drawList.PathLineTo(pos + new Vector2(borderBottomLeftRadius, size.Y));
+        drawList.PathLineTo(pos + new Vector2(size.X - borderBottomRightRadius, size.Y));
+        drawList.PathFillConvex(backgroundColor);
 
         // Right edge
 
-        drawList.PathLineTo(pos + new Vector2(size.X - Style.BorderRadiusTopRight, Style.BorderRadiusTopRight));
-        drawList.PathLineTo(pos + new Vector2(size.X, Style.BorderRadiusTopRight));
-        drawList.PathLineTo(pos + new Vector2(size.X, size.Y - Style.BorderRadiusBottomRight));
-        drawList.PathFillConvex(Style.BackgroundColor);
+        drawList.PathLineTo(pos + new Vector2(size.X - borderTopRightRadius, borderTopRightRadius));
+        drawList.PathLineTo(pos + new Vector2(size.X, borderTopRightRadius));
+        drawList.PathLineTo(pos + new Vector2(size.X, size.Y - borderBottomRightRadius));
+        drawList.PathFillConvex(backgroundColor);
 
-        drawList.PathLineTo(pos + new Vector2(size.X - Style.BorderRadiusTopRight, Style.BorderRadiusTopRight));
-        drawList.PathLineTo(pos + new Vector2(size.X - Style.BorderRadiusTopRight, size.Y - Style.BorderRadiusBottomRight));
-        drawList.PathLineTo(pos + new Vector2(size.X, size.Y - Style.BorderRadiusBottomRight));
-        drawList.PathFillConvex(Style.BackgroundColor);
+        drawList.PathLineTo(pos + new Vector2(size.X - borderTopRightRadius, borderTopRightRadius));
+        drawList.PathLineTo(pos + new Vector2(size.X - borderTopRightRadius, size.Y - borderBottomRightRadius));
+        drawList.PathLineTo(pos + new Vector2(size.X, size.Y - borderBottomRightRadius));
+        drawList.PathFillConvex(backgroundColor);
 
         // Center
-        drawList.PathLineTo(pos + new Vector2(Style.BorderRadiusTopLeft));
-        drawList.PathLineTo(pos + new Vector2(size.X - Style.BorderRadiusTopRight, Style.BorderRadiusTopRight));
-        drawList.PathLineTo(pos + new Vector2(size.X - Style.BorderRadiusTopRight, size.Y - Style.BorderRadiusBottomRight));
-        drawList.PathFillConvex(Style.BackgroundColor);
+        drawList.PathLineTo(pos + new Vector2(borderTopLeftRadius));
+        drawList.PathLineTo(pos + new Vector2(size.X - borderTopRightRadius, borderTopRightRadius));
+        drawList.PathLineTo(pos + new Vector2(size.X - borderTopRightRadius, size.Y - borderBottomRightRadius));
+        drawList.PathFillConvex(backgroundColor);
 
-        drawList.PathLineTo(pos + new Vector2(Style.BorderRadiusTopLeft));
-        drawList.PathLineTo(pos + new Vector2(Style.BorderRadiusBottomLeft, size.Y - Style.BorderRadiusBottomLeft));
-        drawList.PathLineTo(pos + new Vector2(size.X - Style.BorderRadiusBottomRight, size.Y - Style.BorderRadiusBottomRight));
-        drawList.PathFillConvex(Style.BackgroundColor);
+        drawList.PathLineTo(pos + new Vector2(borderTopLeftRadius));
+        drawList.PathLineTo(pos + new Vector2(borderBottomLeftRadius, size.Y - borderBottomLeftRadius));
+        drawList.PathLineTo(pos + new Vector2(size.X - borderBottomRightRadius, size.Y - borderBottomRightRadius));
+        drawList.PathFillConvex(backgroundColor);
 
         drawList.Flags = savedFlags;
     }

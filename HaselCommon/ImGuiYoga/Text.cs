@@ -4,7 +4,6 @@ using Dalamud.Interface.ImGuiSeStringRenderer;
 using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Interface.Utility;
 using Dalamud.Plugin;
-using HaselCommon.ImGuiYoga.Attributes;
 using HaselCommon.ImGuiYoga.Events;
 using HaselCommon.Utils;
 using ImGuiNET;
@@ -62,7 +61,6 @@ public unsafe class Text : CharacterData
         }
     }
 
-    [NodeProperty("sestring")]
     public bool IsSeString
     {
         get => isSeString;
@@ -81,8 +79,8 @@ public unsafe class Text : CharacterData
     public void GenerateFont()
     {
         var fontAtlas = Service.Get<IDalamudPluginInterface>().UiBuilder.FontAtlas;
-        var size = Style.FontSize.Resolve();
-        var fontStyle = Style.FontName.Resolve().ToLowerInvariant() switch
+        var size = ComputedStyle.FontSize;
+        var fontStyle = ComputedStyle.FontName.ToLowerInvariant() switch
         {
             "jupiter" => new GameFontStyle(GameFontFamily.Jupiter, size),
             "jupiternumeric" => new GameFontStyle(GameFontFamily.JupiterNumeric, size),
@@ -104,8 +102,8 @@ public unsafe class Text : CharacterData
 
     private SeStringDrawParams TextDrawParams => DrawParams with
     {
-        Color = Style.Color.Resolve(),
-        FontSize = Style.FontSize.Resolve(),
+        Color = ComputedStyle.Color,
+        FontSize = ComputedStyle.FontSize,
     };
 
     private YGSize Measure(YGNode* node, float width, MeasureMode widthMode, float height, MeasureMode heightMode)
@@ -165,7 +163,7 @@ public unsafe class Text : CharacterData
     {
         ImGui.PushTextWrapPos(CumulativePosition.X + ComputedWidth);
 
-        using (Style.Color.Resolve().Push(ImGuiCol.Text))
+        using (ComputedStyle.Color.Push(ImGuiCol.Text))
             ImGui.TextUnformatted(Data.ExtractText());
 
         ImGui.PopTextWrapPos();

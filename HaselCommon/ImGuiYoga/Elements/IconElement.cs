@@ -23,7 +23,7 @@ public class IconElement : Node
             switch (attributeChangedEvent.Name)
             {
                 case "icon-id":
-                    _iconId = uint.Parse(attributeChangedEvent.Value);
+                    _iconId = uint.Parse(attributeChangedEvent.Value ?? "0");
                     break;
             }
         }

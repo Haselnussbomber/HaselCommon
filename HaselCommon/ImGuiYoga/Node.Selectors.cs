@@ -41,7 +41,7 @@ public partial class Node
 
             // § 5.1 Type (tag name) selector
             // https://www.w3.org/TR/selectors-4/#type-selectors
-            TypeSelector typeSelector => false, // TODO: we don't have tag names yet.. maybe we should carry the ElementRegistry over to the Document?
+            TypeSelector typeSelector => typeSelector.Text == TagName,
 
             // § 6.6 Class selectors
             // https://www.w3.org/TR/selectors-4/#class-html
@@ -60,10 +60,10 @@ public partial class Node
             AttrAvailableSelector attrAvailableSelector => Attributes.ContainsKey(attrAvailableSelector.Attribute),
             AttrMatchSelector attrMatchSelector => Attributes[attrMatchSelector.Attribute] == attrMatchSelector.Value,
             AttrNotMatchSelector attrNotMatchSelector => Attributes[attrNotMatchSelector.Attribute] != attrNotMatchSelector.Value, // is this even a thing?
-            AttrListSelector attrListSelector => RegexWhitespace().Split(Attributes[attrListSelector.Attribute]).Contains(attrListSelector.Value),
-            AttrBeginsSelector attrBeginsSelector => Attributes[attrBeginsSelector.Attribute].StartsWith(attrBeginsSelector.Value),
-            AttrEndsSelector attrEndsSelector => Attributes[attrEndsSelector.Attribute].EndsWith(attrEndsSelector.Value),
-            AttrContainsSelector attrContainsSelector => Attributes[attrContainsSelector.Attribute].Contains(attrContainsSelector.Value),
+            AttrListSelector attrListSelector => RegexWhitespace().Split(Attributes[attrListSelector.Attribute] ?? string.Empty).Contains(attrListSelector.Value),
+            AttrBeginsSelector attrBeginsSelector => (Attributes[attrBeginsSelector.Attribute] ?? string.Empty).StartsWith(attrBeginsSelector.Value),
+            AttrEndsSelector attrEndsSelector => (Attributes[attrEndsSelector.Attribute] ?? string.Empty).EndsWith(attrEndsSelector.Value),
+            AttrContainsSelector attrContainsSelector => (Attributes[attrContainsSelector.Attribute] ?? string.Empty).Contains(attrContainsSelector.Value),
 
             // § 14.3.1. :nth-child() pseudo-class
             // https://www.w3.org/TR/selectors-4/#the-nth-child-pseudo
