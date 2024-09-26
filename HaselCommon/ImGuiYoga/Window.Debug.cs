@@ -198,6 +198,7 @@ public partial class Window
                 if (_table)
                 {
                     PrintRow("FontHandle", node.FontHandle?.Available ?? false);
+                    PrintRow("HadOverflow", node.ComputedStyle.HadOverflow);
                     PrintRow("ComputedTop", node.ComputedTop);
                     PrintRow("ComputedLeft", node.ComputedLeft);
                     PrintRow("ComputedPosition", node.ComputedPosition);

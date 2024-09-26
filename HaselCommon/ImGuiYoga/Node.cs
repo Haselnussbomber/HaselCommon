@@ -140,7 +140,11 @@ public unsafe partial class Node : EventTarget
 
         DrawBackground();
 
-        var overflow = Style["overflow"];
+        var overflow = ResolveStyleValue("overflow");
+
+        if (string.IsNullOrEmpty(overflow) && ComputedStyle.HadOverflow)
+            overflow = "scroll";
+
         var isOverflowScroll = overflow == "scroll";
         var isOverflowHidden = overflow == "hidden";
 
@@ -179,7 +183,11 @@ public unsafe partial class Node : EventTarget
 
     private void PostDraw()
     {
-        var overflow = Style["overflow"];
+        var overflow = ResolveStyleValue("overflow");
+
+        if (string.IsNullOrEmpty(overflow) && ComputedStyle.HadOverflow)
+            overflow = "scroll";
+
         var isOverflowScroll = overflow == "scroll";
         var isOverflowHidden = overflow == "hidden";
 

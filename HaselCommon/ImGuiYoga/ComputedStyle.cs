@@ -10,6 +10,7 @@ namespace HaselCommon.ImGuiYoga;
 public unsafe class ComputedStyle(Node OwnerNode)
 {
     // Yoga
+    public bool HadOverflow => OwnerNode.YGNode->GetHadOverflow();
     public float PositionTop => OwnerNode.YGNode->GetComputedTop();
     public float PositionLeft => OwnerNode.YGNode->GetComputedLeft();
     public float MarginTop => OwnerNode.YGNode->GetComputedMargin(YGEdge.Top);

@@ -7,10 +7,15 @@ using Microsoft.Extensions.Logging;
 
 namespace HaselCommon.ImGuiYoga;
 
-public partial class Window(WindowManager wm, string name, ImGuiWindowFlags flags = ImGuiWindowFlags.None, bool forceMainWindow = false) : SimpleWindow(wm, name, flags, forceMainWindow), IDisposable
+public partial class Window : SimpleWindow, IDisposable
 {
     private ImRaii.Style WindowStyle { get; } = new();
     public Document Document { get; init; } = new();
+
+    public Window(WindowManager wm, string name, ImGuiWindowFlags flags = ImGuiWindowFlags.None, bool forceMainWindow = false) : base(wm, name, flags, forceMainWindow)
+    {
+        Flags |= ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse;
+    }
 
     public override void OnClose()
     {
