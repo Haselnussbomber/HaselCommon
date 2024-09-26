@@ -162,6 +162,15 @@ public unsafe partial class Node : IList<Node>
         DispatchEvent(new ChildrenChangedEvent());
     }
 
+    public void Traverse(Action<Node> callback)
+    {
+        foreach (var child in Children)
+        {
+            callback(child);
+            child.Traverse(callback);
+        }
+    }
+
     public IEnumerator<Node> GetEnumerator()
     {
         ThrowIfDisposed();

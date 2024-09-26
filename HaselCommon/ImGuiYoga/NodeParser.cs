@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml;
-using ExCSS;
 using HaselCommon.ImGuiYoga.Elements;
 using HaselCommon.Utils;
 using ImGuiNET;
@@ -16,9 +15,7 @@ namespace HaselCommon.ImGuiYoga;
 
 public static partial class NodeParser
 {
-    public record struct BorderResult(float[] LineWidth, HaselColor? Color);
-
-    public static readonly StylesheetParser StylesheetParser = new(
+    public static readonly ExCSS.StylesheetParser StylesheetParser = new(
         includeUnknownRules: true,
         includeUnknownDeclarations: true,
         tolerateInvalidSelectors: false,
@@ -128,6 +125,9 @@ public static partial class NodeParser
 
     public static HaselColor ParseStyleColor(string input)
     {
+        if (string.IsNullOrEmpty(input))
+            return Colors.Transparent;
+
         if (input.StartsWith('#'))
         {
             var hex = input[1..];
@@ -200,37 +200,11 @@ public static partial class NodeParser
         return HaselColor.From(0u);
     }
 
-    // TODO: if none set, initial is passed
-    public static BorderResult ParseStyleBorder(string value)
-    {
-        /*
-            we don't support <line-style> (yet?), so format will be:
-
-            border = <line-width> || <color>
-            <line-width> = <length [0,∞]>
-        */
-
-        HaselColor? color = null;
-
-        var colorStart = value.LastIndexOf('#');
-        if (colorStart == -1)
-            colorStart = value.LastIndexOf("rgb");
-        if (colorStart != -1)
-        {
-            var colorvalue = value[colorStart..];
-            value = value[..colorStart];
-            color = ParseStyleColor(colorvalue);
-        }
-
-        var widths = value
-            .Split(' ', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
-            .Select(value => float.Parse(value, CultureInfo.InvariantCulture));
-
-        return new BorderResult(widths.ToArray(), color);
-    }
-
     public static float ParseFloat(string input)
     {
+        if (string.IsNullOrEmpty(input))
+            return 0;
+
         if (input.Contains(' '))
         {
             input = input.Split(' ', 2)[0];
@@ -246,6 +220,9 @@ public static partial class NodeParser
 
     public static YGValue ParseYGValue(string input)
     {
+        if (string.IsNullOrEmpty(input))
+            return 0;
+
         var unit = YGUnit.Point;
 
         if (input.EndsWith("px", StringComparison.OrdinalIgnoreCase))

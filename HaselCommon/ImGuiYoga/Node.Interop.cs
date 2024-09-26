@@ -4,6 +4,7 @@ using YGMeasureFuncDelegate = YogaSharp.Interop.YGMeasureFuncDelegate;
 
 namespace HaselCommon.ImGuiYoga;
 
+// TODO: move this all away
 public unsafe partial class Node
 {
     internal readonly YGNode* YGNode = YogaSharp.YGNode.New();

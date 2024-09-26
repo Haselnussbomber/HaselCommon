@@ -1,9 +1,6 @@
 using System.Text;
-using Dalamud.Interface.GameFonts;
 using Dalamud.Interface.ImGuiSeStringRenderer;
-using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Interface.Utility;
-using Dalamud.Plugin;
 using HaselCommon.ImGuiYoga.Events;
 using HaselCommon.Utils;
 using ImGuiNET;
@@ -19,8 +16,6 @@ namespace HaselCommon.ImGuiYoga;
 public unsafe class Text : CharacterData
 {
     private bool isSeString = false;
-    private bool fontDirty;
-    private IFontHandle? fontHandle;
 
     public override string AsHtmlOpenTag => TextValue.Replace('\n', ' ');
 
@@ -46,21 +41,6 @@ public unsafe class Text : CharacterData
         set => Data = Encoding.UTF8.GetBytes(value);
     }
 
-    public override void Dispose()
-    {
-        DisposeFontHandle();
-        base.Dispose();
-    }
-
-    private void DisposeFontHandle()
-    {
-        if (fontHandle != null)
-        {
-            fontHandle.ImFontChanged -= FontHandle_ImFontChanged;
-            fontHandle.Dispose();
-        }
-    }
-
     public bool IsSeString
     {
         get => isSeString;
@@ -76,30 +56,6 @@ public unsafe class Text : CharacterData
 
     public SeStringDrawParams DrawParams { get; set; } = default;
 
-    public void GenerateFont()
-    {
-        var fontAtlas = Service.Get<IDalamudPluginInterface>().UiBuilder.FontAtlas;
-        var size = ComputedStyle.FontSize;
-        var fontStyle = ComputedStyle.FontName.ToLowerInvariant() switch
-        {
-            "jupiter" => new GameFontStyle(GameFontFamily.Jupiter, size),
-            "jupiternumeric" => new GameFontStyle(GameFontFamily.JupiterNumeric, size),
-            "meidinger" => new GameFontStyle(GameFontFamily.Meidinger, size),
-            "miedingermid" => new GameFontStyle(GameFontFamily.MiedingerMid, size),
-            "trumpgothic" => new GameFontStyle(GameFontFamily.TrumpGothic, size),
-            _ => new GameFontStyle(GameFontFamily.Axis, size),
-        };
-
-        DisposeFontHandle();
-        fontHandle = fontAtlas.NewGameFontHandle(fontStyle);
-        fontHandle.ImFontChanged += FontHandle_ImFontChanged;
-    }
-
-    private void FontHandle_ImFontChanged(IFontHandle fontHandle, ILockedImFont lockedFont)
-    {
-        IsDirty = true;
-    }
-
     private SeStringDrawParams TextDrawParams => DrawParams with
     {
         Color = ComputedStyle.Color,
@@ -108,13 +64,7 @@ public unsafe class Text : CharacterData
 
     private YGSize Measure(YGNode* node, float width, MeasureMode widthMode, float height, MeasureMode heightMode)
     {
-        if (fontDirty)
-        {
-            GenerateFont();
-            fontDirty = false;
-        }
-
-        using var font = fontHandle?.Push();
+        using var font = FontHandle?.Push();
 
         return IsSeString
             ? ImGuiHelpers.SeStringWrapped(Data, TextDrawParams with { TargetDrawList = 0, WrapWidth = width }).Size
@@ -123,16 +73,13 @@ public unsafe class Text : CharacterData
 
     protected override void DrawNode()
     {
-        if (fontDirty)
-            IsDirty = true;
-
         if (!ImGuiUtils.IsInViewport(ComputedSize))
         {
             ImGui.Dummy(ComputedSize);
             return;
         }
 
-        using var font = fontHandle?.Push();
+        using var font = FontHandle?.Push();
 
         if (IsSeString)
         {

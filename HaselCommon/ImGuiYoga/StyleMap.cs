@@ -2,7 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using HaselCommon.ImGuiYoga.Events;
 
 namespace HaselCommon.ImGuiYoga;
 
@@ -14,7 +13,6 @@ public class StyleMap(Node OwnerNode) : IDictionary<string, string>
     public string this[string propertyName]
     {
         get => Map.TryGetValue(propertyName, out var value) ? value : string.Empty;
-
         set
         {
             if (this[propertyName] != value)
@@ -28,12 +26,7 @@ public class StyleMap(Node OwnerNode) : IDictionary<string, string>
                     Map[propertyName] = value;
                 }
 
-                OwnerNode.DispatchEvent(new StyleChangedEvent()
-                {
-                    PropertyName = propertyName
-                });
-
-                OwnerNode.ComputedStyle.ResetCache();
+                OwnerNode.ComputedStyle.UpdateStyle(propertyName);
             }
         }
     }

@@ -197,6 +197,7 @@ public partial class Window
                 using var _table = ImRaii.Table("ComputedTable", 2);
                 if (_table)
                 {
+                    PrintRow("FontHandle", node.FontHandle?.Available ?? false);
                     PrintRow("ComputedTop", node.ComputedTop);
                     PrintRow("ComputedLeft", node.ComputedLeft);
                     PrintRow("ComputedPosition", node.ComputedPosition);

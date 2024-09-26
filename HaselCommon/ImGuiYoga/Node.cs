@@ -6,12 +6,11 @@ using ImGuiNET;
 
 namespace HaselCommon.ImGuiYoga;
 
-// TODO: dirty flags for style and font
 public unsafe partial class Node : EventTarget
 {
     public Guid Guid { get; } = Guid.NewGuid();
     public virtual string TagName => "div";
-    public virtual string DisplayName => !string.IsNullOrEmpty(Id) ? $"#{Id}" : ClassList.Count > 0 ? ClassList.ToString() : string.Empty;
+    public virtual string DisplayName => !string.IsNullOrEmpty(Id) ? $"#{Id}" : ClassList.Count > 0 ? ClassList.ToString() : Guid.ToString();
     public virtual string AsHtmlOpenTag => $"<{TagName}{(Attributes.Count > 0 ? $" {Attributes}" : string.Empty)}{(Count == 0 ? " /" : string.Empty)}>";
 
     private Type CachedType { get; }
@@ -43,6 +42,8 @@ public unsafe partial class Node : EventTarget
     private readonly ImRaii.Style ChildFrameStyle = new();
     private readonly ImRaii.Color ChildFrameColor = new();
     private GCHandle? MeasureFuncHandle;
+    private bool UpdateRefsPending;
+    internal bool UpdateFontHandlePending;
 
     public Node()
     {
@@ -101,6 +102,18 @@ public unsafe partial class Node : EventTarget
         {
             Setup();
             IsSetupComplete = true;
+        }
+
+        if (UpdateRefsPending)
+        {
+            UpdateRefs();
+            UpdateRefsPending = false;
+        }
+
+        if (UpdateFontHandlePending)
+        {
+            UpdateFontHandle();
+            UpdateFontHandlePending = false;
         }
 
         UpdateChildNodes();

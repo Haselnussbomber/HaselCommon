@@ -48,8 +48,8 @@ public partial class Window(WindowManager wm, string name, ImGuiWindowFlags flag
         WindowStyle.Dispose();
 
         Document.Style["position"] = "absolute";
-        Document.Style["position-top"] = $"{ImGui.GetCursorPosY()}px";
-        Document.Style["position-left"] = $"{ImGui.GetCursorPosX()}px";
+        Document.Style["top"] = $"{ImGui.GetCursorPosY()}px";
+        Document.Style["left"] = $"{ImGui.GetCursorPosX()}px";
 
         try
         {
