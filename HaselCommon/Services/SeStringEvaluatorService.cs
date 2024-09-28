@@ -41,7 +41,7 @@ public partial class SeStringEvaluatorService(
         => Evaluate(str, new());
 
     public ReadOnlySeString Evaluate(byte[] str, SeStringContext context)
-        => Evaluate(str.AsSpan(), context);
+        => Evaluate((ReadOnlySeStringSpan)str, context);
 
     public ReadOnlySeString Evaluate(ReadOnlySeString str, SeStringContext context)
         => Evaluate(str.AsSpan(), context);
