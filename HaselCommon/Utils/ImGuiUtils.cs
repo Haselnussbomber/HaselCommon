@@ -95,8 +95,7 @@ public static class ImGuiUtils
 
     public static void SameLineSpace()
     {
-        using var itemSpacing = ImRaii.PushStyle(ImGuiStyleVar.ItemSpacing, new Vector2(ImGui.CalcTextSize(" ").X, 0));
-        ImGui.SameLine();
+        ImGui.SameLine(0, ImGui.CalcTextSize(" ").X);
     }
 
     public static bool IsInViewport(Vector2 size)
