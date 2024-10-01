@@ -36,10 +36,7 @@ public class TextService : IDisposable
 
     private ExcelService ExcelService => _excelService ??= Service.Get<ExcelService>();
 
-    public TextService(
-        ILogger<TextService> logger,
-        IDalamudPluginInterface pluginInterface,
-        TextDecoder textDecoder)
+    public TextService(ILogger<TextService> logger, IDalamudPluginInterface pluginInterface, TextDecoder textDecoder)
     {
         _logger = logger;
         _pluginInterface = pluginInterface;
@@ -112,10 +109,10 @@ public class TextService : IDisposable
 
     public ReadOnlySeString TranslateSeString(string key, params SeStringParameter[] args)
     {
-        var sb = new SeStringBuilder();
         if (!TryGetTranslation(key, out var format))
-            return sb.Append(key).ToReadOnlySeString();
+            return ReadOnlySeString.FromText(key);
 
+        var sb = new SeStringBuilder();
         var placeholders = format.Split(['{', '}']);
 
         for (var i = 0; i < placeholders.Length; i++)

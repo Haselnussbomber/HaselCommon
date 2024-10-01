@@ -25,11 +25,11 @@ public partial class SeStringEvaluatorService(
     TextureService textureService,
     TextDecoder textDecoder)
 {
-    private readonly IDataManager DataManager = dataManager;
-    private readonly ExcelService ExcelService = excelService;
-    private readonly TextService TextService = textService;
-    private readonly TextureService TextureService = textureService;
-    private readonly TextDecoder TextDecoder = textDecoder;
+    private readonly IDataManager _dataManager = dataManager;
+    private readonly ExcelService _excelService = excelService;
+    private readonly TextService _textService = textService;
+    private readonly TextureService _textureService = textureService;
+    private readonly TextDecoder _textDecoder = textDecoder;
 
     public ReadOnlySeString Evaluate(byte[] str)
         => Evaluate(str, new());
@@ -48,7 +48,7 @@ public partial class SeStringEvaluatorService(
 
     public ReadOnlySeString Evaluate(ReadOnlySeStringSpan str, SeStringContext context)
     {
-        context.Language ??= TextService.ClientLanguage;
+        context.Language ??= _textService.ClientLanguage;
 
         foreach (var payload in str)
             ResolveStringPayload(ref context, payload);
@@ -58,9 +58,9 @@ public partial class SeStringEvaluatorService(
 
     public ReadOnlySeString EvaluateFromAddon(uint addonId, SeStringContext context)
     {
-        context.Language ??= TextService.ClientLanguage;
+        context.Language ??= _textService.ClientLanguage;
 
-        var addonRow = ExcelService.GetRow<Addon>(addonId, context.Language);
+        var addonRow = _excelService.GetRow<Addon>(addonId, context.Language);
         if (addonRow == null)
             return new();
 
@@ -486,7 +486,7 @@ public partial class SeStringEvaluatorService(
 processSheet:
                     var resolvedSheetName = Evaluate(eSheetNameStr, context with { Builder = new() }).ExtractText();
 
-                    var sheet = DataManager.Excel.GetSheetRaw(resolvedSheetName, (context.Language ?? TextService.ClientLanguage).ToLumina());
+                    var sheet = _dataManager.Excel.GetSheetRaw(resolvedSheetName, (context.Language ?? _textService.ClientLanguage).ToLumina());
                     if (sheet == null)
                         return false;
 
@@ -598,8 +598,8 @@ processSheet:
 
                         if (p.Type == ReadOnlySePayloadType.Text)
                         {
-                            var cultureInfo = TextService.ClientLanguage == context.Language
-                                ? TextService.CultureInfo
+                            var cultureInfo = _textService.ClientLanguage == context.Language
+                                ? _textService.CultureInfo
                                 : TextService.GetCultureInfoFromLangCode((context.Language ?? ClientLanguage.English).ToCode());
                             context.Builder.Append(cultureInfo.TextInfo.ToTitleCase(Encoding.UTF8.GetString(p.Body.ToArray())));
                             continue;
@@ -618,7 +618,7 @@ processSheet:
                     {
                         if (eColorTypeVal == 0)
                             context.Builder.PopColor();
-                        else if (ExcelService.GetRow<UIColor>(eColorTypeVal) is { } row)
+                        else if (_excelService.GetRow<UIColor>(eColorTypeVal) is { } row)
                             context.Builder.PushColorBgra((row.UIForeground >> 8) | (row.UIForeground << 24));
                         return true;
                     }
@@ -633,7 +633,7 @@ processSheet:
                     {
                         if (eColorTypeVal == 0)
                             context.Builder.PopEdgeColor();
-                        else if (ExcelService.GetRow<UIColor>(eColorTypeVal) is { } row)
+                        else if (_excelService.GetRow<UIColor>(eColorTypeVal) is { } row)
                             context.Builder.PushEdgeColorBgra((row.UIForeground >> 8) | (row.UIForeground << 24));
                         return true;
                     }
@@ -649,15 +649,15 @@ processSheet:
                         goto invalidLevelPos;
                     }
 
-                    var level = ExcelService.GetRow<Level>(eLevelVal);
+                    var level = _excelService.GetRow<Level>(eLevelVal);
                     if (level == null || level.Map.Value == null)
                         goto invalidLevelPos;
 
-                    var placeName = ExcelService.GetRow<PlaceName>(level.Map.Value.PlaceName.Row, context.Language);
+                    var placeName = _excelService.GetRow<PlaceName>(level.Map.Value.PlaceName.Row, context.Language);
                     if (placeName == null)
                         goto invalidLevelPos;
 
-                    var levelFormatRow = ExcelService.GetRow<Addon>(1637, context.Language);
+                    var levelFormatRow = _excelService.GetRow<Addon>(1637, context.Language);
                     if (levelFormatRow == null)
                         goto invalidLevelPos;
 
@@ -755,19 +755,12 @@ invalidLevelPos:
             if (paramIndex == 0)
                 return false;
             paramIndex--;
-            switch ((ExpressionType)exprType)
+            return (ExpressionType)exprType switch
             {
-                case ExpressionType.LocalNumber: // lnum
-                    return context.TryGetLNum((int)paramIndex, out value);
-
-                case ExpressionType.GlobalNumber: // gnum
-                    return TryGetGNumDefault(paramIndex, out value);
-
-                case ExpressionType.GlobalString: // gstr
-                case ExpressionType.LocalString: // lstr
-                default:
-                    return false;
-            }
+                ExpressionType.LocalNumber => context.TryGetLNum((int)paramIndex, out value), // lnum
+                ExpressionType.GlobalNumber => TryGetGNumDefault(paramIndex, out value), // gnum
+                _ => false, // gstr, lstr
+            };
         }
 
         if (expression.TryGetBinaryExpression(out exprType, out operand1, out var operand2))
@@ -987,7 +980,7 @@ invalidLevelPos:
             return false;
 
 decode:
-        context.Builder.Append(TextDecoder.ProcessNoun(language, resolvedSheetName, ePersonVal, eRowIdVal, eAmountVal, eCaseVal, eUnkInt5Val));
+        context.Builder.Append(_textDecoder.ProcessNoun(language, resolvedSheetName, ePersonVal, eRowIdVal, eAmountVal, eCaseVal, eUnkInt5Val));
 
         return true;
     }

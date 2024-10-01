@@ -9,31 +9,33 @@ namespace HaselCommon.Services;
 
 public class WindowManager : IDisposable
 {
-    private readonly IDalamudPluginInterface PluginInterface;
-    private readonly WindowSystem WindowSystem;
+    private readonly IDalamudPluginInterface _pluginInterface;
+    private readonly WindowSystem _windowSystem;
 
     public WindowManager(IDalamudPluginInterface pluginInterface)
     {
-        PluginInterface = pluginInterface;
+        _pluginInterface = pluginInterface;
 
-        WindowSystem = new(PluginInterface.InternalName);
+        _windowSystem = new(_pluginInterface.InternalName);
 
-        PluginInterface.UiBuilder.Draw += WindowSystem.Draw;
+        _pluginInterface.UiBuilder.Draw += _windowSystem.Draw;
     }
 
     void IDisposable.Dispose()
     {
-        PluginInterface.UiBuilder.Draw -= WindowSystem.Draw;
+        _pluginInterface.UiBuilder.Draw -= _windowSystem.Draw;
 
-        WindowSystem.Windows.OfType<IDisposable>().ForEach(window => window.Dispose());
-        WindowSystem.RemoveAllWindows();
+        _windowSystem.Windows.OfType<IDisposable>().ForEach(window => window.Dispose());
+        _windowSystem.RemoveAllWindows();
+
+        GC.SuppressFinalize(this);
     }
 
     public bool TryGetWindow<T>(string windowName, [NotNullWhen(returnValue: true)] out T? outWindow) where T : Window
     {
         outWindow = null;
 
-        foreach (var window in WindowSystem.Windows)
+        foreach (var window in _windowSystem.Windows)
         {
             if (window is not T typedWindow)
                 continue;
@@ -51,7 +53,7 @@ public class WindowManager : IDisposable
     public T CreateOrOpen<T>(string windowName, Func<T> factory) where T : SimpleWindow
     {
         if (!TryGetWindow<T>(windowName, out var window))
-            WindowSystem.AddWindow(window = factory());
+            _windowSystem.AddWindow(window = factory());
 
         window.Open();
         return window;
@@ -59,28 +61,28 @@ public class WindowManager : IDisposable
 
     public T Open<T>(T window) where T : SimpleWindow
     {
-        WindowSystem.AddWindow(window);
+        _windowSystem.AddWindow(window);
         window.Open();
         return window;
     }
 
     public bool AddWindow(Window window)
     {
-        if (WindowSystem.Windows.Contains(window))
+        if (_windowSystem.Windows.Contains(window))
             return false;
 
-        WindowSystem.AddWindow(window);
+        _windowSystem.AddWindow(window);
         return true;
     }
 
     public bool Contains(string windowName)
     {
-        return WindowSystem.Windows.Any(win => win.WindowName == windowName);
+        return _windowSystem.Windows.Any(win => win.WindowName == windowName);
     }
 
     public bool Contains(Window window)
     {
-        return WindowSystem.Windows.Contains(window);
+        return _windowSystem.Windows.Contains(window);
     }
 
     public void RemoveWindow(string windowName)
@@ -91,15 +93,15 @@ public class WindowManager : IDisposable
 
     public void Close<T>() where T : SimpleWindow
     {
-        WindowSystem.Windows.OfType<T>().ForEach(window => window.Close());
+        _windowSystem.Windows.OfType<T>().ForEach(window => window.Close());
     }
 
     public bool RemoveWindow(Window window)
     {
-        if (!WindowSystem.Windows.Contains(window))
+        if (!_windowSystem.Windows.Contains(window))
             return false;
 
-        WindowSystem.RemoveWindow(window);
+        _windowSystem.RemoveWindow(window);
         return true;
     }
 }

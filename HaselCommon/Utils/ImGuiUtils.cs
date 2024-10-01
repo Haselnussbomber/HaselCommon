@@ -6,6 +6,7 @@ using Dalamud.Interface.Utility.Raii;
 using Dalamud.Utility;
 using HaselCommon.Extensions;
 using ImGuiNET;
+using UIColor = Lumina.Excel.GeneratedSheets.UIColor;
 
 namespace HaselCommon.Utils;
 
@@ -20,19 +21,19 @@ public static class ImGuiUtils
         PushCursorY(style.ItemSpacing.Y - 1);
     }
 
-    public static void DrawSection(string Label, bool PushDown = true, bool RespectUiTheme = false, Lumina.Excel.GeneratedSheets.UIColor? UIColor = null)
+    public static void DrawSection(string label, bool pushDown = true, bool respectUiTheme = false, UIColor? uiColor = null)
     {
         var style = ImGui.GetStyle();
 
         // push down a bit
-        if (PushDown)
+        if (pushDown)
             PushCursorY(style.ItemSpacing.Y * 2);
 
         var color = Colors.Gold;
-        if (RespectUiTheme && UIColor != null && Colors.IsLightTheme)
-            color = UIColor.GetForegroundColor();
+        if (respectUiTheme && uiColor != null && Colors.IsLightTheme)
+            color = uiColor.GetForegroundColor();
 
-        TextUnformattedColored(color, Label);
+        TextUnformattedColored(color, label);
 
         // pull up the separator
         PushCursorY(-style.ItemSpacing.Y + 3);
@@ -122,9 +123,9 @@ public static class ImGuiUtils
             ImGui.TextUnformatted(text);
     }
 
-    public static void TextUnformattedColored(uint col, string text)
+    public static void TextUnformattedColored(uint color, string text)
     {
-        using (ImRaii.PushColor(ImGuiCol.Text, col))
+        using (ImRaii.PushColor(ImGuiCol.Text, color))
             ImGui.TextUnformatted(text);
     }
 
@@ -134,9 +135,9 @@ public static class ImGuiUtils
         return ImGui.CalcTextSize(icon.ToIconString());
     }
 
-    public static void Icon(FontAwesomeIcon icon, uint? col = null)
+    public static void Icon(FontAwesomeIcon icon, uint? color = null)
     {
-        using var color = col != null ? ImRaii.PushColor(ImGuiCol.Text, (uint)col) : null;
+        using (ImRaii.PushColor(ImGuiCol.Text, color ?? 0u, color != null))
         using (ImRaii.PushFont(UiBuilder.IconFont))
             ImGui.TextUnformatted(icon.ToIconString());
     }

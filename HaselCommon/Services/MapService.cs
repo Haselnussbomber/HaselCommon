@@ -212,10 +212,7 @@ public class MapService(IClientState ClientState, IGameGui GameGui, TextService 
             ? raptureTextModule->GetAddonText(242) // "Lv. ???"
             : raptureTextModule->FormatAddonText1IntIntUInt(35, gatheringItemLevel, 0, 0);
 
-        using var tooltip = new Utf8String(
-            new SeStringBuilder()
-                .Append(MemoryMarshal.CreateReadOnlySpanFromNullTerminated(levelText))
-                .ToArray());
+        using var tooltip = new Utf8String(new ReadOnlySeString(MemoryMarshal.CreateReadOnlySpanFromNullTerminated(levelText)));
 
         var iconId = fishingSpot.Rare ? 60466u : 60465u;
 
@@ -265,7 +262,7 @@ public class MapService(IClientState ClientState, IGameGui GameGui, TextService 
             }
         }
 
-        using var title = new Utf8String(new ReadOnlySpan<byte>(titleBuilder.ToArray()).WithNullTerminator());
+        using var title = new Utf8String(titleBuilder.ToReadOnlySeString().Data.Span.WithNullTerminator());
 
         var mapInfo = new OpenMapInfo
         {

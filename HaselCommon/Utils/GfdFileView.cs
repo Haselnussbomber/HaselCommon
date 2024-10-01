@@ -8,30 +8,30 @@ namespace HaselCommon.Utils;
 /// <summary>Reference member view of a .gfd file data.</summary>
 public readonly unsafe struct GfdFileView
 {
-    private readonly ReadOnlyMemory<byte> memory;
-    private readonly bool directLookup;
+    private readonly ReadOnlyMemory<byte> _memory;
+    private readonly bool _directLookup;
 
     /// <summary>Initializes a new instance of the <see cref="GfdFileView"/> struct.</summary>
     /// <param name="memory">The data.</param>
     public GfdFileView(ReadOnlyMemory<byte> memory)
     {
-        this.memory = memory;
+        _memory = memory;
         if (memory.Length < sizeof(GfdHeader))
             throw new InvalidDataException($"Not enough space for a {nameof(GfdHeader)}");
         if (memory.Length < sizeof(GfdHeader) + Header.Count * sizeof(GfdEntry))
             throw new InvalidDataException($"Not enough space for all the {nameof(GfdEntry)}");
 
         var entries = Entries;
-        directLookup = true;
-        for (var i = 0; i < entries.Length && directLookup; i++)
-            directLookup &= i + 1 == entries[i].Id;
+        _directLookup = true;
+        for (var i = 0; i < entries.Length && _directLookup; i++)
+            _directLookup &= i + 1 == entries[i].Id;
     }
 
     /// <summary>Gets the header.</summary>
-    public ref readonly GfdHeader Header => ref MemoryMarshal.AsRef<GfdHeader>(memory.Span);
+    public ref readonly GfdHeader Header => ref MemoryMarshal.AsRef<GfdHeader>(_memory.Span);
 
     /// <summary>Gets the entries.</summary>
-    public ReadOnlySpan<GfdEntry> Entries => MemoryMarshal.Cast<byte, GfdEntry>(memory.Span[sizeof(GfdHeader)..]);
+    public ReadOnlySpan<GfdEntry> Entries => MemoryMarshal.Cast<byte, GfdEntry>(_memory.Span[sizeof(GfdHeader)..]);
 
     /// <summary>Attempts to get an entry.</summary>
     /// <param name="iconId">The icon ID.</param>
@@ -47,7 +47,7 @@ public readonly unsafe struct GfdFileView
         }
 
         var entries = Entries;
-        if (directLookup)
+        if (_directLookup)
         {
             if (iconId <= entries.Length)
             {

@@ -37,11 +37,11 @@ public class ImGuiContextMenuService(TextService TextService, MapService MapServ
 
 public unsafe struct ImGuiContextMenuBuilder(TextService TextService, MapService MapService, ItemService ItemService)
 {
-    private readonly List<IImGuiContextMenuEntry> Entries = [];
+    private readonly List<IImGuiContextMenuEntry> _entries = [];
 
     internal void Draw()
     {
-        var visibleEntries = Entries.Where(entry => entry.Visible);
+        var visibleEntries = _entries.Where(entry => entry.Visible);
         var count = visibleEntries.Count();
         var i = 0;
         foreach (var entry in visibleEntries)
@@ -50,19 +50,19 @@ public unsafe struct ImGuiContextMenuBuilder(TextService TextService, MapService
 
     public ImGuiContextMenuBuilder Add(IImGuiContextMenuEntry entry)
     {
-        Entries.Add(entry);
+        _entries.Add(entry);
         return this;
     }
 
     public ImGuiContextMenuBuilder AddSeparator()
     {
-        Entries.Add(new ImGuiContextMenuSeparator());
+        _entries.Add(new ImGuiContextMenuSeparator());
         return this;
     }
 
     public ImGuiContextMenuBuilder AddTryOn(Item item, uint glamourItemId = 0, byte stain1Id = 0, byte stain2Id = 0)
     {
-        Entries.Add(new ImGuiContextMenuEntry()
+        _entries.Add(new ImGuiContextMenuEntry()
         {
             Visible = ItemService.CanTryOn(item),
             Label = TextService.GetAddonText(2426), // "Try On"
@@ -81,7 +81,7 @@ public unsafe struct ImGuiContextMenuBuilder(TextService TextService, MapService
 
     public ImGuiContextMenuBuilder AddItemFinder(uint itemId)
     {
-        Entries.Add(new ImGuiContextMenuEntry()
+        _entries.Add(new ImGuiContextMenuEntry()
         {
             Label = TextService.GetAddonText(4379), // "Search for Item"
             LoseFocusOnClick = true,
@@ -98,7 +98,7 @@ public unsafe struct ImGuiContextMenuBuilder(TextService TextService, MapService
     {
         var itemName = TextService.GetItemName(itemId);
 
-        Entries.Add(new ImGuiContextMenuEntry()
+        _entries.Add(new ImGuiContextMenuEntry()
         {
             Label = TextService.GetAddonText(159), // "Copy Item Name"
             ClickCallback = () =>
@@ -114,7 +114,7 @@ public unsafe struct ImGuiContextMenuBuilder(TextService TextService, MapService
     {
         var itemService = ItemService;
 
-        Entries.Add(new ImGuiContextMenuEntry()
+        _entries.Add(new ImGuiContextMenuEntry()
         {
             Visible = ItemService.CanSearchForItem(item),
             Label = TextService.Translate("ItemContextMenu.SearchTheMarkets"),
@@ -130,7 +130,7 @@ public unsafe struct ImGuiContextMenuBuilder(TextService TextService, MapService
 
     public ImGuiContextMenuBuilder AddGearsetLinkGlamour(GearsetEntry* gearset)
     {
-        Entries.Add(new ImGuiContextMenuEntry()
+        _entries.Add(new ImGuiContextMenuEntry()
         {
             Visible = gearset != null && gearset->GlamourSetLink == 0 && UIState.Instance()->IsUnlockLinkUnlocked(15),
             Enabled = GameMain.IsInSanctuary(),
@@ -144,7 +144,7 @@ public unsafe struct ImGuiContextMenuBuilder(TextService TextService, MapService
 
     public ImGuiContextMenuBuilder AddGearsetChangeGlamour(GearsetEntry* gearset)
     {
-        Entries.Add(new ImGuiContextMenuEntry()
+        _entries.Add(new ImGuiContextMenuEntry()
         {
             Visible = gearset != null && gearset->GlamourSetLink != 0 && UIState.Instance()->IsUnlockLinkUnlocked(15),
             Enabled = GameMain.IsInSanctuary(),
@@ -157,7 +157,7 @@ public unsafe struct ImGuiContextMenuBuilder(TextService TextService, MapService
 
     public ImGuiContextMenuBuilder AddGearsetUnlinkGlamour(GearsetEntry* gearset)
     {
-        Entries.Add(new ImGuiContextMenuEntry()
+        _entries.Add(new ImGuiContextMenuEntry()
         {
             Visible = gearset != null && gearset->GlamourSetLink != 0 && UIState.Instance()->IsUnlockLinkUnlocked(15),
             Label = TextService.GetAddonText(4396),
@@ -169,7 +169,7 @@ public unsafe struct ImGuiContextMenuBuilder(TextService TextService, MapService
 
     public ImGuiContextMenuBuilder AddGearsetChangePortrait(GearsetEntry* gearset)
     {
-        Entries.Add(new ImGuiContextMenuEntry()
+        _entries.Add(new ImGuiContextMenuEntry()
         {
             Visible = gearset != null,
             Label = TextService.GetAddonText(4411),
@@ -185,7 +185,7 @@ public unsafe struct ImGuiContextMenuBuilder(TextService TextService, MapService
 
     public ImGuiContextMenuBuilder AddSearchCraftingMethod(Item item)
     {
-        Entries.Add(new ImGuiContextMenuEntry()
+        _entries.Add(new ImGuiContextMenuEntry()
         {
             Visible = ItemService.IsCraftable(item),
             Label = TextService.GetAddonText(1414), // "Search for Item by Crafting Method"
@@ -204,7 +204,7 @@ public unsafe struct ImGuiContextMenuBuilder(TextService TextService, MapService
         var mapService = MapService;
         var itemService = ItemService;
 
-        Entries.Add(new ImGuiContextMenuEntry()
+        _entries.Add(new ImGuiContextMenuEntry()
         {
             Visible = territoryType != null && ItemService.IsGatherable(item),
             Label = TextService.GetAddonText(8506), // "Open Map"
@@ -226,7 +226,7 @@ public unsafe struct ImGuiContextMenuBuilder(TextService TextService, MapService
         var isFish = itemService.IsFish(item);
         var isSpearfish = itemService.IsSpearfish(item);
 
-        Entries.Add(new ImGuiContextMenuEntry()
+        _entries.Add(new ImGuiContextMenuEntry()
         {
             Visible = isFish || isSpearfish,
             Label = TextService.GetAddonText(8506), // "Open Map"
@@ -245,7 +245,7 @@ public unsafe struct ImGuiContextMenuBuilder(TextService TextService, MapService
 
     public ImGuiContextMenuBuilder AddSearchGatheringMethod(Item item)
     {
-        Entries.Add(new ImGuiContextMenuEntry()
+        _entries.Add(new ImGuiContextMenuEntry()
         {
             Visible = ItemService.IsGatherable(item),
             Label = TextService.GetAddonText(1472), // "Search for Item by Gathering Method"
@@ -265,7 +265,7 @@ public unsafe struct ImGuiContextMenuBuilder(TextService TextService, MapService
         var isFish = itemService.IsFish(item);
         var isSpearfish = itemService.IsSpearfish(item);
 
-        Entries.Add(new ImGuiContextMenuEntry()
+        _entries.Add(new ImGuiContextMenuEntry()
         {
             Visible = isFish || isSpearfish,
             Label = TextService.Translate("ItemContextMenu.OpenInFishGuide"),
@@ -282,7 +282,7 @@ public unsafe struct ImGuiContextMenuBuilder(TextService TextService, MapService
 
     public ImGuiContextMenuBuilder AddOpenOnGarlandTools(string type, uint id)
     {
-        Entries.Add(new ImGuiContextMenuEntry()
+        _entries.Add(new ImGuiContextMenuEntry()
         {
             Label = TextService.Translate("ItemContextMenu.OpenOnGarlandTools"),
             ClickCallback = () =>

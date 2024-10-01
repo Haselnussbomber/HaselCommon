@@ -238,33 +238,33 @@ public static class FuzzyMatcher
 
     private ref struct WordEnumerator(ReadOnlySpan<char> fullNeedle)
     {
-        private readonly ReadOnlySpan<char> fullNeedle = fullNeedle;
-        private int start = -1;
-        private int end = 0;
+        private readonly ReadOnlySpan<char> _fullNeedle = fullNeedle;
+        private int _start = -1;
+        private int _end = 0;
 
         public ReadOnlySpan<char> Current
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => fullNeedle[start..end];
+            get => _fullNeedle[_start.._end];
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool MoveNext()
         {
-            if (start >= fullNeedle.Length - 1)
+            if (_start >= _fullNeedle.Length - 1)
                 return false;
 
-            start = end;
+            _start = _end;
 
             // Skip the spaces
-            while (start < fullNeedle.Length && char.IsWhiteSpace(fullNeedle[start]))
-                start++;
+            while (_start < _fullNeedle.Length && char.IsWhiteSpace(_fullNeedle[_start]))
+                _start++;
 
-            end = start;
-            while (end < fullNeedle.Length && !char.IsWhiteSpace(fullNeedle[end]))
-                end++;
+            _end = _start;
+            while (_end < _fullNeedle.Length && !char.IsWhiteSpace(_fullNeedle[_end]))
+                _end++;
 
-            return start != end;
+            return _start != _end;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

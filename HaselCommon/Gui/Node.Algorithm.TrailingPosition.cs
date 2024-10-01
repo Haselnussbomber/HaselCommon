@@ -20,9 +20,4 @@ public partial class Node
             GetPositionOfOppositeEdge(child.Layout.GetPosition(axis.FlexStartEdge()), axis, node, child),
             axis.FlexEndEdge());
     }
-
-    private bool NeedsTrailingPosition(FlexDirection axis)
-    {
-        return axis == FlexDirection.RowReverse || axis == FlexDirection.ColumnReverse;
-    }
 }

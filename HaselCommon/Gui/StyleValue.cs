@@ -72,12 +72,8 @@ public struct StyleValue
     }
 
     public static bool operator ==(StyleValue a, StyleValue b)
-    {
-        return a.Unit == b.Unit && a.Value.Equals(b.Value);
-    }
+        => a.Unit == b.Unit && a.Value.Equals(b.Value);
 
     public static bool operator !=(StyleValue a, StyleValue b)
-    {
-        return !(a == b);
-    }
+        => !(a == b);
 }

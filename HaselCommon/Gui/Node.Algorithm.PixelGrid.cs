@@ -39,7 +39,7 @@ public partial class Node
         if (fractial.IsApproximately(0.0))
         {
             // First we check if the value is already rounded
-            scaledValue = scaledValue - fractial;
+            scaledValue -= fractial;
         }
         else if (fractial.IsApproximately(1.0))
         {
@@ -52,7 +52,7 @@ public partial class Node
         }
         else if (forceFloor)
         {
-            scaledValue = scaledValue - fractial;
+            scaledValue -= fractial;
         }
         else
         {

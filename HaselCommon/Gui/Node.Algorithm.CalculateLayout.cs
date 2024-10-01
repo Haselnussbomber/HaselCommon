@@ -9,7 +9,7 @@ namespace HaselCommon.Gui;
 
 public partial class Node
 {
-    private static uint gCurrentGenerationCount;
+    private static uint CurrentGenerationCount;
 
     private static void ConstrainMaxSizeForMode(Node node, FlexDirection axis, float ownerAxisSize, float ownerWidth, ref SizingMode mode, ref float size)
     {
@@ -1077,7 +1077,7 @@ public partial class Node
     /// </summary>
     public void CalculateLayout(float ownerWidth, float ownerHeight, Direction ownerDirection)
     {
-        gCurrentGenerationCount++;
+        CurrentGenerationCount++;
         ResolveDimension();
 
         float width;
@@ -1128,7 +1128,7 @@ public partial class Node
                 ownerHeight,
                 true,
                 0, // tree root
-                gCurrentGenerationCount))
+                CurrentGenerationCount))
         {
             SetPosition(Layout.Direction, ownerWidth, ownerHeight);
             RoundLayoutResultsToPixelGrid(0.0f, 0.0f);
@@ -1437,7 +1437,8 @@ public partial class Node
 
         if (node.HasMeasureFunc)
         {
-            node.MeasureNodeWithMeasureFunc(
+            MeasureNodeWithMeasureFunc(
+                node,
                 direction,
                 availableWidth - marginAxisRow,
                 availableHeight - marginAxisColumn,
@@ -2207,98 +2208,6 @@ public partial class Node
                     availableInnerWidth,
                     availableInnerHeight);
             }
-        }
-    }
-
-    private void MeasureNodeWithMeasureFunc(
-        Direction direction,
-        float availableWidth,
-        float availableHeight,
-        SizingMode widthSizingMode,
-        SizingMode heightSizingMode,
-        float ownerWidth,
-        float ownerHeight)
-    {
-        if (!HasMeasureFunc)
-            throw new Exception("Expected node to have custom measure function");
-
-        if (widthSizingMode == SizingMode.MaxContent)
-        {
-            availableWidth = float.NaN;
-        }
-        if (heightSizingMode == SizingMode.MaxContent)
-        {
-            availableHeight = float.NaN;
-        }
-
-        var paddingAndBorderAxisRow = Layout.GetPadding(PhysicalEdge.Left) +
-            Layout.GetPadding(PhysicalEdge.Right) + Layout.GetBorder(PhysicalEdge.Left) +
-            Layout.GetBorder(PhysicalEdge.Right);
-        var paddingAndBorderAxisColumn = Layout.GetPadding(PhysicalEdge.Top) +
-            Layout.GetPadding(PhysicalEdge.Bottom) + Layout.GetBorder(PhysicalEdge.Top) +
-            Layout.GetBorder(PhysicalEdge.Bottom);
-
-        // We want to make sure we don't call measure with negative size
-        var innerWidth = float.IsNaN(availableWidth) ? availableWidth : MathUtils.MaxOrDefined(0.0f, availableWidth - paddingAndBorderAxisRow);
-        var innerHeight = float.IsNaN(availableHeight) ? availableHeight : MathUtils.MaxOrDefined(0.0f, availableHeight - paddingAndBorderAxisColumn);
-
-        if (widthSizingMode == SizingMode.StretchFit &&
-            heightSizingMode == SizingMode.StretchFit)
-        {
-            // Don't bother sizing the text if both dimensions are already defined.
-            Layout.SetMeasuredDimension(
-                BoundAxis(
-                    this,
-                    FlexDirection.Row,
-                    direction,
-                    availableWidth,
-                    ownerWidth,
-                    ownerWidth),
-                Dimension.Width);
-            Layout.SetMeasuredDimension(
-                BoundAxis(
-                    this,
-                    FlexDirection.Column,
-                    direction,
-                    availableHeight,
-                    ownerHeight,
-                    ownerWidth),
-                Dimension.Height);
-        }
-        else
-        {
-            // Measure the text under the current constraints.
-            var measuredSize = MeasureWrapper(
-                innerWidth,
-                widthSizingMode.MeasureMode(),
-                innerHeight,
-                heightSizingMode.MeasureMode());
-
-            Layout.SetMeasuredDimension(
-                BoundAxis(
-                    this,
-                    FlexDirection.Row,
-                    direction,
-                    (widthSizingMode == SizingMode.MaxContent ||
-                     widthSizingMode == SizingMode.FitContent)
-                        ? measuredSize.X + paddingAndBorderAxisRow
-                        : availableWidth,
-                    ownerWidth,
-                    ownerWidth),
-                Dimension.Width);
-
-            Layout.SetMeasuredDimension(
-                BoundAxis(
-                    this,
-                    FlexDirection.Column,
-                    direction,
-                    (heightSizingMode == SizingMode.MaxContent ||
-                     heightSizingMode == SizingMode.FitContent)
-                        ? measuredSize.Y + paddingAndBorderAxisColumn
-                        : availableHeight,
-                    ownerHeight,
-                    ownerWidth),
-                Dimension.Height);
         }
     }
 

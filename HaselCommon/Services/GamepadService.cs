@@ -6,7 +6,7 @@ namespace HaselCommon.Services;
 public class GamepadService(IGamepadState GamepadState, IGameConfig GameConfig)
 {
     // Mapping between SystemConfigOption and Dalamuds GamepadButtons
-    private readonly (string, GamepadButtons)[] Mapping =
+    private readonly (string, GamepadButtons)[] _mapping =
     [
         ("PadButton_Triangle", GamepadButtons.North),
         ("PadButton_Circle", GamepadButtons.East),
@@ -18,7 +18,7 @@ public class GamepadService(IGamepadState GamepadState, IGameConfig GameConfig)
     {
         var bindingName = binding.ToString();
 
-        foreach (var (configOption, gamepadButton) in Mapping)
+        foreach (var (configOption, gamepadButton) in _mapping)
         {
             if (!GameConfig.System.TryGet(configOption, out string value))
                 continue;

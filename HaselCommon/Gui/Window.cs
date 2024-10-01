@@ -3,20 +3,16 @@ using HaselCommon.Gui.Enums;
 using HaselCommon.Services;
 using HaselCommon.Windowing;
 using ImGuiNET;
-using Microsoft.Extensions.Logging;
 
 namespace HaselCommon.Gui;
 
 public partial class Window : SimpleWindow, IDisposable
 {
-    private readonly ILogger _logger;
     private readonly ImRaii.Style _windowStyle = new();
-    public Node RootNode { get; init; }
+    public Node RootNode { get; } = [];
 
-    public Window(WindowManager wm, ILogger logger, string name, ImGuiWindowFlags flags = ImGuiWindowFlags.None, bool forceMainWindow = false) : base(wm, name, flags, forceMainWindow)
+    public Window(WindowManager wm, string name, ImGuiWindowFlags flags = ImGuiWindowFlags.None, bool forceMainWindow = false) : base(wm, name, flags, forceMainWindow)
     {
-        _logger = logger;
-        RootNode = new Node();
         Flags |= ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse;
     }
 
@@ -30,7 +26,7 @@ public partial class Window : SimpleWindow, IDisposable
     {
         _windowStyle.Dispose();
         RootNode.Dispose();
-        base.Dispose();
+        GC.SuppressFinalize(this);
     }
 
     public override void PreDraw()
@@ -48,20 +44,20 @@ public partial class Window : SimpleWindow, IDisposable
         RootNode.PositionLeft = ImGui.GetCursorPosX();
 
 #if DEBUG
-        DebugTimer.Restart();
+        _debugTimer.Restart();
         RootNode.Update();
-        DebugTimer.Stop();
-        DebugUpdateTime = DebugTimer.Elapsed.TotalMilliseconds;
+        _debugTimer.Stop();
+        _debugUpdateTime = _debugTimer.Elapsed.TotalMilliseconds;
 
-        DebugTimer.Restart();
+        _debugTimer.Restart();
         RootNode.CalculateLayout(ImGui.GetContentRegionAvail());
-        DebugTimer.Stop();
-        DebugLayoutTime = DebugTimer.Elapsed.TotalMilliseconds;
+        _debugTimer.Stop();
+        _debugLayoutTime = _debugTimer.Elapsed.TotalMilliseconds;
 
-        DebugTimer.Restart();
+        _debugTimer.Restart();
         RootNode.Draw();
-        DebugTimer.Stop();
-        DebugDrawTime = DebugTimer.Elapsed.TotalMilliseconds;
+        _debugTimer.Stop();
+        _debugDrawTime = _debugTimer.Elapsed.TotalMilliseconds;
 #else
         RootNode.Update();
         RootNode.CalculateLayout(ImGui.GetContentRegionAvail());

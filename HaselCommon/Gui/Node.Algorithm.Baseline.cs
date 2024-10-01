@@ -41,10 +41,7 @@ public partial class Node
                 break;
             }
 
-            if (baselineChild == null)
-            {
-                baselineChild = child;
-            }
+            baselineChild ??= child;
         }
 
         if (baselineChild == null)

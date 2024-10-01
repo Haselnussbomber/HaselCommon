@@ -22,13 +22,13 @@ namespace HaselCommon.Services;
 
 public class ItemService(IClientState ClientState, ExcelService ExcelService, SeStringEvaluatorService SeStringEvaluatorService)
 {
-    private readonly GatheringItemGatheringPointsCache GatheringItemGatheringPointsCache = new(ExcelService);
-    private readonly ItemFishingSpotsCache ItemFishingSpotsCache = new(ExcelService);
-    private readonly SpearfishingItemGatheringPointsCache SpearfishingItemGatheringPointsCache = new(ExcelService);
-    private readonly ItemGatheringItemsCache ItemGatheringItemsCache = new(ExcelService);
-    private readonly ItemRecipesCache ItemRecipesCache = new(ExcelService);
-    private readonly ItemSpearfishingItemCache ItemSpearfishingItemCache = new(ExcelService);
-    private readonly ItemIconIdCache ItemIconIdCache = new(ExcelService);
+    private readonly GatheringItemGatheringPointsCache _gatheringItemGatheringPointsCache = new(ExcelService);
+    private readonly ItemFishingSpotsCache _itemFishingSpotsCache = new(ExcelService);
+    private readonly SpearfishingItemGatheringPointsCache _spearfishingItemGatheringPointsCache = new(ExcelService);
+    private readonly ItemGatheringItemsCache _itemGatheringItemsCache = new(ExcelService);
+    private readonly ItemRecipesCache _itemRecipesCache = new(ExcelService);
+    private readonly ItemSpearfishingItemCache _itemSpearfishingItemCache = new(ExcelService);
+    private readonly ItemIconIdCache _itemIconIdCache = new(ExcelService);
 
     private static FrozenDictionary<short, (uint Min, uint Max)>? MaxLevelRanges = null;
 
@@ -52,7 +52,7 @@ public class ItemService(IClientState ClientState, ExcelService ExcelService, Se
     public bool IsEventItem(Item item) => IsEventItem(item.RowId);
     public bool IsEventItem(uint itemId) => itemId is > 2_000_000;
 
-    public uint GetIconId(uint itemId) => ItemIconIdCache.GetValue(itemId);
+    public uint GetIconId(uint itemId) => _itemIconIdCache.GetValue(itemId);
 
     public string GetItemName(uint itemId, ClientLanguage? language = null)
     {
@@ -64,23 +64,23 @@ public class ItemService(IClientState ClientState, ExcelService ExcelService, Se
     public string GetItemName(Item item) => GetItemName(item.RowId);
 
     public Recipe[] GetRecipes(Item item) => GetRecipes(item.RowId);
-    public Recipe[] GetRecipes(uint itemId) => ItemRecipesCache.GetValue(itemId) ?? [];
+    public Recipe[] GetRecipes(uint itemId) => _itemRecipesCache.GetValue(itemId) ?? [];
 
     public GatheringItem[] GetGatheringItems(Item item) => GetGatheringItems(item.RowId);
-    public GatheringItem[] GetGatheringItems(uint itemId) => ItemGatheringItemsCache.GetValue(itemId) ?? [];
+    public GatheringItem[] GetGatheringItems(uint itemId) => _itemGatheringItemsCache.GetValue(itemId) ?? [];
 
     public GatheringPoint[] GetGatheringPoints(Item item) => GetGatheringPoints(item.RowId);
     public GatheringPoint[] GetGatheringPoints(uint itemId) => GetGatheringItems(itemId).SelectMany(GetGatheringPoints).ToArray();
 
     public FishingSpot[] GetFishingSpots(Item item) => GetFishingSpots(item.RowId);
-    public FishingSpot[] GetFishingSpots(uint itemId) => ItemFishingSpotsCache.GetValue(itemId) ?? [];
+    public FishingSpot[] GetFishingSpots(uint itemId) => _itemFishingSpotsCache.GetValue(itemId) ?? [];
 
     public GatheringPoint[] GetSpearfishingGatheringPoints(Item item) => GetSpearfishingGatheringPoints(item.RowId);
     public GatheringPoint[] GetSpearfishingGatheringPoints(uint itemId)
     {
-        if (!ItemSpearfishingItemCache.TryGetValue(itemId, out var spearfishingItem))
+        if (!_itemSpearfishingItemCache.TryGetValue(itemId, out var spearfishingItem))
             return [];
-        return SpearfishingItemGatheringPointsCache.GetValue(spearfishingItem.RowId) ?? [];
+        return _spearfishingItemGatheringPointsCache.GetValue(spearfishingItem.RowId) ?? [];
     }
 
     public bool IsCraftable(Item item) => IsCraftable(item.RowId);
@@ -100,7 +100,7 @@ public class ItemService(IClientState ClientState, ExcelService ExcelService, Se
     public bool IsFish(uint itemId) => GetFishingSpots(itemId).Length != 0;
 
     public bool IsSpearfish(Item item) => IsSpearfish(item.RowId);
-    public bool IsSpearfish(uint itemId) => ItemSpearfishingItemCache.TryGetValue(itemId, out var _);
+    public bool IsSpearfish(uint itemId) => _itemSpearfishingItemCache.TryGetValue(itemId, out var _);
 
     public bool IsUnlockable(Item item) => item.ItemAction.Row != 0 && Enum.GetValues<ItemActionType>().Any(type => (ushort)type == item.ItemAction.Value!.Type);
     public bool IsUnlockable(uint itemId)
@@ -309,7 +309,7 @@ public class ItemService(IClientState ClientState, ExcelService ExcelService, Se
     }
 
     public GatheringPoint[] GetGatheringPoints(GatheringItem gatheringItem)
-        => GatheringItemGatheringPointsCache.GetValue(gatheringItem.RowId) ?? [];
+        => _gatheringItemGatheringPointsCache.GetValue(gatheringItem.RowId) ?? [];
 
     public ReadOnlySeString GetItemLink(uint id, ClientLanguage? language = null)
     {

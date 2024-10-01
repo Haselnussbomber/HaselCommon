@@ -24,7 +24,7 @@ public class TextureService(ITextureProvider TextureProvider, IDataManager DataM
         "common/font/fonticon_lys.tex",
     ];
 
-    private readonly Dictionary<(byte ThemeType, string UldName, uint PartListId, uint PartId), (string Path, Vector2 Uv0, Vector2 Uv1)?> UldPartCache = [];
+    private readonly Dictionary<(byte ThemeType, string UldName, uint PartListId, uint PartId), (string Path, Vector2 Uv0, Vector2 Uv1)?> _uldPartCache = [];
     public readonly Lazy<GfdFileView> GfdFileView = new(() => new(DataManager.GetFile("common/font/gfdata.gfd")!.Data));
 
     public void Draw(string path, DrawInfo drawInfo)
@@ -92,7 +92,7 @@ public class TextureService(ITextureProvider TextureProvider, IDataManager DataM
         var themeType = RaptureAtkModule.Instance()->AtkUIColorHolder.ActiveColorThemeType;
         var key = (themeType, uldName, partListId, partIndex);
 
-        if (UldPartCache.TryGetValue(key, out var tuple))
+        if (_uldPartCache.TryGetValue(key, out var tuple))
         {
             if (tuple == null || !tuple.HasValue)
             {
@@ -111,14 +111,14 @@ public class TextureService(ITextureProvider TextureProvider, IDataManager DataM
 
         if (uld == null)
         {
-            lock (UldPartCache) UldPartCache.Add(key, null);
+            lock (_uldPartCache) _uldPartCache.Add(key, null);
             ImGui.Dummy(drawInfo.DrawSize ?? Vector2.Zero);
             return;
         }
 
         if (!uld.Parts.FindFirst((partList) => partList.Id == partListId, out var partList) || partList.PartCount < partIndex)
         {
-            lock (UldPartCache) UldPartCache.Add(key, null);
+            lock (_uldPartCache) _uldPartCache.Add(key, null);
             ImGui.Dummy(drawInfo.DrawSize ?? Vector2.Zero);
             return;
         }
@@ -127,7 +127,7 @@ public class TextureService(ITextureProvider TextureProvider, IDataManager DataM
 
         if (!uld.AssetData.FindFirst((asset) => asset.Id == part.TextureId, out var asset))
         {
-            lock (UldPartCache) UldPartCache.Add(key, null);
+            lock (_uldPartCache) _uldPartCache.Add(key, null);
             ImGui.Dummy(drawInfo.DrawSize ?? Vector2.Zero);
             return;
         }
@@ -172,7 +172,7 @@ public class TextureService(ITextureProvider TextureProvider, IDataManager DataM
         // fallback to dummy
         if (!exists)
         {
-            lock (UldPartCache) UldPartCache.Add(key, null);
+            lock (_uldPartCache) _uldPartCache.Add(key, null);
             ImGui.Dummy(drawInfo.DrawSize ?? Vector2.Zero);
             return;
         }
@@ -180,8 +180,8 @@ public class TextureService(ITextureProvider TextureProvider, IDataManager DataM
         var uv0 = new Vector2(part.U, part.V) * version;
         var uv1 = new Vector2(part.U + part.W, part.V + part.H) * version;
 
-        lock (UldPartCache)
-            UldPartCache.Add(key, (path, uv0, uv1));
+        lock (_uldPartCache)
+            _uldPartCache.Add(key, (path, uv0, uv1));
 
         drawInfo.Uv0 = uv0;
         drawInfo.Uv1 = uv1;

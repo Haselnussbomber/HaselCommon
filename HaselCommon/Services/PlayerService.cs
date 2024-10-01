@@ -7,8 +7,8 @@ namespace HaselCommon.Services;
 
 public unsafe class PlayerService : IDisposable
 {
-    private readonly ILogger<PlayerService> Logger;
-    private readonly Hook<UIModule.Delegates.HandlePacket>? UIModuleHandlePacketHook;
+    private readonly ILogger<PlayerService> _logger;
+    private readonly Hook<UIModule.Delegates.HandlePacket>? _uIModuleHandlePacketHook;
 
     public delegate void OnClassJobChangeDelegate(uint classJobId);
     public delegate void OnLevelChangeDelegate(uint classJobId, uint level);
@@ -19,18 +19,18 @@ public unsafe class PlayerService : IDisposable
 
     public PlayerService(ILogger<PlayerService> logger, IGameInteropProvider gameInteropProvider)
     {
-        Logger = logger;
+        _logger = logger;
 
-        UIModuleHandlePacketHook = gameInteropProvider.HookFromAddress<UIModule.Delegates.HandlePacket>(
+        _uIModuleHandlePacketHook = gameInteropProvider.HookFromAddress<UIModule.Delegates.HandlePacket>(
             UIModule.StaticVirtualTablePointer->HandlePacket,
             UIModuleHandlePacketDetour);
 
-        UIModuleHandlePacketHook?.Enable();
+        _uIModuleHandlePacketHook?.Enable();
     }
 
     public void Dispose()
     {
-        UIModuleHandlePacketHook?.Dispose();
+        _uIModuleHandlePacketHook?.Dispose();
         GC.SuppressFinalize(this);
     }
 
@@ -55,11 +55,11 @@ public unsafe class PlayerService : IDisposable
         }
         catch (Exception e)
         {
-            Logger.LogError(e, "Error in event handler for UIModulePacketType {type}", type);
+            _logger.LogError(e, "Error in event handler for UIModulePacketType {type}", type);
         }
         finally
         {
-            UIModuleHandlePacketHook!.Original(uiModule, type, uintParam, packet);
+            _uIModuleHandlePacketHook!.Original(uiModule, type, uintParam, packet);
         }
     }
 }

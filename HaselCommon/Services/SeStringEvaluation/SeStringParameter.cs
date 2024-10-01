@@ -1,4 +1,3 @@
-using Lumina.Text;
 using Lumina.Text.ReadOnly;
 
 using DSeString = Dalamud.Game.Text.SeStringHandling.SeString;
@@ -8,8 +7,8 @@ namespace HaselCommon.Services.SeStringEvaluation;
 
 public struct SeStringParameter
 {
-    private uint? num = null;
-    private ReadOnlySeString? str = null;
+    private uint? _num = null;
+    private ReadOnlySeString? _str = null;
 
     public bool IsString { get; private set; }
 
@@ -18,9 +17,9 @@ public struct SeStringParameter
         get
         {
             if (!IsString)
-                return num ?? 0;
+                return _num ?? 0;
 
-            var text = (str ?? new()).ExtractText();
+            var text = (_str ?? new()).ExtractText();
             if (string.IsNullOrWhiteSpace(text) || !uint.TryParse(text, out var value))
                 return 0;
 
@@ -28,8 +27,8 @@ public struct SeStringParameter
         }
         set
         {
-            num = value;
-            str = null;
+            _num = value;
+            _str = null;
             IsString = false;
         }
     }
@@ -38,15 +37,15 @@ public struct SeStringParameter
     {
         get
         {
-            if (!IsString && num != null)
-                return new SeStringBuilder().Append((num ?? 0).ToString()).ToReadOnlySeString();
+            if (!IsString && _num != null)
+                return ReadOnlySeString.FromText((_num ?? 0).ToString());
 
-            return str ?? new();
+            return _str ?? new();
         }
         set
         {
-            num = null;
-            str = value;
+            _num = null;
+            _str = value;
             IsString = true;
         }
     }
@@ -63,7 +62,7 @@ public struct SeStringParameter
 
     public SeStringParameter(string value)
     {
-        StringValue = new SeStringBuilder().Append(value).ToReadOnlySeString();
+        StringValue = ReadOnlySeString.FromText(value);
     }
 
     public static implicit operator SeStringParameter(int value)
@@ -76,13 +75,13 @@ public struct SeStringParameter
         => new(value);
 
     public static implicit operator SeStringParameter(ReadOnlySeStringSpan value)
-        => new(new ReadOnlySeString(new ReadOnlyMemory<byte>(value.Data.ToArray())));
+        => new(new ReadOnlySeString(value));
 
     public static implicit operator SeStringParameter(LSeString value)
-        => new(new ReadOnlySeString(new ReadOnlyMemory<byte>(value.RawData.ToArray())));
+        => new(new ReadOnlySeString(value));
 
     public static implicit operator SeStringParameter(DSeString value)
-        => new(new ReadOnlySeString(new ReadOnlyMemory<byte>(value.Encode())));
+        => new(new ReadOnlySeString(value.Encode()));
 
     public static implicit operator SeStringParameter(string value)
         => new(value);

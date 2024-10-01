@@ -6,11 +6,11 @@ namespace HaselCommon.Commands;
 
 public class CommandHandler : IDisposable
 {
-    private readonly CommandService CommandService;
-    private readonly ICommandManager DalamudCommandManager;
-    private readonly TextService TextService;
-    private CommandInfo? CommandInfo;
-    private bool IsDisposed;
+    private readonly CommandService _commandService;
+    private readonly ICommandManager _dalamudCommandManager;
+    private readonly TextService _textService;
+    private CommandInfo? _commandInfo;
+    private bool _isDisposed;
 
     public string Command { get; init; }
     public string HelpMessageKey { get; init; }
@@ -29,52 +29,52 @@ public class CommandHandler : IDisposable
         IReadOnlyCommandInfo.HandlerDelegate handler,
         bool enabled = true)
     {
-        CommandService = commandService;
-        DalamudCommandManager = dalamudCommandManager;
-        TextService = textService;
+        _commandService = commandService;
+        _dalamudCommandManager = dalamudCommandManager;
+        _textService = textService;
 
         Command = command;
         HelpMessageKey = helpMessageKey;
         ShowInHelp = showInHelp;
         Handler = handler;
 
-        TextService.LanguageChanged += OnLanguageChanged;
+        _textService.LanguageChanged += OnLanguageChanged;
 
-        CommandService.Register(this);
+        _commandService.Register(this);
 
         SetEnabled(enabled);
     }
 
     public void Dispose()
     {
-        if (IsDisposed) return;
+        if (_isDisposed) return;
 
-        TextService.LanguageChanged -= OnLanguageChanged;
+        _textService.LanguageChanged -= OnLanguageChanged;
 
         SetEnabled(false);
-        CommandService.Unregister(this);
-        IsDisposed = true;
+        _commandService.Unregister(this);
+        _isDisposed = true;
 
         GC.SuppressFinalize(this);
     }
 
     private void OnLanguageChanged(string langCode)
     {
-        if (CommandInfo == null || string.IsNullOrEmpty(HelpMessageKey))
+        if (_commandInfo == null || string.IsNullOrEmpty(HelpMessageKey))
             return;
 
-        CommandInfo.HelpMessage = TextService.Translate(HelpMessageKey);
+        _commandInfo.HelpMessage = _textService.Translate(HelpMessageKey);
     }
 
     public void SetEnabled(bool enabled)
     {
-        if (IsDisposed) return;
+        if (_isDisposed) return;
 
         if (!IsEnabled && enabled)
         {
-            DalamudCommandManager.AddHandler(Command, CommandInfo = new CommandInfo(Handler)
+            _dalamudCommandManager.AddHandler(Command, _commandInfo = new CommandInfo(Handler)
             {
-                HelpMessage = !string.IsNullOrEmpty(HelpMessageKey) ? TextService.Translate(HelpMessageKey) : string.Empty,
+                HelpMessage = !string.IsNullOrEmpty(HelpMessageKey) ? _textService.Translate(HelpMessageKey) : string.Empty,
                 ShowInHelp = ShowInHelp,
             });
 
@@ -82,8 +82,8 @@ public class CommandHandler : IDisposable
         }
         else if (IsEnabled && !enabled)
         {
-            DalamudCommandManager.RemoveHandler(Command);
-            CommandInfo = null;
+            _dalamudCommandManager.RemoveHandler(Command);
+            _commandInfo = null;
             IsEnabled = false;
         }
     }

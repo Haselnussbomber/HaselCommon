@@ -28,13 +28,13 @@ public class ImGuiService(
     ImGuiContextMenuService ImGuiContextMenuService,
     ItemService ItemService) : IDisposable
 {
-    private readonly Dictionary<uint, Vector2?> IconSizeCache = [];
-    private readonly Lazy<IFontHandle> TripleTriadNumberFont = new(() => PluginInterface.UiBuilder.FontAtlas.NewGameFontHandle(new GameFontStyle(GameFontFamily.MiedingerMid, 208f / 10f)));
+    private readonly Dictionary<uint, Vector2?> _iconSizeCache = [];
+    private readonly Lazy<IFontHandle> _tripleTriadNumberFont = new(() => PluginInterface.UiBuilder.FontAtlas.NewGameFontHandle(new GameFontStyle(GameFontFamily.MiedingerMid, 208f / 10f)));
 
     public void Dispose()
     {
-        if (TripleTriadNumberFont.IsValueCreated)
-            TripleTriadNumberFont.Value.Dispose();
+        if (_tripleTriadNumberFont.IsValueCreated)
+            _tripleTriadNumberFont.Value.Dispose();
 
         GC.SuppressFinalize(this);
     }
@@ -156,7 +156,7 @@ public class ImGuiService(
                 }
 
                 // numbers
-                using var font = TripleTriadNumberFont.Value.Push();
+                using var font = _tripleTriadNumberFont.Value.Push();
 
                 var numberText = $"{cardResident.Top:X}";
                 var numberTextSize = ImGui.CalcTextSize(numberText);
@@ -184,17 +184,17 @@ public class ImGuiService(
             {
                 var pictureId = (uint)ExcelService.GetRow<Picture>(item.AdditionalData)!.Image;
 
-                if (!IconSizeCache.TryGetValue(pictureId, out var size))
+                if (!_iconSizeCache.TryGetValue(pictureId, out var size))
                 {
                     var iconPath = TextureProvider.GetIconPath(pictureId);
                     if (string.IsNullOrEmpty(iconPath))
                     {
-                        IconSizeCache.Add(pictureId, null);
+                        _iconSizeCache.Add(pictureId, null);
                     }
                     else
                     {
                         var file = DataManager.GetFile<TexFile>(iconPath);
-                        IconSizeCache.Add(pictureId, size = file != null ? new(file.Header.Width, file.Header.Height) : null);
+                        _iconSizeCache.Add(pictureId, size = file != null ? new(file.Header.Width, file.Header.Height) : null);
                     }
                 }
 

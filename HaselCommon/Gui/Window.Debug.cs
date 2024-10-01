@@ -10,10 +10,10 @@ namespace HaselCommon.Gui;
 
 public partial class Window
 {
-    private readonly Stopwatch DebugTimer = new();
-    private double DebugLayoutTime;
-    private double DebugUpdateTime;
-    private double DebugDrawTime;
+    private readonly Stopwatch _debugTimer = new();
+    private double _debugLayoutTime;
+    private double _debugUpdateTime;
+    private double _debugDrawTime;
 
     public Node? SelectedDebugNode { get; private set; }
 
@@ -26,13 +26,13 @@ public partial class Window
         if (!ImGui.Begin(WindowName + " | Debug", ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse))
             return;
 
-        ImGui.TextUnformatted($"Layout: {DebugLayoutTime.ToString("0.000") + " ms"}");
+        ImGui.TextUnformatted($"Layout: {_debugLayoutTime.ToString("0.000") + " ms"}");
         ImGuiUtils.VerticalSeparator();
         ImGui.SameLine();
-        ImGui.TextUnformatted($"Update: {DebugUpdateTime.ToString("0.000") + " ms"}");
+        ImGui.TextUnformatted($"Update: {_debugUpdateTime.ToString("0.000") + " ms"}");
         ImGuiUtils.VerticalSeparator();
         ImGui.SameLine();
-        ImGui.TextUnformatted($"Draw: {DebugDrawTime.ToString("0.000") + " ms"}");
+        ImGui.TextUnformatted($"Draw: {_debugDrawTime.ToString("0.000") + " ms"}");
         // ImGuiUtils.VerticalSeparator();
         // ImGui.SameLine();
         // if (ImGui.Button("Set Style Dirty"))
@@ -108,7 +108,7 @@ public partial class Window
         }
     }
 
-    private void DrawSelectedNode(Node? node)
+    private static void DrawSelectedNode(Node? node)
     {
         if (node == null)
             return;
@@ -310,7 +310,7 @@ public partial class Window
         }
     }
 
-    private void PrintRow(string label, string value)
+    private static void PrintRow(string label, string value)
     {
         ImGui.TableNextRow();
         ImGui.TableNextColumn();
@@ -320,7 +320,7 @@ public partial class Window
         //ImGui.InputText($"##{text}", ref value, (uint)value.Length, ImGuiInputTextFlags.ReadOnly);
     }
 
-    private void PrintRow<T>(string label, T value) where T : struct, Enum
+    private static void PrintRow<T>(string label, T value) where T : struct, Enum
     {
         ImGui.TableNextRow();
         ImGui.TableNextColumn();
@@ -329,7 +329,7 @@ public partial class Window
         ImGui.TextUnformatted($"{value}");
     }
 
-    private void PrintRow<T>(string label, T value, Action<T> setter) where T : struct, Enum
+    private static void PrintRow<T>(string label, T value, Action<T> setter) where T : struct, Enum
     {
         ImGui.TableNextRow();
         ImGui.TableNextColumn();
@@ -348,7 +348,7 @@ public partial class Window
         }
     }
 
-    private void PrintRow(string label, bool value)
+    private static void PrintRow(string label, bool value)
     {
         ImGui.TableNextRow();
         ImGui.TableNextColumn();
@@ -357,25 +357,7 @@ public partial class Window
         ImGui.TextUnformatted($"{value}");
     }
 
-    private void PrintRowColor(string label, HaselColor? value)
-    {
-        ImGui.TableNextRow();
-        ImGui.TableNextColumn();
-        ImGui.TextUnformatted(label);
-        ImGui.TableNextColumn();
-
-        if (value == null)
-        {
-            ImGui.TextUnformatted("null");
-            return;
-        }
-
-        var vec = (Vector4)value;
-        // TODO: maybe one day we get an updated imgui version with ImGuiItemFlags.ReadOnly
-        ImGui.ColorEdit4(label, ref vec, ImGuiColorEditFlags.NoLabel);
-    }
-
-    private void PrintRow(string label, float value)
+    private static void PrintRow(string label, float value)
     {
         if (float.IsNaN(value))
             return;
@@ -387,25 +369,7 @@ public partial class Window
         ImGui.TextUnformatted($"{value.ToString("0.###", CultureInfo.InvariantCulture)}");
     }
 
-    private void PrintRow(string label, Vector2 value)
-    {
-        ImGui.TableNextRow();
-        ImGui.TableNextColumn();
-        ImGui.TextUnformatted(label);
-        ImGui.TableNextColumn();
-        ImGui.TextUnformatted($"{value}");
-    }
-
-    private void PrintRow(string label, StyleValue value)
-    {
-        ImGui.TableNextRow();
-        ImGui.TableNextColumn();
-        ImGui.TextUnformatted(label);
-        ImGui.TableNextColumn();
-        ImGui.TextUnformatted($"{value}");
-    }
-
-    private void PrintRow(string label, StyleValue value, Action<StyleValue> setter)
+    private static void PrintRow(string label, StyleValue value, Action<StyleValue> setter)
     {
         const float UnitWidth = 100f;
 

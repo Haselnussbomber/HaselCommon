@@ -8,16 +8,13 @@ using Microsoft.Extensions.Logging;
 
 namespace HaselCommon.Services;
 
-public class CommandService(
-    ILogger<CommandService> Logger,
-    ICommandManager CommandManager,
-    TextService TextService) : IDisposable
+public class CommandService(ILogger<CommandService> Logger, ICommandManager CommandManager, TextService TextService) : IDisposable
 {
-    private readonly Dictionary<string, CommandHandler> CommandHandlers = [];
+    private readonly Dictionary<string, CommandHandler> _commandHandlers = [];
 
     public void Dispose()
     {
-        CommandHandlers.Dispose();
+        _commandHandlers.Dispose();
         GC.SuppressFinalize(this);
     }
 
@@ -40,16 +37,16 @@ public class CommandService(
     public CommandHandler Register(CommandHandler commandHandler)
     {
         Logger.LogDebug("Registering {command}", commandHandler.Command);
-        CommandHandlers.Add(commandHandler.Command, commandHandler);
+        _commandHandlers.Add(commandHandler.Command, commandHandler);
         return commandHandler;
     }
 
     public void Unregister(CommandHandler commandHandler)
     {
-        if (CommandHandlers.ContainsKey(commandHandler.Command))
+        if (_commandHandlers.ContainsKey(commandHandler.Command))
         {
             Logger.LogDebug("Unregistering {command}", commandHandler.Command);
-            CommandHandlers.Remove(commandHandler.Command);
+            _commandHandlers.Remove(commandHandler.Command);
             commandHandler.Dispose();
         }
     }

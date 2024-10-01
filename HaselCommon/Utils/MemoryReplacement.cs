@@ -2,23 +2,23 @@ namespace HaselCommon.Utils;
 
 public class MemoryReplacement(nint address, byte[] replacementBytes) : IDisposable
 {
-    private byte[]? originalBytes;
+    private byte[]? _originalBytes;
 
     public void Enable()
     {
-        if (originalBytes != null)
+        if (_originalBytes != null)
             return;
 
-        originalBytes = MemoryUtils.ReplaceRaw(address, replacementBytes);
+        _originalBytes = MemoryUtils.ReplaceRaw(address, replacementBytes);
     }
 
     public void Disable()
     {
-        if (originalBytes == null)
+        if (_originalBytes == null)
             return;
 
-        MemoryUtils.ReplaceRaw(address, originalBytes);
-        originalBytes = null;
+        MemoryUtils.ReplaceRaw(address, _originalBytes);
+        _originalBytes = null;
     }
 
     public void Dispose()

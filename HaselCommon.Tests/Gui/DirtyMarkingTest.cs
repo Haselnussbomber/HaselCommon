@@ -13,14 +13,18 @@ public class DirtyMarkingTest
         root.Width = 100;
         root.Height = 100;
 
-        var root_child0 = new Node();
-        root_child0.Width = 50;
-        root_child0.Height = 20;
+        var root_child0 = new Node
+        {
+            Width = 50,
+            Height = 20
+        };
         root.Add(root_child0);
 
-        var root_child1 = new Node();
-        root_child1.Width = 50;
-        root_child1.Height = 20;
+        var root_child1 = new Node
+        {
+            Width = 50,
+            Height = 20
+        };
         root.Add(root_child1);
 
         root.CalculateLayout(float.NaN, float.NaN, Direction.LTR);
@@ -46,14 +50,18 @@ public class DirtyMarkingTest
         root.Width = 100;
         root.Height = 100;
 
-        var root_child0 = new Node();
-        root_child0.Width = 50;
-        root_child0.Height = 20;
+        var root_child0 = new Node
+        {
+            Width = 50,
+            Height = 20
+        };
         root.Add(root_child0);
 
-        var root_child1 = new Node();
-        root_child1.Width = 50;
-        root_child1.Height = 20;
+        var root_child1 = new Node
+        {
+            Width = 50,
+            Height = 20
+        };
         root.Add(root_child1);
 
         root.CalculateLayout(float.NaN, float.NaN, Direction.LTR);
@@ -73,19 +81,25 @@ public class DirtyMarkingTest
         root.Width = 100;
         root.Height = 100;
 
-        var root_child0 = new Node();
-        root_child0.Width = 50;
-        root_child0.Height = 20;
+        var root_child0 = new Node
+        {
+            Width = 50,
+            Height = 20
+        };
         root.Add(root_child0);
 
-        var root_child1 = new Node();
-        root_child1.Width = 50;
-        root_child1.Height = 20;
+        var root_child1 = new Node
+        {
+            Width = 50,
+            Height = 20
+        };
         root.Add(root_child1);
 
-        var root_child0_child0 = new Node();
-        root_child0_child0.Width = 25;
-        root_child0_child0.Height = 20;
+        var root_child0_child0 = new Node
+        {
+            Width = 25,
+            Height = 20
+        };
         root.Add(root_child0_child0);
 
         root.CalculateLayout(float.NaN, float.NaN, Direction.LTR);
@@ -123,19 +137,25 @@ public class DirtyMarkingTest
         root.Width = 100;
         root.Height = 100;
 
-        var root_child0 = new Node();
-        root_child0.Width = 50;
-        root_child0.Height = 20;
+        var root_child0 = new Node
+        {
+            Width = 50,
+            Height = 20
+        };
         root.Add(root_child0);
 
-        var root_child1 = new Node();
-        root_child1.Width = 50;
-        root_child1.Height = 20;
+        var root_child1 = new Node
+        {
+            Width = 50,
+            Height = 20
+        };
         root.Add(root_child1);
 
-        var root_child0_child0 = new Node();
-        root_child0_child0.Width = 25;
-        root_child0_child0.Height = 20;
+        var root_child0_child0 = new Node
+        {
+            Width = 25,
+            Height = 20
+        };
         root.Add(root_child0_child0);
 
         root.CalculateLayout(float.NaN, float.NaN, Direction.LTR);
@@ -168,15 +188,21 @@ public class DirtyMarkingTest
         root.FlexDirection = FlexDirection.Row;
         root.Height = 100;
 
-        var child0 = new Node();
-        child0.FlexGrow = 1;
-        var child1 = new Node();
-        child1.FlexGrow = 1;
+        var child0 = new Node
+        {
+            FlexGrow = 1
+        };
+        var child1 = new Node
+        {
+            FlexGrow = 1
+        };
 
         var child1_child0 = new Node();
-        var child1_child0_child0 = new Node();
-        child1_child0_child0.Width = 8;
-        child1_child0_child0.Height = 16;
+        var child1_child0_child0 = new Node
+        {
+            Width = 8,
+            Height = 16
+        };
 
         child1_child0.Add(child1_child0_child0);
 
