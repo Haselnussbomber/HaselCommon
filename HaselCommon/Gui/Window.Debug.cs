@@ -1,8 +1,11 @@
 using System.Diagnostics;
 using System.Globalization;
 using System.Numerics;
+using System.Reflection;
+using System.Text;
 using Dalamud.Interface.Utility.Raii;
 using HaselCommon.Gui.Enums;
+using HaselCommon.Services;
 using HaselCommon.Utils;
 using ImGuiNET;
 
@@ -14,8 +17,99 @@ public partial class Window
     private double _debugLayoutTime;
     private double _debugUpdateTime;
     private double _debugDrawTime;
+    private Node? _debugSelectedNode;
 
-    public Node? SelectedDebugNode { get; private set; }
+    private static bool DebugShowAllStyleProperties = true;
+    private static readonly string[] DebugStyleValueNames = [
+        "Display",
+        "PositionType",
+        "Direction",
+        "Overflow",
+        "FlexDirection",
+        "JustifyContent",
+        "AlignContent",
+        "AlignItems",
+        "AlignSelf",
+        "FlexWrap",
+        "Flex",
+        "FlexGrow",
+        "FlexShrink",
+        "FlexBasis",
+        "Margin",
+        "MarginTop",
+        "MarginBottom",
+        "MarginLeft",
+        "MarginRight",
+        "MarginHorizontal",
+        "MarginVertical",
+        "MarginStart",
+        "MarginEnd",
+        "Position",
+        "PositionTop",
+        "PositionBottom",
+        "PositionLeft",
+        "PositionRight",
+        "PositionHorizontal",
+        "PositionVertical",
+        "PositionStart",
+        "PositionEnd",
+        "Padding",
+        "PaddingTop",
+        "PaddingBottom",
+        "PaddingLeft",
+        "PaddingRight",
+        "PaddingHorizontal",
+        "PaddingVertical",
+        "PaddingStart",
+        "PaddingEnd",
+        "Border",
+        "BorderTop",
+        "BorderBottom",
+        "BorderLeft",
+        "BorderRight",
+        "BorderHorizontal",
+        "BorderVertical",
+        "BorderStart",
+        "BorderEnd",
+        "Gap",
+        "RowGap",
+        "ColumnGap",
+        "Width",
+        "Height",
+        "MinWidth",
+        "MinHeight",
+        "MaxWidth",
+        "MaxHeight",
+        "AspectRatio",
+    ];
+    private static readonly string[] DebugLayoutNames = [
+        "ConfigVersion",
+        "GenerationCount",
+        "Direction",
+        "HadOverflow",
+        "AbsoluteTop",
+        "AbsoluteLeft",
+        "Width",
+        "Height",
+        "MeasuredWidth",
+        "MeasuredHeight",
+        "PositionTop",
+        "PositionBottom",
+        "PositionLeft",
+        "PositionRight",
+        "MarginTop",
+        "MarginBottom",
+        "MarginLeft",
+        "MarginRight",
+        "BorderTop",
+        "BorderBottom",
+        "BorderLeft",
+        "BorderRight",
+        "PaddingTop",
+        "PaddingBottom",
+        "PaddingLeft",
+        "PaddingRight",
+    ];
 
     [Conditional("DEBUG")]
     private void DrawDebugWindow()
@@ -33,10 +127,6 @@ public partial class Window
         ImGuiUtils.VerticalSeparator();
         ImGui.SameLine();
         ImGui.TextUnformatted($"Draw: {_debugDrawTime.ToString("0.000") + " ms"}");
-        // ImGuiUtils.VerticalSeparator();
-        // ImGui.SameLine();
-        // if (ImGui.Button("Set Style Dirty"))
-        //     RootNode.SetStyleDirty();
         ImGui.Separator();
 
         using (var table = ImRaii.Table("TabBar", 2, ImGuiTableFlags.BordersInnerV, new Vector2(-1)))
@@ -53,7 +143,7 @@ public partial class Window
 
                 ImGui.TableNextColumn();
 
-                DrawSelectedNode(SelectedDebugNode);
+                DrawSelectedNode(_debugSelectedNode);
             }
         }
 
@@ -64,19 +154,41 @@ public partial class Window
     {
         var flags = ImGuiTreeNodeFlags.SpanAvailWidth | ImGuiTreeNodeFlags.DefaultOpen | ImGuiTreeNodeFlags.OpenOnArrow;
 
-        if (SelectedDebugNode == node)
+        if (_debugSelectedNode == node)
             flags |= ImGuiTreeNodeFlags.Selected;
 
         if (node.Count == 0)
             flags |= ImGuiTreeNodeFlags.Leaf;
 
-        using var treeNode = ImRaii.TreeNode($"{node.DebugNodeOpenTag}##NodeOpen{node.Guid}", flags);
+        var textColor = ImGui.GetColorU32(ImGuiCol.Text);
+        using var hiddenColor = ImRaii.PushColor(ImGuiCol.Text, ImGui.GetColorU32(ImGuiCol.TextDisabled), node.Display == Display.None);
+        using var treeNode = ImRaii.TreeNode($"{node.DebugNodeOpenTag}###NodeOpen{node.Guid}", flags);
 
         if (ImGui.IsItemHovered())
             node._isDebugHovered = true;
 
         if (ImGui.IsItemClicked(ImGuiMouseButton.Left))
-            SelectedDebugNode = node;
+            _debugSelectedNode = node;
+
+        using (ImRaii.PushColor(ImGuiCol.Text, textColor, node.Display == Display.None))
+        {
+            Service.Get<ImGuiContextMenuService>().Draw($"NodeOpenContextMenu{node.Guid}", (builder) =>
+            {
+                builder.Add(new ImGuiContextMenuEntry()
+                {
+                    Label = "Hide",
+                    Visible = node.Display != Display.None,
+                    ClickCallback = () => { node.Display = Display.None; }
+                });
+
+                builder.Add(new ImGuiContextMenuEntry()
+                {
+                    Label = "Show",
+                    Visible = node.Display != Display.Flex,
+                    ClickCallback = () => { node.Display = Display.Flex; }
+                });
+            });
+        }
 
         if (!treeNode)
         {
@@ -103,7 +215,7 @@ public partial class Window
             using (ImRaii.TreeNode($"</{node.TagName}>##NodeClose{node.Guid}", flags | ImGuiTreeNodeFlags.Leaf))
             {
                 if (ImGui.IsItemClicked(ImGuiMouseButton.Left))
-                    SelectedDebugNode = node;
+                    _debugSelectedNode = node;
             }
         }
     }
@@ -113,6 +225,8 @@ public partial class Window
         if (node == null)
             return;
 
+        using var tempNode = new Node() { Config = node.Config };
+
         using var tabs = ImRaii.TabBar("TabBar", ImGuiTabBarFlags.NoCloseWithMiddleMouseButton);
         if (!tabs) return;
 
@@ -120,51 +234,23 @@ public partial class Window
         {
             if (tab)
             {
-                using (var table = ImRaii.Table("NodeTable", 2))
+                using var table = ImRaii.Table("NodeTable", 2, ImGuiTableFlags.ScrollY);
+                if (table)
                 {
-                    if (table)
-                    {
-                        ImGui.TableSetupColumn("Label", ImGuiTableColumnFlags.WidthStretch, 40);
-                        ImGui.TableSetupColumn("Value", ImGuiTableColumnFlags.WidthStretch, 60);
+                    ImGui.TableSetupColumn("Label", ImGuiTableColumnFlags.WidthStretch, 40);
+                    ImGui.TableSetupColumn("Value", ImGuiTableColumnFlags.WidthStretch, 60);
 
-                        PrintRow("Guid", node.Guid.ToString());
+                    PrintRow("Type", node.GetType().FullName ?? node.GetType().Name);
+                    PrintRow("Guid", node.Guid.ToString());
 
-                        PrintRow("NodeType", node.NodeType);
-                        PrintRow("AlwaysFormsContainingBlock", node.AlwaysFormsContainingBlock);
-                        PrintRow("IsReferenceBaseline", node.IsReferenceBaseline);
-                        PrintRow("HasNewLayout", node.HasNewLayout);
-                        PrintRow("IsDirty", node.IsDirty);
-                        PrintRow("HasBaselineFunc", node.HasBaselineFunc);
-                        PrintRow("HasMeasureFunc", node.HasMeasureFunc);
-                    }
+                    PrintRow("NodeType", node.NodeType);
+                    PrintRow("AlwaysFormsContainingBlock", node.AlwaysFormsContainingBlock);
+                    PrintRow("IsReferenceBaseline", node.IsReferenceBaseline);
+                    PrintRow("HasNewLayout", node.HasNewLayout);
+                    PrintRow("IsDirty", node.IsDirty);
+                    PrintRow("HasBaselineFunc", node.HasBaselineFunc);
+                    PrintRow("HasMeasureFunc", node.HasMeasureFunc);
                 }
-
-                /*
-                if (node.Attributes.Count > 0)
-                {
-                    ImGui.Separator();
-                    ImGui.TextUnformatted("Attributes:");
-
-                    using (var table = ImRaii.Table("NodeAttributeTable", 2))
-                    {
-                        if (table)
-                        {
-                            ImGui.TableSetupColumn("Key", ImGuiTableColumnFlags.WidthStretch, 40);
-                            ImGui.TableSetupColumn("Value", ImGuiTableColumnFlags.WidthStretch, 60);
-
-                            foreach (var attr in node.Attributes)
-                            {
-                                PrintRow(attr.Key, attr.Value ?? string.Empty);
-                            }
-
-                            if (node is Text textNode)
-                            {
-                                PrintRow("Text", textNode.TextValue);
-                            }
-                        }
-                    }
-                }
-                */
             }
         }
 
@@ -172,81 +258,27 @@ public partial class Window
         {
             if (tab)
             {
+                var nodeType = node.GetType();
+
+                if (ImGui.Button("Copy Style"))
+                    CopyStyleToClipboard(node, tempNode);
+
+                ImGui.SameLine();
+
+                ImGui.Checkbox("Show all", ref DebugShowAllStyleProperties);
+
                 using var _table = ImRaii.Table("StyleTable", 2, ImGuiTableFlags.ScrollY);
                 if (_table)
                 {
                     ImGui.TableSetupColumn("Label", ImGuiTableColumnFlags.WidthStretch, 40);
                     ImGui.TableSetupColumn("Value", ImGuiTableColumnFlags.WidthStretch, 60);
 
-                    PrintRow("Display", node.Display, (value) => node.Display = value);
-                    PrintRow("PositionType", node.PositionType, (value) => node.PositionType = value);
-                    PrintRow("Direction", node.Direction, (value) => node.Direction = value);
-                    PrintRow("Overflow", node.Overflow, (value) => node.Overflow = value);
-                    PrintRow("FlexDirection", node.FlexDirection, (value) => node.FlexDirection = value);
-                    PrintRow("JustifyContent", node.JustifyContent, (value) => node.JustifyContent = value);
-                    PrintRow("AlignContent", node.AlignContent, (value) => node.AlignContent = value);
-                    PrintRow("AlignItems", node.AlignItems, (value) => node.AlignItems = value);
-                    PrintRow("AlignSelf", node.AlignSelf, (value) => node.AlignSelf = value);
-                    PrintRow("FlexWrap", node.FlexWrap, (value) => node.FlexWrap = value);
-                    PrintRow("Flex", node.Flex, (value) => node.Flex = value);
-                    PrintRow("FlexGrow", node.FlexGrow, (value) => node.FlexGrow = value);
-                    PrintRow("FlexShrink", node.FlexShrink, (value) => node.FlexShrink = value);
-                    PrintRow("FlexBasis", node.FlexBasis, (value) => node.FlexBasis = value);
-
-                    PrintRow("Margin", node.Margin, (value) => node.Margin = value);
-                    PrintRow("MarginTop", node.MarginTop, (value) => node.MarginTop = value);
-                    PrintRow("MarginBottom", node.MarginBottom, (value) => node.MarginBottom = value);
-                    PrintRow("MarginLeft", node.MarginLeft, (value) => node.MarginLeft = value);
-                    PrintRow("MarginRight", node.MarginRight, (value) => node.MarginRight = value);
-                    PrintRow("MarginHorizontal", node.MarginHorizontal, (value) => node.MarginHorizontal = value);
-                    PrintRow("MarginVertical", node.MarginVertical, (value) => node.MarginVertical = value);
-                    PrintRow("MarginStart", node.MarginStart, (value) => node.MarginStart = value);
-                    PrintRow("MarginEnd", node.MarginEnd, (value) => node.MarginEnd = value);
-
-                    PrintRow("Position", node.Position, (value) => node.Position = value);
-                    PrintRow("PositionTop", node.PositionTop, (value) => node.PositionTop = value);
-                    PrintRow("PositionBottom", node.PositionBottom, (value) => node.PositionBottom = value);
-                    PrintRow("PositionLeft", node.PositionLeft, (value) => node.PositionLeft = value);
-                    PrintRow("PositionRight", node.PositionRight, (value) => node.PositionRight = value);
-                    PrintRow("PositionHorizontal", node.PositionHorizontal, (value) => node.PositionHorizontal = value);
-                    PrintRow("PositionVertical", node.PositionVertical, (value) => node.PositionVertical = value);
-                    PrintRow("PositionStart", node.PositionStart, (value) => node.PositionStart = value);
-                    PrintRow("PositionEnd", node.PositionEnd, (value) => node.PositionEnd = value);
-
-                    PrintRow("Padding", node.Padding, (value) => node.Padding = value);
-                    PrintRow("PaddingTop", node.PaddingTop, (value) => node.PaddingTop = value);
-                    PrintRow("PaddingBottom", node.PaddingBottom, (value) => node.PaddingBottom = value);
-                    PrintRow("PaddingLeft", node.PaddingLeft, (value) => node.PaddingLeft = value);
-                    PrintRow("PaddingRight", node.PaddingRight, (value) => node.PaddingRight = value);
-                    PrintRow("PaddingHorizontal", node.PaddingHorizontal, (value) => node.PaddingHorizontal = value);
-                    PrintRow("PaddingVertical", node.PaddingVertical, (value) => node.PaddingVertical = value);
-                    PrintRow("PaddingStart", node.PaddingStart, (value) => node.PaddingStart = value);
-                    PrintRow("PaddingEnd", node.PaddingEnd, (value) => node.PaddingEnd = value);
-
-                    PrintRow("Border", node.Border, (value) => node.Border = value);
-                    PrintRow("BorderTop", node.BorderTop, (value) => node.BorderTop = value);
-                    PrintRow("BorderBottom", node.BorderBottom, (value) => node.BorderBottom = value);
-                    PrintRow("BorderLeft", node.BorderLeft, (value) => node.BorderLeft = value);
-                    PrintRow("BorderRight", node.BorderRight, (value) => node.BorderRight = value);
-                    PrintRow("BorderHorizontal", node.BorderHorizontal, (value) => node.BorderHorizontal = value);
-                    PrintRow("BorderVertical", node.BorderVertical, (value) => node.BorderVertical = value);
-                    PrintRow("BorderStart", node.BorderStart, (value) => node.BorderStart = value);
-                    PrintRow("BorderEnd", node.BorderEnd, (value) => node.BorderEnd = value);
-
-                    PrintRow("Gap", node.Gap, (value) => node.Gap = value);
-                    PrintRow("RowGap", node.RowGap, (value) => node.RowGap = value);
-                    PrintRow("ColumnGap", node.ColumnGap, (value) => node.ColumnGap = value);
-
-                    PrintRow("Width", node.Width, (value) => node.Width = value);
-                    PrintRow("Height", node.Height, (value) => node.Height = value);
-
-                    PrintRow("MinWidth", node.MinWidth, (value) => node.MinWidth = value);
-                    PrintRow("MinHeight", node.MinHeight, (value) => node.MinHeight = value);
-
-                    PrintRow("MaxWidth", node.MaxWidth, (value) => node.MaxWidth = value);
-                    PrintRow("MaxHeight", node.MaxHeight, (value) => node.MaxHeight = value);
-
-                    PrintRow("AspectRatio", node.AspectRatio, (value) => node.AspectRatio = value);
+                    foreach (var propertyName in DebugStyleValueNames)
+                    {
+                        var propertyInfo = nodeType.GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public);
+                        if (propertyInfo != null)
+                            PrintStyleRow(node, tempNode, propertyInfo);
+                    }
                 }
             }
         }
@@ -261,53 +293,186 @@ public partial class Window
                     ImGui.TableSetupColumn("Label", ImGuiTableColumnFlags.WidthStretch, 40);
                     ImGui.TableSetupColumn("Value", ImGuiTableColumnFlags.WidthStretch, 60);
 
-                    PrintRow("ConfigVersion", node.Layout.ConfigVersion);
-                    PrintRow("GenerationCount", node.Layout.GenerationCount);
-
-                    PrintRow("Direction", node.Layout.Direction);
-                    PrintRow("HadOverflow", node.Layout.HadOverflow);
-
-                    // Absolute Position
-                    PrintRow("AbsoluteTop", node.AbsolutePosition.Y);
-                    PrintRow("AbsoluteLeft", node.AbsolutePosition.X);
-
-                    // Dimensions
-                    PrintRow("Width", node.Layout.Width);
-                    PrintRow("Height", node.Layout.Height);
-
-                    // MeasuredDimensions
-                    if (node.HasMeasureFunc)
+                    foreach (var propertyName in DebugLayoutNames)
                     {
-                        PrintRow("MeasuredWidth", node.Layout.MeasuredWidth);
-                        PrintRow("MeasuredHeight", node.Layout.MeasuredHeight);
+                        var propertyInfo = typeof(LayoutResults).GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public);
+                        if (propertyInfo != null)
+                            PrintLayoutRow(node.Layout, propertyInfo);
                     }
-
-                    // Position
-                    PrintRow("PositionTop", node.Layout.PositionTop);
-                    PrintRow("PositionBottom", node.Layout.PositionBottom);
-                    PrintRow("PositionLeft", node.Layout.PositionLeft);
-                    PrintRow("PositionRight", node.Layout.PositionRight);
-
-                    // Margin
-                    PrintRow("MarginTop", node.Layout.MarginTop);
-                    PrintRow("MarginBottom", node.Layout.MarginBottom);
-                    PrintRow("MarginLeft", node.Layout.MarginLeft);
-                    PrintRow("MarginRight", node.Layout.MarginRight);
-
-                    // Border
-                    PrintRow("BorderTop", node.Layout.BorderTop);
-                    PrintRow("BorderBottom", node.Layout.BorderBottom);
-                    PrintRow("BorderLeft", node.Layout.BorderLeft);
-                    PrintRow("BorderRight", node.Layout.BorderRight);
-
-                    // Padding
-                    PrintRow("PaddingTop", node.Layout.PaddingTop);
-                    PrintRow("PaddingBottom", node.Layout.PaddingBottom);
-                    PrintRow("PaddingLeft", node.Layout.PaddingLeft);
-                    PrintRow("PaddingRight", node.Layout.PaddingRight);
                 }
             }
         }
+    }
+
+    private static void CopyStyleToClipboard(Node node, Node tempNode)
+    {
+        var nodeType = node.GetType();
+        var sb = new StringBuilder();
+
+        foreach (var propertyName in DebugStyleValueNames)
+        {
+            var propertyInfo = nodeType.GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public);
+            if (propertyInfo == null) continue;
+
+            var value = propertyInfo.GetValue(node);
+            var defaultValue = propertyInfo.GetValue(tempNode);
+
+            if (value == null || defaultValue == null)
+                continue;
+
+            if (propertyInfo.PropertyType.IsEnum)
+            {
+                if (value.Equals(defaultValue))
+                    continue;
+
+                sb.Append(propertyInfo.Name);
+                sb.Append(" = ");
+                sb.Append(propertyInfo.PropertyType.Name);
+                sb.Append('.');
+                sb.Append(value.ToString());
+                sb.AppendLine(",");
+            }
+            else if (propertyInfo.PropertyType == typeof(StyleValue) && value is StyleValue styleValue && defaultValue is StyleValue defaultStyleValue)
+            {
+                if (styleValue == defaultStyleValue)
+                    continue;
+
+                sb.Append(propertyInfo.Name);
+                sb.Append(" = ");
+                switch (styleValue.Unit)
+                {
+                    case Unit.Auto:
+                        sb.Append("StyleValue.Auto");
+                        break;
+
+                    case Unit.Undefined:
+                        sb.Append("StyleValue.Undefined");
+                        break;
+
+                    case Unit.Percent:
+                        sb.Append("StyleValue.Percent(");
+                        sb.Append(styleValue.Value.ToString(CultureInfo.InvariantCulture));
+                        if (styleValue.Value % 1 != 0)
+                            sb.Append('f');
+                        sb.Append(')');
+                        break;
+
+                    case Unit.Point:
+                        sb.Append(styleValue.Value.ToString(CultureInfo.InvariantCulture));
+                        if (styleValue.Value % 1 != 0)
+                            sb.Append('f');
+                        break;
+                }
+                sb.AppendLine(",");
+            }
+        }
+
+        ImGui.SetClipboardText(sb.ToString());
+    }
+
+    private static void PrintStyleRow(Node node, Node tempNode, PropertyInfo propertyInfo)
+    {
+        var value = propertyInfo.GetValue(node);
+        var defaultValue = propertyInfo.GetValue(tempNode);
+        var isEqual = value?.Equals(defaultValue) ?? true;
+
+        if (!DebugShowAllStyleProperties && isEqual)
+            return;
+
+        var defaultTextColor = ImGui.GetColorU32(ImGuiCol.Text);
+        using var textColor = ImRaii.PushColor(ImGuiCol.Text, ImGui.GetColorU32(ImGuiCol.TextDisabled), isEqual);
+
+        ImGui.TableNextRow();
+        ImGui.TableNextColumn();
+        ImGui.TextUnformatted(propertyInfo.Name);
+        ImGui.TableNextColumn();
+
+        if (propertyInfo.PropertyType.IsEnum)
+        {
+            ImGui.SetNextItemWidth(-1);
+            using var combo = ImRaii.Combo($"###{propertyInfo.Name}_Combo", value?.ToString() ?? string.Empty);
+            if (combo)
+            {
+                using var selectableColor = ImRaii.PushColor(ImGuiCol.Text, defaultTextColor);
+
+                foreach (var val in propertyInfo.PropertyType.GetEnumValues())
+                {
+                    if (ImGui.Selectable(Enum.GetName(propertyInfo.PropertyType, val), val.Equals(value)))
+                    {
+                        propertyInfo.SetValue(node, val);
+                    }
+                }
+            }
+            return;
+        }
+        
+        if (propertyInfo.PropertyType == typeof(StyleValue) && value is StyleValue styleValue)
+        {
+            const float UnitWidth = 100f;
+
+            // special cases
+            if (propertyInfo.Name is "FlexGrow" or "FlexShrink")
+            {
+                var intValue = (int)styleValue.Value;
+
+                ImGui.SetNextItemWidth(-1);
+                if (ImGui.InputInt($"###{propertyInfo.Name}_Value", ref intValue))
+                {
+                    if (intValue < 0) intValue = 0;
+                    propertyInfo.SetValue(node, styleValue with { Value = intValue });
+                }
+
+                return;
+            }
+
+            if (styleValue.Unit is not Unit.Undefined and not Unit.Auto)
+            {
+                var floatValue = styleValue.Value;
+
+                ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X - UnitWidth - ImGui.GetStyle().ItemInnerSpacing.X);
+                if (ImGui.InputFloat($"###{propertyInfo.Name}_Value", ref floatValue, 1, 10))
+                {
+                    propertyInfo.SetValue(node, styleValue with { Value = floatValue });
+                }
+
+                ImGui.SameLine(0, ImGui.GetStyle().ItemInnerSpacing.X);
+            }
+
+            ImGui.SetNextItemWidth(styleValue.Unit is Unit.Undefined or Unit.Auto ? -1 : UnitWidth);
+            using var combo = ImRaii.Combo($"###{propertyInfo.Name}_Unit", $"{styleValue.Unit}");
+            if (!combo) return;
+
+            using var selectableColor = ImRaii.PushColor(ImGuiCol.Text, defaultTextColor);
+
+            foreach (var val in Enum.GetValues<Unit>())
+            {
+                if (ImGui.Selectable(Enum.GetName(val), val.Equals(value)))
+                {
+                    if (float.IsNaN(styleValue.Value))
+                        propertyInfo.SetValue(node, styleValue with { Value = 0, Unit = val });
+                    else
+                        propertyInfo.SetValue(node, styleValue with { Unit = val });
+                }
+            }
+        }
+    }
+
+    private static void PrintLayoutRow(LayoutResults layoutResults, PropertyInfo propertyInfo)
+    {
+        var value = propertyInfo.GetValue(layoutResults);
+
+        ImGui.TableNextRow();
+        ImGui.TableNextColumn();
+        ImGui.TextUnformatted(propertyInfo.Name);
+        ImGui.TableNextColumn();
+
+        if (value is float floatVal)
+            ImGui.TextUnformatted($"{floatVal.ToString("0", CultureInfo.InvariantCulture)}");
+        else if (value is StyleValue styleValue)
+            ImGui.TextUnformatted($"{styleValue}");
+        else
+            ImGui.TextUnformatted(value?.ToString() ?? "null");
+
     }
 
     private static void PrintRow(string label, string value)
@@ -317,7 +482,6 @@ public partial class Window
         ImGui.TextUnformatted(label);
         ImGui.TableNextColumn();
         ImGui.TextUnformatted(value);
-        //ImGui.InputText($"##{text}", ref value, (uint)value.Length, ImGuiInputTextFlags.ReadOnly);
     }
 
     private static void PrintRow<T>(string label, T value) where T : struct, Enum
@@ -329,25 +493,6 @@ public partial class Window
         ImGui.TextUnformatted($"{value}");
     }
 
-    private static void PrintRow<T>(string label, T value, Action<T> setter) where T : struct, Enum
-    {
-        ImGui.TableNextRow();
-        ImGui.TableNextColumn();
-        ImGui.TextUnformatted(label);
-        ImGui.TableNextColumn();
-
-        using var combo = ImRaii.Combo($"##{label}_Combo", $"{value}");
-        if (!combo) return;
-
-        foreach (var val in Enum.GetValues<T>())
-        {
-            if (ImGui.Selectable(Enum.GetName(val), val.Equals(value)))
-            {
-                setter(val);
-            }
-        }
-    }
-
     private static void PrintRow(string label, bool value)
     {
         ImGui.TableNextRow();
@@ -355,68 +500,5 @@ public partial class Window
         ImGui.TextUnformatted(label);
         ImGui.TableNextColumn();
         ImGui.TextUnformatted($"{value}");
-    }
-
-    private static void PrintRow(string label, float value)
-    {
-        if (float.IsNaN(value))
-            return;
-
-        ImGui.TableNextRow();
-        ImGui.TableNextColumn();
-        ImGui.TextUnformatted(label);
-        ImGui.TableNextColumn();
-        ImGui.TextUnformatted($"{value.ToString("0.###", CultureInfo.InvariantCulture)}");
-    }
-
-    private static void PrintRow(string label, StyleValue value, Action<StyleValue> setter)
-    {
-        const float UnitWidth = 100f;
-
-        ImGui.TableNextRow();
-        ImGui.TableNextColumn();
-        ImGui.TextUnformatted(label);
-        ImGui.TableNextColumn();
-
-        // special cases
-        if (label is "FlexGrow" or "FlexShrink")
-        {
-            var intValue = (int)value.Value;
-            if (ImGui.InputInt($"##{label}_Value", ref intValue))
-            {
-                if (intValue < 0) intValue = 0;
-                setter(value with { Value = intValue });
-            }
-
-            return;
-        }
-
-        if (value.Unit is not Unit.Undefined and not Unit.Auto)
-        {
-            var floatValue = value.Value;
-
-            ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X - UnitWidth - ImGui.GetStyle().ItemInnerSpacing.X);
-            if (ImGui.InputFloat($"##{label}_Value", ref floatValue, 1, 10))
-            {
-                setter(value with { Value = floatValue });
-            }
-
-            ImGui.SameLine(0, ImGui.GetStyle().ItemInnerSpacing.X);
-        }
-
-        ImGui.SetNextItemWidth(UnitWidth);
-        using var combo = ImRaii.Combo($"##{label}_Unit", $"{value.Unit}");
-        if (!combo) return;
-
-        foreach (var val in Enum.GetValues<Unit>())
-        {
-            if (ImGui.Selectable(Enum.GetName(val), val.Equals(value)))
-            {
-                if (float.IsNaN(value.Value))
-                    setter(value with { Value = 0, Unit = val });
-                else
-                    setter(value with { Unit = val });
-            }
-        }
     }
 }
