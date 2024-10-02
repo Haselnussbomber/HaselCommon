@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+using HaselCommon.Extensions;
 using HaselCommon.Gui.Enums;
 
 namespace HaselCommon.Gui;
@@ -22,8 +24,8 @@ public class LayoutResults
     public bool HadOverflow { get; internal set; } = false;
 
     // Dimensions
-    public float Width { get; internal set; }
-    public float Height { get; internal set; }
+    public float Width { get; internal set; } = float.NaN;
+    public float Height { get; internal set; } = float.NaN;
 
     // MeasuredDimensions
     public float MeasuredWidth { get; internal set; }
@@ -52,6 +54,101 @@ public class LayoutResults
     public float PaddingBottom { get; internal set; }
     public float PaddingLeft { get; internal set; }
     public float PaddingRight { get; internal set; }
+
+    public static bool operator ==(LayoutResults? a, LayoutResults? b)
+    {
+        if (a is null && b is null)
+            return true;
+
+        if (a is null || b is null)
+            return false;
+
+        return a.Equals(b);
+    }
+
+    public static bool operator !=(LayoutResults? a, LayoutResults? b)
+        => !(a == b);
+
+    public override bool Equals([NotNullWhen(true)] object? obj)
+    {
+        if (obj is not LayoutResults other)
+            return false;
+
+        var isEqual = PositionTop.IsApproximately(other.PositionTop) &&
+            PositionBottom.IsApproximately(other.PositionBottom) &&
+            PositionLeft.IsApproximately(other.PositionLeft) &&
+            PositionRight.IsApproximately(other.PositionRight) &&
+
+            Width.IsApproximately(other.Width) &&
+            Height.IsApproximately(other.Height) &&
+
+            MeasuredWidth.IsApproximately(other.MeasuredWidth) &&
+            MeasuredHeight.IsApproximately(other.MeasuredHeight) &&
+
+            MarginTop.IsApproximately(other.MarginTop) &&
+            MarginBottom.IsApproximately(other.MarginBottom) &&
+            MarginLeft.IsApproximately(other.MarginLeft) &&
+            MarginRight.IsApproximately(other.MarginRight) &&
+
+            BorderTop.IsApproximately(other.BorderTop) &&
+            BorderBottom.IsApproximately(other.BorderBottom) &&
+            BorderLeft.IsApproximately(other.BorderLeft) &&
+            BorderRight.IsApproximately(other.BorderRight) &&
+
+            PaddingTop.IsApproximately(other.PaddingTop) &&
+            PaddingBottom.IsApproximately(other.PaddingBottom) &&
+            PaddingLeft.IsApproximately(other.PaddingLeft) &&
+            PaddingRight.IsApproximately(other.PaddingRight) &&
+
+            Direction == other.Direction &&
+            HadOverflow == other.HadOverflow &&
+            LastOwnerDirection == other.LastOwnerDirection &&
+            ConfigVersion == other.ConfigVersion &&
+            NextCachedMeasurementsIndex == other.NextCachedMeasurementsIndex &&
+            CachedLayout == other.CachedLayout &&
+            ComputedFlexBasis == other.ComputedFlexBasis;
+
+        for (var i = 0; i < MaxCachedMeasurements; i++)
+            isEqual = isEqual && CachedMeasurements[i] == other.CachedMeasurements[i];
+
+        return isEqual;
+    }
+
+    public override int GetHashCode()
+    {
+        var hash = new HashCode();
+        hash.Add(ComputedFlexBasisGeneration);
+        hash.Add(ComputedFlexBasis);
+        hash.Add(GenerationCount);
+        hash.Add(ConfigVersion);
+        hash.Add(LastOwnerDirection);
+        hash.Add(NextCachedMeasurementsIndex);
+        hash.Add(CachedMeasurements);
+        hash.Add(CachedLayout);
+        hash.Add(Direction);
+        hash.Add(HadOverflow);
+        hash.Add(Width);
+        hash.Add(Height);
+        hash.Add(MeasuredWidth);
+        hash.Add(MeasuredHeight);
+        hash.Add(PositionTop);
+        hash.Add(PositionBottom);
+        hash.Add(PositionLeft);
+        hash.Add(PositionRight);
+        hash.Add(MarginTop);
+        hash.Add(MarginBottom);
+        hash.Add(MarginLeft);
+        hash.Add(MarginRight);
+        hash.Add(BorderTop);
+        hash.Add(BorderBottom);
+        hash.Add(BorderLeft);
+        hash.Add(BorderRight);
+        hash.Add(PaddingTop);
+        hash.Add(PaddingBottom);
+        hash.Add(PaddingLeft);
+        hash.Add(PaddingRight);
+        return hash.ToHashCode();
+    }
 
     internal float GetDimension(Dimension dimension)
     {

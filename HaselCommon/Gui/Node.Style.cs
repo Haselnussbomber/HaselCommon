@@ -26,81 +26,80 @@ public partial class Node
     [Notify] private Wrap _flexWrap = Wrap.NoWrap;
     [Notify] private Overflow _overflow = Overflow.Visible;
     [Notify] private Display _display = Display.Flex;
-    [Notify] private StyleValue _flex = StyleValue.Auto;
-    [Notify] private StyleValue _flexGrow = 0;
-    [Notify] private StyleValue _flexShrink = 0;
-    [Notify] private StyleValue _flexBasis = StyleValue.Auto;
+    [Notify] private StyleLength _flex = StyleLength.Auto;
+    [Notify] private StyleLength _flexGrow = 0;
+    [Notify] private StyleLength _flexShrink = 0;
+    [Notify] private StyleLength _flexBasis = StyleLength.Auto;
 
-    [Notify] private StyleValue _margin = StyleValue.Undefined;
-    [Notify] private StyleValue _marginTop = StyleValue.Undefined;
-    [Notify] private StyleValue _marginBottom = StyleValue.Undefined;
-    [Notify] private StyleValue _marginLeft = StyleValue.Undefined;
-    [Notify] private StyleValue _marginRight = StyleValue.Undefined;
-    [Notify] private StyleValue _marginHorizontal = StyleValue.Undefined;
-    [Notify] private StyleValue _marginVertical = StyleValue.Undefined;
-    [Notify] private StyleValue _marginStart = StyleValue.Undefined;
-    [Notify] private StyleValue _marginEnd = StyleValue.Undefined;
+    [Notify] private StyleLength _margin = StyleLength.Undefined;
+    [Notify] private StyleLength _marginTop = StyleLength.Undefined;
+    [Notify] private StyleLength _marginBottom = StyleLength.Undefined;
+    [Notify] private StyleLength _marginLeft = StyleLength.Undefined;
+    [Notify] private StyleLength _marginRight = StyleLength.Undefined;
+    [Notify] private StyleLength _marginHorizontal = StyleLength.Undefined;
+    [Notify] private StyleLength _marginVertical = StyleLength.Undefined;
+    [Notify] private StyleLength _marginStart = StyleLength.Undefined;
+    [Notify] private StyleLength _marginEnd = StyleLength.Undefined;
 
-    [Notify] private StyleValue _position = StyleValue.Undefined;
-    [Notify] private StyleValue _positionTop = StyleValue.Undefined;
-    [Notify] private StyleValue _positionBottom = StyleValue.Undefined;
-    [Notify] private StyleValue _positionLeft = StyleValue.Undefined;
-    [Notify] private StyleValue _positionRight = StyleValue.Undefined;
-    [Notify] private StyleValue _positionHorizontal = StyleValue.Undefined;
-    [Notify] private StyleValue _positionVertical = StyleValue.Undefined;
-    [Notify] private StyleValue _positionStart = StyleValue.Undefined;
-    [Notify] private StyleValue _positionEnd = StyleValue.Undefined;
+    [Notify] private StyleLength _position = StyleLength.Undefined;
+    [Notify] private StyleLength _positionTop = StyleLength.Undefined;
+    [Notify] private StyleLength _positionBottom = StyleLength.Undefined;
+    [Notify] private StyleLength _positionLeft = StyleLength.Undefined;
+    [Notify] private StyleLength _positionRight = StyleLength.Undefined;
+    [Notify] private StyleLength _positionHorizontal = StyleLength.Undefined;
+    [Notify] private StyleLength _positionVertical = StyleLength.Undefined;
+    [Notify] private StyleLength _positionStart = StyleLength.Undefined;
+    [Notify] private StyleLength _positionEnd = StyleLength.Undefined;
 
-    [Notify] private StyleValue _padding = StyleValue.Undefined;
-    [Notify] private StyleValue _paddingTop = StyleValue.Undefined;
-    [Notify] private StyleValue _paddingBottom = StyleValue.Undefined;
-    [Notify] private StyleValue _paddingLeft = StyleValue.Undefined;
-    [Notify] private StyleValue _paddingRight = StyleValue.Undefined;
-    [Notify] private StyleValue _paddingHorizontal = StyleValue.Undefined;
-    [Notify] private StyleValue _paddingVertical = StyleValue.Undefined;
-    [Notify] private StyleValue _paddingStart = StyleValue.Undefined;
-    [Notify] private StyleValue _paddingEnd = StyleValue.Undefined;
+    [Notify] private StyleLength _padding = StyleLength.Undefined;
+    [Notify] private StyleLength _paddingTop = StyleLength.Undefined;
+    [Notify] private StyleLength _paddingBottom = StyleLength.Undefined;
+    [Notify] private StyleLength _paddingLeft = StyleLength.Undefined;
+    [Notify] private StyleLength _paddingRight = StyleLength.Undefined;
+    [Notify] private StyleLength _paddingHorizontal = StyleLength.Undefined;
+    [Notify] private StyleLength _paddingVertical = StyleLength.Undefined;
+    [Notify] private StyleLength _paddingStart = StyleLength.Undefined;
+    [Notify] private StyleLength _paddingEnd = StyleLength.Undefined;
 
-    [Notify] private StyleValue _border = StyleValue.Undefined;
-    [Notify] private StyleValue _borderTop = StyleValue.Undefined;
-    [Notify] private StyleValue _borderBottom = StyleValue.Undefined;
-    [Notify] private StyleValue _borderLeft = StyleValue.Undefined;
-    [Notify] private StyleValue _borderRight = StyleValue.Undefined;
-    [Notify] private StyleValue _borderHorizontal = StyleValue.Undefined;
-    [Notify] private StyleValue _borderVertical = StyleValue.Undefined;
-    [Notify] private StyleValue _borderStart = StyleValue.Undefined;
-    [Notify] private StyleValue _borderEnd = StyleValue.Undefined;
+    [Notify] private StyleLength _border = StyleLength.Undefined;
+    [Notify] private StyleLength _borderTop = StyleLength.Undefined;
+    [Notify] private StyleLength _borderBottom = StyleLength.Undefined;
+    [Notify] private StyleLength _borderLeft = StyleLength.Undefined;
+    [Notify] private StyleLength _borderRight = StyleLength.Undefined;
+    [Notify] private StyleLength _borderHorizontal = StyleLength.Undefined;
+    [Notify] private StyleLength _borderVertical = StyleLength.Undefined;
+    [Notify] private StyleLength _borderStart = StyleLength.Undefined;
+    [Notify] private StyleLength _borderEnd = StyleLength.Undefined;
 
-    [Notify] private StyleValue _gap = 0;
-    [Notify] private StyleValue _rowGap = StyleValue.Undefined;
-    [Notify] private StyleValue _columnGap = StyleValue.Undefined;
+    [Notify] private StyleLength _gap = 0;
+    [Notify] private StyleLength _rowGap = StyleLength.Undefined;
+    [Notify] private StyleLength _columnGap = StyleLength.Undefined;
 
-    [Notify] private StyleValue _width = StyleValue.Auto;
-    [Notify] private StyleValue _height = StyleValue.Auto;
+    [Notify] private StyleLength _width = StyleLength.Auto;
+    [Notify] private StyleLength _height = StyleLength.Auto;
 
-    [Notify] private StyleValue _minWidth = StyleValue.Undefined;
-    [Notify] private StyleValue _minHeight = StyleValue.Undefined;
+    [Notify] private StyleLength _minWidth = StyleLength.Undefined;
+    [Notify] private StyleLength _minHeight = StyleLength.Undefined;
 
-    [Notify] private StyleValue _maxWidth = StyleValue.Undefined;
-    [Notify] private StyleValue _maxHeight = StyleValue.Undefined;
+    [Notify] private StyleLength _maxWidth = StyleLength.Undefined;
+    [Notify] private StyleLength _maxHeight = StyleLength.Undefined;
 
-    [Notify] private StyleValue _aspectRatio = StyleValue.Undefined;
+    [Notify] private StyleLength _aspectRatio = StyleLength.Undefined;
 
-    private float ResolveFlexShrink()
+    internal StyleLength ResolveFlexBasis()
     {
-        if (Parent == null)
-            return 0.0f;
+        var flexBasis = _flexBasis;
 
-        if (_flexShrink.IsDefined)
-            return _flexShrink.Value;
+        if (flexBasis.Unit != Unit.Auto && flexBasis.Unit != Unit.Undefined)
+            return flexBasis;
 
-        if (!Config.UseWebDefaults && _flex.IsDefined && _flex.Value < 0.0f)
-            return -_flex.Value;
+        if (Flex.IsDefined && Flex.Value > 0.0f)
+            return Config.UseWebDefaults ? StyleLength.Auto : 0;
 
-        return Config.UseWebDefaults ? WebDefaultFlexShrink : DefaultFlexShrink;
+        return StyleLength.Auto;
     }
 
-    private float ResolveFlexGrow()
+    internal float ResolveFlexGrow()
     {
         // Root nodes flexGrow should always be 0
         if (Parent == null)
@@ -115,14 +114,28 @@ public partial class Node
         return DefaultFlexGrow;
     }
 
+    internal float ResolveFlexShrink()
+    {
+        if (Parent == null)
+            return 0.0f;
+
+        if (_flexShrink.IsDefined)
+            return _flexShrink.Value;
+
+        if (!Config.UseWebDefaults && _flex.IsDefined && _flex.Value < 0.0f)
+            return -_flex.Value;
+
+        return Config.UseWebDefaults ? WebDefaultFlexShrink : DefaultFlexShrink;
+    }
+
     private bool HorizontalInsetsDefined()
     {
-        return PositionLeft.IsDefined || PositionRight.IsDefined;
+        return PositionLeft.IsDefined || PositionRight.IsDefined || PositionHorizontal.IsDefined || PositionStart.IsDefined || PositionEnd.IsDefined;
     }
 
     private bool VerticalInsetsDefined()
     {
-        return PositionTop.IsDefined || PositionBottom.IsDefined;
+        return PositionTop.IsDefined || PositionBottom.IsDefined || Position.IsDefined || PositionVertical.IsDefined;
     }
 
     private bool IsFlexStartPositionDefined(FlexDirection axis, Direction direction)
@@ -293,17 +306,17 @@ public partial class Node
         return ComputeMargin(axis.FlexEndEdge(), direction).IsAuto;
     }
 
-    private StyleValue ComputeColumnGap()
+    private StyleLength ComputeColumnGap()
     {
         return ColumnGap.IsDefined ? ColumnGap : Gap;
     }
 
-    private StyleValue ComputeRowGap()
+    private StyleLength ComputeRowGap()
     {
         return RowGap.IsDefined ? RowGap : Gap;
     }
 
-    private StyleValue ComputePosition(PhysicalEdge edge, Direction direction)
+    private StyleLength ComputePosition(PhysicalEdge edge, Direction direction)
     {
         switch (edge)
         {
@@ -379,7 +392,7 @@ public partial class Node
         throw new Exception("Invalid physical edge");
     }
 
-    private StyleValue ComputeMargin(PhysicalEdge edge, Direction direction)
+    private StyleLength ComputeMargin(PhysicalEdge edge, Direction direction)
     {
         switch (edge)
         {
@@ -455,7 +468,7 @@ public partial class Node
         throw new Exception("Invalid physical edge");
     }
 
-    private StyleValue ComputePadding(PhysicalEdge edge, Direction direction)
+    private StyleLength ComputePadding(PhysicalEdge edge, Direction direction)
     {
         switch (edge)
         {
@@ -531,7 +544,7 @@ public partial class Node
         throw new Exception("Invalid physical edge");
     }
 
-    private StyleValue ComputeBorder(PhysicalEdge edge, Direction direction)
+    private StyleLength ComputeBorder(PhysicalEdge edge, Direction direction)
     {
         switch (edge)
         {
@@ -607,7 +620,7 @@ public partial class Node
         throw new Exception("Invalid physical edge");
     }
 
-    private StyleValue GetMaxDimension(Dimension dimension)
+    private StyleLength GetMaxDimension(Dimension dimension)
     {
         return dimension switch
         {
@@ -617,7 +630,7 @@ public partial class Node
         };
     }
 
-    private StyleValue GetMinDimension(Dimension dimension)
+    private StyleLength GetMinDimension(Dimension dimension)
     {
         return dimension switch
         {

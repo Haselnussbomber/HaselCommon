@@ -20,7 +20,7 @@ public partial class Window
     private Node? _debugSelectedNode;
 
     private static bool DebugShowAllStyleProperties = true;
-    private static readonly string[] DebugStyleValueNames = [
+    private static readonly string[] DebugStyleLengthNames = [
         "Display",
         "PositionType",
         "Direction",
@@ -273,7 +273,7 @@ public partial class Window
                     ImGui.TableSetupColumn("Label", ImGuiTableColumnFlags.WidthStretch, 40);
                     ImGui.TableSetupColumn("Value", ImGuiTableColumnFlags.WidthStretch, 60);
 
-                    foreach (var propertyName in DebugStyleValueNames)
+                    foreach (var propertyName in DebugStyleLengthNames)
                     {
                         var propertyInfo = nodeType.GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public);
                         if (propertyInfo != null)
@@ -309,7 +309,7 @@ public partial class Window
         var nodeType = node.GetType();
         var sb = new StringBuilder();
 
-        foreach (var propertyName in DebugStyleValueNames)
+        foreach (var propertyName in DebugStyleLengthNames)
         {
             var propertyInfo = nodeType.GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public);
             if (propertyInfo == null) continue;
@@ -332,34 +332,34 @@ public partial class Window
                 sb.Append(value.ToString());
                 sb.AppendLine(",");
             }
-            else if (propertyInfo.PropertyType == typeof(StyleValue) && value is StyleValue styleValue && defaultValue is StyleValue defaultStyleValue)
+            else if (propertyInfo.PropertyType == typeof(StyleLength) && value is StyleLength styleLength && defaultValue is StyleLength defaultStyleLength)
             {
-                if (styleValue == defaultStyleValue)
+                if (styleLength == defaultStyleLength)
                     continue;
 
                 sb.Append(propertyInfo.Name);
                 sb.Append(" = ");
-                switch (styleValue.Unit)
+                switch (styleLength.Unit)
                 {
                     case Unit.Auto:
-                        sb.Append("StyleValue.Auto");
+                        sb.Append("StyleLength.Auto");
                         break;
 
                     case Unit.Undefined:
-                        sb.Append("StyleValue.Undefined");
+                        sb.Append("StyleLength.Undefined");
                         break;
 
                     case Unit.Percent:
-                        sb.Append("StyleValue.Percent(");
-                        sb.Append(styleValue.Value.ToString(CultureInfo.InvariantCulture));
-                        if (styleValue.Value % 1 != 0)
+                        sb.Append("StyleLength.Percent(");
+                        sb.Append(styleLength.Value.ToString(CultureInfo.InvariantCulture));
+                        if (styleLength.Value % 1 != 0)
                             sb.Append('f');
                         sb.Append(')');
                         break;
 
                     case Unit.Point:
-                        sb.Append(styleValue.Value.ToString(CultureInfo.InvariantCulture));
-                        if (styleValue.Value % 1 != 0)
+                        sb.Append(styleLength.Value.ToString(CultureInfo.InvariantCulture));
+                        if (styleLength.Value % 1 != 0)
                             sb.Append('f');
                         break;
                 }
@@ -406,40 +406,40 @@ public partial class Window
             return;
         }
 
-        if (propertyInfo.PropertyType == typeof(StyleValue) && value is StyleValue styleValue)
+        if (propertyInfo.PropertyType == typeof(StyleLength) && value is StyleLength styleLength)
         {
             const float UnitWidth = 100f;
 
             // special cases
             if (propertyInfo.Name is "FlexGrow" or "FlexShrink")
             {
-                var intValue = (int)styleValue.Value;
+                var intValue = (int)styleLength.Value;
 
                 ImGui.SetNextItemWidth(-1);
                 if (ImGui.InputInt($"###{propertyInfo.Name}_Value", ref intValue))
                 {
                     if (intValue < 0) intValue = 0;
-                    propertyInfo.SetValue(node, styleValue with { Value = intValue });
+                    propertyInfo.SetValue(node, styleLength with { Value = intValue });
                 }
 
                 return;
             }
 
-            if (styleValue.Unit is not Unit.Undefined and not Unit.Auto)
+            if (styleLength.Unit is not Unit.Undefined and not Unit.Auto)
             {
-                var floatValue = styleValue.Value;
+                var floatValue = styleLength.Value;
 
                 ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X - UnitWidth - ImGui.GetStyle().ItemInnerSpacing.X);
                 if (ImGui.InputFloat($"###{propertyInfo.Name}_Value", ref floatValue, 1, 10))
                 {
-                    propertyInfo.SetValue(node, styleValue with { Value = floatValue });
+                    propertyInfo.SetValue(node, styleLength with { Value = floatValue });
                 }
 
                 ImGui.SameLine(0, ImGui.GetStyle().ItemInnerSpacing.X);
             }
 
-            ImGui.SetNextItemWidth(styleValue.Unit is Unit.Undefined or Unit.Auto ? -1 : UnitWidth);
-            using var combo = ImRaii.Combo($"###{propertyInfo.Name}_Unit", $"{styleValue.Unit}");
+            ImGui.SetNextItemWidth(styleLength.Unit is Unit.Undefined or Unit.Auto ? -1 : UnitWidth);
+            using var combo = ImRaii.Combo($"###{propertyInfo.Name}_Unit", $"{styleLength.Unit}");
             if (!combo) return;
 
             using var selectableColor = ImRaii.PushColor(ImGuiCol.Text, defaultTextColor);
@@ -448,10 +448,10 @@ public partial class Window
             {
                 if (ImGui.Selectable(Enum.GetName(val), val.Equals(value)))
                 {
-                    if (float.IsNaN(styleValue.Value))
-                        propertyInfo.SetValue(node, styleValue with { Value = 0, Unit = val });
+                    if (float.IsNaN(styleLength.Value))
+                        propertyInfo.SetValue(node, styleLength with { Value = 0, Unit = val });
                     else
-                        propertyInfo.SetValue(node, styleValue with { Unit = val });
+                        propertyInfo.SetValue(node, styleLength with { Unit = val });
                 }
             }
         }
@@ -468,8 +468,8 @@ public partial class Window
 
         if (value is float floatVal)
             ImGui.TextUnformatted($"{floatVal.ToString("0", CultureInfo.InvariantCulture)}");
-        else if (value is StyleValue styleValue)
-            ImGui.TextUnformatted($"{styleValue}");
+        else if (value is StyleLength styleLength)
+            ImGui.TextUnformatted($"{styleLength}");
         else
             ImGui.TextUnformatted(value?.ToString() ?? "null");
 

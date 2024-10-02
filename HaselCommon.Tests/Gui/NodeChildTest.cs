@@ -10,9 +10,11 @@ public class NodeChildTest
     {
         using var root = new Node();
 
-        using var root_child0 = new Node();
-        root_child0.Width = 100;
-        root_child0.Height = 100;
+        var root_child0 = new Node
+        {
+            Width = 100,
+            Height = 100
+        };
         root.Add(root_child0);
 
         root.CalculateLayout(float.NaN, float.NaN, Direction.LTR);
@@ -26,7 +28,7 @@ public class NodeChildTest
 
         Assert.Equal(0, root_child0.Layout.PositionLeft);
         Assert.Equal(0, root_child0.Layout.PositionTop);
-        Assert.Equal(0, root_child0.Layout.Width);
-        Assert.Equal(0, root_child0.Layout.Height);
+        Assert.True(float.IsNaN(root_child0.Layout.Width));
+        Assert.True(float.IsNaN(root_child0.Layout.Height));
     }
 }

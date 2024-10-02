@@ -207,8 +207,8 @@ public class DirtyMarkingTest
         child1_child0.Add(child1_child0_child0);
 
         child1.Add(child1_child0);
-        root.Add(child0);
-        root.Add(child1);
+        root.Insert(0, child0);
+        root.Insert(0, child1);
 
         child0.Display = Display.Flex;
         child1.Display = Display.None;

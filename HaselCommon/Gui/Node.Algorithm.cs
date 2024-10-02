@@ -11,8 +11,8 @@ public partial class Node
     private Config _config = new();
     private bool _isDirty = true;
     private int _lineIndex;
-    private StyleValue _resolvedWidth = StyleValue.Undefined;
-    private StyleValue _resolvedHeight = StyleValue.Undefined;
+    private StyleLength _resolvedWidth = StyleLength.Undefined;
+    private StyleLength _resolvedHeight = StyleLength.Undefined;
 
     /// <summary>
     /// Whether a leaf node's layout results may be truncated during layout rounding.
@@ -62,7 +62,7 @@ public partial class Node
             {
                 // If the config is functionally the same, then align the configVersion so
                 // that we can reuse the layout cache
-                Layout.ConfigVersion = Config.Version;
+                Layout.ConfigVersion = value.Version;
             }
 
             // C# port: This is processed here when the layout hasn't been generated yet, to allow setting the property on construction.
@@ -129,7 +129,7 @@ public partial class Node
         return !float.IsNaN(usedValue) && usedValue >= 0.0f;
     }
 
-    private StyleValue GetResolvedDimension(Dimension dimension)
+    private StyleLength GetResolvedDimension(Dimension dimension)
     {
         return dimension switch
         {
@@ -185,13 +185,23 @@ public partial class Node
 
     private void ResolveDimension()
     {
-        _resolvedWidth = MaxWidth.IsDefined && MaxWidth.Value.IsApproximately(MinWidth.Value)
-            ? MaxWidth
-            : Width;
+        if (MaxWidth.IsDefined && MaxWidth.IsApproximately(MinWidth))
+        {
+            _resolvedWidth = MaxWidth;
+        }
+        else
+        {
+            _resolvedWidth = Width;
+        }
 
-        _resolvedHeight = MaxHeight.IsDefined && MaxHeight.Value.IsApproximately(MinHeight.Value)
-            ? MaxHeight
-            : Height;
+        if (MaxHeight.IsDefined && MaxHeight.IsApproximately(MinHeight))
+        {
+            _resolvedHeight = MaxHeight;
+        }
+        else
+        {
+            _resolvedHeight = Height;
+        }
     }
 
     private Direction ResolveDirection(Direction ownerDirection)

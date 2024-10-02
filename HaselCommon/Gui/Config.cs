@@ -24,7 +24,7 @@ public partial class Config
     /// <see cref="PointScaleFactor"/> controls the density of the grid used for layout rounding (e.g. to round to the closest display pixel).<br/>
     /// May be set to 0.0f to avoid rounding the layout results.
     /// </summary>
-    [Notify] public float _pointScaleFactor = GlobalConfig.PointScaleFactor;
+    [Notify] public float _pointScaleFactor = GlobalConfig.PointScaleFactor; // TODO: setting this to < 0 should throw "Scale factor should not be less than zero"
 
     /// <summary>
     /// Enable an experimental/unsupported feature in Yoga.

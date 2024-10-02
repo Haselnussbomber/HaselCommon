@@ -13,20 +13,28 @@ public class FlexGapTest
         root.Gap = -20;
         root.Height = 200;
 
-        using var root_child0 = new Node();
-        root_child0.Width = 20;
+        var root_child0 = new Node
+        {
+            Width = 20
+        };
         root.Insert(0, root_child0);
 
-        using var root_child1 = new Node();
-        root_child1.Width = 20;
+        var root_child1 = new Node
+        {
+            Width = 20
+        };
         root.Insert(1, root_child1);
 
-        using var root_child2 = new Node();
-        root_child2.Width = 20;
+        var root_child2 = new Node
+        {
+            Width = 20
+        };
         root.Insert(2, root_child2);
 
-        using var root_child3 = new Node();
-        root_child3.Width = 20;
+        var root_child3 = new Node
+        {
+            Width = 20
+        };
         root.Insert(3, root_child3);
         root.CalculateLayout(float.NaN, float.NaN, Direction.LTR);
 

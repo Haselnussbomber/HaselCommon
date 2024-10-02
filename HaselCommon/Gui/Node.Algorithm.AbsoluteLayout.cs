@@ -506,7 +506,7 @@ public partial class Node
                     currentDepth,
                     generationCount);
 
-                hasNewLayout = hasNewLayout || child.HasNewLayout;
+                hasNewLayout |= child.HasNewLayout;
 
                 /*
                  * At this point the child has its position set but only on its the

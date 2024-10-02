@@ -47,12 +47,12 @@ public class DefaultValuesTest
         Assert.Equal(Unit.Undefined, root.PaddingStart.Unit);
         Assert.Equal(Unit.Undefined, root.PaddingEnd.Unit);
 
-        Assert.Equal(0, root.BorderLeft.Value);
-        Assert.Equal(0, root.BorderTop.Value);
-        Assert.Equal(0, root.BorderRight.Value);
-        Assert.Equal(0, root.BorderBottom.Value);
-        Assert.Equal(0, root.BorderStart.Value);
-        Assert.Equal(0, root.BorderEnd.Value);
+        Assert.True(float.IsNaN(root.BorderLeft.Value));
+        Assert.True(float.IsNaN(root.BorderTop.Value));
+        Assert.True(float.IsNaN(root.BorderRight.Value));
+        Assert.True(float.IsNaN(root.BorderBottom.Value));
+        Assert.True(float.IsNaN(root.BorderStart.Value));
+        Assert.True(float.IsNaN(root.BorderEnd.Value));
 
         Assert.Equal(Unit.Auto, root.Width.Unit);
         Assert.Equal(Unit.Auto, root.Height.Unit);
@@ -66,7 +66,7 @@ public class DefaultValuesTest
         Assert.Equal(0, root.Layout.PositionRight);
         Assert.Equal(0, root.Layout.PositionBottom);
 
-        Assert.Equal(0, root.MarginLeft.Value);
+        Assert.Equal(0, root.MarginLeft.Value); // TODO: yoga uses getResolvedLayoutProperty, but not internally. maybe hide Layout from public api
         Assert.Equal(0, root.MarginTop.Value);
         Assert.Equal(0, root.MarginRight.Value);
         Assert.Equal(0, root.MarginBottom.Value);
@@ -81,8 +81,8 @@ public class DefaultValuesTest
         Assert.Equal(0, root.BorderRight.Value);
         Assert.Equal(0, root.BorderBottom.Value);
 
-        Assert.Equal(0, root.Layout.Width);
-        Assert.Equal(0, root.Layout.Height);
+        Assert.True(float.IsNaN(root.Layout.Width));
+        Assert.True(float.IsNaN(root.Layout.Height));
         Assert.Equal(Direction.Inherit, root.Layout.Direction);
     }
 

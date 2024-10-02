@@ -53,7 +53,7 @@ public partial class Node
         SizingMode childWidthSizingMode;
         SizingMode childHeightSizingMode;
 
-        var resolvedFlexBasis = child.FlexBasis.Resolve(mainAxisownerSize);
+        var resolvedFlexBasis = child.ResolveFlexBasis().Resolve(mainAxisownerSize);
         var isRowStyleDimDefined = child.HasDefiniteLength(Dimension.Width, ownerWidth);
         var isColumnStyleDimDefined = child.HasDefiniteLength(Dimension.Height, ownerHeight);
 
@@ -1063,6 +1063,10 @@ public partial class Node
         }
     }
 
+    /// <inheritdoc cref="CalculateLayout(float, float, Direction)"/>
+    public void CalculateLayout(Vector2 ownerSize, Direction ownerDirection = Direction.LTR)
+        => CalculateLayout(ownerSize.X, ownerSize.Y, ownerDirection);
+
     /// <summary>
     /// Calculates the layout of the tree rooted at the given node.<br/>
     /// Layout results may be read after calling CalculateLayout using properties
@@ -1071,8 +1075,11 @@ public partial class Node
     /// <see cref="HasNewLayout"/> may be read to know if the layout of the node or its
     /// subtrees may have changed since the last time CalculateLayout was called.
     /// </summary>
-    private void CalculateLayout(float ownerWidth, float ownerHeight, Direction ownerDirection)
+    public void CalculateLayout(float ownerWidth, float ownerHeight, Direction ownerDirection)
     {
+        // Increment the generation count. This will force the recursive routine to
+        // visit all dirty nodes at least once. Subsequent visits will be skipped if
+        // the input parameters don't change.
         CurrentGenerationCount++;
         ResolveDimension();
 

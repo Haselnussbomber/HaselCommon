@@ -1,4 +1,3 @@
-/*
 using System.Numerics;
 using HaselCommon.Gui;
 using HaselCommon.Gui.Enums;
@@ -7,30 +6,63 @@ namespace HaselCommon.Tests.Gui;
 
 public class AlignBaselineTest
 {
-    private static float _baselineFunc(Node node, float width, float height)
+    private class BaselineNode : Node
     {
-        return height / 2;
+        public override float Baseline(float width, float height)
+        {
+            return height / 2;
+        }
     }
 
-    private static Vector2 _measure1(Node node, float width, MeasureMode widthMode, float height, MeasureMode heightMode)
+    private class Measure1Node : Node
     {
-        return new Vector2(42, 50);
+        public override Vector2 Measure(float width, MeasureMode widthMode, float height, MeasureMode heightMode)
+        {
+            return new Vector2(42, 50);
+        }
     }
 
-    private static Vector2 _measure2(Node node, float width, MeasureMode widthMode, float height, MeasureMode heightMode)
+    private class Measure2Node : Node
     {
-        return new Vector2(279, 126);
+        public override Vector2 Measure(float width, MeasureMode widthMode, float height, MeasureMode heightMode)
+        {
+            return new Vector2(279, 126);
+        }
     }
 
-    private static Node createYGNode(
+    private static Node createNode(
         Config config,
         FlexDirection direction,
         int width,
         int height,
         bool alignBaseline)
     {
-        var node = new Node() { Config = config };
-        node.FlexDirection = direction;
+        var node = new Node
+        {
+            Config = config,
+            FlexDirection = direction
+        };
+        if (alignBaseline)
+        {
+            node.AlignItems = Align.Baseline;
+        }
+        node.Width = width;
+        node.Height = height;
+        return node;
+    }
+
+    private static BaselineNode createBaselineNode(
+        Config config,
+        FlexDirection direction,
+        int width,
+        int height,
+        bool alignBaseline)
+    {
+        var node = new BaselineNode
+        {
+            Config = config,
+            FlexDirection = direction
+        };
         if (alignBaseline)
         {
             node.AlignItems = Align.Baseline;
@@ -54,18 +86,22 @@ public class AlignBaselineTest
         root.MaxHeight = 170;
         root.MinHeight = 0;
 
-        var root_child0 = new Node() { Config = config };
-        root_child0.FlexGrow = 0;
-        root_child0.FlexShrink = 1;
-        root_child0.MeasureFunc = _measure1;
-        root_child0.HasMeasureFunc = true;
+        var root_child0 = new Measure1Node
+        {
+            Config = config,
+            FlexGrow = 0,
+            FlexShrink = 1,
+            HasMeasureFunc = true
+        };
         root.Add(root_child0);
 
-        var root_child1 = new Node() { Config = config };
-        root_child1.FlexGrow = 0;
-        root_child1.FlexShrink = 1;
-        root_child1.MeasureFunc = _measure2;
-        root_child1.HasMeasureFunc = true;
+        var root_child1 = new Measure2Node
+        {
+            Config = config,
+            FlexGrow = 0,
+            FlexShrink = 1,
+            HasMeasureFunc = true
+        };
         root.Add(root_child1);
 
         root.CalculateLayout(float.NaN, float.NaN, Direction.LTR);
@@ -101,10 +137,9 @@ public class AlignBaselineTest
         root_child0.Height = 50;
         root.Insert(0, root_child0);
 
-        using var root_child1 = new Node() { Config = config };
+        using var root_child1 = new BaselineNode() { Config = config };
         root_child1.Width = 50;
         root_child1.Height = 40;
-        root_child1.BaselineFunc = _baselineFunc;
         root_child1.HasBaselineFunc = true;
         root.Insert(1, root_child1);
 
@@ -169,19 +204,18 @@ public class AlignBaselineTest
     {
         var config = new Config();
 
-        using var root = createYGNode(config, FlexDirection.Row, 1000, 1000, true);
+        using var root = createNode(config, FlexDirection.Row, 1000, 1000, true);
 
-        using var root_child0 = createYGNode(config, FlexDirection.Column, 500, 600, false);
+        using var root_child0 = createNode(config, FlexDirection.Column, 500, 600, false);
         root.Insert(0, root_child0);
 
-        using var root_child1 = createYGNode(config, FlexDirection.Column, 500, 800, false);
+        using var root_child1 = createNode(config, FlexDirection.Column, 500, 800, false);
         root.Insert(1, root_child1);
 
-        using var root_child1_child0 = createYGNode(config, FlexDirection.Column, 500, 300, false);
+        using var root_child1_child0 = createNode(config, FlexDirection.Column, 500, 300, false);
         root_child1.Insert(0, root_child1_child0);
 
-        using var root_child1_child1 = createYGNode(config, FlexDirection.Column, 500, 400, false);
-        root_child1_child1.BaselineFunc = _baselineFunc;
+        using var root_child1_child1 = createBaselineNode(config, FlexDirection.Column, 500, 400, false);
         root_child1_child1.HasBaselineFunc = true;
         root_child1_child1.IsReferenceBaseline = true;
         root_child1.Insert(1, root_child1_child1);
@@ -206,19 +240,18 @@ public class AlignBaselineTest
     {
         var config = new Config();
 
-        using var root = createYGNode(config, FlexDirection.Row, 1000, 1000, true);
+        using var root = createNode(config, FlexDirection.Row, 1000, 1000, true);
 
-        using var root_child0 = createYGNode(config, FlexDirection.Column, 500, 600, false);
+        using var root_child0 = createNode(config, FlexDirection.Column, 500, 600, false);
         root.Insert(0, root_child0);
 
-        using var root_child1 = createYGNode(config, FlexDirection.Column, 500, 800, false);
+        using var root_child1 = createNode(config, FlexDirection.Column, 500, 800, false);
         root.Insert(1, root_child1);
 
-        using var root_child1_child0 = createYGNode(config, FlexDirection.Column, 500, 300, false);
+        using var root_child1_child0 = createNode(config, FlexDirection.Column, 500, 300, false);
         root_child1.Insert(0, root_child1_child0);
 
-        using var root_child1_child1 = createYGNode(config, FlexDirection.Column, 500, 400, false);
-        root_child1_child1.BaselineFunc = _baselineFunc;
+        using var root_child1_child1 = createBaselineNode(config, FlexDirection.Column, 500, 400, false);
         root_child1_child1.HasBaselineFunc = true;
         root_child1_child1.IsReferenceBaseline = true;
         root_child1_child1.PaddingLeft = 100;
@@ -247,23 +280,22 @@ public class AlignBaselineTest
     {
         var config = new Config();
 
-        using var root = createYGNode(config, FlexDirection.Row, 1000, 1000, true);
+        using var root = createNode(config, FlexDirection.Row, 1000, 1000, true);
 
-        using var root_child0 = createYGNode(config, FlexDirection.Column, 500, 600, false);
+        using var root_child0 = createNode(config, FlexDirection.Column, 500, 600, false);
         root.Insert(0, root_child0);
 
-        using var root_child1 = createYGNode(config, FlexDirection.Column, 500, 800, false);
+        using var root_child1 = createNode(config, FlexDirection.Column, 500, 800, false);
         root_child1.PaddingLeft = 100;
         root_child1.PaddingRight = 100;
         root_child1.PaddingTop = 100;
         root_child1.PaddingBottom = 100;
         root.Insert(1, root_child1);
 
-        using var root_child1_child0 = createYGNode(config, FlexDirection.Column, 500, 300, false);
+        using var root_child1_child0 = createNode(config, FlexDirection.Column, 500, 300, false);
         root_child1.Insert(0, root_child1_child0);
 
-        using var root_child1_child1 = createYGNode(config, FlexDirection.Column, 500, 400, false);
-        root_child1_child1.BaselineFunc = _baselineFunc;
+        using var root_child1_child1 = createBaselineNode(config, FlexDirection.Column, 500, 400, false);
         root_child1_child1.HasBaselineFunc = true;
         root_child1_child1.IsReferenceBaseline = true;
         root_child1.Insert(1, root_child1_child1);
@@ -288,23 +320,22 @@ public class AlignBaselineTest
     {
         var config = new Config();
 
-        using var root = createYGNode(config, FlexDirection.Row, 1000, 1000, true);
+        using var root = createNode(config, FlexDirection.Row, 1000, 1000, true);
 
-        using var root_child0 = createYGNode(config, FlexDirection.Column, 500, 600, false);
+        using var root_child0 = createNode(config, FlexDirection.Column, 500, 600, false);
         root.Insert(0, root_child0);
 
-        using var root_child1 = createYGNode(config, FlexDirection.Column, 500, 800, false);
+        using var root_child1 = createNode(config, FlexDirection.Column, 500, 800, false);
         root_child1.MarginLeft = 100;
         root_child1.MarginRight = 100;
         root_child1.MarginTop = 100;
         root_child1.MarginBottom = 100;
         root.Insert(1, root_child1);
 
-        using var root_child1_child0 = createYGNode(config, FlexDirection.Column, 500, 300, false);
+        using var root_child1_child0 = createNode(config, FlexDirection.Column, 500, 300, false);
         root_child1.Insert(0, root_child1_child0);
 
-        using var root_child1_child1 = createYGNode(config, FlexDirection.Column, 500, 400, false);
-        root_child1_child1.BaselineFunc = _baselineFunc;
+        using var root_child1_child1 = createBaselineNode(config, FlexDirection.Column, 500, 400, false);
         root_child1_child1.HasBaselineFunc = true;
         root_child1_child1.IsReferenceBaseline = true;
         root_child1.Insert(1, root_child1_child1);
@@ -329,19 +360,18 @@ public class AlignBaselineTest
     {
         var config = new Config();
 
-        using var root = createYGNode(config, FlexDirection.Row, 1000, 1000, true);
+        using var root = createNode(config, FlexDirection.Row, 1000, 1000, true);
 
-        using var root_child0 = createYGNode(config, FlexDirection.Column, 500, 600, false);
+        using var root_child0 = createNode(config, FlexDirection.Column, 500, 600, false);
         root.Insert(0, root_child0);
 
-        using var root_child1 = createYGNode(config, FlexDirection.Column, 500, 800, false);
+        using var root_child1 = createNode(config, FlexDirection.Column, 500, 800, false);
         root.Insert(1, root_child1);
 
-        using var root_child1_child0 = createYGNode(config, FlexDirection.Column, 500, 300, false);
+        using var root_child1_child0 = createNode(config, FlexDirection.Column, 500, 300, false);
         root_child1.Insert(0, root_child1_child0);
 
-        using var root_child1_child1 = createYGNode(config, FlexDirection.Column, 500, 400, false);
-        root_child1_child1.BaselineFunc = _baselineFunc;
+        using var root_child1_child1 = createBaselineNode(config, FlexDirection.Column, 500, 400, false);
         root_child1_child1.HasBaselineFunc = true;
         root_child1_child1.IsReferenceBaseline = true;
         root_child1_child1.MarginLeft = 100;
@@ -370,19 +400,18 @@ public class AlignBaselineTest
     {
         var config = new Config();
 
-        using var root = createYGNode(config, FlexDirection.Row, 1000, 1000, true);
+        using var root = createNode(config, FlexDirection.Row, 1000, 1000, true);
 
-        using var root_child0 = createYGNode(config, FlexDirection.Column, 500, 600, false);
+        using var root_child0 = createNode(config, FlexDirection.Column, 500, 600, false);
         root.Insert(0, root_child0);
 
-        using var root_child1 = createYGNode(config, FlexDirection.Row, 500, 800, true);
+        using var root_child1 = createNode(config, FlexDirection.Row, 500, 800, true);
         root.Insert(1, root_child1);
 
-        using var root_child1_child0 = createYGNode(config, FlexDirection.Column, 500, 500, false);
+        using var root_child1_child0 = createNode(config, FlexDirection.Column, 500, 500, false);
         root_child1.Insert(0, root_child1_child0);
 
-        using var root_child1_child1 = createYGNode(config, FlexDirection.Column, 500, 400, false);
-        root_child1_child1.BaselineFunc = _baselineFunc;
+        using var root_child1_child1 = createBaselineNode(config, FlexDirection.Column, 500, 400, false);
         root_child1_child1.HasBaselineFunc = true;
         root_child1_child1.IsReferenceBaseline = true;
         root_child1.Insert(1, root_child1_child1);
@@ -407,19 +436,18 @@ public class AlignBaselineTest
     {
         var config = new Config();
 
-        using var root = createYGNode(config, FlexDirection.Row, 1000, 1000, true);
+        using var root = createNode(config, FlexDirection.Row, 1000, 1000, true);
 
-        var root_child0 = createYGNode(config, FlexDirection.Column, 500, 600, false);
+        var root_child0 = createNode(config, FlexDirection.Column, 500, 600, false);
         root.Insert(0, root_child0);
 
-        var root_child1 = createYGNode(config, FlexDirection.Row, 500, 800, true);
+        var root_child1 = createNode(config, FlexDirection.Row, 500, 800, true);
         root.Insert(1, root_child1);
 
-        var root_child1_child0 = createYGNode(config, FlexDirection.Column, 500, 500, false);
+        var root_child1_child0 = createNode(config, FlexDirection.Column, 500, 500, false);
         root_child1.Insert(0, root_child1_child0);
 
-        var root_child1_child1 = createYGNode(config, FlexDirection.Column, 500, 400, false);
-        root_child1_child1.BaselineFunc = _baselineFunc;
+        var root_child1_child1 = createBaselineNode(config, FlexDirection.Column, 500, 400, false);
         root_child1_child1.HasBaselineFunc = true;
         root_child1_child1.IsReferenceBaseline = true;
         root_child1_child1.PaddingLeft = 100;
@@ -448,19 +476,18 @@ public class AlignBaselineTest
     {
         var config = new Config();
 
-        using var root = createYGNode(config, FlexDirection.Row, 1000, 1000, true);
+        using var root = createNode(config, FlexDirection.Row, 1000, 1000, true);
 
-        var root_child0 = createYGNode(config, FlexDirection.Column, 500, 600, false);
+        var root_child0 = createNode(config, FlexDirection.Column, 500, 600, false);
         root.Insert(0, root_child0);
 
-        var root_child1 = createYGNode(config, FlexDirection.Row, 500, 800, true);
+        var root_child1 = createNode(config, FlexDirection.Row, 500, 800, true);
         root.Insert(1, root_child1);
 
-        var root_child1_child0 = createYGNode(config, FlexDirection.Column, 500, 500, false);
+        var root_child1_child0 = createNode(config, FlexDirection.Column, 500, 500, false);
         root_child1.Insert(0, root_child1_child0);
 
-        var root_child1_child1 = createYGNode(config, FlexDirection.Column, 500, 400, false);
-        root_child1_child1.BaselineFunc = _baselineFunc;
+        var root_child1_child1 = createBaselineNode(config, FlexDirection.Column, 500, 400, false);
         root_child1_child1.HasBaselineFunc = true;
         root_child1_child1.IsReferenceBaseline = true;
         root_child1_child1.MarginLeft = 100;
@@ -489,18 +516,18 @@ public class AlignBaselineTest
     {
         var config = new Config();
 
-        using var root = createYGNode(config, FlexDirection.Row, 1000, 1000, true);
+        using var root = createNode(config, FlexDirection.Row, 1000, 1000, true);
 
-        var root_child0 = createYGNode(config, FlexDirection.Column, 500, 600, false);
+        var root_child0 = createNode(config, FlexDirection.Column, 500, 600, false);
         root.Insert(0, root_child0);
 
-        var root_child1 = createYGNode(config, FlexDirection.Column, 500, 800, false);
+        var root_child1 = createNode(config, FlexDirection.Column, 500, 800, false);
         root.Insert(1, root_child1);
 
-        var root_child1_child0 = createYGNode(config, FlexDirection.Column, 500, 300, false);
+        var root_child1_child0 = createNode(config, FlexDirection.Column, 500, 300, false);
         root_child1.Insert(0, root_child1_child0);
 
-        var root_child1_child1 = createYGNode(config, FlexDirection.Column, 500, 400, false);
+        var root_child1_child1 = createNode(config, FlexDirection.Column, 500, 400, false);
         root_child1_child1.IsReferenceBaseline = true;
         root_child1.Insert(1, root_child1_child1);
 
@@ -524,18 +551,18 @@ public class AlignBaselineTest
     {
         var config = new Config();
 
-        using var root = createYGNode(config, FlexDirection.Row, 1000, 1000, true);
+        using var root = createNode(config, FlexDirection.Row, 1000, 1000, true);
 
-        var root_child0 = createYGNode(config, FlexDirection.Column, 500, 600, false);
+        var root_child0 = createNode(config, FlexDirection.Column, 500, 600, false);
         root.Insert(0, root_child0);
 
-        var root_child1 = createYGNode(config, FlexDirection.Row, 500, 800, true);
+        var root_child1 = createNode(config, FlexDirection.Row, 500, 800, true);
         root.Insert(1, root_child1);
 
-        var root_child1_child0 = createYGNode(config, FlexDirection.Column, 500, 500, false);
+        var root_child1_child0 = createNode(config, FlexDirection.Column, 500, 500, false);
         root_child1.Insert(0, root_child1_child0);
 
-        var root_child1_child1 = createYGNode(config, FlexDirection.Column, 500, 400, false);
+        var root_child1_child1 = createNode(config, FlexDirection.Column, 500, 400, false);
         root_child1_child1.IsReferenceBaseline = true;
         root_child1.Insert(1, root_child1_child1);
 
@@ -564,19 +591,21 @@ public class AlignBaselineTest
         root.AlignItems = Align.Baseline;
         root.Width = 1000;
 
-        var root_child0 = createYGNode(config, FlexDirection.Column, 500, 600, false);
+        var root_child0 = createNode(config, FlexDirection.Column, 500, 600, false);
         root.Insert(0, root_child0);
 
-        var root_child1 = new Node() { Config = config };
-        root_child1.FlexDirection = FlexDirection.Column;
-        root_child1.Width = 500;
+        var root_child1 = new Node
+        {
+            Config = config,
+            FlexDirection = FlexDirection.Column,
+            Width = 500
+        };
         root.Insert(1, root_child1);
 
-        var root_child1_child0 = createYGNode(config, FlexDirection.Column, 500, 300, false);
+        var root_child1_child0 = createNode(config, FlexDirection.Column, 500, 300, false);
         root_child1.Insert(0, root_child1_child0);
 
-        var root_child1_child1 = createYGNode(config, FlexDirection.Column, 500, 400, false);
-        root_child1_child1.BaselineFunc = _baselineFunc;
+        var root_child1_child1 = createBaselineNode(config, FlexDirection.Column, 500, 400, false);
         root_child1_child1.HasBaselineFunc = true;
         root_child1_child1.IsReferenceBaseline = true;
         root_child1.Insert(1, root_child1_child1);
@@ -609,19 +638,21 @@ public class AlignBaselineTest
         root.AlignItems = Align.Baseline;
         root.Width = 1000;
 
-        var root_child0 = createYGNode(config, FlexDirection.Column, 500, 600, false);
+        var root_child0 = createNode(config, FlexDirection.Column, 500, 600, false);
         root.Insert(0, root_child0);
 
-        var root_child1 = new Node() { Config = config };
-        root_child1.FlexDirection = FlexDirection.Row;
-        root_child1.Width = 500;
+        var root_child1 = new Node
+        {
+            Config = config,
+            FlexDirection = FlexDirection.Row,
+            Width = 500
+        };
         root.Insert(1, root_child1);
 
-        var root_child1_child0 = createYGNode(config, FlexDirection.Column, 500, 500, false);
+        var root_child1_child0 = createNode(config, FlexDirection.Column, 500, 500, false);
         root_child1.Insert(0, root_child1_child0);
 
-        var root_child1_child1 = createYGNode(config, FlexDirection.Column, 500, 400, false);
-        root_child1_child1.BaselineFunc = _baselineFunc;
+        var root_child1_child1 = createBaselineNode(config, FlexDirection.Column, 500, 400, false);
         root_child1_child1.HasBaselineFunc = true;
         root_child1_child1.IsReferenceBaseline = true;
         root_child1.Insert(1, root_child1_child1);
@@ -654,18 +685,21 @@ public class AlignBaselineTest
         root.AlignItems = Align.Baseline;
         root.Width = 1000;
 
-        var root_child0 = createYGNode(config, FlexDirection.Column, 500, 600, false);
+        var root_child0 = createNode(config, FlexDirection.Column, 500, 600, false);
         root.Insert(0, root_child0);
 
-        var root_child1 = new Node() { Config = config };
-        root_child1.FlexDirection = FlexDirection.Column;
-        root_child1.Width = 500;
+        var root_child1 = new Node
+        {
+            Config = config,
+            FlexDirection = FlexDirection.Column,
+            Width = 500
+        };
         root.Insert(1, root_child1);
 
-        var root_child1_child0 = createYGNode(config, FlexDirection.Column, 500, 300, false);
+        var root_child1_child0 = createNode(config, FlexDirection.Column, 500, 300, false);
         root_child1.Insert(0, root_child1_child0);
 
-        var root_child1_child1 = createYGNode(config, FlexDirection.Column, 500, 400, false);
+        var root_child1_child1 = createNode(config, FlexDirection.Column, 500, 400, false);
         root_child1_child1.IsReferenceBaseline = true;
         root_child1.Insert(1, root_child1_child1);
 
@@ -697,18 +731,21 @@ public class AlignBaselineTest
         root.AlignItems = Align.Baseline;
         root.Width = 1000;
 
-        var root_child0 = createYGNode(config, FlexDirection.Column, 500, 600, false);
+        var root_child0 = createNode(config, FlexDirection.Column, 500, 600, false);
         root.Insert(0, root_child0);
 
-        var root_child1 = new Node() { Config = config };
-        root_child1.FlexDirection = FlexDirection.Row;
-        root_child1.Width = 500;
+        var root_child1 = new Node
+        {
+            Config = config,
+            FlexDirection = FlexDirection.Row,
+            Width = 500
+        };
         root.Insert(1, root_child1);
 
-        var root_child1_child0 = createYGNode(config, FlexDirection.Column, 500, 500, false);
+        var root_child1_child0 = createNode(config, FlexDirection.Column, 500, 500, false);
         root_child1.Insert(0, root_child1_child0);
 
-        var root_child1_child1 = createYGNode(config, FlexDirection.Column, 500, 400, false);
+        var root_child1_child1 = createNode(config, FlexDirection.Column, 500, 400, false);
         root_child1_child1.IsReferenceBaseline = true;
         root_child1.Insert(1, root_child1_child1);
 
@@ -730,4 +767,3 @@ public class AlignBaselineTest
         Assert.Equal(0, root_child1_child1.Layout.PositionTop);
     }
 }
-*/

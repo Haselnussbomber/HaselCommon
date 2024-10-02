@@ -40,12 +40,6 @@ public partial class Node : IDisposable
         }
     }
 
-    public void CalculateLayout(Vector2 ownerSize, Direction ownerDirection = Direction.LTR)
-    {
-        CalculateLayout(ownerSize.X, ownerSize.Y, ownerDirection);
-        ApplyLayoutRecursive();
-    }
-
     public void Draw()
     {
         using var id = ImRaii.PushId(Guid.ToString());
@@ -96,32 +90,10 @@ public partial class Node : IDisposable
     }
 
     /// <remarks>
-    /// This function is called before drawing, but only when the layout has changed.
-    /// </remarks>
-    public virtual void ApplyLayout()
-    {
-
-    }
-
-    /// <remarks>
     /// This function is called to draw the content on the screen.
     /// </remarks>
     public virtual void DrawContent()
     {
 
-    }
-
-    private void ApplyLayoutRecursive()
-    {
-        if (HasNewLayout)
-        {
-            ApplyLayout();
-            HasNewLayout = false;
-        }
-
-        foreach (var child in Children)
-        {
-            child.ApplyLayoutRecursive();
-        }
     }
 }
