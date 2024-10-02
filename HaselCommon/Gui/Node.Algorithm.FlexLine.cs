@@ -100,7 +100,7 @@ public partial class Node
             var flexBasisWithMinAndMaxConstraints = BoundAxisWithinMinAndMax(
                 child,
                 mainAxis,
-                child.Layout.ComputedFlexBasis,
+                child._layout.ComputedFlexBasis,
                 mainAxisownerSize);
 
             // If this is a multi-line flow and this item pushes us over the available
@@ -121,7 +121,7 @@ public partial class Node
 
                 // Unlike the grow factor, the shrink factor is scaled relative to the
                 // child dimension.
-                totalFlexShrinkScaledFactors += -child.ResolveFlexShrink() * child.Layout.ComputedFlexBasis;
+                totalFlexShrinkScaledFactors += -child.ResolveFlexShrink() * child._layout.ComputedFlexBasis;
             }
 
             itemsInFlow.Add(child);

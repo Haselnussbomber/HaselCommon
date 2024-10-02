@@ -1,6 +1,5 @@
 using HaselCommon.Gui.Enums;
 using HaselCommon.Gui.Extensions;
-using PropertyChanged.SourceGenerator;
 
 namespace HaselCommon.Gui;
 
@@ -10,81 +9,827 @@ public partial class Node
     private const float DefaultFlexShrink = 0.0f;
     private const float WebDefaultFlexShrink = 1.0f;
 
-    [IsChanged]
-    protected bool IsDirtyInternal
+    private Direction _direction = Direction.Inherit;
+    private FlexDirection _flexDirection = FlexDirection.Column;
+    private Justify _justifyContent = Justify.FlexStart;
+    private Align _alignContent = Align.FlexStart;
+    private Align _alignItems = Align.Stretch;
+    private Align _alignSelf = Align.Auto;
+    private PositionType _positionType = PositionType.Relative;
+    private Wrap _flexWrap = Wrap.NoWrap;
+    private Overflow _overflow = Overflow.Visible;
+    private Display _display = Display.Flex;
+    private StyleLength _flex = StyleLength.Auto;
+    private StyleLength _flexGrow = 0;
+    private StyleLength _flexShrink = 0;
+    private StyleLength _flexBasis = StyleLength.Auto;
+
+    private readonly StyleLength[] _margin = new StyleLength[Enum.GetValues<Edge>().Length];
+    private readonly StyleLength[] _position = new StyleLength[Enum.GetValues<Edge>().Length];
+    private readonly StyleLength[] _padding = new StyleLength[Enum.GetValues<Edge>().Length];
+    private readonly StyleLength[] _border = new StyleLength[Enum.GetValues<Edge>().Length];
+
+    private StyleLength _gap = 0;
+    private StyleLength _rowGap = StyleLength.Undefined;
+    private StyleLength _columnGap = StyleLength.Undefined;
+
+    private StyleLength _width = StyleLength.Auto;
+    private StyleLength _height = StyleLength.Auto;
+
+    private StyleLength _minWidth = StyleLength.Undefined;
+    private StyleLength _minHeight = StyleLength.Undefined;
+
+    private StyleLength _maxWidth = StyleLength.Undefined;
+    private StyleLength _maxHeight = StyleLength.Undefined;
+
+    private StyleLength _aspectRatio = StyleLength.Undefined;
+
+    public Direction Direction
     {
-        set => MarkDirtyAndPropagate();
+        get => _direction;
+        set
+        {
+            if (_direction != value)
+            {
+                _direction = value;
+                MarkDirtyAndPropagate();
+            }
+        }
     }
 
-    [Notify] private Direction _direction = Direction.Inherit;
-    [Notify] private FlexDirection _flexDirection = FlexDirection.Column;
-    [Notify] private Justify _justifyContent = Justify.FlexStart;
-    [Notify] private Align _alignContent = Align.FlexStart;
-    [Notify] private Align _alignItems = Align.Stretch;
-    [Notify] private Align _alignSelf = Align.Auto;
-    [Notify] private PositionType _positionType = PositionType.Relative;
-    [Notify] private Wrap _flexWrap = Wrap.NoWrap;
-    [Notify] private Overflow _overflow = Overflow.Visible;
-    [Notify] private Display _display = Display.Flex;
-    [Notify] private StyleLength _flex = StyleLength.Auto;
-    [Notify] private StyleLength _flexGrow = 0;
-    [Notify] private StyleLength _flexShrink = 0;
-    [Notify] private StyleLength _flexBasis = StyleLength.Auto;
+    public FlexDirection FlexDirection
+    {
+        get => _flexDirection;
+        set
+        {
+            if (_flexDirection != value)
+            {
+                _flexDirection = value;
+                MarkDirtyAndPropagate();
+            }
+        }
+    }
 
-    [Notify] private StyleLength _margin = StyleLength.Undefined;
-    [Notify] private StyleLength _marginTop = StyleLength.Undefined;
-    [Notify] private StyleLength _marginBottom = StyleLength.Undefined;
-    [Notify] private StyleLength _marginLeft = StyleLength.Undefined;
-    [Notify] private StyleLength _marginRight = StyleLength.Undefined;
-    [Notify] private StyleLength _marginHorizontal = StyleLength.Undefined;
-    [Notify] private StyleLength _marginVertical = StyleLength.Undefined;
-    [Notify] private StyleLength _marginStart = StyleLength.Undefined;
-    [Notify] private StyleLength _marginEnd = StyleLength.Undefined;
+    public Justify JustifyContent
+    {
+        get => _justifyContent;
+        set
+        {
+            if (_justifyContent != value)
+            {
+                _justifyContent = value;
+                MarkDirtyAndPropagate();
+            }
+        }
+    }
 
-    [Notify] private StyleLength _position = StyleLength.Undefined;
-    [Notify] private StyleLength _positionTop = StyleLength.Undefined;
-    [Notify] private StyleLength _positionBottom = StyleLength.Undefined;
-    [Notify] private StyleLength _positionLeft = StyleLength.Undefined;
-    [Notify] private StyleLength _positionRight = StyleLength.Undefined;
-    [Notify] private StyleLength _positionHorizontal = StyleLength.Undefined;
-    [Notify] private StyleLength _positionVertical = StyleLength.Undefined;
-    [Notify] private StyleLength _positionStart = StyleLength.Undefined;
-    [Notify] private StyleLength _positionEnd = StyleLength.Undefined;
+    public Align AlignContent
+    {
+        get => _alignContent;
+        set
+        {
+            if (_alignContent != value)
+            {
+                _alignContent = value;
+                MarkDirtyAndPropagate();
+            }
+        }
+    }
 
-    [Notify] private StyleLength _padding = StyleLength.Undefined;
-    [Notify] private StyleLength _paddingTop = StyleLength.Undefined;
-    [Notify] private StyleLength _paddingBottom = StyleLength.Undefined;
-    [Notify] private StyleLength _paddingLeft = StyleLength.Undefined;
-    [Notify] private StyleLength _paddingRight = StyleLength.Undefined;
-    [Notify] private StyleLength _paddingHorizontal = StyleLength.Undefined;
-    [Notify] private StyleLength _paddingVertical = StyleLength.Undefined;
-    [Notify] private StyleLength _paddingStart = StyleLength.Undefined;
-    [Notify] private StyleLength _paddingEnd = StyleLength.Undefined;
+    public Align AlignItems
+    {
+        get => _alignItems;
+        set
+        {
+            if (_alignItems != value)
+            {
+                _alignItems = value;
+                MarkDirtyAndPropagate();
+            }
+        }
+    }
 
-    [Notify] private StyleLength _border = StyleLength.Undefined;
-    [Notify] private StyleLength _borderTop = StyleLength.Undefined;
-    [Notify] private StyleLength _borderBottom = StyleLength.Undefined;
-    [Notify] private StyleLength _borderLeft = StyleLength.Undefined;
-    [Notify] private StyleLength _borderRight = StyleLength.Undefined;
-    [Notify] private StyleLength _borderHorizontal = StyleLength.Undefined;
-    [Notify] private StyleLength _borderVertical = StyleLength.Undefined;
-    [Notify] private StyleLength _borderStart = StyleLength.Undefined;
-    [Notify] private StyleLength _borderEnd = StyleLength.Undefined;
+    public Align AlignSelf
+    {
+        get => _alignSelf;
+        set
+        {
+            if (_alignSelf != value)
+            {
+                _alignSelf = value;
+                MarkDirtyAndPropagate();
+            }
+        }
+    }
 
-    [Notify] private StyleLength _gap = 0;
-    [Notify] private StyleLength _rowGap = StyleLength.Undefined;
-    [Notify] private StyleLength _columnGap = StyleLength.Undefined;
+    public PositionType PositionType
+    {
+        get => _positionType;
+        set
+        {
+            if (_positionType != value)
+            {
+                _positionType = value;
+                MarkDirtyAndPropagate();
+            }
+        }
+    }
 
-    [Notify] private StyleLength _width = StyleLength.Auto;
-    [Notify] private StyleLength _height = StyleLength.Auto;
+    public Wrap FlexWrap
+    {
+        get => _flexWrap;
+        set
+        {
+            if (_flexWrap != value)
+            {
+                _flexWrap = value;
+                MarkDirtyAndPropagate();
+            }
+        }
+    }
 
-    [Notify] private StyleLength _minWidth = StyleLength.Undefined;
-    [Notify] private StyleLength _minHeight = StyleLength.Undefined;
+    public Overflow Overflow
+    {
+        get => _overflow;
+        set
+        {
+            if (_overflow != value)
+            {
+                _overflow = value;
+                MarkDirtyAndPropagate();
+            }
+        }
+    }
 
-    [Notify] private StyleLength _maxWidth = StyleLength.Undefined;
-    [Notify] private StyleLength _maxHeight = StyleLength.Undefined;
+    public Display Display
+    {
+        get => _display;
+        set
+        {
+            if (_display != value)
+            {
+                _display = value;
+                MarkDirtyAndPropagate();
+            }
+        }
+    }
 
-    [Notify] private StyleLength _aspectRatio = StyleLength.Undefined;
+    public StyleLength Flex
+    {
+        get => _flex;
+        set
+        {
+            if (_flex != value)
+            {
+                _flex = value;
+                MarkDirtyAndPropagate();
+            }
+        }
+    }
+
+    public StyleLength FlexGrow
+    {
+        get => _flexGrow;
+        set
+        {
+            if (_flexGrow != value)
+            {
+                _flexGrow = value;
+                MarkDirtyAndPropagate();
+            }
+        }
+    }
+
+    public StyleLength FlexShrink
+    {
+        get
+        {
+            if (_flexShrink.IsDefined)
+                return _flexShrink.Value;
+
+            return Config.UseWebDefaults ? WebDefaultFlexShrink : DefaultFlexShrink;
+        }
+
+        set
+        {
+            if (_flexShrink != value)
+            {
+                _flexShrink = value;
+                MarkDirtyAndPropagate();
+            }
+        }
+    }
+
+    public StyleLength FlexBasis
+    {
+        get => _flexBasis;
+        set
+        {
+            if (_flexBasis != value)
+            {
+                _flexBasis = value;
+                MarkDirtyAndPropagate();
+            }
+        }
+    }
+
+    public StyleLength MarginAll
+    {
+        get => _margin[(int)Edge.All];
+        set
+        {
+            if (_margin[(int)Edge.All] != value)
+            {
+                _margin[(int)Edge.All] = value;
+                MarkDirtyAndPropagate();
+            }
+        }
+    }
+
+    public StyleLength MarginTop
+    {
+        get => _margin[(int)Edge.Top];
+        set
+        {
+            if (_margin[(int)Edge.Top] != value)
+            {
+                _margin[(int)Edge.Top] = value;
+                MarkDirtyAndPropagate();
+            }
+        }
+    }
+
+    public StyleLength MarginBottom
+    {
+        get => _margin[(int)Edge.Bottom];
+        set
+        {
+            if (_margin[(int)Edge.Bottom] != value)
+            {
+                _margin[(int)Edge.Bottom] = value;
+                MarkDirtyAndPropagate();
+            }
+        }
+    }
+
+    public StyleLength MarginLeft
+    {
+        get => _margin[(int)Edge.Left];
+        set
+        {
+            if (_margin[(int)Edge.Left] != value)
+            {
+                _margin[(int)Edge.Left] = value;
+                MarkDirtyAndPropagate();
+            }
+        }
+    }
+
+    public StyleLength MarginRight
+    {
+        get => _margin[(int)Edge.Right];
+        set
+        {
+            if (_margin[(int)Edge.Right] != value)
+            {
+                _margin[(int)Edge.Right] = value;
+                MarkDirtyAndPropagate();
+            }
+        }
+    }
+
+    public StyleLength MarginHorizontal
+    {
+        get => _margin[(int)Edge.Horizontal];
+        set
+        {
+            if (_margin[(int)Edge.Horizontal] != value)
+            {
+                _margin[(int)Edge.Horizontal] = value;
+                MarkDirtyAndPropagate();
+            }
+        }
+    }
+
+    public StyleLength MarginVertical
+    {
+        get => _margin[(int)Edge.Vertical];
+        set
+        {
+            if (_margin[(int)Edge.Vertical] != value)
+            {
+                _margin[(int)Edge.Vertical] = value;
+                MarkDirtyAndPropagate();
+            }
+        }
+    }
+
+    public StyleLength MarginStart
+    {
+        get => _margin[(int)Edge.Start];
+        set
+        {
+            if (_margin[(int)Edge.Start] != value)
+            {
+                _margin[(int)Edge.Start] = value;
+                MarkDirtyAndPropagate();
+            }
+        }
+    }
+
+    public StyleLength MarginEnd
+    {
+        get => _margin[(int)Edge.End];
+        set
+        {
+            if (_margin[(int)Edge.End] != value)
+            {
+                _margin[(int)Edge.End] = value;
+                MarkDirtyAndPropagate();
+            }
+        }
+    }
+
+    public StyleLength PositionAll
+    {
+        get => _position[(int)Edge.All];
+        set
+        {
+            if (_position[(int)Edge.All] != value)
+            {
+                _position[(int)Edge.All] = value;
+                MarkDirtyAndPropagate();
+            }
+        }
+    }
+
+    public StyleLength PositionTop
+    {
+        get => _position[(int)Edge.Top];
+        set
+        {
+            if (_position[(int)Edge.Top] != value)
+            {
+                _position[(int)Edge.Top] = value;
+                MarkDirtyAndPropagate();
+            }
+        }
+    }
+
+    public StyleLength PositionBottom
+    {
+        get => _position[(int)Edge.Bottom];
+        set
+        {
+            if (_position[(int)Edge.Bottom] != value)
+            {
+                _position[(int)Edge.Bottom] = value;
+                MarkDirtyAndPropagate();
+            }
+        }
+    }
+
+    public StyleLength PositionLeft
+    {
+        get => _position[(int)Edge.Left];
+        set
+        {
+            if (_position[(int)Edge.Left] != value)
+            {
+                _position[(int)Edge.Left] = value;
+                MarkDirtyAndPropagate();
+            }
+        }
+    }
+
+    public StyleLength PositionRight
+    {
+        get => _position[(int)Edge.Right];
+        set
+        {
+            if (_position[(int)Edge.Right] != value)
+            {
+                _position[(int)Edge.Right] = value;
+                MarkDirtyAndPropagate();
+            }
+        }
+    }
+
+    public StyleLength PositionHorizontal
+    {
+        get => _position[(int)Edge.Horizontal];
+        set
+        {
+            if (_position[(int)Edge.Horizontal] != value)
+            {
+                _position[(int)Edge.Horizontal] = value;
+                MarkDirtyAndPropagate();
+            }
+        }
+    }
+
+    public StyleLength PositionVertical
+    {
+        get => _position[(int)Edge.Vertical];
+        set
+        {
+            if (_position[(int)Edge.Vertical] != value)
+            {
+                _position[(int)Edge.Vertical] = value;
+                MarkDirtyAndPropagate();
+            }
+        }
+    }
+
+    public StyleLength PositionStart
+    {
+        get => _position[(int)Edge.Start];
+        set
+        {
+            if (_position[(int)Edge.Start] != value)
+            {
+                _position[(int)Edge.Start] = value;
+                MarkDirtyAndPropagate();
+            }
+        }
+    }
+
+    public StyleLength PositionEnd
+    {
+        get => _position[(int)Edge.End];
+        set
+        {
+            if (_position[(int)Edge.End] != value)
+            {
+                _position[(int)Edge.End] = value;
+                MarkDirtyAndPropagate();
+            }
+        }
+    }
+
+    public StyleLength PaddingAll
+    {
+        get => _padding[(int)Edge.All];
+        set
+        {
+            if (_padding[(int)Edge.All] != value)
+            {
+                _padding[(int)Edge.All] = value;
+                MarkDirtyAndPropagate();
+            }
+        }
+    }
+
+    public StyleLength PaddingTop
+    {
+        get => _padding[(int)Edge.Top];
+        set
+        {
+            if (_padding[(int)Edge.Top] != value)
+            {
+                _padding[(int)Edge.Top] = value;
+                MarkDirtyAndPropagate();
+            }
+        }
+    }
+
+    public StyleLength PaddingBottom
+    {
+        get => _padding[(int)Edge.Bottom];
+        set
+        {
+            if (_padding[(int)Edge.Bottom] != value)
+            {
+                _padding[(int)Edge.Bottom] = value;
+                MarkDirtyAndPropagate();
+            }
+        }
+    }
+
+    public StyleLength PaddingLeft
+    {
+        get => _padding[(int)Edge.Left];
+        set
+        {
+            if (_padding[(int)Edge.Left] != value)
+            {
+                _padding[(int)Edge.Left] = value;
+                MarkDirtyAndPropagate();
+            }
+        }
+    }
+
+    public StyleLength PaddingRight
+    {
+        get => _padding[(int)Edge.Right];
+        set
+        {
+            if (_padding[(int)Edge.Right] != value)
+            {
+                _padding[(int)Edge.Right] = value;
+                MarkDirtyAndPropagate();
+            }
+        }
+    }
+
+    public StyleLength PaddingHorizontal
+    {
+        get => _padding[(int)Edge.Horizontal];
+        set
+        {
+            if (_padding[(int)Edge.Horizontal] != value)
+            {
+                _padding[(int)Edge.Horizontal] = value;
+                MarkDirtyAndPropagate();
+            }
+        }
+    }
+
+    public StyleLength PaddingVertical
+    {
+        get => _padding[(int)Edge.Vertical];
+        set
+        {
+            if (_padding[(int)Edge.Vertical] != value)
+            {
+                _padding[(int)Edge.Vertical] = value;
+                MarkDirtyAndPropagate();
+            }
+        }
+    }
+
+    public StyleLength PaddingStart
+    {
+        get => _padding[(int)Edge.Start];
+        set
+        {
+            if (_padding[(int)Edge.Start] != value)
+            {
+                _padding[(int)Edge.Start] = value;
+                MarkDirtyAndPropagate();
+            }
+        }
+    }
+
+    public StyleLength PaddingEnd
+    {
+        get => _padding[(int)Edge.End];
+        set
+        {
+            if (_padding[(int)Edge.End] != value)
+            {
+                _padding[(int)Edge.End] = value;
+                MarkDirtyAndPropagate();
+            }
+        }
+    }
+
+    public StyleLength BorderAll
+    {
+        get => _border[(int)Edge.All];
+        set
+        {
+            if (_border[(int)Edge.All] != value)
+            {
+                _border[(int)Edge.All] = value;
+                MarkDirtyAndPropagate();
+            }
+        }
+    }
+
+    public StyleLength BorderTop
+    {
+        get => _border[(int)Edge.Top];
+        set
+        {
+            if (_border[(int)Edge.Top] != value)
+            {
+                _border[(int)Edge.Top] = value;
+                MarkDirtyAndPropagate();
+            }
+        }
+    }
+
+    public StyleLength BorderBottom
+    {
+        get => _border[(int)Edge.Bottom];
+        set
+        {
+            if (_border[(int)Edge.Bottom] != value)
+            {
+                _border[(int)Edge.Bottom] = value;
+                MarkDirtyAndPropagate();
+            }
+        }
+    }
+
+    public StyleLength BorderLeft
+    {
+        get => _border[(int)Edge.Left];
+        set
+        {
+            if (_border[(int)Edge.Left] != value)
+            {
+                _border[(int)Edge.Left] = value;
+                MarkDirtyAndPropagate();
+            }
+        }
+    }
+
+    public StyleLength BorderRight
+    {
+        get => _border[(int)Edge.Right];
+        set
+        {
+            if (_border[(int)Edge.Right] != value)
+            {
+                _border[(int)Edge.Right] = value;
+                MarkDirtyAndPropagate();
+            }
+        }
+    }
+
+    public StyleLength BorderHorizontal
+    {
+        get => _border[(int)Edge.Horizontal];
+        set
+        {
+            if (_border[(int)Edge.Horizontal] != value)
+            {
+                _border[(int)Edge.Horizontal] = value;
+                MarkDirtyAndPropagate();
+            }
+        }
+    }
+
+    public StyleLength BorderVertical
+    {
+        get => _border[(int)Edge.Vertical];
+        set
+        {
+            if (_border[(int)Edge.Vertical] != value)
+            {
+                _border[(int)Edge.Vertical] = value;
+                MarkDirtyAndPropagate();
+            }
+        }
+    }
+
+    public StyleLength BorderStart
+    {
+        get => _border[(int)Edge.Start];
+        set
+        {
+            if (_border[(int)Edge.Start] != value)
+            {
+                _border[(int)Edge.Start] = value;
+                MarkDirtyAndPropagate();
+            }
+        }
+    }
+
+    public StyleLength BorderEnd
+    {
+        get => _border[(int)Edge.End];
+        set
+        {
+            if (_border[(int)Edge.End] != value)
+            {
+                _border[(int)Edge.End] = value;
+                MarkDirtyAndPropagate();
+            }
+        }
+    }
+
+    public StyleLength Gap
+    {
+        get => _gap;
+        set
+        {
+            if (_gap != value)
+            {
+                _gap = value;
+                MarkDirtyAndPropagate();
+            }
+        }
+    }
+
+    public StyleLength RowGap
+    {
+        get => _rowGap;
+        set
+        {
+            if (_rowGap != value)
+            {
+                _rowGap = value;
+                MarkDirtyAndPropagate();
+            }
+        }
+    }
+
+    public StyleLength ColumnGap
+    {
+        get => _columnGap;
+        set
+        {
+            if (_columnGap != value)
+            {
+                _columnGap = value;
+                MarkDirtyAndPropagate();
+            }
+        }
+    }
+
+    public StyleLength Width
+    {
+        get => _width;
+        set
+        {
+            if (_width != value)
+            {
+                _width = value;
+                MarkDirtyAndPropagate();
+            }
+        }
+    }
+
+    public StyleLength Height
+    {
+        get => _height;
+        set
+        {
+            if (_height != value)
+            {
+                _height = value;
+                MarkDirtyAndPropagate();
+            }
+        }
+    }
+
+    public StyleLength MinWidth
+    {
+        get => _minWidth;
+        set
+        {
+            if (_minWidth != value)
+            {
+                _minWidth = value;
+                MarkDirtyAndPropagate();
+            }
+        }
+    }
+
+    public StyleLength MinHeight
+    {
+        get => _minHeight;
+        set
+        {
+            if (_minHeight != value)
+            {
+                _minHeight = value;
+                MarkDirtyAndPropagate();
+            }
+        }
+    }
+
+    public StyleLength MaxWidth
+    {
+        get => _maxWidth;
+        set
+        {
+            if (_maxWidth != value)
+            {
+                _maxWidth = value;
+                MarkDirtyAndPropagate();
+            }
+        }
+    }
+
+    public StyleLength MaxHeight
+    {
+        get => _maxHeight;
+        set
+        {
+            if (_maxHeight != value)
+            {
+                _maxHeight = value;
+                MarkDirtyAndPropagate();
+            }
+        }
+    }
+
+    public StyleLength AspectRatio
+    {
+        get => _aspectRatio;
+        set
+        {
+            if (_aspectRatio != value)
+            {
+                _aspectRatio = value;
+                MarkDirtyAndPropagate();
+            }
+        }
+    }
 
     internal StyleLength ResolveFlexBasis()
     {
@@ -135,7 +880,7 @@ public partial class Node
 
     private bool VerticalInsetsDefined()
     {
-        return PositionTop.IsDefined || PositionBottom.IsDefined || Position.IsDefined || PositionVertical.IsDefined;
+        return PositionTop.IsDefined || PositionBottom.IsDefined || PositionAll.IsDefined || PositionVertical.IsDefined;
     }
 
     private bool IsFlexStartPositionDefined(FlexDirection axis, Direction direction)
@@ -316,308 +1061,130 @@ public partial class Node
         return RowGap.IsDefined ? RowGap : Gap;
     }
 
-    private StyleLength ComputePosition(PhysicalEdge edge, Direction direction)
+    private StyleLength ComputeLeftEdge(StyleLength[] edges, Direction layoutDirection)
     {
-        switch (edge)
+        if (layoutDirection == Direction.LTR && edges[(int)Edge.Start].IsDefined)
         {
-            case PhysicalEdge.Left:
-
-                if (direction == Direction.LTR && PositionStart.IsDefined)
-                {
-                    return PositionStart;
-                }
-                else if (direction == Direction.RTL && PositionEnd.IsDefined)
-                {
-                    return PositionEnd;
-                }
-                else if (PositionLeft.IsDefined)
-                {
-                    return PositionLeft;
-                }
-                else if (PositionHorizontal.IsDefined)
-                {
-                    return PositionHorizontal;
-                }
-
-                return Position;
-
-            case PhysicalEdge.Top:
-
-                if (PositionTop.IsDefined)
-                {
-                    return PositionTop;
-                }
-                else if (PositionVertical.IsDefined)
-                {
-                    return PositionVertical;
-                }
-
-                return Position;
-
-            case PhysicalEdge.Right:
-
-                if (direction == Direction.LTR && PositionEnd.IsDefined)
-                {
-                    return PositionEnd;
-                }
-                else if (direction == Direction.RTL && PositionStart.IsDefined)
-                {
-                    return PositionStart;
-                }
-                else if (PositionRight.IsDefined)
-                {
-                    return PositionRight;
-                }
-                else if (PositionHorizontal.IsDefined)
-                {
-                    return PositionHorizontal;
-                }
-
-                return Position;
-
-            case PhysicalEdge.Bottom:
-
-                if (PositionBottom.IsDefined)
-                {
-                    return PositionBottom;
-                }
-                else if (PositionVertical.IsDefined)
-                {
-                    return PositionVertical;
-                }
-
-                return Position;
+            return edges[(int)Edge.Start];
+        }
+        else if (layoutDirection == Direction.RTL && edges[(int)Edge.End].IsDefined)
+        {
+            return edges[(int)Edge.End];
+        }
+        else if (edges[(int)Edge.Left].IsDefined)
+        {
+            return edges[(int)Edge.Left];
+        }
+        else if (edges[(int)Edge.Horizontal].IsDefined)
+        {
+            return edges[(int)Edge.Horizontal];
         }
 
-        throw new Exception("Invalid physical edge");
+        return edges[(int)Edge.All];
+    }
+
+    private StyleLength ComputeTopEdge(StyleLength[] edges)
+    {
+        if (edges[(int)Edge.Top].IsDefined)
+        {
+            return edges[(int)Edge.Top];
+        }
+        else if (edges[(int)Edge.Vertical].IsDefined)
+        {
+            return edges[(int)Edge.Vertical];
+        }
+        else
+        {
+            return edges[(int)Edge.All];
+        }
+    }
+
+    private StyleLength ComputeRightEdge(StyleLength[] edges, Direction layoutDirection)
+    {
+        if (layoutDirection == Direction.LTR && edges[(int)Edge.End].IsDefined)
+        {
+            return edges[(int)Edge.End];
+        }
+        else if (layoutDirection == Direction.RTL && edges[(int)Edge.Start].IsDefined)
+        {
+            return edges[(int)Edge.Start];
+        }
+        else if (edges[(int)Edge.Right].IsDefined)
+        {
+            return edges[(int)Edge.Right];
+        }
+        else if (edges[(int)Edge.Horizontal].IsDefined)
+        {
+            return edges[(int)Edge.Horizontal];
+        }
+        else
+        {
+            return edges[(int)Edge.All];
+        }
+    }
+
+    private StyleLength ComputeBottomEdge(StyleLength[] edges)
+    {
+        if (edges[(int)Edge.Bottom].IsDefined)
+        {
+            return edges[(int)Edge.Bottom];
+        }
+        else if (edges[(int)Edge.Vertical].IsDefined)
+        {
+            return edges[(int)Edge.Vertical];
+        }
+        else
+        {
+            return edges[(int)Edge.All];
+        }
     }
 
     private StyleLength ComputeMargin(PhysicalEdge edge, Direction direction)
     {
-        switch (edge)
+        return edge switch
         {
-            case PhysicalEdge.Left:
+            PhysicalEdge.Left => ComputeLeftEdge(_margin, direction),
+            PhysicalEdge.Top => ComputeTopEdge(_margin),
+            PhysicalEdge.Right => ComputeRightEdge(_margin, direction),
+            PhysicalEdge.Bottom => ComputeBottomEdge(_margin),
+            _ => throw new Exception("Invalid physical edge"),
+        };
+    }
 
-                if (direction == Direction.LTR && MarginStart.IsDefined)
-                {
-                    return MarginStart;
-                }
-                else if (direction == Direction.RTL && MarginEnd.IsDefined)
-                {
-                    return MarginEnd;
-                }
-                else if (MarginLeft.IsDefined)
-                {
-                    return MarginLeft;
-                }
-                else if (MarginHorizontal.IsDefined)
-                {
-                    return MarginHorizontal;
-                }
-
-                return Margin;
-
-            case PhysicalEdge.Top:
-
-                if (MarginTop.IsDefined)
-                {
-                    return MarginTop;
-                }
-                else if (MarginVertical.IsDefined)
-                {
-                    return MarginVertical;
-                }
-
-                return Margin;
-
-            case PhysicalEdge.Right:
-
-                if (direction == Direction.LTR && MarginEnd.IsDefined)
-                {
-                    return MarginEnd;
-                }
-                else if (direction == Direction.RTL && MarginStart.IsDefined)
-                {
-                    return MarginStart;
-                }
-                else if (MarginRight.IsDefined)
-                {
-                    return MarginRight;
-                }
-                else if (MarginHorizontal.IsDefined)
-                {
-                    return MarginHorizontal;
-                }
-
-                return Margin;
-
-            case PhysicalEdge.Bottom:
-
-                if (MarginBottom.IsDefined)
-                {
-                    return MarginBottom;
-                }
-                else if (MarginVertical.IsDefined)
-                {
-                    return MarginVertical;
-                }
-
-                return Margin;
-        }
-
-        throw new Exception("Invalid physical edge");
+    private StyleLength ComputePosition(PhysicalEdge edge, Direction direction)
+    {
+        return edge switch
+        {
+            PhysicalEdge.Left => ComputeLeftEdge(_position, direction),
+            PhysicalEdge.Top => ComputeTopEdge(_position),
+            PhysicalEdge.Right => ComputeRightEdge(_position, direction),
+            PhysicalEdge.Bottom => ComputeBottomEdge(_position),
+            _ => throw new Exception("Invalid physical edge"),
+        };
     }
 
     private StyleLength ComputePadding(PhysicalEdge edge, Direction direction)
     {
-        switch (edge)
+        return edge switch
         {
-            case PhysicalEdge.Left:
-
-                if (direction == Direction.LTR && PaddingStart.IsDefined)
-                {
-                    return PaddingStart;
-                }
-                else if (direction == Direction.RTL && PaddingEnd.IsDefined)
-                {
-                    return PaddingEnd;
-                }
-                else if (PaddingLeft.IsDefined)
-                {
-                    return PaddingLeft;
-                }
-                else if (PaddingHorizontal.IsDefined)
-                {
-                    return PaddingHorizontal;
-                }
-
-                return Padding;
-
-            case PhysicalEdge.Top:
-
-                if (PaddingTop.IsDefined)
-                {
-                    return PaddingTop;
-                }
-                else if (PaddingVertical.IsDefined)
-                {
-                    return PaddingVertical;
-                }
-
-                return Padding;
-
-            case PhysicalEdge.Right:
-
-                if (direction == Direction.LTR && PaddingEnd.IsDefined)
-                {
-                    return PaddingEnd;
-                }
-                else if (direction == Direction.RTL && PaddingStart.IsDefined)
-                {
-                    return PaddingStart;
-                }
-                else if (PaddingRight.IsDefined)
-                {
-                    return PaddingRight;
-                }
-                else if (PaddingHorizontal.IsDefined)
-                {
-                    return PaddingHorizontal;
-                }
-
-                return Padding;
-
-            case PhysicalEdge.Bottom:
-
-                if (PaddingBottom.IsDefined)
-                {
-                    return PaddingBottom;
-                }
-                else if (PaddingVertical.IsDefined)
-                {
-                    return PaddingVertical;
-                }
-
-                return Padding;
-        }
-
-        throw new Exception("Invalid physical edge");
+            PhysicalEdge.Left => ComputeLeftEdge(_padding, direction),
+            PhysicalEdge.Top => ComputeTopEdge(_padding),
+            PhysicalEdge.Right => ComputeRightEdge(_padding, direction),
+            PhysicalEdge.Bottom => ComputeBottomEdge(_padding),
+            _ => throw new Exception("Invalid physical edge"),
+        };
     }
 
     private StyleLength ComputeBorder(PhysicalEdge edge, Direction direction)
     {
-        switch (edge)
+        return edge switch
         {
-            case PhysicalEdge.Left:
-
-                if (direction == Direction.LTR && BorderStart.IsDefined)
-                {
-                    return BorderStart;
-                }
-                else if (direction == Direction.RTL && BorderEnd.IsDefined)
-                {
-                    return BorderEnd;
-                }
-                else if (BorderLeft.IsDefined)
-                {
-                    return BorderLeft;
-                }
-                else if (BorderHorizontal.IsDefined)
-                {
-                    return BorderHorizontal;
-                }
-
-                return Border;
-
-            case PhysicalEdge.Top:
-
-                if (BorderTop.IsDefined)
-                {
-                    return BorderTop;
-                }
-                else if (BorderVertical.IsDefined)
-                {
-                    return BorderVertical;
-                }
-
-                return Border;
-
-            case PhysicalEdge.Right:
-
-                if (direction == Direction.LTR && BorderEnd.IsDefined)
-                {
-                    return BorderEnd;
-                }
-                else if (direction == Direction.RTL && BorderStart.IsDefined)
-                {
-                    return BorderStart;
-                }
-                else if (BorderRight.IsDefined)
-                {
-                    return BorderRight;
-                }
-                else if (BorderHorizontal.IsDefined)
-                {
-                    return BorderHorizontal;
-                }
-
-                return Border;
-
-            case PhysicalEdge.Bottom:
-
-                if (BorderBottom.IsDefined)
-                {
-                    return BorderBottom;
-                }
-                else if (BorderVertical.IsDefined)
-                {
-                    return BorderVertical;
-                }
-
-                return Border;
-        }
-
-        throw new Exception("Invalid physical edge");
+            PhysicalEdge.Left => ComputeLeftEdge(_border, direction),
+            PhysicalEdge.Top => ComputeTopEdge(_border),
+            PhysicalEdge.Right => ComputeRightEdge(_border, direction),
+            PhysicalEdge.Bottom => ComputeBottomEdge(_border),
+            _ => throw new Exception("Invalid physical edge"),
+        };
     }
 
     private StyleLength GetMaxDimension(Dimension dimension)

@@ -61,29 +61,29 @@ public class DefaultValuesTest
         Assert.Equal(Unit.Undefined, root.MaxWidth.Unit);
         Assert.Equal(Unit.Undefined, root.MaxHeight.Unit);
 
-        Assert.Equal(0, root.Layout.PositionLeft);
-        Assert.Equal(0, root.Layout.PositionTop);
-        Assert.Equal(0, root.Layout.PositionRight);
-        Assert.Equal(0, root.Layout.PositionBottom);
+        Assert.Equal(0, root.ComputedLeft);
+        Assert.Equal(0, root.ComputedTop);
+        Assert.Equal(0, root.ComputedRight);
+        Assert.Equal(0, root.ComputedBottom);
 
-        Assert.Equal(0, root.MarginLeft.Value); // TODO: yoga uses getResolvedLayoutProperty, but not internally. maybe hide Layout from public api
-        Assert.Equal(0, root.MarginTop.Value);
-        Assert.Equal(0, root.MarginRight.Value);
-        Assert.Equal(0, root.MarginBottom.Value);
+        Assert.Equal(0, root.ComputedMarginLeft);
+        Assert.Equal(0, root.ComputedMarginTop);
+        Assert.Equal(0, root.ComputedMarginRight);
+        Assert.Equal(0, root.ComputedMarginBottom);
 
-        Assert.Equal(0, root.PaddingLeft.Value);
-        Assert.Equal(0, root.PaddingTop.Value);
-        Assert.Equal(0, root.PaddingRight.Value);
-        Assert.Equal(0, root.PaddingBottom.Value);
+        Assert.Equal(0, root.ComputedPaddingLeft);
+        Assert.Equal(0, root.ComputedPaddingTop);
+        Assert.Equal(0, root.ComputedPaddingRight);
+        Assert.Equal(0, root.ComputedPaddingBottom);
 
-        Assert.Equal(0, root.BorderLeft.Value);
-        Assert.Equal(0, root.BorderTop.Value);
-        Assert.Equal(0, root.BorderRight.Value);
-        Assert.Equal(0, root.BorderBottom.Value);
+        Assert.Equal(0, root.ComputedBorderLeft);
+        Assert.Equal(0, root.ComputedBorderTop);
+        Assert.Equal(0, root.ComputedBorderRight);
+        Assert.Equal(0, root.ComputedBorderBottom);
 
-        Assert.True(float.IsNaN(root.Layout.Width));
-        Assert.True(float.IsNaN(root.Layout.Height));
-        Assert.Equal(Direction.Inherit, root.Layout.Direction);
+        Assert.True(float.IsNaN(root.ComputedWidth));
+        Assert.True(float.IsNaN(root.ComputedHeight));
+        Assert.Equal(Direction.Inherit, root.ComputedDirection);
     }
 
     [Fact]
@@ -146,24 +146,24 @@ public class DefaultValuesTest
         root_child0_child0.Insert(0, root_child0_child0_child0);
         root.CalculateLayout(float.NaN, float.NaN, Direction.LTR);
 
-        Assert.Equal(0, root.Layout.PositionLeft);
-        Assert.Equal(0, root.Layout.PositionTop);
-        Assert.Equal(500, root.Layout.Width);
-        Assert.Equal(500, root.Layout.Height);
+        Assert.Equal(0, root.ComputedLeft);
+        Assert.Equal(0, root.ComputedTop);
+        Assert.Equal(500, root.ComputedWidth);
+        Assert.Equal(500, root.ComputedHeight);
 
-        Assert.Equal(0, root_child0.Layout.PositionLeft);
-        Assert.Equal(0, root_child0.Layout.PositionTop);
-        Assert.Equal(500, root_child0.Layout.Width);
-        Assert.Equal(500, root_child0.Layout.Height);
+        Assert.Equal(0, root_child0.ComputedLeft);
+        Assert.Equal(0, root_child0.ComputedTop);
+        Assert.Equal(500, root_child0.ComputedWidth);
+        Assert.Equal(500, root_child0.ComputedHeight);
 
-        Assert.Equal(0, root_child0_child0.Layout.PositionLeft);
-        Assert.Equal(0, root_child0_child0.Layout.PositionTop);
-        Assert.Equal(0, root_child0_child0.Layout.Width);
-        Assert.Equal(500, root_child0_child0.Layout.Height);
+        Assert.Equal(0, root_child0_child0.ComputedLeft);
+        Assert.Equal(0, root_child0_child0.ComputedTop);
+        Assert.Equal(0, root_child0_child0.ComputedWidth);
+        Assert.Equal(500, root_child0_child0.ComputedHeight);
 
-        Assert.Equal(0, root_child0_child0_child0.Layout.PositionLeft);
-        Assert.Equal(0, root_child0_child0_child0.Layout.PositionTop);
-        Assert.Equal(0, root_child0_child0_child0.Layout.Width);
-        Assert.Equal(500, root_child0_child0_child0.Layout.Height);
+        Assert.Equal(0, root_child0_child0_child0.ComputedLeft);
+        Assert.Equal(0, root_child0_child0_child0.ComputedTop);
+        Assert.Equal(0, root_child0_child0_child0.ComputedWidth);
+        Assert.Equal(500, root_child0_child0_child0.ComputedHeight);
     }
 }

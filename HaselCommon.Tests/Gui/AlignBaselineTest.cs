@@ -106,20 +106,20 @@ public class AlignBaselineTest
 
         root.CalculateLayout(float.NaN, float.NaN, Direction.LTR);
 
-        Assert.Equal(0, root.Layout.PositionLeft);
-        Assert.Equal(0, root.Layout.PositionTop);
-        Assert.Equal(340, root.Layout.Width);
-        Assert.Equal(126, root.Layout.Height);
+        Assert.Equal(0, root.ComputedLeft);
+        Assert.Equal(0, root.ComputedTop);
+        Assert.Equal(340, root.ComputedWidth);
+        Assert.Equal(126, root.ComputedHeight);
 
-        Assert.Equal(0, root_child0.Layout.PositionLeft);
-        Assert.Equal(42, root_child0.Layout.Width);
-        Assert.Equal(50, root_child0.Layout.Height);
-        Assert.Equal(76, root_child0.Layout.PositionTop);
+        Assert.Equal(0, root_child0.ComputedLeft);
+        Assert.Equal(42, root_child0.ComputedWidth);
+        Assert.Equal(50, root_child0.ComputedHeight);
+        Assert.Equal(76, root_child0.ComputedTop);
 
-        Assert.Equal(42, root_child1.Layout.PositionLeft);
-        Assert.Equal(0, root_child1.Layout.PositionTop);
-        Assert.Equal(279, root_child1.Layout.Width);
-        Assert.Equal(126, root_child1.Layout.Height);
+        Assert.Equal(42, root_child1.ComputedLeft);
+        Assert.Equal(0, root_child1.ComputedTop);
+        Assert.Equal(279, root_child1.ComputedWidth);
+        Assert.Equal(126, root_child1.ComputedHeight);
     }
 
     [Fact]
@@ -145,20 +145,20 @@ public class AlignBaselineTest
 
         root.CalculateLayout(float.NaN, float.NaN, Direction.LTR);
 
-        Assert.Equal(0, root.Layout.PositionLeft);
-        Assert.Equal(0, root.Layout.PositionTop);
-        Assert.Equal(150, root.Layout.Width);
-        Assert.Equal(70, root.Layout.Height);
+        Assert.Equal(0, root.ComputedLeft);
+        Assert.Equal(0, root.ComputedTop);
+        Assert.Equal(150, root.ComputedWidth);
+        Assert.Equal(70, root.ComputedHeight);
 
-        Assert.Equal(0, root_child0.Layout.PositionLeft);
-        Assert.Equal(0, root_child0.Layout.PositionTop);
-        Assert.Equal(50, root_child0.Layout.Width);
-        Assert.Equal(50, root_child0.Layout.Height);
+        Assert.Equal(0, root_child0.ComputedLeft);
+        Assert.Equal(0, root_child0.ComputedTop);
+        Assert.Equal(50, root_child0.ComputedWidth);
+        Assert.Equal(50, root_child0.ComputedHeight);
 
-        Assert.Equal(50, root_child1.Layout.PositionLeft);
-        Assert.Equal(30, root_child1.Layout.PositionTop);
-        Assert.Equal(50, root_child1.Layout.Width);
-        Assert.Equal(40, root_child1.Layout.Height);
+        Assert.Equal(50, root_child1.ComputedLeft);
+        Assert.Equal(30, root_child1.ComputedTop);
+        Assert.Equal(50, root_child1.ComputedWidth);
+        Assert.Equal(40, root_child1.ComputedHeight);
     }
 
     [Fact]
@@ -183,20 +183,20 @@ public class AlignBaselineTest
 
         root.CalculateLayout(float.NaN, float.NaN, Direction.LTR);
 
-        Assert.Equal(0, root.Layout.PositionLeft);
-        Assert.Equal(0, root.Layout.PositionTop);
-        Assert.Equal(150, root.Layout.Width);
-        Assert.Equal(80, root.Layout.Height);
+        Assert.Equal(0, root.ComputedLeft);
+        Assert.Equal(0, root.ComputedTop);
+        Assert.Equal(150, root.ComputedWidth);
+        Assert.Equal(80, root.ComputedHeight);
 
-        Assert.Equal(0, root_child0.Layout.PositionLeft);
-        Assert.Equal(0, root_child0.Layout.PositionTop);
-        Assert.Equal(50, root_child0.Layout.Width);
-        Assert.Equal(80, root_child0.Layout.Height);
+        Assert.Equal(0, root_child0.ComputedLeft);
+        Assert.Equal(0, root_child0.ComputedTop);
+        Assert.Equal(50, root_child0.ComputedWidth);
+        Assert.Equal(80, root_child0.ComputedHeight);
 
-        Assert.Equal(50, root_child1.Layout.PositionLeft);
-        Assert.Equal(30, root_child1.Layout.PositionTop);
-        Assert.Equal(50, root_child1.Layout.Width);
-        Assert.Equal(50, root_child1.Layout.Height);
+        Assert.Equal(50, root_child1.ComputedLeft);
+        Assert.Equal(30, root_child1.ComputedTop);
+        Assert.Equal(50, root_child1.ComputedWidth);
+        Assert.Equal(50, root_child1.ComputedHeight);
     }
 
     [Fact]
@@ -222,17 +222,17 @@ public class AlignBaselineTest
 
         root.CalculateLayout(float.NaN, float.NaN, Direction.LTR);
 
-        Assert.Equal(0, root_child0.Layout.PositionLeft);
-        Assert.Equal(0, root_child0.Layout.PositionTop);
+        Assert.Equal(0, root_child0.ComputedLeft);
+        Assert.Equal(0, root_child0.ComputedTop);
 
-        Assert.Equal(500, root_child1.Layout.PositionLeft);
-        Assert.Equal(100, root_child1.Layout.PositionTop);
+        Assert.Equal(500, root_child1.ComputedLeft);
+        Assert.Equal(100, root_child1.ComputedTop);
 
-        Assert.Equal(0, root_child1_child0.Layout.PositionLeft);
-        Assert.Equal(0, root_child1_child0.Layout.PositionTop);
+        Assert.Equal(0, root_child1_child0.ComputedLeft);
+        Assert.Equal(0, root_child1_child0.ComputedTop);
 
-        Assert.Equal(0, root_child1_child1.Layout.PositionLeft);
-        Assert.Equal(300, root_child1_child1.Layout.PositionTop);
+        Assert.Equal(0, root_child1_child1.ComputedLeft);
+        Assert.Equal(300, root_child1_child1.ComputedTop);
     }
 
     [Fact]
@@ -262,17 +262,17 @@ public class AlignBaselineTest
 
         root.CalculateLayout(float.NaN, float.NaN, Direction.LTR);
 
-        Assert.Equal(0, root_child0.Layout.PositionLeft);
-        Assert.Equal(0, root_child0.Layout.PositionTop);
+        Assert.Equal(0, root_child0.ComputedLeft);
+        Assert.Equal(0, root_child0.ComputedTop);
 
-        Assert.Equal(500, root_child1.Layout.PositionLeft);
-        Assert.Equal(100, root_child1.Layout.PositionTop);
+        Assert.Equal(500, root_child1.ComputedLeft);
+        Assert.Equal(100, root_child1.ComputedTop);
 
-        Assert.Equal(0, root_child1_child0.Layout.PositionLeft);
-        Assert.Equal(0, root_child1_child0.Layout.PositionTop);
+        Assert.Equal(0, root_child1_child0.ComputedLeft);
+        Assert.Equal(0, root_child1_child0.ComputedTop);
 
-        Assert.Equal(0, root_child1_child1.Layout.PositionLeft);
-        Assert.Equal(300, root_child1_child1.Layout.PositionTop);
+        Assert.Equal(0, root_child1_child1.ComputedLeft);
+        Assert.Equal(300, root_child1_child1.ComputedTop);
     }
 
     [Fact]
@@ -302,17 +302,17 @@ public class AlignBaselineTest
 
         root.CalculateLayout(float.NaN, float.NaN, Direction.LTR);
 
-        Assert.Equal(0, root_child0.Layout.PositionLeft);
-        Assert.Equal(0, root_child0.Layout.PositionTop);
+        Assert.Equal(0, root_child0.ComputedLeft);
+        Assert.Equal(0, root_child0.ComputedTop);
 
-        Assert.Equal(500, root_child1.Layout.PositionLeft);
-        Assert.Equal(0, root_child1.Layout.PositionTop);
+        Assert.Equal(500, root_child1.ComputedLeft);
+        Assert.Equal(0, root_child1.ComputedTop);
 
-        Assert.Equal(100, root_child1_child0.Layout.PositionLeft);
-        Assert.Equal(100, root_child1_child0.Layout.PositionTop);
+        Assert.Equal(100, root_child1_child0.ComputedLeft);
+        Assert.Equal(100, root_child1_child0.ComputedTop);
 
-        Assert.Equal(100, root_child1_child1.Layout.PositionLeft);
-        Assert.Equal(400, root_child1_child1.Layout.PositionTop);
+        Assert.Equal(100, root_child1_child1.ComputedLeft);
+        Assert.Equal(400, root_child1_child1.ComputedTop);
     }
 
     [Fact]
@@ -342,17 +342,17 @@ public class AlignBaselineTest
 
         root.CalculateLayout(float.NaN, float.NaN, Direction.LTR);
 
-        Assert.Equal(0, root_child0.Layout.PositionLeft);
-        Assert.Equal(0, root_child0.Layout.PositionTop);
+        Assert.Equal(0, root_child0.ComputedLeft);
+        Assert.Equal(0, root_child0.ComputedTop);
 
-        Assert.Equal(600, root_child1.Layout.PositionLeft);
-        Assert.Equal(100, root_child1.Layout.PositionTop);
+        Assert.Equal(600, root_child1.ComputedLeft);
+        Assert.Equal(100, root_child1.ComputedTop);
 
-        Assert.Equal(0, root_child1_child0.Layout.PositionLeft);
-        Assert.Equal(0, root_child1_child0.Layout.PositionTop);
+        Assert.Equal(0, root_child1_child0.ComputedLeft);
+        Assert.Equal(0, root_child1_child0.ComputedTop);
 
-        Assert.Equal(0, root_child1_child1.Layout.PositionLeft);
-        Assert.Equal(300, root_child1_child1.Layout.PositionTop);
+        Assert.Equal(0, root_child1_child1.ComputedLeft);
+        Assert.Equal(300, root_child1_child1.ComputedTop);
     }
 
     [Fact]
@@ -382,17 +382,17 @@ public class AlignBaselineTest
 
         root.CalculateLayout(float.NaN, float.NaN, Direction.LTR);
 
-        Assert.Equal(0, root_child0.Layout.PositionLeft);
-        Assert.Equal(0, root_child0.Layout.PositionTop);
+        Assert.Equal(0, root_child0.ComputedLeft);
+        Assert.Equal(0, root_child0.ComputedTop);
 
-        Assert.Equal(500, root_child1.Layout.PositionLeft);
-        Assert.Equal(0, root_child1.Layout.PositionTop);
+        Assert.Equal(500, root_child1.ComputedLeft);
+        Assert.Equal(0, root_child1.ComputedTop);
 
-        Assert.Equal(0, root_child1_child0.Layout.PositionLeft);
-        Assert.Equal(0, root_child1_child0.Layout.PositionTop);
+        Assert.Equal(0, root_child1_child0.ComputedLeft);
+        Assert.Equal(0, root_child1_child0.ComputedTop);
 
-        Assert.Equal(100, root_child1_child1.Layout.PositionLeft);
-        Assert.Equal(400, root_child1_child1.Layout.PositionTop);
+        Assert.Equal(100, root_child1_child1.ComputedLeft);
+        Assert.Equal(400, root_child1_child1.ComputedTop);
     }
 
     [Fact]
@@ -418,17 +418,17 @@ public class AlignBaselineTest
 
         root.CalculateLayout(float.NaN, float.NaN, Direction.LTR);
 
-        Assert.Equal(0, root_child0.Layout.PositionLeft);
-        Assert.Equal(0, root_child0.Layout.PositionTop);
+        Assert.Equal(0, root_child0.ComputedLeft);
+        Assert.Equal(0, root_child0.ComputedTop);
 
-        Assert.Equal(500, root_child1.Layout.PositionLeft);
-        Assert.Equal(100, root_child1.Layout.PositionTop);
+        Assert.Equal(500, root_child1.ComputedLeft);
+        Assert.Equal(100, root_child1.ComputedTop);
 
-        Assert.Equal(0, root_child1_child0.Layout.PositionLeft);
-        Assert.Equal(0, root_child1_child0.Layout.PositionTop);
+        Assert.Equal(0, root_child1_child0.ComputedLeft);
+        Assert.Equal(0, root_child1_child0.ComputedTop);
 
-        Assert.Equal(500, root_child1_child1.Layout.PositionLeft);
-        Assert.Equal(300, root_child1_child1.Layout.PositionTop);
+        Assert.Equal(500, root_child1_child1.ComputedLeft);
+        Assert.Equal(300, root_child1_child1.ComputedTop);
     }
 
     [Fact]
@@ -458,17 +458,17 @@ public class AlignBaselineTest
 
         root.CalculateLayout(float.NaN, float.NaN, Direction.LTR);
 
-        Assert.Equal(0, root_child0.Layout.PositionLeft);
-        Assert.Equal(0, root_child0.Layout.PositionTop);
+        Assert.Equal(0, root_child0.ComputedLeft);
+        Assert.Equal(0, root_child0.ComputedTop);
 
-        Assert.Equal(500, root_child1.Layout.PositionLeft);
-        Assert.Equal(100, root_child1.Layout.PositionTop);
+        Assert.Equal(500, root_child1.ComputedLeft);
+        Assert.Equal(100, root_child1.ComputedTop);
 
-        Assert.Equal(0, root_child1_child0.Layout.PositionLeft);
-        Assert.Equal(0, root_child1_child0.Layout.PositionTop);
+        Assert.Equal(0, root_child1_child0.ComputedLeft);
+        Assert.Equal(0, root_child1_child0.ComputedTop);
 
-        Assert.Equal(500, root_child1_child1.Layout.PositionLeft);
-        Assert.Equal(300, root_child1_child1.Layout.PositionTop);
+        Assert.Equal(500, root_child1_child1.ComputedLeft);
+        Assert.Equal(300, root_child1_child1.ComputedTop);
     }
 
     [Fact]
@@ -498,17 +498,17 @@ public class AlignBaselineTest
 
         root.CalculateLayout(float.NaN, float.NaN, Direction.LTR);
 
-        Assert.Equal(0, root_child0.Layout.PositionLeft);
-        Assert.Equal(0, root_child0.Layout.PositionTop);
+        Assert.Equal(0, root_child0.ComputedLeft);
+        Assert.Equal(0, root_child0.ComputedTop);
 
-        Assert.Equal(500, root_child1.Layout.PositionLeft);
-        Assert.Equal(100, root_child1.Layout.PositionTop);
+        Assert.Equal(500, root_child1.ComputedLeft);
+        Assert.Equal(100, root_child1.ComputedTop);
 
-        Assert.Equal(0, root_child1_child0.Layout.PositionLeft);
-        Assert.Equal(0, root_child1_child0.Layout.PositionTop);
+        Assert.Equal(0, root_child1_child0.ComputedLeft);
+        Assert.Equal(0, root_child1_child0.ComputedTop);
 
-        Assert.Equal(600, root_child1_child1.Layout.PositionLeft);
-        Assert.Equal(300, root_child1_child1.Layout.PositionTop);
+        Assert.Equal(600, root_child1_child1.ComputedLeft);
+        Assert.Equal(300, root_child1_child1.ComputedTop);
     }
 
     [Fact]
@@ -533,17 +533,17 @@ public class AlignBaselineTest
 
         root.CalculateLayout(float.NaN, float.NaN, Direction.LTR);
 
-        Assert.Equal(0, root_child0.Layout.PositionLeft);
-        Assert.Equal(100, root_child0.Layout.PositionTop);
+        Assert.Equal(0, root_child0.ComputedLeft);
+        Assert.Equal(100, root_child0.ComputedTop);
 
-        Assert.Equal(500, root_child1.Layout.PositionLeft);
-        Assert.Equal(0, root_child1.Layout.PositionTop);
+        Assert.Equal(500, root_child1.ComputedLeft);
+        Assert.Equal(0, root_child1.ComputedTop);
 
-        Assert.Equal(0, root_child1_child0.Layout.PositionLeft);
-        Assert.Equal(0, root_child1_child0.Layout.PositionTop);
+        Assert.Equal(0, root_child1_child0.ComputedLeft);
+        Assert.Equal(0, root_child1_child0.ComputedTop);
 
-        Assert.Equal(0, root_child1_child1.Layout.PositionLeft);
-        Assert.Equal(300, root_child1_child1.Layout.PositionTop);
+        Assert.Equal(0, root_child1_child1.ComputedLeft);
+        Assert.Equal(300, root_child1_child1.ComputedTop);
     }
 
     [Fact]
@@ -568,17 +568,17 @@ public class AlignBaselineTest
 
         root.CalculateLayout(float.NaN, float.NaN, Direction.LTR);
 
-        Assert.Equal(0, root_child0.Layout.PositionLeft);
-        Assert.Equal(0, root_child0.Layout.PositionTop);
+        Assert.Equal(0, root_child0.ComputedLeft);
+        Assert.Equal(0, root_child0.ComputedTop);
 
-        Assert.Equal(500, root_child1.Layout.PositionLeft);
-        Assert.Equal(100, root_child1.Layout.PositionTop);
+        Assert.Equal(500, root_child1.ComputedLeft);
+        Assert.Equal(100, root_child1.ComputedTop);
 
-        Assert.Equal(0, root_child1_child0.Layout.PositionLeft);
-        Assert.Equal(0, root_child1_child0.Layout.PositionTop);
+        Assert.Equal(0, root_child1_child0.ComputedLeft);
+        Assert.Equal(0, root_child1_child0.ComputedTop);
 
-        Assert.Equal(500, root_child1_child1.Layout.PositionLeft);
-        Assert.Equal(100, root_child1_child1.Layout.PositionTop);
+        Assert.Equal(500, root_child1_child1.ComputedLeft);
+        Assert.Equal(100, root_child1_child1.ComputedTop);
     }
 
     [Fact]
@@ -612,20 +612,20 @@ public class AlignBaselineTest
 
         root.CalculateLayout(float.NaN, float.NaN, Direction.LTR);
 
-        Assert.Equal(800, root.Layout.Height);
+        Assert.Equal(800, root.ComputedHeight);
 
-        Assert.Equal(0, root_child0.Layout.PositionLeft);
-        Assert.Equal(0, root_child0.Layout.PositionTop);
+        Assert.Equal(0, root_child0.ComputedLeft);
+        Assert.Equal(0, root_child0.ComputedTop);
 
-        Assert.Equal(500, root_child1.Layout.PositionLeft);
-        Assert.Equal(100, root_child1.Layout.PositionTop);
-        Assert.Equal(700, root_child1.Layout.Height);
+        Assert.Equal(500, root_child1.ComputedLeft);
+        Assert.Equal(100, root_child1.ComputedTop);
+        Assert.Equal(700, root_child1.ComputedHeight);
 
-        Assert.Equal(0, root_child1_child0.Layout.PositionLeft);
-        Assert.Equal(0, root_child1_child0.Layout.PositionTop);
+        Assert.Equal(0, root_child1_child0.ComputedLeft);
+        Assert.Equal(0, root_child1_child0.ComputedTop);
 
-        Assert.Equal(0, root_child1_child1.Layout.PositionLeft);
-        Assert.Equal(300, root_child1_child1.Layout.PositionTop);
+        Assert.Equal(0, root_child1_child1.ComputedLeft);
+        Assert.Equal(300, root_child1_child1.ComputedTop);
     }
 
     [Fact]
@@ -659,20 +659,20 @@ public class AlignBaselineTest
 
         root.CalculateLayout(float.NaN, float.NaN, Direction.LTR);
 
-        Assert.Equal(900, root.Layout.Height);
+        Assert.Equal(900, root.ComputedHeight);
 
-        Assert.Equal(0, root_child0.Layout.PositionLeft);
-        Assert.Equal(0, root_child0.Layout.PositionTop);
+        Assert.Equal(0, root_child0.ComputedLeft);
+        Assert.Equal(0, root_child0.ComputedTop);
 
-        Assert.Equal(500, root_child1.Layout.PositionLeft);
-        Assert.Equal(400, root_child1.Layout.PositionTop);
-        Assert.Equal(500, root_child1.Layout.Height);
+        Assert.Equal(500, root_child1.ComputedLeft);
+        Assert.Equal(400, root_child1.ComputedTop);
+        Assert.Equal(500, root_child1.ComputedHeight);
 
-        Assert.Equal(0, root_child1_child0.Layout.PositionLeft);
-        Assert.Equal(0, root_child1_child0.Layout.PositionTop);
+        Assert.Equal(0, root_child1_child0.ComputedLeft);
+        Assert.Equal(0, root_child1_child0.ComputedTop);
 
-        Assert.Equal(500, root_child1_child1.Layout.PositionLeft);
-        Assert.Equal(0, root_child1_child1.Layout.PositionTop);
+        Assert.Equal(500, root_child1_child1.ComputedLeft);
+        Assert.Equal(0, root_child1_child1.ComputedTop);
     }
 
     [Fact]
@@ -705,20 +705,20 @@ public class AlignBaselineTest
 
         root.CalculateLayout(float.NaN, float.NaN, Direction.LTR);
 
-        Assert.Equal(700, root.Layout.Height);
+        Assert.Equal(700, root.ComputedHeight);
 
-        Assert.Equal(0, root_child0.Layout.PositionLeft);
-        Assert.Equal(100, root_child0.Layout.PositionTop);
+        Assert.Equal(0, root_child0.ComputedLeft);
+        Assert.Equal(100, root_child0.ComputedTop);
 
-        Assert.Equal(500, root_child1.Layout.PositionLeft);
-        Assert.Equal(0, root_child1.Layout.PositionTop);
-        Assert.Equal(700, root_child1.Layout.Height);
+        Assert.Equal(500, root_child1.ComputedLeft);
+        Assert.Equal(0, root_child1.ComputedTop);
+        Assert.Equal(700, root_child1.ComputedHeight);
 
-        Assert.Equal(0, root_child1_child0.Layout.PositionLeft);
-        Assert.Equal(0, root_child1_child0.Layout.PositionTop);
+        Assert.Equal(0, root_child1_child0.ComputedLeft);
+        Assert.Equal(0, root_child1_child0.ComputedTop);
 
-        Assert.Equal(0, root_child1_child1.Layout.PositionLeft);
-        Assert.Equal(300, root_child1_child1.Layout.PositionTop);
+        Assert.Equal(0, root_child1_child1.ComputedLeft);
+        Assert.Equal(300, root_child1_child1.ComputedTop);
     }
 
     [Fact]
@@ -751,19 +751,19 @@ public class AlignBaselineTest
 
         root.CalculateLayout(float.NaN, float.NaN, Direction.LTR);
 
-        Assert.Equal(700, root.Layout.Height);
+        Assert.Equal(700, root.ComputedHeight);
 
-        Assert.Equal(0, root_child0.Layout.PositionLeft);
-        Assert.Equal(0, root_child0.Layout.PositionTop);
+        Assert.Equal(0, root_child0.ComputedLeft);
+        Assert.Equal(0, root_child0.ComputedTop);
 
-        Assert.Equal(500, root_child1.Layout.PositionLeft);
-        Assert.Equal(200, root_child1.Layout.PositionTop);
-        Assert.Equal(500, root_child1.Layout.Height);
+        Assert.Equal(500, root_child1.ComputedLeft);
+        Assert.Equal(200, root_child1.ComputedTop);
+        Assert.Equal(500, root_child1.ComputedHeight);
 
-        Assert.Equal(0, root_child1_child0.Layout.PositionLeft);
-        Assert.Equal(0, root_child1_child0.Layout.PositionTop);
+        Assert.Equal(0, root_child1_child0.ComputedLeft);
+        Assert.Equal(0, root_child1_child0.ComputedTop);
 
-        Assert.Equal(500, root_child1_child1.Layout.PositionLeft);
-        Assert.Equal(0, root_child1_child1.Layout.PositionTop);
+        Assert.Equal(500, root_child1_child1.ComputedLeft);
+        Assert.Equal(0, root_child1_child1.ComputedTop);
     }
 }

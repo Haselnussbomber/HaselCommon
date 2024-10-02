@@ -22,14 +22,14 @@ public class ZeroOutLayoutRecursivelyTest
 
         root.CalculateLayout(100, 100, Direction.LTR);
 
-        Assert.Equal(10, child.Layout.MarginTop);
-        Assert.Equal(10, child.Layout.PaddingTop);
+        Assert.Equal(10, child.ComputedMarginTop);
+        Assert.Equal(10, child.ComputedPaddingTop);
 
         child.Display = Display.None;
 
         root.CalculateLayout(100, 100, Direction.LTR);
 
-        Assert.Equal(0, child.Layout.MarginTop);
-        Assert.Equal(0, child.Layout.PaddingTop);
+        Assert.Equal(0, child.ComputedMarginTop);
+        Assert.Equal(0, child.ComputedPaddingTop);
     }
 }

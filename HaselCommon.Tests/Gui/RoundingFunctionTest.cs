@@ -75,7 +75,7 @@ public class RoundingFunctionTest
             root.MarginLeft = i + 1;
 
             root.CalculateLayout(float.NaN, float.NaN, Direction.LTR);
-            Assert.Equal(10, node1.Layout.Height);
+            Assert.Equal(10, node1.ComputedHeight);
         }
     }
 
@@ -122,13 +122,13 @@ public class RoundingFunctionTest
 
         root.CalculateLayout(float.NaN, float.NaN, Direction.LTR);
 
-        Assert.Equal(11.5f, root.Layout.Width);
-        Assert.Equal(11.5f, root.Layout.Height);
+        Assert.Equal(11.5f, root.ComputedWidth);
+        Assert.Equal(11.5f, root.ComputedHeight);
 
-        Assert.Equal(10, node0.Layout.Width);
-        Assert.Equal(10, node0.Layout.Height);
+        Assert.Equal(10, node0.ComputedWidth);
+        Assert.Equal(10, node0.ComputedHeight);
 
-        Assert.Equal(8, node1.Layout.Width);
-        Assert.Equal(8, node1.Layout.Height);
+        Assert.Equal(8, node1.ComputedWidth);
+        Assert.Equal(8, node1.ComputedHeight);
     }
 }

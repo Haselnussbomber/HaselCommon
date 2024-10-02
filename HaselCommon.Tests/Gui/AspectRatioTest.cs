@@ -86,97 +86,97 @@ public class AspectRatioTest
         root_child0_child0_child2_child0.Insert(1, root_child0_child0_child2_child0_child1);
         root.CalculateLayout(float.NaN, float.NaN, Direction.LTR);
 
-        Assert.Equal(0, root.Layout.PositionLeft);
-        Assert.Equal(0, root.Layout.PositionTop);
-        Assert.Equal(300, root.Layout.Width);
-        Assert.Equal(300, root.Layout.Height);
+        Assert.Equal(0, root.ComputedLeft);
+        Assert.Equal(0, root.ComputedTop);
+        Assert.Equal(300, root.ComputedWidth);
+        Assert.Equal(300, root.ComputedHeight);
 
-        Assert.Equal(0, root_child0.Layout.PositionLeft);
-        Assert.Equal(0, root_child0.Layout.PositionTop);
-        Assert.Equal(300, root_child0.Layout.Width);
-        Assert.Equal(300, root_child0.Layout.Height);
+        Assert.Equal(0, root_child0.ComputedLeft);
+        Assert.Equal(0, root_child0.ComputedTop);
+        Assert.Equal(300, root_child0.ComputedWidth);
+        Assert.Equal(300, root_child0.ComputedHeight);
 
-        Assert.Equal(0, root_child0_child0.Layout.PositionLeft);
-        Assert.Equal(0, root_child0_child0.Layout.PositionTop);
-        Assert.Equal(300, root_child0_child0.Layout.Width);
-        Assert.Equal(197, root_child0_child0.Layout.Height);
+        Assert.Equal(0, root_child0_child0.ComputedLeft);
+        Assert.Equal(0, root_child0_child0.ComputedTop);
+        Assert.Equal(300, root_child0_child0.ComputedWidth);
+        Assert.Equal(197, root_child0_child0.ComputedHeight);
 
-        Assert.Equal(0, root_child0_child0_child0.Layout.PositionLeft);
-        Assert.Equal(0, root_child0_child0_child0.Layout.PositionTop);
-        Assert.Equal(197, root_child0_child0_child0.Layout.Width);
-        Assert.Equal(197, root_child0_child0_child0.Layout.Height);
+        Assert.Equal(0, root_child0_child0_child0.ComputedLeft);
+        Assert.Equal(0, root_child0_child0_child0.ComputedTop);
+        Assert.Equal(197, root_child0_child0_child0.ComputedWidth);
+        Assert.Equal(197, root_child0_child0_child0.ComputedHeight);
 
-        Assert.Equal(197, root_child0_child0_child1.Layout.PositionLeft);
-        Assert.Equal(0, root_child0_child0_child1.Layout.PositionTop);
-        Assert.Equal(5, root_child0_child0_child1.Layout.Width);
-        Assert.Equal(197, root_child0_child0_child1.Layout.Height);
+        Assert.Equal(197, root_child0_child0_child1.ComputedLeft);
+        Assert.Equal(0, root_child0_child0_child1.ComputedTop);
+        Assert.Equal(5, root_child0_child0_child1.ComputedWidth);
+        Assert.Equal(197, root_child0_child0_child1.ComputedHeight);
 
-        Assert.Equal(202, root_child0_child0_child2.Layout.PositionLeft);
-        Assert.Equal(0, root_child0_child0_child2.Layout.PositionTop);
-        Assert.Equal(98, root_child0_child0_child2.Layout.Width);
-        Assert.Equal(197, root_child0_child0_child2.Layout.Height);
+        Assert.Equal(202, root_child0_child0_child2.ComputedLeft);
+        Assert.Equal(0, root_child0_child0_child2.ComputedTop);
+        Assert.Equal(98, root_child0_child0_child2.ComputedWidth);
+        Assert.Equal(197, root_child0_child0_child2.ComputedHeight);
 
-        Assert.Equal(0, root_child0_child0_child2_child0.Layout.PositionLeft);
-        Assert.Equal(0, root_child0_child0_child2_child0.Layout.PositionTop);
-        Assert.Equal(98, root_child0_child0_child2_child0.Layout.Width);
-        Assert.Equal(197, root_child0_child0_child2_child0.Layout.Height);
+        Assert.Equal(0, root_child0_child0_child2_child0.ComputedLeft);
+        Assert.Equal(0, root_child0_child0_child2_child0.ComputedTop);
+        Assert.Equal(98, root_child0_child0_child2_child0.ComputedWidth);
+        Assert.Equal(197, root_child0_child0_child2_child0.ComputedHeight);
 
-        Assert.Equal(0, root_child0_child0_child2_child0_child0.Layout.PositionLeft);
-        Assert.Equal(0, root_child0_child0_child2_child0_child0.Layout.PositionTop);
-        Assert.Equal(5, root_child0_child0_child2_child0_child0.Layout.Width);
-        Assert.Equal(0, root_child0_child0_child2_child0_child0.Layout.Height);
+        Assert.Equal(0, root_child0_child0_child2_child0_child0.ComputedLeft);
+        Assert.Equal(0, root_child0_child0_child2_child0_child0.ComputedTop);
+        Assert.Equal(5, root_child0_child0_child2_child0_child0.ComputedWidth);
+        Assert.Equal(0, root_child0_child0_child2_child0_child0.ComputedHeight);
 
-        Assert.Equal(0, root_child0_child0_child2_child0_child1.Layout.PositionLeft);
-        Assert.Equal(0, root_child0_child0_child2_child0_child1.Layout.PositionTop);
-        Assert.Equal(98, root_child0_child0_child2_child0_child1.Layout.Width);
-        Assert.Equal(197, root_child0_child0_child2_child0_child1.Layout.Height);
+        Assert.Equal(0, root_child0_child0_child2_child0_child1.ComputedLeft);
+        Assert.Equal(0, root_child0_child0_child2_child0_child1.ComputedTop);
+        Assert.Equal(98, root_child0_child0_child2_child0_child1.ComputedWidth);
+        Assert.Equal(197, root_child0_child0_child2_child0_child1.ComputedHeight);
 
         root.CalculateLayout(float.NaN, float.NaN, Direction.RTL);
 
-        Assert.Equal(0, root.Layout.PositionLeft);
-        Assert.Equal(0, root.Layout.PositionTop);
-        Assert.Equal(300, root.Layout.Width);
-        Assert.Equal(300, root.Layout.Height);
+        Assert.Equal(0, root.ComputedLeft);
+        Assert.Equal(0, root.ComputedTop);
+        Assert.Equal(300, root.ComputedWidth);
+        Assert.Equal(300, root.ComputedHeight);
 
-        Assert.Equal(0, root_child0.Layout.PositionLeft);
-        Assert.Equal(0, root_child0.Layout.PositionTop);
-        Assert.Equal(300, root_child0.Layout.Width);
-        Assert.Equal(300, root_child0.Layout.Height);
+        Assert.Equal(0, root_child0.ComputedLeft);
+        Assert.Equal(0, root_child0.ComputedTop);
+        Assert.Equal(300, root_child0.ComputedWidth);
+        Assert.Equal(300, root_child0.ComputedHeight);
 
-        Assert.Equal(0, root_child0_child0.Layout.PositionLeft);
-        Assert.Equal(0, root_child0_child0.Layout.PositionTop);
-        Assert.Equal(300, root_child0_child0.Layout.Width);
-        Assert.Equal(197, root_child0_child0.Layout.Height);
+        Assert.Equal(0, root_child0_child0.ComputedLeft);
+        Assert.Equal(0, root_child0_child0.ComputedTop);
+        Assert.Equal(300, root_child0_child0.ComputedWidth);
+        Assert.Equal(197, root_child0_child0.ComputedHeight);
 
-        Assert.Equal(103, root_child0_child0_child0.Layout.PositionLeft);
-        Assert.Equal(0, root_child0_child0_child0.Layout.PositionTop);
-        Assert.Equal(197, root_child0_child0_child0.Layout.Width);
-        Assert.Equal(197, root_child0_child0_child0.Layout.Height);
+        Assert.Equal(103, root_child0_child0_child0.ComputedLeft);
+        Assert.Equal(0, root_child0_child0_child0.ComputedTop);
+        Assert.Equal(197, root_child0_child0_child0.ComputedWidth);
+        Assert.Equal(197, root_child0_child0_child0.ComputedHeight);
 
-        Assert.Equal(98, root_child0_child0_child1.Layout.PositionLeft);
-        Assert.Equal(0, root_child0_child0_child1.Layout.PositionTop);
-        Assert.Equal(5, root_child0_child0_child1.Layout.Width);
-        Assert.Equal(197, root_child0_child0_child1.Layout.Height);
+        Assert.Equal(98, root_child0_child0_child1.ComputedLeft);
+        Assert.Equal(0, root_child0_child0_child1.ComputedTop);
+        Assert.Equal(5, root_child0_child0_child1.ComputedWidth);
+        Assert.Equal(197, root_child0_child0_child1.ComputedHeight);
 
-        Assert.Equal(0, root_child0_child0_child2.Layout.PositionLeft);
-        Assert.Equal(0, root_child0_child0_child2.Layout.PositionTop);
-        Assert.Equal(98, root_child0_child0_child2.Layout.Width);
-        Assert.Equal(197, root_child0_child0_child2.Layout.Height);
+        Assert.Equal(0, root_child0_child0_child2.ComputedLeft);
+        Assert.Equal(0, root_child0_child0_child2.ComputedTop);
+        Assert.Equal(98, root_child0_child0_child2.ComputedWidth);
+        Assert.Equal(197, root_child0_child0_child2.ComputedHeight);
 
-        Assert.Equal(0, root_child0_child0_child2_child0.Layout.PositionLeft);
-        Assert.Equal(0, root_child0_child0_child2_child0.Layout.PositionTop);
-        Assert.Equal(98, root_child0_child0_child2_child0.Layout.Width);
-        Assert.Equal(197, root_child0_child0_child2_child0.Layout.Height);
+        Assert.Equal(0, root_child0_child0_child2_child0.ComputedLeft);
+        Assert.Equal(0, root_child0_child0_child2_child0.ComputedTop);
+        Assert.Equal(98, root_child0_child0_child2_child0.ComputedWidth);
+        Assert.Equal(197, root_child0_child0_child2_child0.ComputedHeight);
 
-        Assert.Equal(93, root_child0_child0_child2_child0_child0.Layout.PositionLeft);
-        Assert.Equal(0, root_child0_child0_child2_child0_child0.Layout.PositionTop);
-        Assert.Equal(5, root_child0_child0_child2_child0_child0.Layout.Width);
-        Assert.Equal(0, root_child0_child0_child2_child0_child0.Layout.Height);
+        Assert.Equal(93, root_child0_child0_child2_child0_child0.ComputedLeft);
+        Assert.Equal(0, root_child0_child0_child2_child0_child0.ComputedTop);
+        Assert.Equal(5, root_child0_child0_child2_child0_child0.ComputedWidth);
+        Assert.Equal(0, root_child0_child0_child2_child0_child0.ComputedHeight);
 
-        Assert.Equal(0, root_child0_child0_child2_child0_child1.Layout.PositionLeft);
-        Assert.Equal(0, root_child0_child0_child2_child0_child1.Layout.PositionTop);
-        Assert.Equal(98, root_child0_child0_child2_child0_child1.Layout.Width);
-        Assert.Equal(197, root_child0_child0_child2_child0_child1.Layout.Height);
+        Assert.Equal(0, root_child0_child0_child2_child0_child1.ComputedLeft);
+        Assert.Equal(0, root_child0_child0_child2_child0_child1.ComputedTop);
+        Assert.Equal(98, root_child0_child0_child2_child0_child1.ComputedWidth);
+        Assert.Equal(197, root_child0_child0_child2_child0_child1.ComputedHeight);
     }
 
     [Fact]
@@ -198,27 +198,27 @@ public class AspectRatioTest
         root.Insert(0, root_child0);
         root.CalculateLayout(float.NaN, float.NaN, Direction.LTR);
 
-        Assert.Equal(0, root.Layout.PositionLeft);
-        Assert.Equal(0, root.Layout.PositionTop);
-        Assert.Equal(300, root.Layout.Width);
-        Assert.Equal(300, root.Layout.Height);
+        Assert.Equal(0, root.ComputedLeft);
+        Assert.Equal(0, root.ComputedTop);
+        Assert.Equal(300, root.ComputedWidth);
+        Assert.Equal(300, root.ComputedHeight);
 
-        Assert.Equal(0, root_child0.Layout.PositionLeft);
-        Assert.Equal(0, root_child0.Layout.PositionTop);
-        Assert.Equal(50, root_child0.Layout.Width);
-        Assert.Equal(0, root_child0.Layout.Height);
+        Assert.Equal(0, root_child0.ComputedLeft);
+        Assert.Equal(0, root_child0.ComputedTop);
+        Assert.Equal(50, root_child0.ComputedWidth);
+        Assert.Equal(0, root_child0.ComputedHeight);
 
         root.CalculateLayout(float.NaN, float.NaN, Direction.RTL);
 
-        Assert.Equal(0, root.Layout.PositionLeft);
-        Assert.Equal(0, root.Layout.PositionTop);
-        Assert.Equal(300, root.Layout.Width);
-        Assert.Equal(300, root.Layout.Height);
+        Assert.Equal(0, root.ComputedLeft);
+        Assert.Equal(0, root.ComputedTop);
+        Assert.Equal(300, root.ComputedWidth);
+        Assert.Equal(300, root.ComputedHeight);
 
-        Assert.Equal(250, root_child0.Layout.PositionLeft);
-        Assert.Equal(0, root_child0.Layout.PositionTop);
-        Assert.Equal(50, root_child0.Layout.Width);
-        Assert.Equal(0, root_child0.Layout.Height);
+        Assert.Equal(250, root_child0.ComputedLeft);
+        Assert.Equal(0, root_child0.ComputedTop);
+        Assert.Equal(50, root_child0.ComputedWidth);
+        Assert.Equal(0, root_child0.ComputedHeight);
     }
 
 }

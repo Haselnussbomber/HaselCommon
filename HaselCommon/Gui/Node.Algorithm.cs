@@ -1,4 +1,3 @@
-using HaselCommon.Extensions;
 using HaselCommon.Gui.Enums;
 using HaselCommon.Gui.Extensions;
 
@@ -13,6 +12,7 @@ public partial class Node
     private int _lineIndex;
     private StyleLength _resolvedWidth = StyleLength.Undefined;
     private StyleLength _resolvedHeight = StyleLength.Undefined;
+    private LayoutResults _layout = new();
 
     /// <summary>
     /// Whether a leaf node's layout results may be truncated during layout rounding.
@@ -50,23 +50,23 @@ public partial class Node
         set
         {
             // C# port: This is skipped when the layout hasn't been generated yet, to allow setting the property on construction.
-            if (Layout.GenerationCount != 0 && _config.UseWebDefaults != value.UseWebDefaults)
+            if (_layout.GenerationCount != 0 && _config.UseWebDefaults != value.UseWebDefaults)
                 throw new Exception("UseWebDefaults may not be changed after constructing a Node");
 
             if (Config.UpdateInvalidatesLayout(_config, value))
             {
                 MarkDirtyAndPropagate();
-                Layout.ConfigVersion = 0;
+                _layout.ConfigVersion = 0;
             }
             else
             {
                 // If the config is functionally the same, then align the configVersion so
                 // that we can reuse the layout cache
-                Layout.ConfigVersion = value.Version;
+                _layout.ConfigVersion = value.Version;
             }
 
             // C# port: This is processed here when the layout hasn't been generated yet, to allow setting the property on construction.
-            if (Layout.GenerationCount == 0 && value.UseWebDefaults)
+            if (_layout.GenerationCount == 0 && value.UseWebDefaults)
             {
                 FlexDirection = FlexDirection.Row;
                 AlignContent = Align.Stretch;
@@ -75,8 +75,6 @@ public partial class Node
             _config = value;
         }
     }
-
-    public LayoutResults Layout { get; private set; } = new();
 
     /// <summary>
     /// Whether the given node may have new layout results. Must be reset by setting it to false.
@@ -110,12 +108,12 @@ public partial class Node
 
     private float DimensionWithMargin(FlexDirection axis, float widthSize)
     {
-        return Layout.GetMeasuredDimension(axis.Dimension()) + ComputeMarginForAxis(axis, widthSize);
+        return _layout.GetMeasuredDimension(axis.Dimension()) + ComputeMarginForAxis(axis, widthSize);
     }
 
     private bool IsLayoutDimensionDefined(FlexDirection axis)
     {
-        var value = Layout.GetMeasuredDimension(axis.Dimension());
+        var value = _layout.GetMeasuredDimension(axis.Dimension());
         return !float.IsNaN(value) && value >= 0.0f;
     }
 
@@ -177,10 +175,10 @@ public partial class Node
         var crossAxisLeadingEdge = crossAxis.InlineStartEdge(direction);
         var crossAxisTrailingEdge = crossAxis.InlineEndEdge(direction);
 
-        Layout.SetPosition(ComputeInlineStartMargin(mainAxis, direction, ownerWidth) + relativePositionMain, mainAxisLeadingEdge);
-        Layout.SetPosition(ComputeInlineEndMargin(mainAxis, direction, ownerWidth) + relativePositionMain, mainAxisTrailingEdge);
-        Layout.SetPosition(ComputeInlineStartMargin(crossAxis, direction, ownerWidth) + relativePositionCross, crossAxisLeadingEdge);
-        Layout.SetPosition(ComputeInlineEndMargin(crossAxis, direction, ownerWidth) + relativePositionCross, crossAxisTrailingEdge);
+        _layout.SetPosition(ComputeInlineStartMargin(mainAxis, direction, ownerWidth) + relativePositionMain, mainAxisLeadingEdge);
+        _layout.SetPosition(ComputeInlineEndMargin(mainAxis, direction, ownerWidth) + relativePositionMain, mainAxisTrailingEdge);
+        _layout.SetPosition(ComputeInlineStartMargin(crossAxis, direction, ownerWidth) + relativePositionCross, crossAxisLeadingEdge);
+        _layout.SetPosition(ComputeInlineEndMargin(crossAxis, direction, ownerWidth) + relativePositionCross, crossAxisTrailingEdge);
     }
 
     private void ResolveDimension()
@@ -217,7 +215,7 @@ public partial class Node
         if (!IsDirty)
         {
             _isDirty = true;
-            Layout.ComputedFlexBasis = float.NaN;
+            _layout.ComputedFlexBasis = float.NaN;
             Parent?.MarkDirtyAndPropagate();
         }
     }

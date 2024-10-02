@@ -12,8 +12,8 @@ public partial class Node
         if (HasBaselineFunc)
         {
             baseline = Baseline(
-                Layout.GetMeasuredDimension(Dimension.Width),
-                Layout.GetMeasuredDimension(Dimension.Height));
+                _layout.GetMeasuredDimension(Dimension.Width),
+                _layout.GetMeasuredDimension(Dimension.Height));
 
             if (float.IsNaN(baseline))
                 throw new Exception("Expect custom baseline function to not return NaN");
@@ -46,11 +46,11 @@ public partial class Node
 
         if (baselineChild == null)
         {
-            return Layout.GetMeasuredDimension(Dimension.Height);
+            return _layout.GetMeasuredDimension(Dimension.Height);
         }
 
         baseline = baselineChild.CalculateBaseline();
-        return baseline + baselineChild.Layout.GetPosition(PhysicalEdge.Top);
+        return baseline + baselineChild._layout.GetPosition(PhysicalEdge.Top);
     }
 
     private bool IsBaselineLayout()

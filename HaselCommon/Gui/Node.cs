@@ -44,7 +44,9 @@ public partial class Node : IDisposable
     {
         using var id = ImRaii.PushId(Guid.ToString());
 
-        ImGui.SetCursorPos(AbsolutePosition + new Vector2(Layout.BorderLeft + Layout.PaddingLeft, Layout.BorderTop + Layout.PaddingTop));
+        ImGui.SetCursorPos(AbsolutePosition + new Vector2(
+            ComputedBorderLeft + ComputedPaddingLeft,
+            ComputedBorderTop + ComputedPaddingTop));
 
         DrawDebugBorder();
         DrawContent();

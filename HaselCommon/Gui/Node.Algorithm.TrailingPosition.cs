@@ -10,14 +10,14 @@ public partial class Node
     // this point.
     private static float GetPositionOfOppositeEdge(float position, FlexDirection axis, Node containingNode, Node node)
     {
-        return containingNode.Layout.GetMeasuredDimension(axis.Dimension()) -
-            node.Layout.GetMeasuredDimension(axis.Dimension()) - position;
+        return containingNode._layout.GetMeasuredDimension(axis.Dimension()) -
+            node._layout.GetMeasuredDimension(axis.Dimension()) - position;
     }
 
     private static void SetChildTrailingPosition(Node node, Node child, FlexDirection axis)
     {
-        child.Layout.SetPosition(
-            GetPositionOfOppositeEdge(child.Layout.GetPosition(axis.FlexStartEdge()), axis, node, child),
+        child._layout.SetPosition(
+            GetPositionOfOppositeEdge(child._layout.GetPosition(axis.FlexStartEdge()), axis, node, child),
             axis.FlexEndEdge());
     }
 }

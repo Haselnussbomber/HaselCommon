@@ -68,6 +68,5 @@
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.0" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
-    <PackageReference Include="PropertyChanged.SourceGenerator" Version="1.1.0" PrivateAssets="All" />
   </ItemGroup>
 </Project>

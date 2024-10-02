@@ -69,11 +69,11 @@ public partial class Node
     {
         var pointScaleFactor = Config.PointScaleFactor;
 
-        var nodeLeft = Layout.PositionLeft;
-        var nodeTop = Layout.PositionTop;
+        var nodeLeft = _layout.GetPosition(PhysicalEdge.Left);
+        var nodeTop = _layout.GetPosition(PhysicalEdge.Top);
 
-        var nodeWidth = Layout.Width;
-        var nodeHeight = Layout.Height;
+        var nodeWidth = _layout.GetDimension(Dimension.Width);
+        var nodeHeight = _layout.GetDimension(Dimension.Height);
 
         var absoluteNodeLeft = absoluteLeft + nodeLeft;
         var absoluteNodeTop = absoluteTop + nodeTop;
@@ -87,8 +87,8 @@ public partial class Node
             // size as this could lead to unwanted text truncation.
             var textRounding = NodeType == NodeType.Text;
 
-            Layout.SetPosition(RoundValueToPixelGrid(nodeLeft, pointScaleFactor, false, textRounding), PhysicalEdge.Left);
-            Layout.SetPosition(RoundValueToPixelGrid(nodeTop, pointScaleFactor, false, textRounding), PhysicalEdge.Top);
+            _layout.SetPosition(RoundValueToPixelGrid(nodeLeft, pointScaleFactor, false, textRounding), PhysicalEdge.Left);
+            _layout.SetPosition(RoundValueToPixelGrid(nodeTop, pointScaleFactor, false, textRounding), PhysicalEdge.Top);
 
             // We multiply dimension by scale factor and if the result is close to the
             // whole number, we don't have any fraction To verify if the result is close
@@ -100,7 +100,7 @@ public partial class Node
                 !(nodeHeight * pointScaleFactor % 1.0f).IsApproximately(0f) &&
                 !(nodeHeight * pointScaleFactor % 1.0f).IsApproximately(1.0f);
 
-            Layout.SetDimension(
+            _layout.SetDimension(
                 RoundValueToPixelGrid(
                     absoluteNodeRight,
                     pointScaleFactor,
@@ -109,7 +109,7 @@ public partial class Node
                     RoundValueToPixelGrid(absoluteNodeLeft, pointScaleFactor, false, textRounding),
                 Dimension.Width);
 
-            Layout.SetDimension(
+            _layout.SetDimension(
                 RoundValueToPixelGrid(
                     absoluteNodeBottom,
                     pointScaleFactor,

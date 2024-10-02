@@ -10,7 +10,7 @@ public class StyleTest
     {
         using var node = new Node()
         {
-            Padding = -1.0f
+            PaddingAll = -1.0f
         };
         var paddingStart = node.ComputeInlineStartPadding(FlexDirection.Row, Direction.LTR, 0.0f /*widthSize*/);
         Assert.Equal(0.0f, paddingStart);
@@ -21,7 +21,7 @@ public class StyleTest
     {
         using var node = new Node()
         {
-            Border = -1.0f
+            BorderAll = -1.0f
         };
         var borderStart = node.ComputeInlineStartBorder(FlexDirection.Row, Direction.LTR);
         Assert.Equal(0.0f, borderStart);
@@ -43,7 +43,7 @@ public class StyleTest
     {
         using var node = new Node()
         {
-            Margin = -1.0f
+            MarginAll = -1.0f
         };
         var marginStart = node.ComputeInlineStartMargin(FlexDirection.Row, Direction.LTR, 0.0f /*widthSize*/);
         Assert.Equal(-1.0f, marginStart);

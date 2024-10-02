@@ -213,26 +213,26 @@ public class DirtyMarkingTest
         child0.Display = Display.Flex;
         child1.Display = Display.None;
         root.CalculateLayout(float.NaN, float.NaN, Direction.LTR);
-        Assert.Equal(0, child1_child0_child0.Layout.Width);
-        Assert.Equal(0, child1_child0_child0.Layout.Height);
+        Assert.Equal(0, child1_child0_child0.ComputedWidth);
+        Assert.Equal(0, child1_child0_child0.ComputedHeight);
 
         child0.Display = Display.None;
         child1.Display = Display.Flex;
         root.CalculateLayout(float.NaN, float.NaN, Direction.LTR);
-        Assert.Equal(8, child1_child0_child0.Layout.Width);
-        Assert.Equal(16, child1_child0_child0.Layout.Height);
+        Assert.Equal(8, child1_child0_child0.ComputedWidth);
+        Assert.Equal(16, child1_child0_child0.ComputedHeight);
 
         child0.Display = Display.Flex;
         child1.Display = Display.None;
         root.CalculateLayout(float.NaN, float.NaN, Direction.LTR);
-        Assert.Equal(0, child1_child0_child0.Layout.Width);
-        Assert.Equal(0, child1_child0_child0.Layout.Height);
+        Assert.Equal(0, child1_child0_child0.ComputedWidth);
+        Assert.Equal(0, child1_child0_child0.ComputedHeight);
 
         child0.Display = Display.None;
         child1.Display = Display.Flex;
         root.CalculateLayout(float.NaN, float.NaN, Direction.LTR);
-        Assert.Equal(8, child1_child0_child0.Layout.Width);
-        Assert.Equal(16, child1_child0_child0.Layout.Height);
+        Assert.Equal(8, child1_child0_child0.ComputedWidth);
+        Assert.Equal(16, child1_child0_child0.ComputedHeight);
     }
 
     [Fact]

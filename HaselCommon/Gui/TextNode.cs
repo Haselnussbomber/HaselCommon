@@ -4,7 +4,6 @@ using Dalamud.Interface.ImGuiSeStringRenderer;
 using Dalamud.Interface.Utility;
 using HaselCommon.Gui.Enums;
 using Lumina.Text.ReadOnly;
-using PropertyChanged.SourceGenerator;
 
 namespace HaselCommon.Gui;
 
@@ -13,7 +12,19 @@ namespace HaselCommon.Gui;
 [DebuggerDisplay("Guid: {Guid.ToString()} | Text: {_text.ExtractText()}")]
 public partial class TextNode : Node
 {
-    [Notify] private ReadOnlySeString _text;
+    private ReadOnlySeString _text;
+    public ReadOnlySeString Text
+    {
+        get => _text;
+        set
+        {
+            if (_text != value)
+            {
+                _text = value;
+                IsDirty = true;
+            }
+        }
+    }
 
     public override string TagName => "#text";
     public override string DebugNodeOpenTag => $"{_text.ExtractText().Replace("\n", "")}";
@@ -31,6 +42,6 @@ public partial class TextNode : Node
 
     public override void DrawContent()
     {
-        ImGuiHelpers.SeStringWrapped(_text, new SeStringDrawParams() { WrapWidth = Layout.Width });
+        ImGuiHelpers.SeStringWrapped(_text, new SeStringDrawParams() { WrapWidth = ComputedWidth });
     }
 }

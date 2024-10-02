@@ -18,7 +18,7 @@ public partial class Node : IDisposable
         if (_isDebugHovered)
         {
             var pos = ImGui.GetWindowPos() + AbsolutePosition;
-            var size = new Vector2(Layout.Width, Layout.Height);
+            var size = new Vector2(ComputedWidth, ComputedHeight);
 
             ImGui.GetForegroundDrawList().AddRect(pos, pos + size, 0xFF0000FF);
 

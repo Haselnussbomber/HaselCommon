@@ -7,19 +7,19 @@ public partial class Node
 {
     private static void SetFlexStartLayoutPosition(Node parent, Node child, Direction direction, FlexDirection axis, float containingBlockWidth)
     {
-        child.Layout.SetPosition(
+        child._layout.SetPosition(
               child.ComputeFlexStartMargin(axis, direction, containingBlockWidth) +
-                parent.Layout.GetBorder(axis.FlexStartEdge()) +
-                parent.Layout.GetPadding(axis.FlexStartEdge()),
+                parent._layout.GetBorder(axis.FlexStartEdge()) +
+                parent._layout.GetPadding(axis.FlexStartEdge()),
             axis.FlexStartEdge());
     }
 
     private static void SetFlexEndLayoutPosition(Node parent, Node child, Direction direction, FlexDirection axis, float containingBlockWidth)
     {
-        child.Layout.SetPosition(
+        child._layout.SetPosition(
             GetPositionOfOppositeEdge(
-                parent.Layout.GetBorder(axis.FlexEndEdge()) +
-                    parent.Layout.GetPadding(axis.FlexEndEdge()) +
+                parent._layout.GetBorder(axis.FlexEndEdge()) +
+                    parent._layout.GetPadding(axis.FlexEndEdge()) +
                     child.ComputeFlexEndMargin(axis, direction, containingBlockWidth),
                 axis,
                 parent,
@@ -30,20 +30,20 @@ public partial class Node
     private static void SetCenterLayoutPosition(Node parent, Node child, Direction direction, FlexDirection axis, float containingBlockWidth)
     {
         var parentContentBoxSize =
-            parent.Layout.GetMeasuredDimension(axis.Dimension()) -
-            parent.Layout.GetBorder(axis.FlexStartEdge()) -
-            parent.Layout.GetBorder(axis.FlexEndEdge()) -
-            parent.Layout.GetPadding(axis.FlexStartEdge()) -
-            parent.Layout.GetPadding(axis.FlexEndEdge());
+            parent._layout.GetMeasuredDimension(axis.Dimension()) -
+            parent._layout.GetBorder(axis.FlexStartEdge()) -
+            parent._layout.GetBorder(axis.FlexEndEdge()) -
+            parent._layout.GetPadding(axis.FlexStartEdge()) -
+            parent._layout.GetPadding(axis.FlexEndEdge());
 
         var childOuterSize =
-            child.Layout.GetMeasuredDimension(axis.Dimension()) +
+            child._layout.GetMeasuredDimension(axis.Dimension()) +
             child.ComputeMarginForAxis(axis, containingBlockWidth);
 
-        child.Layout.SetPosition(
+        child._layout.SetPosition(
             (parentContentBoxSize - childOuterSize) / 2.0f +
-              parent.Layout.GetBorder(axis.FlexStartEdge()) +
-              parent.Layout.GetPadding(axis.FlexStartEdge()) +
+              parent._layout.GetBorder(axis.FlexStartEdge()) +
+              parent._layout.GetPadding(axis.FlexStartEdge()) +
               child.ComputeFlexStartMargin(
                   axis, direction, containingBlockWidth),
           axis.FlexStartEdge());
@@ -130,9 +130,9 @@ public partial class Node
             (!child.IsFlexStartPositionDefined(axis, direction) ||
              child.IsFlexStartPositionAuto(axis, direction)))
         {
-            child.Layout.SetPosition(
-                containingNode.Layout.GetMeasuredDimension(axis.Dimension()) -
-                    child.Layout.GetMeasuredDimension(axis.Dimension()) -
+            child._layout.SetPosition(
+                containingNode._layout.GetMeasuredDimension(axis.Dimension()) -
+                    child._layout.GetMeasuredDimension(axis.Dimension()) -
                     containingNode.ComputeFlexEndBorder(axis, direction) -
                     child.ComputeFlexEndMargin(
                         axis,
@@ -149,9 +149,9 @@ public partial class Node
              child.IsFlexStartPositionAuto(axis, direction)) &&
             shouldCenter)
         {
-            child.Layout.SetPosition(
-                (parent.Layout.GetMeasuredDimension(axis.Dimension()) -
-                 child.Layout.GetMeasuredDimension(axis.Dimension())) /
+            child._layout.SetPosition(
+                (parent._layout.GetMeasuredDimension(axis.Dimension()) -
+                 child._layout.GetMeasuredDimension(axis.Dimension())) /
                     2.0f,
                 axis.FlexStartEdge());
         }
@@ -160,9 +160,9 @@ public partial class Node
              child.IsFlexStartPositionAuto(axis, direction)) &&
             shouldFlexEnd)
         {
-            child.Layout.SetPosition(
-                parent.Layout.GetMeasuredDimension(axis.Dimension()) -
-                 child.Layout.GetMeasuredDimension(axis.Dimension()),
+            child._layout.SetPosition(
+                parent._layout.GetMeasuredDimension(axis.Dimension()) -
+                 child._layout.GetMeasuredDimension(axis.Dimension()),
                 axis.FlexStartEdge());
         }
     }
@@ -219,15 +219,15 @@ public partial class Node
                 ? GetPositionOfOppositeEdge(positionRelativeToInlineStart, axis, containingNode, child)
                 : positionRelativeToInlineStart;
 
-            child.Layout.SetPosition(positionRelativeToFlexStart, axis.FlexStartEdge());
+            child._layout.SetPosition(positionRelativeToFlexStart, axis.FlexStartEdge());
         }
         else if (
             child.IsInlineEndPositionDefined(axis, direction) &&
             !child.IsInlineEndPositionAuto(axis, direction))
         {
             var positionRelativeToInlineStart =
-                containingNode.Layout.GetMeasuredDimension(axis.Dimension()) -
-                child.Layout.GetMeasuredDimension(axis.Dimension()) -
+                containingNode._layout.GetMeasuredDimension(axis.Dimension()) -
+                child._layout.GetMeasuredDimension(axis.Dimension()) -
                 containingNode.ComputeInlineEndBorder(axis, direction) -
                 child.ComputeInlineEndMargin(
                     axis, direction, containingBlockSize) -
@@ -238,7 +238,7 @@ public partial class Node
                 ? GetPositionOfOppositeEdge(positionRelativeToInlineStart, axis, containingNode, child)
                 : positionRelativeToInlineStart;
 
-            child.Layout.SetPosition(positionRelativeToFlexStart, axis.FlexStartEdge());
+            child._layout.SetPosition(positionRelativeToFlexStart, axis.FlexStartEdge());
         }
         else
         {
@@ -325,7 +325,7 @@ public partial class Node
                 !child.IsFlexEndPositionAuto(FlexDirection.Row, direction))
             {
                 childWidth =
-                    containingNode.Layout.GetMeasuredDimension(Dimension.Width) -
+                    containingNode._layout.GetMeasuredDimension(Dimension.Width) -
                     (containingNode.ComputeFlexStartBorder(FlexDirection.Row, direction) +
                      containingNode.ComputeFlexEndBorder(FlexDirection.Row, direction)) -
                     (child.ComputeFlexStartPosition(FlexDirection.Row, direction, containingBlockWidth) +
@@ -354,7 +354,7 @@ public partial class Node
                 !child.IsFlexEndPositionAuto(FlexDirection.Column, direction))
             {
                 childHeight =
-                    containingNode.Layout.GetMeasuredDimension(Dimension.Height) -
+                    containingNode._layout.GetMeasuredDimension(Dimension.Height) -
                     (containingNode.ComputeFlexStartBorder(FlexDirection.Column, direction) +
                      containingNode.ComputeFlexEndBorder(FlexDirection.Column, direction)) -
                     (child.ComputeFlexStartPosition(FlexDirection.Column, direction, containingBlockHeight) +
@@ -422,10 +422,10 @@ public partial class Node
                 depth,
                 generationCount);
 
-            childWidth = child.Layout.GetMeasuredDimension(Dimension.Width) +
+            childWidth = child._layout.GetMeasuredDimension(Dimension.Width) +
                 child.ComputeMarginForAxis(FlexDirection.Row, containingBlockWidth);
 
-            childHeight = child.Layout.GetMeasuredDimension(Dimension.Height) +
+            childHeight = child._layout.GetMeasuredDimension(Dimension.Height) +
                 child.ComputeMarginForAxis(FlexDirection.Column, containingBlockWidth);
         }
 
@@ -488,11 +488,11 @@ public partial class Node
                 var absoluteErrata = currentNode.Config.Errata.HasFlag(Errata.AbsolutePercentAgainstInnerSize);
                 var containingBlockWidth = absoluteErrata
                     ? containingNodeAvailableInnerWidth
-                    : containingNode.Layout.GetMeasuredDimension(Dimension.Width) -
+                    : containingNode._layout.GetMeasuredDimension(Dimension.Width) -
                         containingNode.ComputeBorderForAxis(FlexDirection.Row);
                 var containingBlockHeight = absoluteErrata
                     ? containingNodeAvailableInnerHeight
-                    : containingNode.Layout.GetMeasuredDimension(Dimension.Height) -
+                    : containingNode._layout.GetMeasuredDimension(Dimension.Height) -
                         containingNode.ComputeBorderForAxis(FlexDirection.Column);
 
                 LayoutAbsoluteChild(
@@ -549,9 +549,9 @@ public partial class Node
                  * are defined
                  */
                 var childLeftPosition =
-                    child.Layout.GetPosition(PhysicalEdge.Left);
+                    child._layout.GetPosition(PhysicalEdge.Left);
                 var childTopPosition =
-                    child.Layout.GetPosition(PhysicalEdge.Top);
+                    child._layout.GetPosition(PhysicalEdge.Top);
 
                 var childLeftOffsetFromParent =
                     child.HorizontalInsetsDefined()
@@ -562,8 +562,8 @@ public partial class Node
                     ? (childTopPosition - currentNodeTopOffsetFromContainingBlock)
                     : childTopPosition;
 
-                child.Layout.SetPosition(childLeftOffsetFromParent, PhysicalEdge.Left);
-                child.Layout.SetPosition(childTopOffsetFromParent, PhysicalEdge.Top);
+                child._layout.SetPosition(childLeftOffsetFromParent, PhysicalEdge.Left);
+                child._layout.SetPosition(childTopOffsetFromParent, PhysicalEdge.Top);
             }
             else if (
                 child.PositionType == PositionType.Static &&
@@ -581,10 +581,10 @@ public partial class Node
                 // will have their positions set for left and top.
                 var childLeftOffsetFromContainingBlock =
                     currentNodeLeftOffsetFromContainingBlock +
-                    child.Layout.GetPosition(PhysicalEdge.Left);
+                    child._layout.GetPosition(PhysicalEdge.Left);
                 var childTopOffsetFromContainingBlock =
                     currentNodeTopOffsetFromContainingBlock +
-                    child.Layout.GetPosition(PhysicalEdge.Top);
+                    child._layout.GetPosition(PhysicalEdge.Top);
 
                 hasNewLayout = LayoutAbsoluteDescendants(
                     containingNode,

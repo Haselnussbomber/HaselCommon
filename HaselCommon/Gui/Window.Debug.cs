@@ -83,32 +83,26 @@ public partial class Window
         "AspectRatio",
     ];
     private static readonly string[] DebugLayoutNames = [
-        "ConfigVersion",
-        "GenerationCount",
         "Direction",
         "HadOverflow",
-        "AbsoluteTop",
-        "AbsoluteLeft",
-        "Width",
-        "Height",
-        "MeasuredWidth",
-        "MeasuredHeight",
-        "PositionTop",
-        "PositionBottom",
-        "PositionLeft",
-        "PositionRight",
-        "MarginTop",
-        "MarginBottom",
-        "MarginLeft",
-        "MarginRight",
-        "BorderTop",
-        "BorderBottom",
-        "BorderLeft",
-        "BorderRight",
-        "PaddingTop",
-        "PaddingBottom",
-        "PaddingLeft",
-        "PaddingRight",
+        "ComputedWidth",
+        "ComputedHeight",
+        "ComputedTop",
+        "ComputedBottom",
+        "ComputedLeft",
+        "ComputedRight",
+        "ComputedMarginTop",
+        "ComputedMarginBottom",
+        "ComputedMarginLeft",
+        "ComputedMarginRight",
+        "ComputedBorderTop",
+        "ComputedBorderBottom",
+        "ComputedBorderLeft",
+        "ComputedBorderRight",
+        "ComputedPaddingTop",
+        "ComputedPaddingBottom",
+        "ComputedPaddingLeft",
+        "ComputedPaddingRight",
     ];
 
     [Conditional("DEBUG")]
@@ -225,6 +219,7 @@ public partial class Window
         if (node == null)
             return;
 
+        var nodeType = node.GetType();
         using var tempNode = new Node() { Config = node.Config };
 
         using var tabs = ImRaii.TabBar("TabBar", ImGuiTabBarFlags.NoCloseWithMiddleMouseButton);
@@ -258,8 +253,6 @@ public partial class Window
         {
             if (tab)
             {
-                var nodeType = node.GetType();
-
                 if (ImGui.Button("Copy Style"))
                     CopyStyleToClipboard(node, tempNode);
 
@@ -276,8 +269,18 @@ public partial class Window
                     foreach (var propertyName in DebugStyleLengthNames)
                     {
                         var propertyInfo = nodeType.GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public);
-                        if (propertyInfo != null)
+                        if (propertyInfo == null)
+                        {
+                            ImGui.TableNextRow();
+                            ImGui.TableNextColumn();
+                            ImGui.TextUnformatted(propertyName);
+                            ImGui.TableNextColumn();
+                            ImGui.TextUnformatted("N/A");
+                        }
+                        else
+                        {
                             PrintStyleRow(node, tempNode, propertyInfo);
+                        }
                     }
                 }
             }
@@ -295,9 +298,19 @@ public partial class Window
 
                     foreach (var propertyName in DebugLayoutNames)
                     {
-                        var propertyInfo = typeof(LayoutResults).GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public);
-                        if (propertyInfo != null)
-                            PrintLayoutRow(node.Layout, propertyInfo);
+                        var propertyInfo = nodeType.GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public);
+                        if (propertyInfo == null)
+                        {
+                            ImGui.TableNextRow();
+                            ImGui.TableNextColumn();
+                            ImGui.TextUnformatted(propertyName);
+                            ImGui.TableNextColumn();
+                            ImGui.TextUnformatted("N/A");
+                        }
+                        else
+                        {
+                            PrintLayoutRow(node, propertyInfo);
+                        }
                     }
                 }
             }
@@ -457,9 +470,9 @@ public partial class Window
         }
     }
 
-    private static void PrintLayoutRow(LayoutResults layoutResults, PropertyInfo propertyInfo)
+    private static void PrintLayoutRow(Node node, PropertyInfo propertyInfo)
     {
-        var value = propertyInfo.GetValue(layoutResults);
+        var value = propertyInfo.GetValue(node);
 
         ImGui.TableNextRow();
         ImGui.TableNextColumn();

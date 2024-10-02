@@ -7,8 +7,14 @@ namespace HaselCommon.Gui;
 
 public struct StyleLength
 {
-    public float Value;
+    private float _value;
     public Unit Unit;
+
+    public float Value
+    {
+        get => (IsUndefined || IsAuto) ? float.NaN : _value;
+        set => _value = value;
+    }
 
     public static StyleLength Undefined
         => new() { Value = float.NaN, Unit = Unit.Undefined };

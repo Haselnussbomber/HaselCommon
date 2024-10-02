@@ -9,9 +9,6 @@ public partial class Node : IList<Node>
 {
     private readonly List<Node> _children = [];
 
-    /// <summary>
-    /// Get the parent node.
-    /// </summary>
     public Node? Parent { get; internal set; }
 
     public List<Node> Children
@@ -203,7 +200,7 @@ public partial class Node : IList<Node>
         // exclusively by one node.
         if (child.Parent == this)
         {
-            child.Layout = new(); // layout is no longer valid
+            child._layout = new(); // layout is no longer valid
             child.Parent = null;
         }
 
@@ -221,7 +218,7 @@ public partial class Node : IList<Node>
     {
         get
         {
-            var position = new Vector2(Layout.PositionLeft, Layout.PositionTop);
+            var position = new Vector2(ComputedLeft, ComputedTop);
 
             if (Parent != null && Parent.Overflow != Enums.Overflow.Scroll)
                 position += Parent.AbsolutePosition;
