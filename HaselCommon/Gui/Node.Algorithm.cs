@@ -91,16 +91,19 @@ public partial class Node
         get => _isDirty;
         set
         {
-            if (value)
+            if (_isDirty != value)
             {
-                if (!HasMeasureFunc)
-                    throw new InvalidOperationException("Only leaf nodes with custom measure functions should manually mark themselves as dirty");
+                if (value)
+                {
+                    if (!HasMeasureFunc)
+                        throw new InvalidOperationException("Only leaf nodes with custom measure functions should manually mark themselves as dirty");
 
-                MarkDirtyAndPropagate();
-            }
-            else
-            {
-                _isDirty = false;
+                    MarkDirtyAndPropagate();
+                }
+                else
+                {
+                    _isDirty = false;
+                }
             }
         }
     }

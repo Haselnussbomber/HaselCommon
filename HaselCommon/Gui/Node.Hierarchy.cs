@@ -157,15 +157,6 @@ public partial class Node : IList<Node>
             Insert(arrayIndex + i, array[i]);
     }
 
-    public void Traverse(Action<Node> callback)
-    {
-        foreach (var child in Children)
-        {
-            callback(child);
-            child.Traverse(callback);
-        }
-    }
-
     public IEnumerator<Node> GetEnumerator() => Children.GetEnumerator();
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 

@@ -1063,10 +1063,6 @@ public partial class Node
         }
     }
 
-    /// <inheritdoc cref="CalculateLayout(float, float, Direction)"/>
-    public void CalculateLayout(Vector2 ownerSize, Direction ownerDirection = Direction.LTR)
-        => CalculateLayout(ownerSize.X, ownerSize.Y, ownerDirection);
-
     /// <summary>
     /// Calculates the layout of the tree rooted at the given node.<br/>
     /// Layout results may be read after calling CalculateLayout using properties
@@ -1075,7 +1071,7 @@ public partial class Node
     /// <see cref="HasNewLayout"/> may be read to know if the layout of the node or its
     /// subtrees may have changed since the last time CalculateLayout was called.
     /// </summary>
-    public void CalculateLayout(float ownerWidth, float ownerHeight, Direction ownerDirection)
+    private void CalculateLayout(float ownerWidth, float ownerHeight, Direction ownerDirection)
     {
         CurrentGenerationCount++;
         ResolveDimension();

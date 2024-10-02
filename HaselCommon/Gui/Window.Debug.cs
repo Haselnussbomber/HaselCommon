@@ -405,7 +405,7 @@ public partial class Window
             }
             return;
         }
-        
+
         if (propertyInfo.PropertyType == typeof(StyleValue) && value is StyleValue styleValue)
         {
             const float UnitWidth = 100f;

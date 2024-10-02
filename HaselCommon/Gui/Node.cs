@@ -35,17 +35,19 @@ public partial class Node : IDisposable
         UpdateContent();
 
         foreach (var child in this)
+        {
             child.Update();
+        }
+    }
+
+    public void CalculateLayout(Vector2 ownerSize, Direction ownerDirection = Direction.LTR)
+    {
+        CalculateLayout(ownerSize.X, ownerSize.Y, ownerDirection);
+        ApplyLayoutRecursive();
     }
 
     public void Draw()
     {
-        if (HasNewLayout)
-        {
-            ApplyLayout();
-            HasNewLayout = false;
-        }
-
         using var id = ImRaii.PushId(Guid.ToString());
 
         ImGui.SetCursorPos(AbsolutePosition + new Vector2(Layout.BorderLeft + Layout.PaddingLeft, Layout.BorderTop + Layout.PaddingTop));
@@ -56,7 +58,9 @@ public partial class Node : IDisposable
         foreach (var child in this)
         {
             if (child.Display != Display.None)
+            {
                 child.Draw();
+            }
         }
     }
 
@@ -105,5 +109,19 @@ public partial class Node : IDisposable
     public virtual void DrawContent()
     {
 
+    }
+
+    private void ApplyLayoutRecursive()
+    {
+        if (HasNewLayout)
+        {
+            ApplyLayout();
+            HasNewLayout = false;
+        }
+
+        foreach (var child in Children)
+        {
+            child.ApplyLayoutRecursive();
+        }
     }
 }
