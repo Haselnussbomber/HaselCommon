@@ -2,7 +2,7 @@ namespace HaselCommon.Extensions;
 
 public static class DoubleExtensions
 {
-    public static bool IsApproximately(this double a, double b, double margin = 0.001f)
+    public static bool IsApproximately(this double a, double b, double margin = 0.0001f)
     {
         var bothNaN = double.IsNaN(a) && double.IsNaN(b);
 

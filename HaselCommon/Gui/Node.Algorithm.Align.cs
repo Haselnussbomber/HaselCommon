@@ -7,11 +7,11 @@ public partial class Node
 {
     private static Align ResolveChildAlignment(Node node, Node child)
     {
-        var align = child.AlignSelf == Align.Auto
-            ? node.AlignItems
-            : child.AlignSelf;
+        var align = child._alignSelf == Align.Auto
+            ? node._alignItems
+            : child._alignSelf;
 
-        if (align == Align.Baseline && node.FlexDirection.IsColumn())
+        if (align == Align.Baseline && node._flexDirection.IsColumn())
         {
             return Align.FlexStart;
         }

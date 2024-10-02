@@ -12,7 +12,7 @@ public struct StyleLength
 
     public float Value
     {
-        get => (IsUndefined || IsAuto) ? float.NaN : _value;
+        get => IsUndefined || IsAuto ? float.NaN : _value;
         set => _value = value;
     }
 
@@ -72,16 +72,6 @@ public struct StyleLength
         };
 
         return float.IsNaN(value) ? defaultValue : value;
-    }
-
-    public float ResolveOrMax(float referenceLength, float minValue)
-    {
-        var value = Resolve(referenceLength);
-
-        if (!float.IsNaN(value) && !float.IsNaN(minValue))
-            return MathF.Max(value, minValue);
-
-        return float.IsNaN(value) ? minValue : value;
     }
 
     public override string ToString()

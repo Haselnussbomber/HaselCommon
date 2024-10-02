@@ -65,29 +65,29 @@ public class RoundingMeasureFuncTest
 
         root.CalculateLayout(float.NaN, float.NaN, Direction.LTR);
 
-        Assert.Equal(11, root_child0.ComputedWidth);
-        Assert.Equal(11, root_child0.ComputedHeight);
+        Assert.Equal(11f, root_child0.ComputedWidth);
+        Assert.Equal(11f, root_child0.ComputedHeight);
 
         config.PointScaleFactor = 2.0f;
 
         root.CalculateLayout(float.NaN, float.NaN, Direction.RTL);
 
-        Assert.Equal(10.5, root_child0.ComputedWidth);
-        Assert.Equal(10.5, root_child0.ComputedHeight);
+        Assert.Equal(10.5f, root_child0.ComputedWidth);
+        Assert.Equal(10.5f, root_child0.ComputedHeight);
 
         config.PointScaleFactor = 4.0f;
 
         root.CalculateLayout(float.NaN, float.NaN, Direction.LTR);
 
-        Assert.Equal(10.25, root_child0.ComputedWidth);
-        Assert.Equal(10.25, root_child0.ComputedHeight);
+        Assert.Equal(10.25f, root_child0.ComputedWidth);
+        Assert.Equal(10.25f, root_child0.ComputedHeight);
 
         config.PointScaleFactor = 1.0f / 3.0f;
 
         root.CalculateLayout(float.NaN, float.NaN, Direction.RTL);
 
-        Assert.Equal(12.0, root_child0.ComputedWidth);
-        Assert.Equal(12.0, root_child0.ComputedHeight);
+        Assert.Equal(12.0f, root_child0.ComputedWidth);
+        Assert.Equal(12.0f, root_child0.ComputedHeight);
     }
 
     [Fact]

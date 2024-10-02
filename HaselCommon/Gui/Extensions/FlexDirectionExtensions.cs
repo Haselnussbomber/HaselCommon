@@ -19,9 +19,7 @@ public static class FlexDirectionExtensions
         if (direction == Direction.RTL)
         {
             if (flexDirection == FlexDirection.Row)
-            {
                 return FlexDirection.RowReverse;
-            }
             else if (flexDirection == FlexDirection.RowReverse)
             {
                 return FlexDirection.Row;
@@ -33,8 +31,8 @@ public static class FlexDirectionExtensions
 
     public static FlexDirection ResolveCrossDirection(this FlexDirection flexDirection, Direction direction)
     {
-        return IsColumn(flexDirection)
-            ? ResolveDirection(FlexDirection.Row, direction)
+        return flexDirection.IsColumn()
+            ? FlexDirection.Row.ResolveDirection(direction)
             : FlexDirection.Column;
     }
 
@@ -64,20 +62,16 @@ public static class FlexDirectionExtensions
 
     public static PhysicalEdge InlineStartEdge(this FlexDirection flexDirection, Direction direction)
     {
-        if (IsRow(flexDirection))
-        {
+        if (flexDirection.IsRow())
             return direction == Direction.RTL ? PhysicalEdge.Right : PhysicalEdge.Left;
-        }
 
         return PhysicalEdge.Top;
     }
 
     public static PhysicalEdge InlineEndEdge(this FlexDirection flexDirection, Direction direction)
     {
-        if (IsRow(flexDirection))
-        {
+        if (flexDirection.IsRow())
             return direction == Direction.RTL ? PhysicalEdge.Left : PhysicalEdge.Right;
-        }
 
         return PhysicalEdge.Bottom;
     }

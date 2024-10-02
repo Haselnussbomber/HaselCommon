@@ -65,15 +65,15 @@ public partial class Node
         var firstElementInLineIndex = startOfLineIndex;
 
         var sizeConsumedIncludingMinConstraint = 0f;
-        var mainAxis = FlexDirection.ResolveDirection(ResolveDirection(ownerDirection));
-        var isNodeFlexWrap = FlexWrap != Wrap.NoWrap;
+        var mainAxis = _flexDirection.ResolveDirection(ResolveDirection(ownerDirection));
+        var isNodeFlexWrap = _flexWrap != Wrap.NoWrap;
         var gap = ComputeGapForAxis(mainAxis, availableInnerMainDim);
 
         // Add items to the current line until it's full or we run out of items.
         for (; endOfLineIndex < Count; endOfLineIndex++)
         {
             var child = this[endOfLineIndex];
-            if (child.Display == Display.None || child.PositionType == PositionType.Absolute)
+            if (child._display == Display.None || child._positionType == PositionType.Absolute)
             {
                 if (firstElementInLineIndex == endOfLineIndex)
                 {

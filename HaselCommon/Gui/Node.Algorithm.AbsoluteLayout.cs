@@ -51,7 +51,7 @@ public partial class Node
 
     private static void JustifyAbsoluteChild(Node parent, Node child, Direction direction, FlexDirection mainAxis, float containingBlockWidth)
     {
-        switch (parent.JustifyContent)
+        switch (parent._justifyContent)
         {
             case Justify.FlexStart:
             case Justify.SpaceBetween:
@@ -71,7 +71,7 @@ public partial class Node
     private static void AlignAbsoluteChild(Node parent, Node child, Direction direction, FlexDirection crossAxis, float containingBlockWidth)
     {
         var itemAlign = ResolveChildAlignment(parent, child);
-        var parentWrap = parent.FlexWrap;
+        var parentWrap = parent._flexWrap;
 
         if (parentWrap == Wrap.WrapReverse)
         {
@@ -119,12 +119,12 @@ public partial class Node
     {
         var isAxisRow = axis.IsRow();
         var shouldCenter = isMainAxis
-            ? parent.JustifyContent == Justify.Center
+            ? parent._justifyContent == Justify.Center
             : ResolveChildAlignment(parent, child) == Align.Center;
         var shouldFlexEnd = isMainAxis
-            ? parent.JustifyContent == Justify.FlexEnd
+            ? parent._justifyContent == Justify.FlexEnd
             : ((ResolveChildAlignment(parent, child) == Align.FlexEnd) ^
-               (parent.FlexWrap == Wrap.WrapReverse));
+               (parent._flexWrap == Wrap.WrapReverse));
 
         if (child.IsFlexEndPositionDefined(axis, direction) &&
             (!child.IsFlexStartPositionDefined(axis, direction) ||
@@ -296,8 +296,7 @@ public partial class Node
         uint depth,
         uint generationCount)
     {
-        var mainAxis =
-            node.FlexDirection.ResolveDirection(direction);
+        var mainAxis = node._flexDirection.ResolveDirection(direction);
         var crossAxis = mainAxis.ResolveCrossDirection(direction);
         var isMainAxisRow = mainAxis.IsRow();
 
@@ -374,15 +373,15 @@ public partial class Node
         // flexible.
         if (float.IsNaN(childWidth) ^ float.IsNaN(childHeight))
         {
-            if (child.AspectRatio.IsDefined)
+            if (child._aspectRatio.IsDefined)
             {
                 if (float.IsNaN(childWidth))
                 {
-                    childWidth = marginRow + (childHeight - marginColumn) * child.AspectRatio.Value;
+                    childWidth = marginRow + (childHeight - marginColumn) * child._aspectRatio.Value;
                 }
                 else if (float.IsNaN(childHeight))
                 {
-                    childHeight = marginColumn + (childWidth - marginRow) / child.AspectRatio.Value;
+                    childHeight = marginColumn + (childWidth - marginRow) / child._aspectRatio.Value;
                 }
             }
         }
@@ -479,11 +478,11 @@ public partial class Node
 
         foreach (var child in currentNode)
         {
-            if (child.Display == Display.None)
+            if (child._display == Display.None)
             {
                 continue;
             }
-            else if (child.PositionType == PositionType.Absolute)
+            else if (child._positionType == PositionType.Absolute)
             {
                 var absoluteErrata = currentNode.Config.Errata.HasFlag(Errata.AbsolutePercentAgainstInnerSize);
                 var containingBlockWidth = absoluteErrata
@@ -517,7 +516,7 @@ public partial class Node
                  * offset is complicated since the two nodes can have different main/cross
                  * axes.
                  */
-                var parentMainAxis = currentNode.FlexDirection.ResolveDirection(currentNodeDirection);
+                var parentMainAxis = currentNode._flexDirection.ResolveDirection(currentNodeDirection);
                 var parentCrossAxis = parentMainAxis.ResolveCrossDirection(currentNodeDirection);
 
                 if (parentMainAxis.NeedsTrailingPosition())
@@ -566,7 +565,7 @@ public partial class Node
                 child._layout.SetPosition(childTopOffsetFromParent, PhysicalEdge.Top);
             }
             else if (
-                child.PositionType == PositionType.Static &&
+                child._positionType == PositionType.Static &&
                 !child.AlwaysFormsContainingBlock)
             {
                 // We may write new layout results for absolute descendants of "child"

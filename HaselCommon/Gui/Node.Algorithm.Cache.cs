@@ -76,7 +76,8 @@ public partial class Node
                 lastAvailableWidth,
                 lastComputedWidth);
 
-        var heightIsCompatible = hasSameHeightSpec ||
+        var heightIsCompatible =
+            hasSameHeightSpec ||
             SizeIsExactAndMatchesOldMeasuredSize(
                 heightMode,
                 availableHeight - marginColumn,

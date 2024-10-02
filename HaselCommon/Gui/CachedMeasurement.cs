@@ -35,21 +35,13 @@ internal class CachedMeasurement
             HeightSizingMode == measurement.HeightSizingMode;
 
         if (!float.IsNaN(AvailableWidth) || !float.IsNaN(measurement.AvailableWidth))
-        {
             isEqual = isEqual && AvailableWidth == measurement.AvailableWidth;
-        }
         if (!float.IsNaN(AvailableHeight) || !float.IsNaN(measurement.AvailableHeight))
-        {
             isEqual = isEqual && AvailableHeight == measurement.AvailableHeight;
-        }
         if (!float.IsNaN(ComputedWidth) || !float.IsNaN(measurement.ComputedWidth))
-        {
             isEqual = isEqual && ComputedWidth == measurement.ComputedWidth;
-        }
         if (!float.IsNaN(ComputedHeight) || !float.IsNaN(measurement.ComputedHeight))
-        {
             isEqual = isEqual && ComputedHeight == measurement.ComputedHeight;
-        }
 
         return isEqual;
     }

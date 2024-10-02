@@ -45,6 +45,8 @@ public partial class Node
     // go below the padding and border amount.
     private static float BoundAxis(Node node, FlexDirection axis, Direction direction, float value, float axisSize, float widthSize)
     {
-        return MathUtils.MaxOrDefined(BoundAxisWithinMinAndMax(node, axis, value, axisSize), node.PaddingAndBorderForAxis(axis, direction, widthSize));
+        return MathUtils.MaxOrDefined(
+            BoundAxisWithinMinAndMax(node, axis, value, axisSize),
+            node.PaddingAndBorderForAxis(axis, direction, widthSize));
     }
 }

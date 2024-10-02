@@ -9,15 +9,16 @@ public partial class Node
 {
     private Config _config = new();
     private bool _isDirty = true;
+    private bool _hasMeasureFunc = false;
     private int _lineIndex;
     private StyleLength _resolvedWidth = StyleLength.Undefined;
     private StyleLength _resolvedHeight = StyleLength.Undefined;
-    private LayoutResults _layout = new();
+    internal LayoutResults _layout = new();
 
     /// <summary>
     /// Whether a leaf node's layout results may be truncated during layout rounding.
     /// </summary>
-    public NodeType NodeType { get; set; }
+    public NodeType NodeType { get; set; } = NodeType.Default;
 
     /// <summary>
     /// Whether this node will always form a containing block for any descendant nodes.<br/>
@@ -39,7 +40,21 @@ public partial class Node
     /// <summary>
     /// Whether the <see cref="Measure(float, MeasureMode, float, MeasureMode)"/> function is enabled.
     /// </summary>
-    public bool HasMeasureFunc { get; set; }
+    public bool HasMeasureFunc
+    {
+        get => _hasMeasureFunc;
+        set
+        {
+            if (_hasMeasureFunc != value)
+            {
+                if (value && Count != 0)
+                    throw new Exception("Cannot set measure function: Nodes with measure functions cannot have children.");
+
+                _hasMeasureFunc = value;
+                NodeType = value ? NodeType.Text : NodeType.Default;
+            }
+        }
+    }
 
     /// <summary>
     /// A config for the node.
@@ -49,27 +64,31 @@ public partial class Node
         get => _config;
         set
         {
-            // C# port: This is skipped when the layout hasn't been generated yet, to allow setting the property on construction.
-            if (_layout.GenerationCount != 0 && _config.UseWebDefaults != value.UseWebDefaults)
-                throw new Exception("UseWebDefaults may not be changed after constructing a Node");
-
-            if (Config.UpdateInvalidatesLayout(_config, value))
+            // C# port: To allow setting the property on construction when the layout hasn't been generated yet, we handle this differently.
+            if (_layout.GenerationCount == 0)
             {
-                MarkDirtyAndPropagate();
-                _layout.ConfigVersion = 0;
+                if (value.UseWebDefaults)
+                {
+                    _flexDirection = FlexDirection.Row;
+                    _alignContent = Align.Stretch;
+                }
             }
             else
             {
-                // If the config is functionally the same, then align the configVersion so
-                // that we can reuse the layout cache
-                _layout.ConfigVersion = value.Version;
-            }
+                if (_config.UseWebDefaults != value.UseWebDefaults)
+                    throw new Exception("UseWebDefaults may not be changed after constructing a Node");
 
-            // C# port: This is processed here when the layout hasn't been generated yet, to allow setting the property on construction.
-            if (_layout.GenerationCount == 0 && value.UseWebDefaults)
-            {
-                FlexDirection = FlexDirection.Row;
-                AlignContent = Align.Stretch;
+                if (Config.UpdateInvalidatesLayout(_config, value))
+                {
+                    MarkDirtyAndPropagate();
+                    _layout.ConfigVersion = 0;
+                }
+                else
+                {
+                    // If the config is functionally the same, then align the configVersion so
+                    // that we can reuse the layout cache
+                    _layout.ConfigVersion = value.Version;
+                }
             }
 
             _config = value;
@@ -89,6 +108,8 @@ public partial class Node
         get => _isDirty;
         set
         {
+            // this is YGNodeMarkDirty, not Node::setDirty
+
             if (_isDirty != value)
             {
                 if (value)
@@ -131,8 +152,8 @@ public partial class Node
     {
         return dimension switch
         {
-            Dimension.Width => Width,
-            Dimension.Height => Height,
+            Dimension.Width => _width,
+            Dimension.Height => _height,
             _ => throw new Exception("Invalid Dimension")
         };
     }
@@ -142,13 +163,13 @@ public partial class Node
     // insets do not apply to them.
     private float RelativePosition(FlexDirection axis, Direction direction, float axisSize)
     {
-        if (PositionType == PositionType.Static)
+        if (_positionType == PositionType.Static)
             return 0;
 
         if (IsInlineStartPositionDefined(axis, direction) && !IsInlineStartPositionAuto(axis, direction))
             return ComputeInlineStartPosition(axis, direction, axisSize);
 
-        return -1 * ComputeInlineEndPosition(axis, direction, axisSize);
+        return -ComputeInlineEndPosition(axis, direction, axisSize);
     }
 
     private void SetPosition(Direction direction, float ownerWidth, float ownerHeight)
@@ -156,7 +177,7 @@ public partial class Node
         /* Root nodes should be always layouted as LTR, so we don't return negative
          * values. */
         var directionRespectingRoot = Parent != null ? direction : Direction.LTR;
-        var mainAxis = FlexDirection.ResolveDirection(directionRespectingRoot);
+        var mainAxis = _flexDirection.ResolveDirection(directionRespectingRoot);
         var crossAxis = mainAxis.ResolveCrossDirection(directionRespectingRoot);
 
         // In the case of position static these are just 0. See:
@@ -183,31 +204,31 @@ public partial class Node
 
     private void ResolveDimension()
     {
-        if (MaxWidth.IsDefined && MaxWidth.IsApproximately(MinWidth))
+        if (_maxWidth.IsDefined && _maxWidth.IsApproximately(_minWidth))
         {
-            _resolvedWidth = MaxWidth;
+            _resolvedWidth = _maxWidth;
         }
         else
         {
-            _resolvedWidth = Width;
+            _resolvedWidth = _width;
         }
 
-        if (MaxHeight.IsDefined && MaxHeight.IsApproximately(MinHeight))
+        if (_maxHeight.IsDefined && _maxHeight.IsApproximately(_minHeight))
         {
-            _resolvedHeight = MaxHeight;
+            _resolvedHeight = _maxHeight;
         }
         else
         {
-            _resolvedHeight = Height;
+            _resolvedHeight = _height;
         }
     }
 
     private Direction ResolveDirection(Direction ownerDirection)
     {
-        if (Direction == Direction.Inherit)
+        if (_direction == Direction.Inherit)
             return ownerDirection != Direction.Inherit ? ownerDirection : Direction.LTR;
 
-        return Direction;
+        return _direction;
     }
 
     private void MarkDirtyAndPropagate()
@@ -222,6 +243,6 @@ public partial class Node
 
     private bool IsNodeFlexible()
     {
-        return (PositionType != PositionType.Absolute) && (ResolveFlexGrow() != 0 || ResolveFlexShrink() != 0);
+        return (_positionType != PositionType.Absolute) && (ResolveFlexGrow() != 0 || ResolveFlexShrink() != 0);
     }
 }

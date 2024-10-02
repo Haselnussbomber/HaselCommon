@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using HaselCommon.Gui.Enums;
 
 namespace HaselCommon.Gui;
 
@@ -220,7 +221,7 @@ public partial class Node : IList<Node>
         {
             var position = new Vector2(ComputedLeft, ComputedTop);
 
-            if (Parent != null && Parent.Overflow != Enums.Overflow.Scroll)
+            if (Parent != null && Parent.Overflow != Overflow.Scroll)
                 position += Parent.AbsolutePosition;
 
             return position;

@@ -26,7 +26,7 @@ public partial class Node
     public float ComputedPaddingLeft => GetResolvedLayoutProperty(_layout.Padding, Edge.Left);
     public float ComputedPaddingRight => GetResolvedLayoutProperty(_layout.Padding, Edge.Right);
 
-    private float GetResolvedLayoutProperty(float[] values, Edge edge)
+    internal float GetResolvedLayoutProperty(float[] values, Edge edge)
     {
         if (values.Length > (int)Edge.End)
             throw new Exception("Cannot get layout properties of multi-edge shorthands");

@@ -43,9 +43,14 @@ public class RoundingFunctionTest
 
     private class MeasureTextNode : Node
     {
+        public MeasureTextNode()
+        {
+            HasMeasureFunc = true;
+        }
+
         public override Vector2 Measure(float width, MeasureMode widthMode, float height, MeasureMode heightMode)
         {
-            return new Vector2(42, 50);
+            return new Vector2(10, 10);
         }
     }
 

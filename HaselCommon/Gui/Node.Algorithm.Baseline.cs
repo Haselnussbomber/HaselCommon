@@ -30,7 +30,7 @@ public partial class Node
                 break;
             }
 
-            if (child.PositionType == PositionType.Absolute)
+            if (child._positionType == PositionType.Absolute)
             {
                 continue;
             }
@@ -55,19 +55,19 @@ public partial class Node
 
     private bool IsBaselineLayout()
     {
-        if (FlexDirection.IsColumn())
+        if (_flexDirection.IsColumn())
         {
             return false;
         }
 
-        if (AlignItems == Align.Baseline)
+        if (_alignItems == Align.Baseline)
         {
             return true;
         }
 
         foreach (var child in this)
         {
-            if (child.PositionType != PositionType.Absolute && child.AlignSelf == Align.Baseline)
+            if (child._positionType != PositionType.Absolute && child._alignSelf == Align.Baseline)
             {
                 return true;
             }

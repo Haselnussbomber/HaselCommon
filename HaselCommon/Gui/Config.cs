@@ -6,10 +6,10 @@ public partial class Config
 {
     internal uint Version { get; set; }
 
-    private bool _useWebDefaults = GlobalConfig.UseWebDefaults;
-    private float _pointScaleFactor = GlobalConfig.PointScaleFactor;
-    private ExperimentalFeature _experimentalFeatures = GlobalConfig.ExperimentalFeatures;
-    private Errata _errata = GlobalConfig.Errata;
+    private bool _useWebDefaults;
+    private float _pointScaleFactor = 1f;
+    private ExperimentalFeature _experimentalFeatures;
+    private Errata _errata;
 
     /// <summary>
     /// Yoga by default creates new nodes with style defaults different from flexbox on web (e.g. <see cref="FlexDirection.Column"/> and <see cref="PositionType.Relative"/>).<br/>

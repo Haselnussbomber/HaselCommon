@@ -1,5 +1,6 @@
 using HaselCommon.Gui.Enums;
 using HaselCommon.Gui.Extensions;
+using HaselCommon.Utils;
 
 namespace HaselCommon.Gui;
 
@@ -20,8 +21,8 @@ public partial class Node
     private Overflow _overflow = Overflow.Visible;
     private Display _display = Display.Flex;
     private StyleLength _flex = StyleLength.Auto;
-    private StyleLength _flexGrow = 0;
-    private StyleLength _flexShrink = 0;
+    private StyleLength _flexGrow = StyleLength.Undefined;
+    private StyleLength _flexShrink = StyleLength.Undefined;
     private StyleLength _flexBasis = StyleLength.Auto;
 
     private readonly StyleLength[] _margin = new StyleLength[Enum.GetValues<Edge>().Length];
@@ -189,7 +190,7 @@ public partial class Node
 
     public StyleLength FlexGrow
     {
-        get => _flexGrow;
+        get => _flexGrow.IsUndefined ? DefaultFlexGrow : _flexGrow;
         set
         {
             if (_flexGrow != value)
@@ -838,7 +839,7 @@ public partial class Node
         if (flexBasis.Unit != Unit.Auto && flexBasis.Unit != Unit.Undefined)
             return flexBasis;
 
-        if (Flex.IsDefined && Flex.Value > 0.0f)
+        if (_flex.IsDefined && _flex.Value > 0.0f)
             return Config.UseWebDefaults ? StyleLength.Auto : 0;
 
         return StyleLength.Auto;
@@ -875,12 +876,19 @@ public partial class Node
 
     private bool HorizontalInsetsDefined()
     {
-        return PositionLeft.IsDefined || PositionRight.IsDefined || PositionHorizontal.IsDefined || PositionStart.IsDefined || PositionEnd.IsDefined;
+        return _position[(int)Edge.Left].IsDefined ||
+            _position[(int)Edge.Right].IsDefined ||
+            _position[(int)Edge.Horizontal].IsDefined ||
+            _position[(int)Edge.Start].IsDefined ||
+            _position[(int)Edge.End].IsDefined;
     }
 
     private bool VerticalInsetsDefined()
     {
-        return PositionTop.IsDefined || PositionBottom.IsDefined || PositionAll.IsDefined || PositionVertical.IsDefined;
+        return _position[(int)Edge.Top].IsDefined ||
+            _position[(int)Edge.Bottom].IsDefined ||
+            _position[(int)Edge.All].IsDefined ||
+            _position[(int)Edge.Vertical].IsDefined;
     }
 
     private bool IsFlexStartPositionDefined(FlexDirection axis, Direction direction)
@@ -965,42 +973,42 @@ public partial class Node
 
     private float ComputeFlexStartBorder(FlexDirection axis, Direction direction)
     {
-        return ComputeBorder(axis.FlexStartEdge(), direction).ResolveOrMax(0.0f, 0.0f);
+        return MathUtils.MaxOrDefined(ComputeBorder(axis.FlexStartEdge(), direction).Resolve(0.0f), 0.0f);
     }
 
     internal float ComputeInlineStartBorder(FlexDirection axis, Direction direction)
     {
-        return ComputeBorder(axis.InlineStartEdge(direction), direction).ResolveOrMax(0.0f, 0.0f);
+        return MathUtils.MaxOrDefined(ComputeBorder(axis.InlineStartEdge(direction), direction).Resolve(0.0f), 0.0f);
     }
 
     private float ComputeFlexEndBorder(FlexDirection axis, Direction direction)
     {
-        return ComputeBorder(axis.FlexEndEdge(), direction).ResolveOrMax(0.0f, 0.0f);
+        return MathUtils.MaxOrDefined(ComputeBorder(axis.FlexEndEdge(), direction).Resolve(0.0f), 0.0f);
     }
 
     private float ComputeInlineEndBorder(FlexDirection axis, Direction direction)
     {
-        return ComputeBorder(axis.InlineEndEdge(direction), direction).ResolveOrMax(0.0f, 0.0f);
+        return MathUtils.MaxOrDefined(ComputeBorder(axis.InlineEndEdge(direction), direction).Resolve(0.0f), 0.0f);
     }
 
     private float ComputeFlexStartPadding(FlexDirection axis, Direction direction, float widthSize)
     {
-        return ComputePadding(axis.FlexStartEdge(), direction).ResolveOrMax(widthSize, 0.0f);
+        return MathUtils.MaxOrDefined(ComputePadding(axis.FlexStartEdge(), direction).Resolve(widthSize), 0.0f);
     }
 
     internal float ComputeInlineStartPadding(FlexDirection axis, Direction direction, float widthSize)
     {
-        return ComputePadding(axis.InlineStartEdge(direction), direction).ResolveOrMax(widthSize, 0.0f);
+        return MathUtils.MaxOrDefined(ComputePadding(axis.InlineStartEdge(direction), direction).Resolve(widthSize), 0.0f);
     }
 
     private float ComputeFlexEndPadding(FlexDirection axis, Direction direction, float widthSize)
     {
-        return ComputePadding(axis.FlexEndEdge(), direction).ResolveOrMax(widthSize, 0.0f);
+        return MathUtils.MaxOrDefined(ComputePadding(axis.FlexEndEdge(), direction).Resolve(widthSize), 0.0f);
     }
 
     private float ComputeInlineEndPadding(FlexDirection axis, Direction direction, float widthSize)
     {
-        return ComputePadding(axis.InlineEndEdge(direction), direction).ResolveOrMax(widthSize, 0.0f);
+        return MathUtils.MaxOrDefined(ComputePadding(axis.InlineEndEdge(direction), direction).Resolve(widthSize), 0.0f);
     }
 
     private float ComputeInlineStartPaddingAndBorder(FlexDirection axis, Direction direction, float widthSize)
@@ -1038,7 +1046,7 @@ public partial class Node
     internal float ComputeGapForAxis(FlexDirection axis, float ownerSize)
     {
         var gap = axis.IsRow() ? ComputeColumnGap() : ComputeRowGap();
-        return gap.ResolveOrMax(ownerSize, 0.0f);
+        return MathUtils.MaxOrDefined(gap.Resolve(ownerSize), 0.0f);
     }
 
     private bool FlexStartMarginIsAuto(FlexDirection axis, Direction direction)
@@ -1053,15 +1061,15 @@ public partial class Node
 
     private StyleLength ComputeColumnGap()
     {
-        return ColumnGap.IsDefined ? ColumnGap : Gap;
+        return _columnGap.IsDefined ? _columnGap : _gap;
     }
 
     private StyleLength ComputeRowGap()
     {
-        return RowGap.IsDefined ? RowGap : Gap;
+        return _rowGap.IsDefined ? _rowGap : _gap;
     }
 
-    private StyleLength ComputeLeftEdge(StyleLength[] edges, Direction layoutDirection)
+    private static StyleLength ComputeLeftEdge(StyleLength[] edges, Direction layoutDirection)
     {
         if (layoutDirection == Direction.LTR && edges[(int)Edge.Start].IsDefined)
         {
@@ -1083,7 +1091,7 @@ public partial class Node
         return edges[(int)Edge.All];
     }
 
-    private StyleLength ComputeTopEdge(StyleLength[] edges)
+    private static StyleLength ComputeTopEdge(StyleLength[] edges)
     {
         if (edges[(int)Edge.Top].IsDefined)
         {
@@ -1099,7 +1107,7 @@ public partial class Node
         }
     }
 
-    private StyleLength ComputeRightEdge(StyleLength[] edges, Direction layoutDirection)
+    private static StyleLength ComputeRightEdge(StyleLength[] edges, Direction layoutDirection)
     {
         if (layoutDirection == Direction.LTR && edges[(int)Edge.End].IsDefined)
         {
@@ -1123,7 +1131,7 @@ public partial class Node
         }
     }
 
-    private StyleLength ComputeBottomEdge(StyleLength[] edges)
+    private static StyleLength ComputeBottomEdge(StyleLength[] edges)
     {
         if (edges[(int)Edge.Bottom].IsDefined)
         {
@@ -1191,8 +1199,8 @@ public partial class Node
     {
         return dimension switch
         {
-            Dimension.Width => MaxWidth,
-            Dimension.Height => MaxHeight,
+            Dimension.Width => _maxWidth,
+            Dimension.Height => _maxHeight,
             _ => throw new Exception("Invalid Dimension")
         };
     }
@@ -1201,8 +1209,8 @@ public partial class Node
     {
         return dimension switch
         {
-            Dimension.Width => MinWidth,
-            Dimension.Height => MinHeight,
+            Dimension.Width => _minWidth,
+            Dimension.Height => _minHeight,
             _ => throw new Exception("Invalid Dimension")
         };
     }
