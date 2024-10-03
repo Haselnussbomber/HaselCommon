@@ -112,10 +112,10 @@ public class TextService : IDisposable
 
     public ReadOnlySeString TranslateSeString(string key, params SeStringParameter[] args)
     {
-        var sb = new SeStringBuilder();
         if (!TryGetTranslation(key, out var format))
-            return sb.Append(key).ToReadOnlySeString();
+            return ReadOnlySeString.FromText(key);
 
+        var sb = SeStringBuilder.SharedPool.Get();
         var placeholders = format.Split(['{', '}']);
 
         for (var i = 0; i < placeholders.Length; i++)
@@ -148,7 +148,9 @@ public class TextService : IDisposable
             }
         }
 
-        return sb.ToReadOnlySeString();
+        var ross = sb.ToReadOnlySeString();
+        SeStringBuilder.SharedPool.Return(sb);
+        return ross;
     }
 
     public void Draw(string key)

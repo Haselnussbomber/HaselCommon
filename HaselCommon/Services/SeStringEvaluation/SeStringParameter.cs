@@ -39,7 +39,7 @@ public struct SeStringParameter
         get
         {
             if (!IsString && num != null)
-                return new SeStringBuilder().Append((num ?? 0).ToString()).ToReadOnlySeString();
+                return ReadOnlySeString.FromText((num ?? 0).ToString());
 
             return str ?? new();
         }
@@ -63,7 +63,7 @@ public struct SeStringParameter
 
     public SeStringParameter(string value)
     {
-        StringValue = new SeStringBuilder().Append(value).ToReadOnlySeString();
+        StringValue = ReadOnlySeString.FromText(value);
     }
 
     public static implicit operator SeStringParameter(int value)

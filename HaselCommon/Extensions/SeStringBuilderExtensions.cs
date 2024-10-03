@@ -3,6 +3,8 @@ using DSeString = Dalamud.Game.Text.SeStringHandling.SeString;
 
 namespace HaselCommon.Extensions;
 
+// TODO: use Lumina.Text.SeStringBuilder.SharedPool.Get()/Return() everywhere
+
 public static class SeStringBuilderExtensions
 {
     public static DSeString ToDalamudString(this SeStringBuilder sb)
