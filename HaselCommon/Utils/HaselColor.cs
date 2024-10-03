@@ -62,6 +62,28 @@ public struct HaselColor
     public static HaselColor FromABGR(uint abgr)
         => From(BinaryPrimitives.ReverseEndianness(abgr));
 
+    //! https://stackoverflow.com/a/64090995
+    public static HaselColor FromHSL(float hue, float saturation, float lightness, float alpha = 1f)
+    {
+        // Calculate the chroma component
+        var chroma = saturation * MathF.Min(lightness, 1 - lightness);
+
+        // Local function to compute color channels
+        static float GetChannelColor(float channelOffset, float hue, float lightness, float chroma)
+        {
+            var hueSegment = (channelOffset + hue / 30) % 12;
+            return lightness - chroma * MathF.Max(MathF.Min(MathF.Min(hueSegment - 3, 9 - hueSegment), 1), -1);
+        }
+
+        // Calculate RGB channels using the helper function
+        return From(
+            GetChannelColor(0, hue, lightness, chroma),   // Red channel
+            GetChannelColor(8, hue, lightness, chroma),   // Green channel
+            GetChannelColor(4, hue, lightness, chroma),   // Blue channel
+            alpha                                         // Alpha channel
+        );
+    }
+
     public static implicit operator Vector4(HaselColor col)
         => new(col.R, col.G, col.B, col.A);
 
