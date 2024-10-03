@@ -48,8 +48,9 @@ public partial class Node : IDisposable
             ComputedBorderLeft + ComputedPaddingLeft,
             ComputedBorderTop + ComputedPaddingTop));
 
-        DrawDebugBorder();
+        DrawDebugBefore();
         DrawContent();
+        DrawDebugAfter();
 
         foreach (var child in this)
         {

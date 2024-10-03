@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Numerics;
+using HaselCommon.Utils;
 using ImGuiNET;
 
 namespace HaselCommon.Gui;
@@ -13,14 +14,18 @@ public partial class Node : IDisposable
     public virtual string DebugNodeOpenTag => $"<{TagName}{(Count == 0 ? " /" : string.Empty)}>";
     public virtual bool DebugHasClosingTag => Count != 0;
 
-    private void DrawDebugBorder()
+    private void DrawDebugBefore()
+    {
+        // not sure yet, maybe background of selection
+    }
+
+    private void DrawDebugAfter()
     {
         if (_isDebugHovered)
         {
             var pos = ImGui.GetWindowPos() + AbsolutePosition;
-            var size = new Vector2(ComputedWidth, ComputedHeight);
 
-            ImGui.GetForegroundDrawList().AddRect(pos, pos + size, 0xFF0000FF);
+            ImGuiUtils.DrawDashedBorder(pos, pos + new Vector2(ComputedWidth, ComputedHeight), Colors.Red);
 
             _isDebugHovered = false;
         }
