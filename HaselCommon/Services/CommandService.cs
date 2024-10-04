@@ -3,7 +3,7 @@ using System.Reflection;
 using Dalamud.Game.Command;
 using Dalamud.Plugin.Services;
 using HaselCommon.Commands;
-using HaselCommon.Extensions;
+using HaselCommon.Extensions.Collections;
 using Microsoft.Extensions.Logging;
 
 namespace HaselCommon.Services;

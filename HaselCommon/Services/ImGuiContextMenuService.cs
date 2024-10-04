@@ -10,7 +10,8 @@ using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
-using HaselCommon.Records;
+using HaselCommon.Graphics;
+using HaselCommon.Gui;
 using HaselCommon.Utils;
 using ImGuiNET;
 using Lumina.Excel.GeneratedSheets;
@@ -297,11 +298,11 @@ public unsafe struct ImGuiContextMenuBuilder(TextService TextService, MapService
                 ImGui.GetWindowDrawList().AddText(
                     UiBuilder.IconFont, 12 * ImGuiHelpers.GlobalScale,
                     ImGui.GetWindowPos() + pos + new Vector2(2),
-                    Colors.Grey,
+                    Color.Grey,
                     FontAwesomeIcon.ExternalLinkAlt.ToIconString()
                 );
                 ImGui.SetCursorPos(pos + new Vector2(20, 0) * ImGuiHelpers.GlobalScale);
-                ImGuiUtils.TextUnformattedColored(Colors.Grey, $"https://www.garlandtools.org/db/#{type}/{id}");
+                ImGuiUtils.TextUnformattedColored(Color.Grey, $"https://www.garlandtools.org/db/#{type}/{id}");
             }
         });
 

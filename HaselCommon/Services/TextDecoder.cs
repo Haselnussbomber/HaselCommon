@@ -4,6 +4,7 @@ using Dalamud.Game;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 using HaselCommon.Extensions;
+using HaselCommon.Extensions.Strings;
 using Lumina.Excel;
 using Lumina.Text;
 using Lumina.Text.ReadOnly;

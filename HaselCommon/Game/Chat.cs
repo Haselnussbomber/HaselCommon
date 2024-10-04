@@ -1,11 +1,19 @@
 using FFXIVClientStructs.FFXIV.Client.System.String;
+using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
+using FFXIVClientStructs.FFXIV.Client.UI.Shell;
 using Lumina.Text.ReadOnly;
 
 namespace HaselCommon.Game;
 
 public static unsafe class Chat
 {
+    public static unsafe void ExecuteCommand(string command)
+    {
+        using var cmd = new Utf8String(command);
+        RaptureShellModule.Instance()->ExecuteCommandInner(&cmd, UIModule.Instance());
+    }
+
     public static void Print(string message, string? sender = null, ushort logKindId = 1)
     {
         using var _sender = new Utf8String(sender ?? string.Empty);

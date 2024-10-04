@@ -9,11 +9,13 @@ using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Component.Exd;
 using FFXIVClientStructs.FFXIV.Component.GUI;
-using HaselCommon.Caches.Internal;
-using HaselCommon.Enums;
-using HaselCommon.Extensions;
+using HaselCommon.Caching.Internal;
+using HaselCommon.Extensions.Sheets;
+using HaselCommon.Extensions.Strings;
+using HaselCommon.Game.Enums;
+using HaselCommon.Globals;
+using HaselCommon.Graphics;
 using HaselCommon.Services.SeStringEvaluation;
-using HaselCommon.Utils;
 using Lumina.Excel.GeneratedSheets;
 using Lumina.Text;
 using Lumina.Text.ReadOnly;
@@ -258,51 +260,51 @@ public class ItemService(IClientState ClientState, ExcelService ExcelService, Se
         return GetItemRarityColorType(item, isEdgeColor);
     }
 
-    public HaselColor GetItemRarityColor(Item item, bool isEdgeColor = false)
-        => ExcelService.GetRow<UIColor>(GetItemRarityColorType(item, isEdgeColor))?.GetForegroundColor() ?? Colors.White;
+    public Color GetItemRarityColor(Item item, bool isEdgeColor = false)
+        => ExcelService.GetRow<UIColor>(GetItemRarityColorType(item, isEdgeColor))?.GetForegroundColor() ?? Color.White;
 
-    public HaselColor GetItemRarityColor(uint itemId, bool isEdgeColor = false)
+    public Color GetItemRarityColor(uint itemId, bool isEdgeColor = false)
     {
         if (IsEventItem(itemId))
-            return isEdgeColor ? HaselColor.FromABGR(0x000000FF) : Colors.White;
+            return isEdgeColor ? Color.FromABGR(0x000000FF) : Color.White;
 
         var item = ExcelService.GetRow<Item>(GetBaseItemId(itemId));
         if (item == null)
-            return isEdgeColor ? HaselColor.FromABGR(0x000000FF) : Colors.White;
+            return isEdgeColor ? Color.FromABGR(0x000000FF) : Color.White;
 
         return GetItemRarityColor(item, isEdgeColor);
     }
 
-    public unsafe HaselColor GetItemLevelColor(byte classJob, Item item, params Vector4[] colors)
+    public unsafe Color GetItemLevelColor(byte classJob, Item item, params Vector4[] colors)
     {
         if (colors.Length < 2)
             throw new ArgumentException("At least two colors are required for interpolation.");
 
         var expArrayIndex = ExcelService.GetRow<ClassJob>(classJob)?.ExpArrayIndex;
         if (expArrayIndex is null or -1)
-            return Colors.White;
+            return Color.White;
 
         var level = PlayerState.Instance()->ClassJobLevels[(short)expArrayIndex];
         if (level < 1 || !GetMaxLevelRanges().TryGetValue(level, out var range))
-            return Colors.White;
+            return Color.White;
 
         var itemLevel = item.LevelItem.Row;
 
         // special case for Fisher's Secondary Tool
         // which has only one item, Spearfishing Gig
         if (item.ItemUICategory.Row == 99)
-            return itemLevel == 180 ? Colors.Green : Colors.Red;
+            return itemLevel == 180 ? Color.Green : Color.Red;
 
         if (itemLevel < range.Min)
-            return Colors.Red;
+            return Color.Red;
 
         var value = (itemLevel - range.Min) / (float)(range.Max - range.Min);
 
         var startIndex = (int)(value * (colors.Length - 1));
-        var endIndex = Math.Min(startIndex + 1, colors.Length - 1);
+        var endIndex = System.Math.Min(startIndex + 1, colors.Length - 1);
 
         if (startIndex < 0 || startIndex >= colors.Length || endIndex < 0 || endIndex >= colors.Length)
-            return Colors.White;
+            return Color.White;
 
         var t = value * (colors.Length - 1) - startIndex;
         return new(Vector4.Lerp(colors[startIndex], colors[endIndex], t));

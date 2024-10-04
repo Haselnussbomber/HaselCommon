@@ -7,9 +7,10 @@ using Dalamud.Game;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Plugin;
-using HaselCommon.Extensions;
+using HaselCommon.Extensions.Dalamud;
+using HaselCommon.Extensions.Strings;
+using HaselCommon.Graphics;
 using HaselCommon.Services.SeStringEvaluation;
-using HaselCommon.Utils;
 using ImGuiNET;
 using Lumina.Excel.GeneratedSheets;
 using Lumina.Text;
@@ -154,13 +155,13 @@ public class TextService : IDisposable
     public void Draw(string key, params object?[] args)
         => ImGui.TextUnformatted(Translate(key, args));
 
-    public void Draw(HaselColor color, string key)
+    public void Draw(Color color, string key)
     {
         using (ImRaii.PushColor(ImGuiCol.Text, (uint)color))
             ImGui.TextUnformatted(Translate(key));
     }
 
-    public void Draw(HaselColor color, string key, params object?[] args)
+    public void Draw(Color color, string key, params object?[] args)
     {
         using (ImRaii.PushColor(ImGuiCol.Text, (uint)color))
             ImGui.TextUnformatted(Translate(key, args));
@@ -172,13 +173,13 @@ public class TextService : IDisposable
     public void DrawWrapped(string key, params object?[] args)
         => ImGuiHelpers.SafeTextWrapped(Translate(key, args));
 
-    public void DrawWrapped(HaselColor color, string key)
+    public void DrawWrapped(Color color, string key)
     {
         using (ImRaii.PushColor(ImGuiCol.Text, (uint)color))
             ImGuiHelpers.SafeTextWrapped(Translate(key));
     }
 
-    public void DrawWrapped(HaselColor color, string key, params object?[] args)
+    public void DrawWrapped(Color color, string key, params object?[] args)
     {
         using (ImRaii.PushColor(ImGuiCol.Text, (uint)color))
             ImGuiHelpers.SafeTextWrapped(Translate(key, args));

@@ -3,7 +3,7 @@ using System.Linq;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin;
 using HaselCommon.Extensions;
-using HaselCommon.Windowing;
+using HaselCommon.Gui;
 
 namespace HaselCommon.Services;
 

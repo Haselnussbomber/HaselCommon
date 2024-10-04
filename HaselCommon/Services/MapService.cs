@@ -10,7 +10,9 @@ using FFXIVClientStructs.FFXIV.Client.System.Framework;
 using FFXIVClientStructs.FFXIV.Client.System.String;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
-using HaselCommon.Extensions;
+using HaselCommon.Extensions.Sheets;
+using HaselCommon.Extensions.Strings;
+using HaselCommon.Game;
 using HaselCommon.Services.SeStringEvaluation;
 using Lumina.Excel.GeneratedSheets;
 using Lumina.Text;
@@ -170,14 +172,14 @@ public class MapService(IClientState ClientState, IGameGui GameGui, TextService 
                 .Append(" " + gatheringPointName)
                 .ToArray());
 
-        var iconId = !IsGatheringTypeRare(exportedPoint.GatheringPointType)
+        var iconId = !Misc.IsGatheringTypeRare(exportedPoint.GatheringPointType)
             ? gatheringType.IconMain
             : gatheringType.IconOff;
 
         return AddGatheringMarkerAndOpenMap(
             territoryType,
-            (int)Math.Round(exportedPoint.X),
-            (int)Math.Round(exportedPoint.Y),
+            (int)MathF.Round(exportedPoint.X),
+            (int)MathF.Round(exportedPoint.Y),
             exportedPoint.Radius,
             (uint)iconId,
             tooltip,

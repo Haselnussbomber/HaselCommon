@@ -8,7 +8,7 @@ using Dalamud.Interface.Utility.Raii;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game.Control;
-using HaselCommon.Enums;
+using HaselCommon.Game.Enums;
 using HaselCommon.Sheets.Internal;
 using ImGuiNET;
 using Lumina.Data.Files;
