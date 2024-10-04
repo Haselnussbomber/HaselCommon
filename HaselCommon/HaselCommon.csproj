@@ -53,6 +53,7 @@
     <Reference Include="Lumina" Private="false" />
     <Reference Include="Lumina.Excel" Private="false" />
     <Reference Include="InteropGenerator.Runtime" Private="false" />
+    <Reference Include="Microsoft.Extensions.ObjectPool" Private="false" />
   </ItemGroup>
 
   <ItemGroup Condition="!Exists('$(ProjectDir)..\..\FFXIVClientStructs')">

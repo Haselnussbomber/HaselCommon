@@ -11,7 +11,7 @@ public static class ReadOnlySeStringExtensions
         if (rosss.IsEmpty)
             return rosss;
 
-        var sb = new SeStringBuilder();
+        var sb = SeStringBuilder.SharedPool.Get();
 
         foreach (var payload in rosss)
         {
@@ -38,6 +38,8 @@ public static class ReadOnlySeStringExtensions
             ]));
         }
 
-        return sb.ToReadOnlySeString();
+        var ross = sb.ToReadOnlySeString();
+        SeStringBuilder.SharedPool.Return(sb);
+        return ross;
     }
 }

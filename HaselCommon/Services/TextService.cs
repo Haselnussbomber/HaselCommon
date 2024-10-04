@@ -146,7 +146,9 @@ public class TextService : IDisposable
             }
         }
 
-        return sb.ToReadOnlySeString();
+        var ross = sb.ToReadOnlySeString();
+        SeStringBuilder.SharedPool.Return(sb);
+        return ross;
     }
 
     public void Draw(string key)

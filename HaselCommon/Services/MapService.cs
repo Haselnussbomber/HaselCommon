@@ -67,13 +67,15 @@ public class MapService(IClientState ClientState, IGameGui GameGui, TextService 
         if (placeName == null)
             return null;
 
-        var placeNameWithInstanceBuilder = new SeStringBuilder().Append(placeName.Name);
+        var placeNameWithInstanceBuilder = SeStringBuilder.SharedPool.Get()
+            .Append(placeName.Name);
 
         var instanceId = Framework.Instance()->GetNetworkModuleProxy()->GetCurrentInstance();
         if (instanceId > 0)
             placeNameWithInstanceBuilder.Append((char)(SeIconChar.Instance1 + (byte)(instanceId - 1)));
 
         var placeNameWithInstance = placeNameWithInstanceBuilder.ToReadOnlySeString();
+        SeStringBuilder.SharedPool.Return(placeNameWithInstanceBuilder);
 
         var mapPosX = map.ConvertRawToMapPosX(obj.Position.X);
         var mapPosY = map.ConvertRawToMapPosY(obj.Position.Z);
@@ -103,11 +105,13 @@ public class MapService(IClientState ClientState, IGameGui GameGui, TextService 
             });
         }
 
-        var mapLink = new SeStringBuilder()
+        var sb = SeStringBuilder.SharedPool.Get();
+        var mapLink = sb
             .PushLinkMapPosition(territoryId, mapId, (int)(obj.Position.X * 1000f), (int)(obj.Position.Z * 1000f))
             .Append(linkText)
             .PopLink()
             .ToReadOnlySeString();
+        SeStringBuilder.SharedPool.Return(sb);
 
         // Link Marker
         return SeStringEvaluatorService.EvaluateFromAddon(371, new SeStringContext()
@@ -166,11 +170,12 @@ public class MapService(IClientState ClientState, IGameGui GameGui, TextService 
             : raptureTextModule->FormatAddonText1IntIntUInt(35, gatheringPointBase.GatheringLevel, 0, 0);
         var gatheringPointName = TextService.GetGatheringPointName(point.RowId);
 
-        using var tooltip = new Utf8String(
-            new SeStringBuilder()
-                .Append(MemoryMarshal.CreateReadOnlySpanFromNullTerminated(levelText))
-                .Append(" " + gatheringPointName)
-                .ToArray());
+        var sb = SeStringBuilder.SharedPool.Get();
+        using var tooltip = new Utf8String(sb
+            .Append(MemoryMarshal.CreateReadOnlySpanFromNullTerminated(levelText))
+            .Append(" " + gatheringPointName)
+            .ToArray());
+        SeStringBuilder.SharedPool.Return(sb);
 
         var iconId = !Misc.IsGatheringTypeRare(exportedPoint.GatheringPointType)
             ? gatheringType.IconMain
@@ -214,7 +219,11 @@ public class MapService(IClientState ClientState, IGameGui GameGui, TextService 
             ? raptureTextModule->GetAddonText(242) // "Lv. ???"
             : raptureTextModule->FormatAddonText1IntIntUInt(35, gatheringItemLevel, 0, 0);
 
-        using var tooltip = new Utf8String(new ReadOnlySeString(MemoryMarshal.CreateReadOnlySpanFromNullTerminated(levelText)));
+        var sb = SeStringBuilder.SharedPool.Get();
+        using var tooltip = new Utf8String(sb
+            .Append(MemoryMarshal.CreateReadOnlySpanFromNullTerminated(levelText))
+            .ToArray());
+        SeStringBuilder.SharedPool.Return(sb);
 
         var iconId = fishingSpot.Rare ? 60466u : 60465u;
 
@@ -237,7 +246,7 @@ public class MapService(IClientState ClientState, IGameGui GameGui, TextService 
             &tooltip
         );
 
-        var titleBuilder = new SeStringBuilder();
+        var titleBuilder = SeStringBuilder.SharedPool.Get();
 
         if (prefix != null)
         {
@@ -265,6 +274,8 @@ public class MapService(IClientState ClientState, IGameGui GameGui, TextService 
         }
 
         using var title = new Utf8String(titleBuilder.ToReadOnlySeString().Data.Span.WithNullTerminator());
+
+        SeStringBuilder.SharedPool.Return(titleBuilder);
 
         var mapInfo = new OpenMapInfo
         {

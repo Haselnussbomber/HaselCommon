@@ -118,7 +118,7 @@ public class TextDecoder(ILogger<TextDecoder> Logger, IDataManager DataManager)
     // Component::Text::Localize::NounJa.Resolve
     private static ReadOnlySeString ResolveNounJa(int amount, int person, RawExcelSheet attributiveSheet, RowParser row)
     {
-        var builder = new SeStringBuilder();
+        var builder = SeStringBuilder.SharedPool.Get();
 
         // Ko-So-A-Do
         var ksad = attributiveSheet.GetRow((uint)person)?.ReadColumn<LuminaSeString>(amount > 1 ? 1 : 0);
@@ -133,7 +133,9 @@ public class TextDecoder(ILogger<TextDecoder> Logger, IDataManager DataManager)
         if (text != null)
             builder.Append(text);
 
-        return builder.ToReadOnlySeString();
+        var ross = builder.ToReadOnlySeString();
+        SeStringBuilder.SharedPool.Return(builder);
+        return ross;
     }
 
     // Component::Text::Localize::NounEn.Resolve
@@ -150,7 +152,7 @@ public class TextDecoder(ILogger<TextDecoder> Logger, IDataManager DataManager)
         // UnkInt5 isn't really used here. there are only 5 offsets in the array
         // offsets = &a1->Offsets[5 * a2->UnkInt5];
 
-        var builder = new SeStringBuilder();
+        var builder = SeStringBuilder.SharedPool.Get();
 
         var articleIndex = row.ReadColumn<sbyte>(columnOffset + ArticleColumnIdx);
         if (articleIndex == 0)
@@ -170,7 +172,9 @@ public class TextDecoder(ILogger<TextDecoder> Logger, IDataManager DataManager)
 
         builder.ReplaceText("[n]"u8, Encoding.UTF8.GetBytes(Amount.ToString()));
 
-        return builder.ToReadOnlySeString();
+        var ross = builder.ToReadOnlySeString();
+        SeStringBuilder.SharedPool.Return(builder);
+        return ross;
     }
 
     // Component::Text::Localize::NounDe.Resolve
@@ -186,7 +190,7 @@ public class TextDecoder(ILogger<TextDecoder> Logger, IDataManager DataManager)
              a1->Offsets[6] = ArticleColumnIdx
          */
 
-        var builder = new SeStringBuilder();
+        var builder = SeStringBuilder.SharedPool.Get();
 
         var readColumnDirectly = ((byte)(grammaticalCase >> 8 & 0xFF) & 1) == 1; // BYTE2(Case) & 1
 
@@ -202,7 +206,9 @@ public class TextDecoder(ILogger<TextDecoder> Logger, IDataManager DataManager)
 
             builder.ReplaceText("[n]"u8, Encoding.UTF8.GetBytes(amount.ToString()));
 
-            return builder.ToReadOnlySeString();
+            var ross = builder.ToReadOnlySeString();
+            SeStringBuilder.SharedPool.Return(builder);
+            return ross;
         }
 
         var genderIdx = row.ReadColumn<sbyte>(columnOffset + PronounColumnIdx);
@@ -275,7 +281,9 @@ public class TextDecoder(ILogger<TextDecoder> Logger, IDataManager DataManager)
 
         builder.ReplaceText("[n]"u8, Encoding.UTF8.GetBytes(amount.ToString()));
 
-        return builder.ToReadOnlySeString();
+        var ross = builder.ToReadOnlySeString();
+        SeStringBuilder.SharedPool.Return(builder);
+        return ross;
     }
 
     // Component::Text::Localize::NounFr.Resolve
@@ -294,7 +302,7 @@ public class TextDecoder(ILogger<TextDecoder> Logger, IDataManager DataManager)
         // UnkInt5--;
         // offsets = &a1->Offsets[6 * a2->UnkInt5];
 
-        var builder = new SeStringBuilder();
+        var builder = SeStringBuilder.SharedPool.Get();
 
         var v33 = row.ReadColumn<sbyte>(columnOffset + StartsWithVowelColumnIdx);
         var v15 = row.ReadColumn<sbyte>(columnOffset + PronounColumnIdx);
@@ -317,7 +325,9 @@ public class TextDecoder(ILogger<TextDecoder> Logger, IDataManager DataManager)
             if (amount <= 1)
                 builder.ReplaceText("[n]"u8, Encoding.UTF8.GetBytes(amount.ToString()));
 
-            return builder.ToReadOnlySeString();
+            var ross = builder.ToReadOnlySeString();
+            SeStringBuilder.SharedPool.Return(builder);
+            return ross;
         }
 
         if (v17 != 0 && (amount > 1 || v17 == 2))
@@ -349,6 +359,8 @@ public class TextDecoder(ILogger<TextDecoder> Logger, IDataManager DataManager)
 
         builder.ReplaceText("[n]"u8, Encoding.UTF8.GetBytes(amount.ToString()));
 
-        return builder.ToReadOnlySeString();
+        var ross = builder.ToReadOnlySeString();
+        SeStringBuilder.SharedPool.Return(builder);
+        return ross;
     }
 }

@@ -322,7 +322,8 @@ public class ItemService(IClientState ClientState, ExcelService ExcelService, Se
         else if (IsCollectible(id))
             itemName += " \uE03D";
 
-        var itemLink = new SeStringBuilder()
+        var sb = SeStringBuilder.SharedPool.Get();
+        var itemLink = sb
             .PushColorType(GetItemRarityColorType(id, false))
             .PushEdgeColorType(GetItemRarityColorType(id, true))
             .PushLinkItem(id, itemName)
@@ -331,6 +332,7 @@ public class ItemService(IClientState ClientState, ExcelService ExcelService, Se
             .PopEdgeColorType()
             .PopColorType()
             .ToReadOnlySeString();
+        SeStringBuilder.SharedPool.Return(sb);
 
         return SeStringEvaluatorService.EvaluateFromAddon(371, new SeStringContext()
         {
