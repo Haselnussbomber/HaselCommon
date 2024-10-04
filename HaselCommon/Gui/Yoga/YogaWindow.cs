@@ -7,6 +7,7 @@ namespace HaselCommon.Gui.Yoga;
 public partial class YogaWindow : SimpleWindow, IDisposable
 {
     public Node RootNode { get; } = [];
+    public bool EnableDebug { get; set; }
 
     public YogaWindow(WindowManager wm, string name, ImGuiWindowFlags flags = ImGuiWindowFlags.None, bool forceMainWindow = false) : base(wm, name, flags, forceMainWindow)
     {
@@ -51,7 +52,7 @@ public partial class YogaWindow : SimpleWindow, IDisposable
     {
         base.PostDraw();
 
-        if (RootNode.EnableDebug)
+        if (EnableDebug)
         {
             DrawDebugWindow();
         }

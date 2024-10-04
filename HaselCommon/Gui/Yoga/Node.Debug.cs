@@ -10,7 +10,6 @@ public partial class Node : IDisposable
 {
     internal bool _isDebugHovered;
 
-    public bool EnableDebug { get; set; } = false;
     public virtual string DebugNodeOpenTag => $"<{TagName}{(Count == 0 ? " /" : string.Empty)}>";
     public virtual bool DebugHasClosingTag => Count != 0;
 
