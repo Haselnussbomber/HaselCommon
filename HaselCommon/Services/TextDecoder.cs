@@ -191,6 +191,7 @@ public class TextDecoder(ILogger<TextDecoder> Logger, IDataManager DataManager)
          */
 
         var builder = SeStringBuilder.SharedPool.Get();
+        ReadOnlySeString ross;
 
         var readColumnDirectly = ((byte)(grammaticalCase >> 8 & 0xFF) & 1) == 1; // BYTE2(Case) & 1
 
@@ -206,7 +207,7 @@ public class TextDecoder(ILogger<TextDecoder> Logger, IDataManager DataManager)
 
             builder.ReplaceText("[n]"u8, Encoding.UTF8.GetBytes(amount.ToString()));
 
-            var ross = builder.ToReadOnlySeString();
+            ross = builder.ToReadOnlySeString();
             SeStringBuilder.SharedPool.Return(builder);
             return ross;
         }
@@ -281,7 +282,7 @@ public class TextDecoder(ILogger<TextDecoder> Logger, IDataManager DataManager)
 
         builder.ReplaceText("[n]"u8, Encoding.UTF8.GetBytes(amount.ToString()));
 
-        var ross = builder.ToReadOnlySeString();
+        ross = builder.ToReadOnlySeString();
         SeStringBuilder.SharedPool.Return(builder);
         return ross;
     }
@@ -303,6 +304,7 @@ public class TextDecoder(ILogger<TextDecoder> Logger, IDataManager DataManager)
         // offsets = &a1->Offsets[6 * a2->UnkInt5];
 
         var builder = SeStringBuilder.SharedPool.Get();
+        ReadOnlySeString ross;
 
         var v33 = row.ReadColumn<sbyte>(columnOffset + StartsWithVowelColumnIdx);
         var v15 = row.ReadColumn<sbyte>(columnOffset + PronounColumnIdx);
@@ -325,7 +327,7 @@ public class TextDecoder(ILogger<TextDecoder> Logger, IDataManager DataManager)
             if (amount <= 1)
                 builder.ReplaceText("[n]"u8, Encoding.UTF8.GetBytes(amount.ToString()));
 
-            var ross = builder.ToReadOnlySeString();
+            ross = builder.ToReadOnlySeString();
             SeStringBuilder.SharedPool.Return(builder);
             return ross;
         }
@@ -359,7 +361,7 @@ public class TextDecoder(ILogger<TextDecoder> Logger, IDataManager DataManager)
 
         builder.ReplaceText("[n]"u8, Encoding.UTF8.GetBytes(amount.ToString()));
 
-        var ross = builder.ToReadOnlySeString();
+        ross = builder.ToReadOnlySeString();
         SeStringBuilder.SharedPool.Return(builder);
         return ross;
     }
