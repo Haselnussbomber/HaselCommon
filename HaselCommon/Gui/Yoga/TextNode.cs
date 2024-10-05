@@ -2,6 +2,8 @@ using System.Diagnostics;
 using System.Numerics;
 using Dalamud.Interface.ImGuiSeStringRenderer;
 using Dalamud.Interface.Utility;
+using HaselCommon.Graphics;
+using HaselCommon.Gui.Yoga.Attributes;
 using HaselCommon.Gui.Yoga.Enums;
 using Lumina.Text.ReadOnly;
 
@@ -13,6 +15,11 @@ namespace HaselCommon.Gui.Yoga;
 public partial class TextNode : Node
 {
     private ReadOnlySeString _text;
+
+    public override string TagName => "#text";
+    public override string DebugNodeOpenTag => $"{_text.ExtractText().Replace("\n", "")}";
+
+    [NodeProp("Node", editable: true)]
     public ReadOnlySeString Text
     {
         get => _text;
@@ -26,8 +33,10 @@ public partial class TextNode : Node
         }
     }
 
-    public override string TagName => "#text";
-    public override string DebugNodeOpenTag => $"{_text.ExtractText().Replace("\n", "")}";
+    [NodeProp("Node", editable: true)]
+    public Color? TextColor { get; set; }
+
+    public Action<TextNode, ReadOnlySeString>? ClickCallback { get; set; }
 
     public TextNode()
     {
@@ -42,6 +51,8 @@ public partial class TextNode : Node
 
     public override void DrawContent()
     {
-        ImGuiHelpers.SeStringWrapped(_text, new SeStringDrawParams() { WrapWidth = ComputedWidth });
+        var result = ImGuiHelpers.SeStringWrapped(_text, new SeStringDrawParams() { WrapWidth = ComputedWidth, Color = TextColor });
+        if (result.Clicked)
+            ClickCallback?.Invoke(this, (ReadOnlySeString)result.InteractedPayloadEnvelope);
     }
 }

@@ -121,6 +121,7 @@ public partial class YogaWindow
     ];
 
     private static bool DebugShowAllStyleProperties;
+    private static string EnumQueryText = string.Empty;
 
     [Conditional("DEBUG")]
     private void DrawDebugWindow()
@@ -374,6 +375,19 @@ public partial class YogaWindow
         ImGui.TextUnformatted(propertyInfo.Name);
         ImGui.TableNextColumn();
 
+        var propertyType = propertyInfo.PropertyType;
+        if (propertyType.IsGenericType && propertyType.GetGenericTypeDefinition() == typeof(Nullable<>))
+            propertyType = propertyType.GetGenericArguments()[0];
+
+        if (value is null)
+        {
+            if (ImGui.Button($"Create###{propertyInfo.Name}_NullableCreate"))
+            {
+                propertyInfo.SetValue(node, Activator.CreateInstance(propertyType));
+            }
+            return;
+        }
+
         if (propertyInfo.PropertyType.IsEnum)
         {
             ImGui.SetNextItemWidth(-1);
@@ -382,11 +396,19 @@ public partial class YogaWindow
             {
                 using var selectableColor = ImRaii.PushColor(ImGuiCol.Text, defaultTextColor);
 
+                ImGui.InputTextWithHint($"###{propertyInfo.Name}_ComboSearch", "Search...", ref EnumQueryText, 255);
+
                 foreach (var val in propertyInfo.PropertyType.GetEnumValues())
                 {
-                    if (ImGui.Selectable(Enum.GetName(propertyInfo.PropertyType, val), val.Equals(value)))
+                    var name = Enum.GetName(propertyInfo.PropertyType, val) ?? string.Empty;
+
+                    if (!string.IsNullOrEmpty(EnumQueryText) && !name.Contains(EnumQueryText, StringComparison.InvariantCultureIgnoreCase))
+                        continue;
+
+                    if (ImGui.Selectable(name, val.Equals(value)))
                     {
                         propertyInfo.SetValue(node, val);
+                        EnumQueryText = string.Empty;
                     }
                 }
             }
@@ -403,7 +425,7 @@ public partial class YogaWindow
                 var intValue = (int)styleLength.Value;
 
                 ImGui.SetNextItemWidth(-1);
-                if (ImGui.InputInt($"###{propertyInfo.Name}_Value", ref intValue))
+                if (ImGui.InputInt($"###{node.Guid}_{propertyInfo.Name}_Value", ref intValue))
                 {
                     if (intValue < 0) intValue = 0;
                     propertyInfo.SetValue(node, styleLength with { Value = intValue });
@@ -417,7 +439,7 @@ public partial class YogaWindow
                 var floatValue = styleLength.Value;
 
                 ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X - UnitWidth - ImGui.GetStyle().ItemInnerSpacing.X);
-                if (ImGui.InputFloat($"###{propertyInfo.Name}_Value", ref floatValue, 1, 10))
+                if (ImGui.InputFloat($"###{node.Guid}_{propertyInfo.Name}_Value", ref floatValue, 1, 10))
                 {
                     propertyInfo.SetValue(node, styleLength with { Value = floatValue });
                 }
@@ -426,7 +448,7 @@ public partial class YogaWindow
             }
 
             ImGui.SetNextItemWidth(styleLength.Unit is Unit.Undefined or Unit.Auto ? -1 : UnitWidth);
-            using var combo = ImRaii.Combo($"###{propertyInfo.Name}_Unit", $"{styleLength.Unit}");
+            using var combo = ImRaii.Combo($"###{node.Guid}_{propertyInfo.Name}_Unit", $"{styleLength.Unit}");
             if (!combo) return;
 
             using var selectableColor = ImRaii.PushColor(ImGuiCol.Text, defaultTextColor);
@@ -444,12 +466,21 @@ public partial class YogaWindow
             return;
         }
 
-        if (propertyInfo.PropertyType == typeof(Color) && value is Color color)
+        if (propertyType == typeof(Color) && value is Color color)
         {
-            var vecCol = (Vector4)(color with { R = color.B, B = color.R });
+            var vecCol = (Vector4)color;
             ImGui.SetNextItemWidth(-1);
-            if (ImGui.ColorEdit4($"###{node.Guid}_{propertyInfo.Name}_ColorEdit", ref vecCol))
-                propertyInfo.SetValue(node, new Color(vecCol.Z, vecCol.Y, vecCol.X, vecCol.W));
+            if (ImGui.ColorEdit4($"###{node.Guid}_{propertyInfo.Name}", ref vecCol))
+                propertyInfo.SetValue(node, new Color(vecCol));
+            return;
+        }
+
+        if (propertyInfo.PropertyType == typeof(uint) && value is uint uintVal)
+        {
+            var intVal = (int)uintVal;
+            ImGui.SetNextItemWidth(-1);
+            if (ImGui.InputInt($"###{node.Guid}_{propertyInfo.Name}", ref intVal))
+                propertyInfo.SetValue(node, (uint)intVal);
             return;
         }
 

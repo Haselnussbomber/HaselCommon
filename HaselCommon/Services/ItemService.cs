@@ -13,7 +13,6 @@ using HaselCommon.Caching.Internal;
 using HaselCommon.Extensions.Sheets;
 using HaselCommon.Extensions.Strings;
 using HaselCommon.Game.Enums;
-using HaselCommon.Globals;
 using HaselCommon.Graphics;
 using HaselCommon.Services.SeStringEvaluation;
 using Lumina.Excel.GeneratedSheets;
