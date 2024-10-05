@@ -1,9 +1,12 @@
 using System.Diagnostics;
 using System.Globalization;
+using System.Linq;
 using System.Numerics;
 using System.Reflection;
 using System.Text;
 using Dalamud.Interface.Utility.Raii;
+using HaselCommon.Extensions;
+using HaselCommon.Gui.Yoga.Attributes;
 using HaselCommon.Gui.Yoga.Enums;
 using HaselCommon.Services;
 using ImGuiNET;
@@ -18,8 +21,20 @@ public partial class YogaWindow
     private double _debugDrawTime;
     private Node? _debugSelectedNode;
 
-    private static bool DebugShowAllStyleProperties = true;
-    private static readonly string[] DebugStyleLengthNames = [
+    private static readonly string[] DebugCategories = ["Node", "Style", "Layout"];
+    private static readonly string[] DebugSortedNodePropNames = [
+        // Node
+        "TagName",
+        "Guid",
+        "NodeType",
+        "AlwaysFormsContainingBlock",
+        "IsReferenceBaseline",
+        "HasNewLayout",
+        "IsDirty",
+        "HasBaselineFunc",
+        "HasMeasureFunc",
+
+        // Style
         "Display",
         "PositionType",
         "Direction",
@@ -80,8 +95,8 @@ public partial class YogaWindow
         "MaxWidth",
         "MaxHeight",
         "AspectRatio",
-    ];
-    private static readonly string[] DebugLayoutNames = [
+
+        // Layout
         "Direction",
         "HadOverflow",
         "ComputedWidth",
@@ -103,6 +118,8 @@ public partial class YogaWindow
         "ComputedPaddingLeft",
         "ComputedPaddingRight",
     ];
+
+    private static bool DebugShowAllStyleProperties;
 
     [Conditional("DEBUG")]
     private void DrawDebugWindow()
@@ -224,33 +241,20 @@ public partial class YogaWindow
         using var tabs = ImRaii.TabBar("TabBar", ImGuiTabBarFlags.NoCloseWithMiddleMouseButton);
         if (!tabs) return;
 
-        using (var tab = ImRaii.TabItem("Node"))
+        var categories = DebugCategories.Concat(
+            nodeType
+                .GetProperties(BindingFlags.Instance | BindingFlags.Public)
+                .Select(pi => pi.GetCustomAttribute<NodeProp>()?.Category)
+                .Where(category => !string.IsNullOrEmpty(category))
+                .Cast<string>())
+            .Distinct();
+
+        foreach (var category in categories)
         {
-            if (tab)
-            {
-                using var table = ImRaii.Table("NodeTable", 2, ImGuiTableFlags.ScrollY);
-                if (table)
-                {
-                    ImGui.TableSetupColumn("Label", ImGuiTableColumnFlags.WidthStretch, 40);
-                    ImGui.TableSetupColumn("Value", ImGuiTableColumnFlags.WidthStretch, 60);
+            using var tab = ImRaii.TabItem(category);
+            if (!tab) continue;
 
-                    PrintRow("Type", node.GetType().FullName ?? node.GetType().Name);
-                    PrintRow("Guid", node.Guid.ToString());
-
-                    PrintRow("NodeType", node.NodeType);
-                    PrintRow("AlwaysFormsContainingBlock", node.AlwaysFormsContainingBlock);
-                    PrintRow("IsReferenceBaseline", node.IsReferenceBaseline);
-                    PrintRow("HasNewLayout", node.HasNewLayout);
-                    PrintRow("IsDirty", node.IsDirty);
-                    PrintRow("HasBaselineFunc", node.HasBaselineFunc);
-                    PrintRow("HasMeasureFunc", node.HasMeasureFunc);
-                }
-            }
-        }
-
-        using (var tab = ImRaii.TabItem("Style"))
-        {
-            if (tab)
+            if (category == "Style")
             {
                 if (ImGui.Button("Copy Style"))
                     CopyStyleToClipboard(node, tempNode);
@@ -258,60 +262,34 @@ public partial class YogaWindow
                 ImGui.SameLine();
 
                 ImGui.Checkbox("Show all", ref DebugShowAllStyleProperties);
-
-                using var _table = ImRaii.Table("StyleTable", 2, ImGuiTableFlags.ScrollY);
-                if (_table)
-                {
-                    ImGui.TableSetupColumn("Label", ImGuiTableColumnFlags.WidthStretch, 40);
-                    ImGui.TableSetupColumn("Value", ImGuiTableColumnFlags.WidthStretch, 60);
-
-                    foreach (var propertyName in DebugStyleLengthNames)
-                    {
-                        var propertyInfo = nodeType.GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public);
-                        if (propertyInfo == null)
-                        {
-                            ImGui.TableNextRow();
-                            ImGui.TableNextColumn();
-                            ImGui.TextUnformatted(propertyName);
-                            ImGui.TableNextColumn();
-                            ImGui.TextUnformatted("N/A");
-                        }
-                        else
-                        {
-                            PrintStyleRow(node, tempNode, propertyInfo);
-                        }
-                    }
-                }
             }
-        }
 
-        using (var tab = ImRaii.TabItem("Layout"))
-        {
-            if (tab)
-            {
-                using var _table = ImRaii.Table("LayoutTable", 2, ImGuiTableFlags.ScrollY);
-                if (_table)
+            using var table = ImRaii.Table("DataTable", 2, ImGuiTableFlags.ScrollY);
+            if (!table) continue;
+
+            ImGui.TableSetupColumn("Label", ImGuiTableColumnFlags.WidthStretch, 40);
+            ImGui.TableSetupColumn("Value", ImGuiTableColumnFlags.WidthStretch, 60);
+
+            var props = nodeType.GetProperties(BindingFlags.Instance | BindingFlags.Public)
+                .OrderBy(pi =>
                 {
-                    ImGui.TableSetupColumn("Label", ImGuiTableColumnFlags.WidthStretch, 40);
-                    ImGui.TableSetupColumn("Value", ImGuiTableColumnFlags.WidthStretch, 60);
+                    var index = DebugSortedNodePropNames.IndexOf(pi.Name);
+                    return index == -1 ? int.MaxValue : index;
+                })
+                .ThenBy(pi => pi.Name);
 
-                    foreach (var propertyName in DebugLayoutNames)
-                    {
-                        var propertyInfo = nodeType.GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public);
-                        if (propertyInfo == null)
-                        {
-                            ImGui.TableNextRow();
-                            ImGui.TableNextColumn();
-                            ImGui.TextUnformatted(propertyName);
-                            ImGui.TableNextColumn();
-                            ImGui.TextUnformatted("N/A");
-                        }
-                        else
-                        {
-                            PrintLayoutRow(node, propertyInfo);
-                        }
-                    }
-                }
+            foreach (var propInfo in props)
+            {
+                if (propInfo.GetCustomAttribute<NodeProp>() is not NodeProp nodePropAttr)
+                    continue;
+
+                if (nodePropAttr.Category != category)
+                    continue;
+
+                if (nodePropAttr.Editable)
+                    PrintEditableRow(node, tempNode, propInfo);
+                else
+                    PrintReadOnlyRow(node, propInfo);
             }
         }
     }
@@ -321,35 +299,38 @@ public partial class YogaWindow
         var nodeType = node.GetType();
         var sb = new StringBuilder();
 
-        foreach (var propertyName in DebugStyleLengthNames)
+        foreach (var propInfo in nodeType.GetProperties(BindingFlags.Instance | BindingFlags.Public))
         {
-            var propertyInfo = nodeType.GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public);
-            if (propertyInfo == null) continue;
+            if (propInfo.GetCustomAttribute<NodeProp>() is not NodeProp nodePropAttr)
+                continue;
 
-            var value = propertyInfo.GetValue(node);
-            var defaultValue = propertyInfo.GetValue(tempNode);
+            if (nodePropAttr.Category != "Style")
+                continue;
+
+            var value = propInfo.GetValue(node);
+            var defaultValue = propInfo.GetValue(tempNode);
 
             if (value == null || defaultValue == null)
                 continue;
 
-            if (propertyInfo.PropertyType.IsEnum)
+            if (propInfo.PropertyType.IsEnum)
             {
                 if (value.Equals(defaultValue))
                     continue;
 
-                sb.Append(propertyInfo.Name);
+                sb.Append(propInfo.Name);
                 sb.Append(" = ");
-                sb.Append(propertyInfo.PropertyType.Name);
+                sb.Append(propInfo.PropertyType.Name);
                 sb.Append('.');
                 sb.Append(value.ToString());
                 sb.AppendLine(",");
             }
-            else if (propertyInfo.PropertyType == typeof(StyleLength) && value is StyleLength styleLength && defaultValue is StyleLength defaultStyleLength)
+            else if (propInfo.PropertyType == typeof(StyleLength) && value is StyleLength styleLength && defaultValue is StyleLength defaultStyleLength)
             {
                 if (styleLength == defaultStyleLength)
                     continue;
 
-                sb.Append(propertyInfo.Name);
+                sb.Append(propInfo.Name);
                 sb.Append(" = ");
                 switch (styleLength.Unit)
                 {
@@ -382,7 +363,7 @@ public partial class YogaWindow
         ImGui.SetClipboardText(sb.ToString());
     }
 
-    private static void PrintStyleRow(Node node, Node tempNode, PropertyInfo propertyInfo)
+    private static void PrintEditableRow(Node node, Node tempNode, PropertyInfo propertyInfo)
     {
         var value = propertyInfo.GetValue(node);
         var defaultValue = propertyInfo.GetValue(tempNode);
@@ -469,7 +450,7 @@ public partial class YogaWindow
         }
     }
 
-    private static void PrintLayoutRow(Node node, PropertyInfo propertyInfo)
+    private static void PrintReadOnlyRow(Node node, PropertyInfo propertyInfo)
     {
         var value = propertyInfo.GetValue(node);
 
@@ -479,38 +460,10 @@ public partial class YogaWindow
         ImGui.TableNextColumn();
 
         if (value is float floatVal)
-            ImGui.TextUnformatted($"{floatVal.ToString("0", CultureInfo.InvariantCulture)}");
+            ImGui.TextUnformatted($"{floatVal.ToString(CultureInfo.InvariantCulture)}");
         else if (value is StyleLength styleLength)
             ImGui.TextUnformatted($"{styleLength}");
         else
             ImGui.TextUnformatted(value?.ToString() ?? "null");
-
-    }
-
-    private static void PrintRow(string label, string value)
-    {
-        ImGui.TableNextRow();
-        ImGui.TableNextColumn();
-        ImGui.TextUnformatted(label);
-        ImGui.TableNextColumn();
-        ImGui.TextUnformatted(value);
-    }
-
-    private static void PrintRow<T>(string label, T value) where T : struct, Enum
-    {
-        ImGui.TableNextRow();
-        ImGui.TableNextColumn();
-        ImGui.TextUnformatted(label);
-        ImGui.TableNextColumn();
-        ImGui.TextUnformatted($"{value}");
-    }
-
-    private static void PrintRow(string label, bool value)
-    {
-        ImGui.TableNextRow();
-        ImGui.TableNextColumn();
-        ImGui.TextUnformatted(label);
-        ImGui.TableNextColumn();
-        ImGui.TextUnformatted($"{value}");
     }
 }

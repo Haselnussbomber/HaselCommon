@@ -1,5 +1,6 @@
 using System.Numerics;
 using Dalamud.Interface.Utility.Raii;
+using HaselCommon.Gui.Yoga.Attributes;
 using HaselCommon.Gui.Yoga.Enums;
 using ImGuiNET;
 
@@ -9,6 +10,7 @@ public partial class Node : IDisposable
 {
     private bool _isDisposed;
 
+    [NodeProp("Node")]
     public Guid Guid { get; } = Guid.NewGuid();
 
     ~Node()

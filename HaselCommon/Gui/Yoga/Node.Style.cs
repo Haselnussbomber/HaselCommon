@@ -1,3 +1,4 @@
+using HaselCommon.Gui.Yoga.Attributes;
 using HaselCommon.Gui.Yoga.Enums;
 using HaselCommon.Gui.Yoga.Extensions;
 using HaselCommon.Math;
@@ -45,6 +46,7 @@ public partial class Node
 
     private StyleLength _aspectRatio = StyleLength.Undefined;
 
+    [NodeProp("Style", editable: true)]
     public Direction Direction
     {
         get => _direction;
@@ -58,6 +60,7 @@ public partial class Node
         }
     }
 
+    [NodeProp("Style", editable: true)]
     public FlexDirection FlexDirection
     {
         get => _flexDirection;
@@ -71,6 +74,7 @@ public partial class Node
         }
     }
 
+    [NodeProp("Style", editable: true)]
     public Justify JustifyContent
     {
         get => _justifyContent;
@@ -84,6 +88,7 @@ public partial class Node
         }
     }
 
+    [NodeProp("Style", editable: true)]
     public Align AlignContent
     {
         get => _alignContent;
@@ -97,6 +102,7 @@ public partial class Node
         }
     }
 
+    [NodeProp("Style", editable: true)]
     public Align AlignItems
     {
         get => _alignItems;
@@ -110,6 +116,7 @@ public partial class Node
         }
     }
 
+    [NodeProp("Style", editable: true)]
     public Align AlignSelf
     {
         get => _alignSelf;
@@ -123,6 +130,7 @@ public partial class Node
         }
     }
 
+    [NodeProp("Style", editable: true)]
     public PositionType PositionType
     {
         get => _positionType;
@@ -136,6 +144,7 @@ public partial class Node
         }
     }
 
+    [NodeProp("Style", editable: true)]
     public Wrap FlexWrap
     {
         get => _flexWrap;
@@ -149,6 +158,7 @@ public partial class Node
         }
     }
 
+    [NodeProp("Style", editable: true)]
     public Overflow Overflow
     {
         get => _overflow;
@@ -162,6 +172,7 @@ public partial class Node
         }
     }
 
+    [NodeProp("Style", editable: true)]
     public Display Display
     {
         get => _display;
@@ -175,6 +186,7 @@ public partial class Node
         }
     }
 
+    [NodeProp("Style", editable: true)]
     public StyleLength Flex
     {
         get => _flex;
@@ -188,6 +200,7 @@ public partial class Node
         }
     }
 
+    [NodeProp("Style", editable: true)]
     public StyleLength FlexGrow
     {
         get => _flexGrow.IsUndefined ? DefaultFlexGrow : _flexGrow;
@@ -201,6 +214,7 @@ public partial class Node
         }
     }
 
+    [NodeProp("Style", editable: true)]
     public StyleLength FlexShrink
     {
         get
@@ -221,6 +235,7 @@ public partial class Node
         }
     }
 
+    [NodeProp("Style", editable: true)]
     public StyleLength FlexBasis
     {
         get => _flexBasis;
@@ -234,6 +249,7 @@ public partial class Node
         }
     }
 
+    [NodeProp("Style", editable: true)]
     public StyleLength MarginAll
     {
         get => _margin[(int)Edge.All];
@@ -247,6 +263,7 @@ public partial class Node
         }
     }
 
+    [NodeProp("Style", editable: true)]
     public StyleLength MarginTop
     {
         get => _margin[(int)Edge.Top];
@@ -260,6 +277,7 @@ public partial class Node
         }
     }
 
+    [NodeProp("Style", editable: true)]
     public StyleLength MarginBottom
     {
         get => _margin[(int)Edge.Bottom];
@@ -273,6 +291,7 @@ public partial class Node
         }
     }
 
+    [NodeProp("Style", editable: true)]
     public StyleLength MarginLeft
     {
         get => _margin[(int)Edge.Left];
@@ -286,6 +305,7 @@ public partial class Node
         }
     }
 
+    [NodeProp("Style", editable: true)]
     public StyleLength MarginRight
     {
         get => _margin[(int)Edge.Right];
@@ -299,6 +319,7 @@ public partial class Node
         }
     }
 
+    [NodeProp("Style", editable: true)]
     public StyleLength MarginHorizontal
     {
         get => _margin[(int)Edge.Horizontal];
@@ -312,6 +333,7 @@ public partial class Node
         }
     }
 
+    [NodeProp("Style", editable: true)]
     public StyleLength MarginVertical
     {
         get => _margin[(int)Edge.Vertical];
@@ -325,6 +347,7 @@ public partial class Node
         }
     }
 
+    [NodeProp("Style", editable: true)]
     public StyleLength MarginStart
     {
         get => _margin[(int)Edge.Start];
@@ -338,6 +361,7 @@ public partial class Node
         }
     }
 
+    [NodeProp("Style", editable: true)]
     public StyleLength MarginEnd
     {
         get => _margin[(int)Edge.End];
@@ -351,6 +375,7 @@ public partial class Node
         }
     }
 
+    [NodeProp("Style", editable: true)]
     public StyleLength PositionAll
     {
         get => _position[(int)Edge.All];
@@ -364,6 +389,7 @@ public partial class Node
         }
     }
 
+    [NodeProp("Style", editable: true)]
     public StyleLength PositionTop
     {
         get => _position[(int)Edge.Top];
@@ -377,6 +403,7 @@ public partial class Node
         }
     }
 
+    [NodeProp("Style", editable: true)]
     public StyleLength PositionBottom
     {
         get => _position[(int)Edge.Bottom];
@@ -390,6 +417,7 @@ public partial class Node
         }
     }
 
+    [NodeProp("Style", editable: true)]
     public StyleLength PositionLeft
     {
         get => _position[(int)Edge.Left];
@@ -403,6 +431,7 @@ public partial class Node
         }
     }
 
+    [NodeProp("Style", editable: true)]
     public StyleLength PositionRight
     {
         get => _position[(int)Edge.Right];
@@ -416,6 +445,7 @@ public partial class Node
         }
     }
 
+    [NodeProp("Style", editable: true)]
     public StyleLength PositionHorizontal
     {
         get => _position[(int)Edge.Horizontal];
@@ -429,6 +459,7 @@ public partial class Node
         }
     }
 
+    [NodeProp("Style", editable: true)]
     public StyleLength PositionVertical
     {
         get => _position[(int)Edge.Vertical];
@@ -442,6 +473,7 @@ public partial class Node
         }
     }
 
+    [NodeProp("Style", editable: true)]
     public StyleLength PositionStart
     {
         get => _position[(int)Edge.Start];
@@ -455,6 +487,7 @@ public partial class Node
         }
     }
 
+    [NodeProp("Style", editable: true)]
     public StyleLength PositionEnd
     {
         get => _position[(int)Edge.End];
@@ -468,6 +501,7 @@ public partial class Node
         }
     }
 
+    [NodeProp("Style", editable: true)]
     public StyleLength PaddingAll
     {
         get => _padding[(int)Edge.All];
@@ -481,6 +515,7 @@ public partial class Node
         }
     }
 
+    [NodeProp("Style", editable: true)]
     public StyleLength PaddingTop
     {
         get => _padding[(int)Edge.Top];
@@ -494,6 +529,7 @@ public partial class Node
         }
     }
 
+    [NodeProp("Style", editable: true)]
     public StyleLength PaddingBottom
     {
         get => _padding[(int)Edge.Bottom];
@@ -507,6 +543,7 @@ public partial class Node
         }
     }
 
+    [NodeProp("Style", editable: true)]
     public StyleLength PaddingLeft
     {
         get => _padding[(int)Edge.Left];
@@ -520,6 +557,7 @@ public partial class Node
         }
     }
 
+    [NodeProp("Style", editable: true)]
     public StyleLength PaddingRight
     {
         get => _padding[(int)Edge.Right];
@@ -533,6 +571,7 @@ public partial class Node
         }
     }
 
+    [NodeProp("Style", editable: true)]
     public StyleLength PaddingHorizontal
     {
         get => _padding[(int)Edge.Horizontal];
@@ -546,6 +585,7 @@ public partial class Node
         }
     }
 
+    [NodeProp("Style", editable: true)]
     public StyleLength PaddingVertical
     {
         get => _padding[(int)Edge.Vertical];
@@ -559,6 +599,7 @@ public partial class Node
         }
     }
 
+    [NodeProp("Style", editable: true)]
     public StyleLength PaddingStart
     {
         get => _padding[(int)Edge.Start];
@@ -572,6 +613,7 @@ public partial class Node
         }
     }
 
+    [NodeProp("Style", editable: true)]
     public StyleLength PaddingEnd
     {
         get => _padding[(int)Edge.End];
@@ -585,6 +627,7 @@ public partial class Node
         }
     }
 
+    [NodeProp("Style", editable: true)]
     public StyleLength BorderAll
     {
         get => _border[(int)Edge.All];
@@ -598,6 +641,7 @@ public partial class Node
         }
     }
 
+    [NodeProp("Style", editable: true)]
     public StyleLength BorderTop
     {
         get => _border[(int)Edge.Top];
@@ -611,6 +655,7 @@ public partial class Node
         }
     }
 
+    [NodeProp("Style", editable: true)]
     public StyleLength BorderBottom
     {
         get => _border[(int)Edge.Bottom];
@@ -624,6 +669,7 @@ public partial class Node
         }
     }
 
+    [NodeProp("Style", editable: true)]
     public StyleLength BorderLeft
     {
         get => _border[(int)Edge.Left];
@@ -637,6 +683,7 @@ public partial class Node
         }
     }
 
+    [NodeProp("Style", editable: true)]
     public StyleLength BorderRight
     {
         get => _border[(int)Edge.Right];
@@ -650,6 +697,7 @@ public partial class Node
         }
     }
 
+    [NodeProp("Style", editable: true)]
     public StyleLength BorderHorizontal
     {
         get => _border[(int)Edge.Horizontal];
@@ -663,6 +711,7 @@ public partial class Node
         }
     }
 
+    [NodeProp("Style", editable: true)]
     public StyleLength BorderVertical
     {
         get => _border[(int)Edge.Vertical];
@@ -676,6 +725,7 @@ public partial class Node
         }
     }
 
+    [NodeProp("Style", editable: true)]
     public StyleLength BorderStart
     {
         get => _border[(int)Edge.Start];
@@ -689,6 +739,7 @@ public partial class Node
         }
     }
 
+    [NodeProp("Style", editable: true)]
     public StyleLength BorderEnd
     {
         get => _border[(int)Edge.End];
@@ -702,6 +753,7 @@ public partial class Node
         }
     }
 
+    [NodeProp("Style", editable: true)]
     public StyleLength Gap
     {
         get => _gap;
@@ -715,6 +767,7 @@ public partial class Node
         }
     }
 
+    [NodeProp("Style", editable: true)]
     public StyleLength RowGap
     {
         get => _rowGap;
@@ -728,6 +781,7 @@ public partial class Node
         }
     }
 
+    [NodeProp("Style", editable: true)]
     public StyleLength ColumnGap
     {
         get => _columnGap;
@@ -741,6 +795,7 @@ public partial class Node
         }
     }
 
+    [NodeProp("Style", editable: true)]
     public StyleLength Width
     {
         get => _width;
@@ -754,6 +809,7 @@ public partial class Node
         }
     }
 
+    [NodeProp("Style", editable: true)]
     public StyleLength Height
     {
         get => _height;
@@ -767,6 +823,7 @@ public partial class Node
         }
     }
 
+    [NodeProp("Style", editable: true)]
     public StyleLength MinWidth
     {
         get => _minWidth;
@@ -780,6 +837,7 @@ public partial class Node
         }
     }
 
+    [NodeProp("Style", editable: true)]
     public StyleLength MinHeight
     {
         get => _minHeight;
@@ -793,6 +851,7 @@ public partial class Node
         }
     }
 
+    [NodeProp("Style", editable: true)]
     public StyleLength MaxWidth
     {
         get => _maxWidth;
@@ -806,6 +865,7 @@ public partial class Node
         }
     }
 
+    [NodeProp("Style", editable: true)]
     public StyleLength MaxHeight
     {
         get => _maxHeight;
@@ -819,6 +879,7 @@ public partial class Node
         }
     }
 
+    [NodeProp("Style", editable: true)]
     public StyleLength AspectRatio
     {
         get => _aspectRatio;

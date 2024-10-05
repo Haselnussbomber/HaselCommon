@@ -1,3 +1,4 @@
+using HaselCommon.Gui.Yoga.Attributes;
 using HaselCommon.Gui.Yoga.Enums;
 using HaselCommon.Gui.Yoga.Extensions;
 
@@ -18,6 +19,7 @@ public partial class Node
     /// <summary>
     /// Whether a leaf node's layout results may be truncated during layout rounding.
     /// </summary>
+    [NodeProp("Node")]
     public NodeType NodeType { get; set; } = NodeType.Default;
 
     /// <summary>
@@ -25,21 +27,25 @@ public partial class Node
     /// This is useful for when a node has a property outside of of Yoga that will form a containing block.<br/>
     /// For example, transforms or some of the others listed in <see href="https://developer.mozilla.org/en-US/docs/Web/CSS/Containing_block"/>
     /// </summary>
+    [NodeProp("Node")]
     public bool AlwaysFormsContainingBlock { get; set; }
 
     /// <summary>
     /// Whether this node should be considered the reference baseline among siblings.
     /// </summary>
+    [NodeProp("Node")]
     public bool IsReferenceBaseline { get; set; }
 
     /// <summary>
     /// Whether the <see cref="Baseline(float, float)"/> function is enabled.
     /// </summary>
+    [NodeProp("Node")]
     public bool HasBaselineFunc { get; set; }
 
     /// <summary>
     /// Whether the <see cref="Measure(float, MeasureMode, float, MeasureMode)"/> function is enabled.
     /// </summary>
+    [NodeProp("Node")]
     public bool HasMeasureFunc
     {
         get => _hasMeasureFunc;
@@ -98,11 +104,13 @@ public partial class Node
     /// <summary>
     /// Whether the given node may have new layout results. Must be reset by setting it to false.
     /// </summary>
+    [NodeProp("Node")]
     public bool HasNewLayout { get; set; } = true;
 
     /// <summary>
     /// Whether the node's layout results are dirty due to it or its children changing.
     /// </summary>
+    [NodeProp("Node")]
     public bool IsDirty
     {
         get => _isDirty;
