@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Text;
 using Dalamud.Interface.Utility.Raii;
 using HaselCommon.Extensions;
+using HaselCommon.Graphics;
 using HaselCommon.Gui.Yoga.Attributes;
 using HaselCommon.Gui.Yoga.Enums;
 using HaselCommon.Services;
@@ -153,7 +154,7 @@ public partial class YogaWindow
 
                 ImGui.TableNextColumn();
 
-                DrawSelectedNode(_debugSelectedNode);
+                DrawNodeProperties(_debugSelectedNode);
             }
         }
 
@@ -230,7 +231,7 @@ public partial class YogaWindow
         }
     }
 
-    private static void DrawSelectedNode(Node? node)
+    private static void DrawNodeProperties(Node? node)
     {
         if (node == null)
             return;
@@ -286,9 +287,9 @@ public partial class YogaWindow
                     continue;
 
                 if (nodePropAttr.Editable)
-                    PrintEditableRow(node, propInfo);
+                    PrintEditableRow(node, category, propInfo);
                 else
-                    PrintReadOnlyRow(node, propInfo);
+                    PrintReadOnlyRow(node, category, propInfo);
             }
         }
     }
@@ -357,12 +358,12 @@ public partial class YogaWindow
         ImGui.SetClipboardText(sb.ToString());
     }
 
-    private static void PrintEditableRow(Node node, PropertyInfo propertyInfo)
+    private static void PrintEditableRow(Node node, string category, PropertyInfo propertyInfo)
     {
         var value = propertyInfo.GetValue(node);
-        var wasChanged = node._changedProps.Contains(propertyInfo.Name);
+        var wasChanged = category != "Style" || node._changedProps.Contains(propertyInfo.Name);
 
-        if (!DebugShowAllStyleProperties && !wasChanged)
+        if (category == "Style" && !DebugShowAllStyleProperties && !wasChanged)
             return;
 
         var defaultTextColor = ImGui.GetColorU32(ImGuiCol.Text);
@@ -440,10 +441,22 @@ public partial class YogaWindow
                         propertyInfo.SetValue(node, styleLength with { Unit = val });
                 }
             }
+            return;
         }
+
+        if (propertyInfo.PropertyType == typeof(Color) && value is Color color)
+        {
+            var vecCol = (Vector4)(color with { R = color.B, B = color.R });
+            ImGui.SetNextItemWidth(-1);
+            if (ImGui.ColorEdit4($"###{node.Guid}_{propertyInfo.Name}_ColorEdit", ref vecCol))
+                propertyInfo.SetValue(node, new Color(vecCol.Z, vecCol.Y, vecCol.X, vecCol.W));
+            return;
+        }
+
+        ImGui.TextUnformatted($"Unsupported Type: {propertyInfo.PropertyType.Name}");
     }
 
-    private static void PrintReadOnlyRow(Node node, PropertyInfo propertyInfo)
+    private static void PrintReadOnlyRow(Node node, string category, PropertyInfo propertyInfo)
     {
         var value = propertyInfo.GetValue(node);
 
@@ -453,10 +466,22 @@ public partial class YogaWindow
         ImGui.TableNextColumn();
 
         if (value is float floatVal)
+        {
             ImGui.TextUnformatted($"{floatVal.ToString(CultureInfo.InvariantCulture)}");
+        }
         else if (value is StyleLength styleLength)
+        {
             ImGui.TextUnformatted($"{styleLength}");
+        }
+        else if (value is Color color)
+        {
+            var vecCol = (Vector4)(color with { R = color.B, B = color.R });
+            ImGui.SetNextItemWidth(-1);
+            ImGui.ColorEdit4($"###{node.Guid}_{propertyInfo.Name}_ColorEdit", ref vecCol);
+        }
         else
+        {
             ImGui.TextUnformatted(value?.ToString() ?? "null");
+        }
     }
 }
