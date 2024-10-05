@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using HaselCommon.Gui.Yoga.Attributes;
 using HaselCommon.Gui.Yoga.Enums;
 using HaselCommon.Gui.Yoga.Extensions;
@@ -10,6 +11,8 @@ public partial class Node
     private const float DefaultFlexGrow = 0.0f;
     private const float DefaultFlexShrink = 0.0f;
     private const float WebDefaultFlexShrink = 1.0f;
+
+    internal HashSet<string> _changedProps = [];
 
     private Direction _direction = Direction.Inherit;
     private FlexDirection _flexDirection = FlexDirection.Column;
@@ -55,6 +58,7 @@ public partial class Node
             if (_direction != value)
             {
                 _direction = value;
+                _changedProps.Add(nameof(Direction));
                 MarkDirtyAndPropagate();
             }
         }
@@ -69,6 +73,7 @@ public partial class Node
             if (_flexDirection != value)
             {
                 _flexDirection = value;
+                _changedProps.Add(nameof(FlexDirection));
                 MarkDirtyAndPropagate();
             }
         }
@@ -83,6 +88,7 @@ public partial class Node
             if (_justifyContent != value)
             {
                 _justifyContent = value;
+                _changedProps.Add(nameof(JustifyContent));
                 MarkDirtyAndPropagate();
             }
         }
@@ -97,6 +103,7 @@ public partial class Node
             if (_alignContent != value)
             {
                 _alignContent = value;
+                _changedProps.Add(nameof(AlignContent));
                 MarkDirtyAndPropagate();
             }
         }
@@ -111,6 +118,7 @@ public partial class Node
             if (_alignItems != value)
             {
                 _alignItems = value;
+                _changedProps.Add(nameof(AlignItems));
                 MarkDirtyAndPropagate();
             }
         }
@@ -125,6 +133,7 @@ public partial class Node
             if (_alignSelf != value)
             {
                 _alignSelf = value;
+                _changedProps.Add(nameof(AlignSelf));
                 MarkDirtyAndPropagate();
             }
         }
@@ -139,6 +148,7 @@ public partial class Node
             if (_positionType != value)
             {
                 _positionType = value;
+                _changedProps.Add(nameof(PositionType));
                 MarkDirtyAndPropagate();
             }
         }
@@ -153,6 +163,7 @@ public partial class Node
             if (_flexWrap != value)
             {
                 _flexWrap = value;
+                _changedProps.Add(nameof(FlexWrap));
                 MarkDirtyAndPropagate();
             }
         }
@@ -167,6 +178,7 @@ public partial class Node
             if (_overflow != value)
             {
                 _overflow = value;
+                _changedProps.Add(nameof(Overflow));
                 MarkDirtyAndPropagate();
             }
         }
@@ -181,6 +193,7 @@ public partial class Node
             if (_display != value)
             {
                 _display = value;
+                _changedProps.Add(nameof(Display));
                 MarkDirtyAndPropagate();
             }
         }
@@ -195,6 +208,7 @@ public partial class Node
             if (_flex != value)
             {
                 _flex = value;
+                _changedProps.Add(nameof(Flex));
                 MarkDirtyAndPropagate();
             }
         }
@@ -209,6 +223,7 @@ public partial class Node
             if (_flexGrow != value)
             {
                 _flexGrow = value;
+                _changedProps.Add(nameof(FlexGrow));
                 MarkDirtyAndPropagate();
             }
         }
@@ -230,6 +245,7 @@ public partial class Node
             if (_flexShrink != value)
             {
                 _flexShrink = value;
+                _changedProps.Add(nameof(FlexShrink));
                 MarkDirtyAndPropagate();
             }
         }
@@ -244,6 +260,7 @@ public partial class Node
             if (_flexBasis != value)
             {
                 _flexBasis = value;
+                _changedProps.Add(nameof(FlexBasis));
                 MarkDirtyAndPropagate();
             }
         }
@@ -258,6 +275,7 @@ public partial class Node
             if (_margin[(int)Edge.All] != value)
             {
                 _margin[(int)Edge.All] = value;
+                _changedProps.Add(nameof(MarginAll));
                 MarkDirtyAndPropagate();
             }
         }
@@ -272,6 +290,7 @@ public partial class Node
             if (_margin[(int)Edge.Top] != value)
             {
                 _margin[(int)Edge.Top] = value;
+                _changedProps.Add(nameof(MarginTop));
                 MarkDirtyAndPropagate();
             }
         }
@@ -286,6 +305,7 @@ public partial class Node
             if (_margin[(int)Edge.Bottom] != value)
             {
                 _margin[(int)Edge.Bottom] = value;
+                _changedProps.Add(nameof(MarginBottom));
                 MarkDirtyAndPropagate();
             }
         }
@@ -300,6 +320,7 @@ public partial class Node
             if (_margin[(int)Edge.Left] != value)
             {
                 _margin[(int)Edge.Left] = value;
+                _changedProps.Add(nameof(MarginLeft));
                 MarkDirtyAndPropagate();
             }
         }
@@ -314,6 +335,7 @@ public partial class Node
             if (_margin[(int)Edge.Right] != value)
             {
                 _margin[(int)Edge.Right] = value;
+                _changedProps.Add(nameof(MarginRight));
                 MarkDirtyAndPropagate();
             }
         }
@@ -328,6 +350,7 @@ public partial class Node
             if (_margin[(int)Edge.Horizontal] != value)
             {
                 _margin[(int)Edge.Horizontal] = value;
+                _changedProps.Add(nameof(MarginHorizontal));
                 MarkDirtyAndPropagate();
             }
         }
@@ -342,6 +365,7 @@ public partial class Node
             if (_margin[(int)Edge.Vertical] != value)
             {
                 _margin[(int)Edge.Vertical] = value;
+                _changedProps.Add(nameof(MarginVertical));
                 MarkDirtyAndPropagate();
             }
         }
@@ -356,6 +380,7 @@ public partial class Node
             if (_margin[(int)Edge.Start] != value)
             {
                 _margin[(int)Edge.Start] = value;
+                _changedProps.Add(nameof(MarginStart));
                 MarkDirtyAndPropagate();
             }
         }
@@ -370,6 +395,7 @@ public partial class Node
             if (_margin[(int)Edge.End] != value)
             {
                 _margin[(int)Edge.End] = value;
+                _changedProps.Add(nameof(MarginEnd));
                 MarkDirtyAndPropagate();
             }
         }
@@ -384,6 +410,7 @@ public partial class Node
             if (_position[(int)Edge.All] != value)
             {
                 _position[(int)Edge.All] = value;
+                _changedProps.Add(nameof(PositionAll));
                 MarkDirtyAndPropagate();
             }
         }
@@ -398,6 +425,7 @@ public partial class Node
             if (_position[(int)Edge.Top] != value)
             {
                 _position[(int)Edge.Top] = value;
+                _changedProps.Add(nameof(PositionTop));
                 MarkDirtyAndPropagate();
             }
         }
@@ -412,6 +440,7 @@ public partial class Node
             if (_position[(int)Edge.Bottom] != value)
             {
                 _position[(int)Edge.Bottom] = value;
+                _changedProps.Add(nameof(PositionBottom));
                 MarkDirtyAndPropagate();
             }
         }
@@ -426,6 +455,7 @@ public partial class Node
             if (_position[(int)Edge.Left] != value)
             {
                 _position[(int)Edge.Left] = value;
+                _changedProps.Add(nameof(PositionLeft));
                 MarkDirtyAndPropagate();
             }
         }
@@ -440,6 +470,7 @@ public partial class Node
             if (_position[(int)Edge.Right] != value)
             {
                 _position[(int)Edge.Right] = value;
+                _changedProps.Add(nameof(PositionRight));
                 MarkDirtyAndPropagate();
             }
         }
@@ -454,6 +485,7 @@ public partial class Node
             if (_position[(int)Edge.Horizontal] != value)
             {
                 _position[(int)Edge.Horizontal] = value;
+                _changedProps.Add(nameof(PositionHorizontal));
                 MarkDirtyAndPropagate();
             }
         }
@@ -468,6 +500,7 @@ public partial class Node
             if (_position[(int)Edge.Vertical] != value)
             {
                 _position[(int)Edge.Vertical] = value;
+                _changedProps.Add(nameof(PositionVertical));
                 MarkDirtyAndPropagate();
             }
         }
@@ -482,6 +515,7 @@ public partial class Node
             if (_position[(int)Edge.Start] != value)
             {
                 _position[(int)Edge.Start] = value;
+                _changedProps.Add(nameof(PositionStart));
                 MarkDirtyAndPropagate();
             }
         }
@@ -496,6 +530,7 @@ public partial class Node
             if (_position[(int)Edge.End] != value)
             {
                 _position[(int)Edge.End] = value;
+                _changedProps.Add(nameof(PositionEnd));
                 MarkDirtyAndPropagate();
             }
         }
@@ -510,6 +545,7 @@ public partial class Node
             if (_padding[(int)Edge.All] != value)
             {
                 _padding[(int)Edge.All] = value;
+                _changedProps.Add(nameof(PaddingAll));
                 MarkDirtyAndPropagate();
             }
         }
@@ -524,6 +560,7 @@ public partial class Node
             if (_padding[(int)Edge.Top] != value)
             {
                 _padding[(int)Edge.Top] = value;
+                _changedProps.Add(nameof(PaddingTop));
                 MarkDirtyAndPropagate();
             }
         }
@@ -538,6 +575,7 @@ public partial class Node
             if (_padding[(int)Edge.Bottom] != value)
             {
                 _padding[(int)Edge.Bottom] = value;
+                _changedProps.Add(nameof(PaddingBottom));
                 MarkDirtyAndPropagate();
             }
         }
@@ -552,6 +590,7 @@ public partial class Node
             if (_padding[(int)Edge.Left] != value)
             {
                 _padding[(int)Edge.Left] = value;
+                _changedProps.Add(nameof(PaddingLeft));
                 MarkDirtyAndPropagate();
             }
         }
@@ -566,6 +605,7 @@ public partial class Node
             if (_padding[(int)Edge.Right] != value)
             {
                 _padding[(int)Edge.Right] = value;
+                _changedProps.Add(nameof(PaddingRight));
                 MarkDirtyAndPropagate();
             }
         }
@@ -580,6 +620,7 @@ public partial class Node
             if (_padding[(int)Edge.Horizontal] != value)
             {
                 _padding[(int)Edge.Horizontal] = value;
+                _changedProps.Add(nameof(PaddingHorizontal));
                 MarkDirtyAndPropagate();
             }
         }
@@ -594,6 +635,7 @@ public partial class Node
             if (_padding[(int)Edge.Vertical] != value)
             {
                 _padding[(int)Edge.Vertical] = value;
+                _changedProps.Add(nameof(PaddingVertical));
                 MarkDirtyAndPropagate();
             }
         }
@@ -608,6 +650,7 @@ public partial class Node
             if (_padding[(int)Edge.Start] != value)
             {
                 _padding[(int)Edge.Start] = value;
+                _changedProps.Add(nameof(PaddingStart));
                 MarkDirtyAndPropagate();
             }
         }
@@ -622,6 +665,7 @@ public partial class Node
             if (_padding[(int)Edge.End] != value)
             {
                 _padding[(int)Edge.End] = value;
+                _changedProps.Add(nameof(PaddingEnd));
                 MarkDirtyAndPropagate();
             }
         }
@@ -636,6 +680,7 @@ public partial class Node
             if (_border[(int)Edge.All] != value)
             {
                 _border[(int)Edge.All] = value;
+                _changedProps.Add(nameof(BorderAll));
                 MarkDirtyAndPropagate();
             }
         }
@@ -650,6 +695,7 @@ public partial class Node
             if (_border[(int)Edge.Top] != value)
             {
                 _border[(int)Edge.Top] = value;
+                _changedProps.Add(nameof(BorderTop));
                 MarkDirtyAndPropagate();
             }
         }
@@ -664,6 +710,7 @@ public partial class Node
             if (_border[(int)Edge.Bottom] != value)
             {
                 _border[(int)Edge.Bottom] = value;
+                _changedProps.Add(nameof(BorderBottom));
                 MarkDirtyAndPropagate();
             }
         }
@@ -678,6 +725,7 @@ public partial class Node
             if (_border[(int)Edge.Left] != value)
             {
                 _border[(int)Edge.Left] = value;
+                _changedProps.Add(nameof(BorderLeft));
                 MarkDirtyAndPropagate();
             }
         }
@@ -692,6 +740,7 @@ public partial class Node
             if (_border[(int)Edge.Right] != value)
             {
                 _border[(int)Edge.Right] = value;
+                _changedProps.Add(nameof(BorderRight));
                 MarkDirtyAndPropagate();
             }
         }
@@ -706,6 +755,7 @@ public partial class Node
             if (_border[(int)Edge.Horizontal] != value)
             {
                 _border[(int)Edge.Horizontal] = value;
+                _changedProps.Add(nameof(BorderHorizontal));
                 MarkDirtyAndPropagate();
             }
         }
@@ -720,6 +770,7 @@ public partial class Node
             if (_border[(int)Edge.Vertical] != value)
             {
                 _border[(int)Edge.Vertical] = value;
+                _changedProps.Add(nameof(BorderVertical));
                 MarkDirtyAndPropagate();
             }
         }
@@ -734,6 +785,7 @@ public partial class Node
             if (_border[(int)Edge.Start] != value)
             {
                 _border[(int)Edge.Start] = value;
+                _changedProps.Add(nameof(BorderStart));
                 MarkDirtyAndPropagate();
             }
         }
@@ -748,6 +800,7 @@ public partial class Node
             if (_border[(int)Edge.End] != value)
             {
                 _border[(int)Edge.End] = value;
+                _changedProps.Add(nameof(BorderEnd));
                 MarkDirtyAndPropagate();
             }
         }
@@ -762,6 +815,7 @@ public partial class Node
             if (_gap != value)
             {
                 _gap = value;
+                _changedProps.Add(nameof(Gap));
                 MarkDirtyAndPropagate();
             }
         }
@@ -776,6 +830,7 @@ public partial class Node
             if (_rowGap != value)
             {
                 _rowGap = value;
+                _changedProps.Add(nameof(RowGap));
                 MarkDirtyAndPropagate();
             }
         }
@@ -790,6 +845,7 @@ public partial class Node
             if (_columnGap != value)
             {
                 _columnGap = value;
+                _changedProps.Add(nameof(ColumnGap));
                 MarkDirtyAndPropagate();
             }
         }
@@ -804,6 +860,7 @@ public partial class Node
             if (_width != value)
             {
                 _width = value;
+                _changedProps.Add(nameof(Width));
                 MarkDirtyAndPropagate();
             }
         }
@@ -818,6 +875,7 @@ public partial class Node
             if (_height != value)
             {
                 _height = value;
+                _changedProps.Add(nameof(Height));
                 MarkDirtyAndPropagate();
             }
         }
@@ -832,6 +890,7 @@ public partial class Node
             if (_minWidth != value)
             {
                 _minWidth = value;
+                _changedProps.Add(nameof(MinWidth));
                 MarkDirtyAndPropagate();
             }
         }
@@ -846,6 +905,7 @@ public partial class Node
             if (_minHeight != value)
             {
                 _minHeight = value;
+                _changedProps.Add(nameof(MinHeight));
                 MarkDirtyAndPropagate();
             }
         }
@@ -860,6 +920,7 @@ public partial class Node
             if (_maxWidth != value)
             {
                 _maxWidth = value;
+                _changedProps.Add(nameof(MaxWidth));
                 MarkDirtyAndPropagate();
             }
         }
@@ -874,6 +935,7 @@ public partial class Node
             if (_maxHeight != value)
             {
                 _maxHeight = value;
+                _changedProps.Add(nameof(MaxHeight));
                 MarkDirtyAndPropagate();
             }
         }
@@ -888,6 +950,7 @@ public partial class Node
             if (_aspectRatio != value)
             {
                 _aspectRatio = value;
+                _changedProps.Add(nameof(AspectRatio));
                 MarkDirtyAndPropagate();
             }
         }

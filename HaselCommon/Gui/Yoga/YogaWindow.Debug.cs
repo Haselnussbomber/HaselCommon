@@ -236,7 +236,6 @@ public partial class YogaWindow
             return;
 
         var nodeType = node.GetType();
-        using var tempNode = new Node() { Config = node.Config };
 
         using var tabs = ImRaii.TabBar("TabBar", ImGuiTabBarFlags.NoCloseWithMiddleMouseButton);
         if (!tabs) return;
@@ -257,7 +256,7 @@ public partial class YogaWindow
             if (category == "Style")
             {
                 if (ImGui.Button("Copy Style"))
-                    CopyStyleToClipboard(node, tempNode);
+                    CopyStyleToClipboard(node);
 
                 ImGui.SameLine();
 
@@ -287,14 +286,14 @@ public partial class YogaWindow
                     continue;
 
                 if (nodePropAttr.Editable)
-                    PrintEditableRow(node, tempNode, propInfo);
+                    PrintEditableRow(node, propInfo);
                 else
                     PrintReadOnlyRow(node, propInfo);
             }
         }
     }
 
-    private static void CopyStyleToClipboard(Node node, Node tempNode)
+    private static void CopyStyleToClipboard(Node node)
     {
         var nodeType = node.GetType();
         var sb = new StringBuilder();
@@ -308,16 +307,14 @@ public partial class YogaWindow
                 continue;
 
             var value = propInfo.GetValue(node);
-            var defaultValue = propInfo.GetValue(tempNode);
+            if (value == null)
+                continue;
 
-            if (value == null || defaultValue == null)
+            if (!node._changedProps.Contains(propInfo.Name))
                 continue;
 
             if (propInfo.PropertyType.IsEnum)
             {
-                if (value.Equals(defaultValue))
-                    continue;
-
                 sb.Append(propInfo.Name);
                 sb.Append(" = ");
                 sb.Append(propInfo.PropertyType.Name);
@@ -325,11 +322,8 @@ public partial class YogaWindow
                 sb.Append(value.ToString());
                 sb.AppendLine(",");
             }
-            else if (propInfo.PropertyType == typeof(StyleLength) && value is StyleLength styleLength && defaultValue is StyleLength defaultStyleLength)
+            else if (propInfo.PropertyType == typeof(StyleLength) && value is StyleLength styleLength)
             {
-                if (styleLength == defaultStyleLength)
-                    continue;
-
                 sb.Append(propInfo.Name);
                 sb.Append(" = ");
                 switch (styleLength.Unit)
@@ -363,17 +357,16 @@ public partial class YogaWindow
         ImGui.SetClipboardText(sb.ToString());
     }
 
-    private static void PrintEditableRow(Node node, Node tempNode, PropertyInfo propertyInfo)
+    private static void PrintEditableRow(Node node, PropertyInfo propertyInfo)
     {
         var value = propertyInfo.GetValue(node);
-        var defaultValue = propertyInfo.GetValue(tempNode);
-        var isEqual = value?.Equals(defaultValue) ?? true;
+        var wasChanged = node._changedProps.Contains(propertyInfo.Name);
 
-        if (!DebugShowAllStyleProperties && isEqual)
+        if (!DebugShowAllStyleProperties && !wasChanged)
             return;
 
         var defaultTextColor = ImGui.GetColorU32(ImGuiCol.Text);
-        using var textColor = ImRaii.PushColor(ImGuiCol.Text, ImGui.GetColorU32(ImGuiCol.TextDisabled), isEqual);
+        using var textColor = ImRaii.PushColor(ImGuiCol.Text, ImGui.GetColorU32(ImGuiCol.TextDisabled), !wasChanged);
 
         ImGui.TableNextRow();
         ImGui.TableNextColumn();
