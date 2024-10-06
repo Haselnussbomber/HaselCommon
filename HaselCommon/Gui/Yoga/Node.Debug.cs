@@ -6,7 +6,7 @@ using ImGuiNET;
 namespace HaselCommon.Gui.Yoga;
 
 [DebuggerDisplay("Guid: {Guid.ToString()} | Children: {Count}")]
-public partial class Node : IDisposable
+public partial class Node
 {
     internal bool _isDebugHovered;
 

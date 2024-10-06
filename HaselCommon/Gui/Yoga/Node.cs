@@ -34,6 +34,7 @@ public partial class Node : IDisposable
 
     public void Update()
     {
+        ProcessEvents();
         UpdateContent();
 
         foreach (var child in this)

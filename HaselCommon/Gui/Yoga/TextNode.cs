@@ -5,6 +5,8 @@ using Dalamud.Interface.Utility;
 using HaselCommon.Graphics;
 using HaselCommon.Gui.Yoga.Attributes;
 using HaselCommon.Gui.Yoga.Enums;
+using HaselCommon.Gui.Yoga.Events;
+using ImGuiNET;
 using Lumina.Text.ReadOnly;
 
 namespace HaselCommon.Gui.Yoga;
@@ -14,7 +16,9 @@ namespace HaselCommon.Gui.Yoga;
 [DebuggerDisplay("Guid: {Guid.ToString()} | Text: {_text.ExtractText()}")]
 public partial class TextNode : Node
 {
-    private ReadOnlySeString _text;
+    protected ReadOnlySeString _text;
+    protected bool _hovered;
+    protected Vector2 _mousePos;
 
     public override string TagName => "#text";
     public override string DebugNodeOpenTag => $"{_text.ExtractText().Replace("\n", "")}";
@@ -36,8 +40,6 @@ public partial class TextNode : Node
     [NodeProp("Node", editable: true)]
     public Color? TextColor { get; set; }
 
-    public Action<TextNode, ReadOnlySeString>? ClickCallback { get; set; }
-
     public TextNode()
     {
         NodeType = NodeType.Text;
@@ -52,7 +54,54 @@ public partial class TextNode : Node
     public override void DrawContent()
     {
         var result = ImGuiHelpers.SeStringWrapped(_text, new SeStringDrawParams() { WrapWidth = ComputedWidth, Color = TextColor });
+
+        var hovered = ImGui.IsItemHovered();
+        if (hovered != _hovered)
+        {
+            _hovered = hovered;
+
+            if (hovered)
+            {
+                DispatchEvent(new MouseEvent()
+                {
+                    EventType = MouseEventType.MouseOver,
+                });
+            }
+            else
+            {
+                DispatchEvent(new MouseEvent()
+                {
+                    EventType = MouseEventType.MouseOut
+                });
+            }
+        }
+
+        if (hovered)
+        {
+            var mousePos = ImGui.GetMousePos();
+            if (mousePos != _mousePos)
+            {
+                _mousePos = mousePos;
+                DispatchEvent(new MouseEvent()
+                {
+                    EventType = MouseEventType.MouseMove
+                });
+            }
+
+            DispatchEvent(new MouseEvent()
+            {
+                EventType = MouseEventType.MouseHover
+            });
+        }
+
         if (result.Clicked)
-            ClickCallback?.Invoke(this, (ReadOnlySeString)result.InteractedPayloadEnvelope);
+        {
+            DispatchEvent(new MouseEvent()
+            {
+                EventType = MouseEventType.MouseClick,
+                Button = ImGuiMouseButton.Left,
+                Payload = (ReadOnlySeString)result.InteractedPayloadEnvelope
+            });
+        }
     }
 }
