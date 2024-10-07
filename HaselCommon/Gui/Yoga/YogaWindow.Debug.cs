@@ -11,6 +11,7 @@ using HaselCommon.Gui.Yoga.Attributes;
 using HaselCommon.Gui.Yoga.Enums;
 using HaselCommon.Services;
 using ImGuiNET;
+using Lumina.Text.ReadOnly;
 
 namespace HaselCommon.Gui.Yoga;
 
@@ -250,9 +251,12 @@ public partial class YogaWindow
                 .Cast<string>())
             .Distinct();
 
+        var tabIndex = -1;
         foreach (var category in categories)
         {
-            using var tab = ImRaii.TabItem(category);
+            tabIndex++;
+
+            using var tab = ImRaii.TabItem($"{category}###NodeTab{tabIndex}");
             if (!tab) continue;
 
             if (category == "Style")
@@ -481,6 +485,23 @@ public partial class YogaWindow
             ImGui.SetNextItemWidth(-1);
             if (ImGui.InputInt($"###{node.Guid}_{propertyInfo.Name}", ref intVal))
                 propertyInfo.SetValue(node, (uint)intVal);
+            return;
+        }
+
+        if (propertyInfo.PropertyType == typeof(float) && value is float floatVal)
+        {
+            ImGui.SetNextItemWidth(-1);
+            if (ImGui.InputFloat($"###{node.Guid}_{propertyInfo.Name}", ref floatVal, 1, 10))
+                propertyInfo.SetValue(node, floatVal);
+            return;
+        }
+
+        if (propertyInfo.PropertyType == typeof(ReadOnlySeString) && value is ReadOnlySeString rossVal)
+        {
+            var macroString = rossVal.ToString();
+            ImGui.SetNextItemWidth(-1);
+            if (ImGui.InputText($"###{node.Guid}_{propertyInfo.Name}", ref macroString, 1024))
+                propertyInfo.SetValue(node, ReadOnlySeString.FromMacroString(macroString));
             return;
         }
 

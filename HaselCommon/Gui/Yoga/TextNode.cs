@@ -23,7 +23,7 @@ public partial class TextNode : Node
     public override string TagName => "#text";
     public override string DebugNodeOpenTag => $"{_text.ExtractText().Replace("\n", "")}";
 
-    [NodeProp("Node", editable: true)]
+    [NodeProp("Text", editable: true)]
     public ReadOnlySeString Text
     {
         get => _text;
@@ -37,7 +37,7 @@ public partial class TextNode : Node
         }
     }
 
-    [NodeProp("Node", editable: true)]
+    [NodeProp("Text", editable: true)]
     public Color? TextColor { get; set; }
 
     public TextNode()
