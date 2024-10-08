@@ -95,7 +95,6 @@ public static class Service
             .AddSingleton<ExcelService>()
             .AddSingleton<GamepadService>()
             .AddSingleton<ImGuiContextMenuService>()
-            .AddSingleton<ImGuiService>()
             .AddSingleton<ItemService>()
             .AddSingleton<LeveService>()
             .AddSingleton<MapService>()

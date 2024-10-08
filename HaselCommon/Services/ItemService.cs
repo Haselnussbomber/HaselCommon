@@ -4,6 +4,7 @@ using System.Linq;
 using System.Numerics;
 using Dalamud.Game;
 using Dalamud.Plugin.Services;
+using FFXIVClientStructs.FFXIV.Client.Game.Control;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
@@ -15,6 +16,7 @@ using HaselCommon.Extensions.Strings;
 using HaselCommon.Game.Enums;
 using HaselCommon.Graphics;
 using HaselCommon.Services.SeStringEvaluation;
+using HaselCommon.Sheets;
 using Lumina.Excel.GeneratedSheets;
 using Lumina.Text;
 using Lumina.Text.ReadOnly;
@@ -338,5 +340,33 @@ public class ItemService(IClientState ClientState, ExcelService ExcelService, Se
             Language = language,
             LocalParameters = [itemLink]
         });
+    }
+
+    public unsafe uint GetHairstyleIconId(uint id, byte? tribeId = null, byte? sexId = null)
+    {
+        if (tribeId == null)
+        {
+            tribeId = 1;
+
+            var character = Control.GetLocalPlayer();
+            if (character != null)
+                tribeId = character->DrawData.CustomizeData.Tribe;
+        }
+
+        if (sexId == null)
+        {
+            sexId = 1;
+
+            var character = Control.GetLocalPlayer();
+            if (character != null)
+                sexId = character->DrawData.CustomizeData.Sex;
+        }
+
+        return ExcelService
+            .FindRow<HairMakeTypeCustom>(t => t!.Tribe.Row == tribeId && t.Gender == sexId)?
+            .HairStyles
+            .FirstOrDefault(h => h.Value?.HintItem.Row == id)?
+            .Value?
+            .Icon ?? 0;
     }
 }

@@ -4,9 +4,9 @@ using Lumina.Data;
 using Lumina.Excel;
 using Lumina.Excel.GeneratedSheets;
 
-namespace HaselCommon.Sheets.Internal;
+namespace HaselCommon.Sheets;
 
-internal class HairMakeTypeCustom : HairMakeType
+public class HairMakeTypeCustom : HairMakeType
 {
     public LazyRow<CharaMakeCustomize>[] HairStyles { get; private set; } = [];
 
