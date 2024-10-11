@@ -4,10 +4,10 @@ using Dalamud.Interface.ImGuiSeStringRenderer;
 using Dalamud.Interface.Utility;
 using HaselCommon.Graphics;
 using HaselCommon.Gui.Yoga.Attributes;
-using HaselCommon.Gui.Yoga.Enums;
 using HaselCommon.Gui.Yoga.Events;
 using ImGuiNET;
 using Lumina.Text.ReadOnly;
+using YogaSharp;
 
 namespace HaselCommon.Gui.Yoga;
 
@@ -40,13 +40,13 @@ public partial class TextNode : Node
     [NodeProp("Text", editable: true)]
     public Color? TextColor { get; set; }
 
-    public TextNode()
+    public TextNode() : base()
     {
-        NodeType = NodeType.Text;
-        HasMeasureFunc = true;
+        NodeType = YGNodeType.Text;
+        EnableMeasureFunc = true;
     }
 
-    public override Vector2 Measure(float width, MeasureMode widthMode, float height, MeasureMode heightMode)
+    public override Vector2 Measure(float width, YGMeasureMode widthMode, float height, YGMeasureMode heightMode)
     {
         return ImGuiHelpers.SeStringWrapped(_text, new SeStringDrawParams() { WrapWidth = width, TargetDrawList = 0 }).Size;
     }

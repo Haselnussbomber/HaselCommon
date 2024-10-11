@@ -1,8 +1,8 @@
 using System.Numerics;
 using Dalamud.Interface.Utility.Raii;
 using HaselCommon.Gui.Yoga.Attributes;
-using HaselCommon.Gui.Yoga.Enums;
 using ImGuiNET;
+using YogaSharp;
 
 namespace HaselCommon.Gui.Yoga;
 
@@ -12,6 +12,11 @@ public partial class Node : IDisposable
 
     [NodeProp("Node")]
     public Guid Guid { get; } = Guid.NewGuid();
+
+    public unsafe Node()
+    {
+        NodeRegistry.TryAdd((nint)_yogaNode, this);
+    }
 
     ~Node()
     {
@@ -27,6 +32,18 @@ public partial class Node : IDisposable
             child.Dispose();
 
         Clear();
+
+        unsafe
+        {
+            if (HasBaselineFunc)
+                EnableBaselineFunc = false;
+
+            if (HasMeasureFunc)
+                EnableMeasureFunc = false;
+
+            NodeRegistry.TryRemove((nint)_yogaNode, out _);
+            _yogaNode->FreeRecursive();
+        }
 
         _isDisposed = true;
         GC.SuppressFinalize(this);
@@ -57,7 +74,7 @@ public partial class Node : IDisposable
 
         foreach (var child in this)
         {
-            if (child.Display != Display.None)
+            if (child.Display != YGDisplay.None)
             {
                 child.Draw();
             }
@@ -82,7 +99,7 @@ public partial class Node : IDisposable
     /// <remarks>
     /// To enable this, set <see cref="HasMeasureFunc"/> to <c>true</c>.
     /// </remarks>
-    public virtual Vector2 Measure(float width, MeasureMode widthMode, float height, MeasureMode heightMode)
+    public virtual Vector2 Measure(float width, YGMeasureMode widthMode, float height, YGMeasureMode heightMode)
     {
         throw new NotImplementedException("Measure function was not implemented");
     }

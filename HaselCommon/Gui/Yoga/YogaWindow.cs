@@ -1,6 +1,6 @@
-using HaselCommon.Gui.Yoga.Enums;
 using HaselCommon.Services;
 using ImGuiNET;
+using YogaSharp;
 
 namespace HaselCommon.Gui.Yoga;
 
@@ -22,7 +22,7 @@ public partial class YogaWindow : SimpleWindow, IDisposable
 
     public override unsafe void Draw()
     {
-        RootNode.PositionType = PositionType.Absolute;
+        RootNode.PositionType = YGPositionType.Absolute;
         RootNode.PositionTop = ImGui.GetCursorPosY();
         RootNode.PositionLeft = ImGui.GetCursorPosX();
 

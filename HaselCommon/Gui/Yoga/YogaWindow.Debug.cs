@@ -8,10 +8,10 @@ using Dalamud.Interface.Utility.Raii;
 using HaselCommon.Extensions;
 using HaselCommon.Graphics;
 using HaselCommon.Gui.Yoga.Attributes;
-using HaselCommon.Gui.Yoga.Enums;
 using HaselCommon.Services;
 using ImGuiNET;
 using Lumina.Text.ReadOnly;
+using YogaSharp;
 
 namespace HaselCommon.Gui.Yoga;
 
@@ -121,7 +121,6 @@ public partial class YogaWindow
         "ComputedPaddingRight",
     ];
 
-    private static bool DebugShowAllStyleProperties;
     private static string EnumQueryText = string.Empty;
 
     [Conditional("DEBUG")]
@@ -174,7 +173,7 @@ public partial class YogaWindow
             flags |= ImGuiTreeNodeFlags.Leaf;
 
         var textColor = ImGui.GetColorU32(ImGuiCol.Text);
-        using var hiddenColor = ImRaii.PushColor(ImGuiCol.Text, ImGui.GetColorU32(ImGuiCol.TextDisabled), node.Display == Display.None);
+        using var hiddenColor = ImRaii.PushColor(ImGuiCol.Text, ImGui.GetColorU32(ImGuiCol.TextDisabled), node.Display == YGDisplay.None);
         using var treeNode = ImRaii.TreeNode($"{node.DebugNodeOpenTag}###NodeOpen{node.Guid}", flags);
 
         if (ImGui.IsItemHovered())
@@ -183,22 +182,22 @@ public partial class YogaWindow
         if (ImGui.IsItemClicked(ImGuiMouseButton.Left))
             _debugSelectedNode = node;
 
-        using (ImRaii.PushColor(ImGuiCol.Text, textColor, node.Display == Display.None))
+        using (ImRaii.PushColor(ImGuiCol.Text, textColor, node.Display == YGDisplay.None))
         {
             Service.Get<ImGuiContextMenuService>().Draw($"NodeOpenContextMenu{node.Guid}", (builder) =>
             {
                 builder.Add(new ImGuiContextMenuEntry()
                 {
                     Label = "Hide",
-                    Visible = node.Display != Display.None,
-                    ClickCallback = () => { node.Display = Display.None; }
+                    Visible = node.Display != YGDisplay.None,
+                    ClickCallback = () => { node.Display = YGDisplay.None; }
                 });
 
                 builder.Add(new ImGuiContextMenuEntry()
                 {
                     Label = "Show",
-                    Visible = node.Display != Display.Flex,
-                    ClickCallback = () => { node.Display = Display.Flex; }
+                    Visible = node.Display != YGDisplay.Flex,
+                    ClickCallback = () => { node.Display = YGDisplay.Flex; }
                 });
             });
         }
@@ -259,16 +258,6 @@ public partial class YogaWindow
             using var tab = ImRaii.TabItem($"{category}###NodeTab{tabIndex}");
             if (!tab) continue;
 
-            if (category == "Style")
-            {
-                if (ImGui.Button("Copy Style"))
-                    CopyStyleToClipboard(node);
-
-                ImGui.SameLine();
-
-                ImGui.Checkbox("Show all", ref DebugShowAllStyleProperties);
-            }
-
             using var table = ImRaii.Table("DataTable", 2, ImGuiTableFlags.ScrollY);
             if (!table) continue;
 
@@ -316,9 +305,6 @@ public partial class YogaWindow
             if (value == null)
                 continue;
 
-            if (!node._changedProps.Contains(propInfo.Name))
-                continue;
-
             if (propInfo.PropertyType.IsEnum)
             {
                 sb.Append(propInfo.Name);
@@ -328,21 +314,21 @@ public partial class YogaWindow
                 sb.Append(value.ToString());
                 sb.AppendLine(",");
             }
-            else if (propInfo.PropertyType == typeof(StyleLength) && value is StyleLength styleLength)
+            else if (propInfo.PropertyType == typeof(YGValue) && value is YGValue styleLength)
             {
                 sb.Append(propInfo.Name);
                 sb.Append(" = ");
                 switch (styleLength.Unit)
                 {
-                    case Unit.Auto:
+                    case YGUnit.Auto:
                         sb.Append("StyleLength.Auto");
                         break;
 
-                    case Unit.Undefined:
+                    case YGUnit.Undefined:
                         sb.Append("StyleLength.Undefined");
                         break;
 
-                    case Unit.Percent:
+                    case YGUnit.Percent:
                         sb.Append("StyleLength.Percent(");
                         sb.Append(styleLength.Value.ToString(CultureInfo.InvariantCulture));
                         if (styleLength.Value % 1 != 0)
@@ -350,7 +336,7 @@ public partial class YogaWindow
                         sb.Append(')');
                         break;
 
-                    case Unit.Point:
+                    case YGUnit.Point:
                         sb.Append(styleLength.Value.ToString(CultureInfo.InvariantCulture));
                         if (styleLength.Value % 1 != 0)
                             sb.Append('f');
@@ -366,13 +352,6 @@ public partial class YogaWindow
     private static void PrintEditableRow(Node node, string category, PropertyInfo propertyInfo)
     {
         var value = propertyInfo.GetValue(node);
-        var wasChanged = category != "Style" || node._changedProps.Contains(propertyInfo.Name);
-
-        if (category == "Style" && !DebugShowAllStyleProperties && !wasChanged)
-            return;
-
-        var defaultTextColor = ImGui.GetColorU32(ImGuiCol.Text);
-        using var textColor = ImRaii.PushColor(ImGuiCol.Text, ImGui.GetColorU32(ImGuiCol.TextDisabled), !wasChanged);
 
         ImGui.TableNextRow();
         ImGui.TableNextColumn();
@@ -398,8 +377,6 @@ public partial class YogaWindow
             using var combo = ImRaii.Combo($"###{propertyInfo.Name}_Combo", value?.ToString() ?? string.Empty);
             if (combo)
             {
-                using var selectableColor = ImRaii.PushColor(ImGuiCol.Text, defaultTextColor);
-
                 ImGui.InputTextWithHint($"###{propertyInfo.Name}_ComboSearch", "Search...", ref EnumQueryText, 255);
 
                 foreach (var val in propertyInfo.PropertyType.GetEnumValues())
@@ -419,7 +396,7 @@ public partial class YogaWindow
             return;
         }
 
-        if (propertyInfo.PropertyType == typeof(StyleLength) && value is StyleLength styleLength)
+        if (propertyInfo.PropertyType == typeof(YGValue) && value is YGValue styleLength)
         {
             const float UnitWidth = 100f;
 
@@ -438,7 +415,7 @@ public partial class YogaWindow
                 return;
             }
 
-            if (styleLength.Unit is not Unit.Undefined and not Unit.Auto)
+            if (styleLength.Unit is not YGUnit.Undefined and not YGUnit.Auto)
             {
                 var floatValue = styleLength.Value;
 
@@ -451,13 +428,11 @@ public partial class YogaWindow
                 ImGui.SameLine(0, ImGui.GetStyle().ItemInnerSpacing.X);
             }
 
-            ImGui.SetNextItemWidth(styleLength.Unit is Unit.Undefined or Unit.Auto ? -1 : UnitWidth);
+            ImGui.SetNextItemWidth(styleLength.Unit is YGUnit.Undefined or YGUnit.Auto ? -1 : UnitWidth);
             using var combo = ImRaii.Combo($"###{node.Guid}_{propertyInfo.Name}_Unit", $"{styleLength.Unit}");
             if (!combo) return;
 
-            using var selectableColor = ImRaii.PushColor(ImGuiCol.Text, defaultTextColor);
-
-            foreach (var val in Enum.GetValues<Unit>())
+            foreach (var val in Enum.GetValues<YGUnit>())
             {
                 if (ImGui.Selectable(Enum.GetName(val), val.Equals(value)))
                 {
@@ -521,7 +496,7 @@ public partial class YogaWindow
         {
             ImGui.TextUnformatted($"{floatVal.ToString(CultureInfo.InvariantCulture)}");
         }
-        else if (value is StyleLength styleLength)
+        else if (value is YGValue styleLength)
         {
             ImGui.TextUnformatted($"{styleLength}");
         }

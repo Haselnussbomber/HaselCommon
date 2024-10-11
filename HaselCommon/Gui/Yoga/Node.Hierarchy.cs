@@ -1,16 +1,16 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Numerics;
-using HaselCommon.Gui.Yoga.Enums;
+using HaselCommon.Gui.Yoga.Events;
+using YogaSharp;
 
 namespace HaselCommon.Gui.Yoga;
 
-public partial class Node : IList<Node>
+public unsafe partial class Node : IList<Node>
 {
     private readonly List<Node> _children = [];
 
-    public Node? Parent { get; internal set; }
+    public Node? Parent { get; set; }
 
     public List<Node> Children
     {
@@ -86,34 +86,53 @@ public partial class Node : IList<Node>
         }
     }
 
+    public void UpdateChildNodes()
+    {
+        foreach (var child in this)
+        {
+            child.Update();
+        }
+    }
+
+    public void DrawChildNodes()
+    {
+        foreach (var child in this)
+        {
+            if (child.Display != YGDisplay.None)
+            {
+                child.Draw();
+            }
+        }
+    }
+
     public Node this[int index]
     {
         get => Children[index];
         set
         {
-            RemoveAt(index);
-            Insert(index, value);
+            Children[index] = value;
+            DispatchEvent(new ChildrenChangedEvent());
         }
     }
 
-    /// <summary>
-    /// The number of child nodes.
-    /// </summary>
     public int Count => Children.Count;
 
     public bool IsReadOnly => false;
 
     public void Add(Node child)
     {
+        ThrowIfDisposed();
+
         if (child.Parent != null)
             throw new Exception("Child already has a owner, it must be removed first.");
 
         if (HasMeasureFunc)
             throw new Exception("Cannot add child: Nodes with measure functions cannot have children.");
 
-        Children.Add(child);
         child.Parent = this;
-        MarkDirtyAndPropagate();
+        _yogaNode->InsertChild(child._yogaNode, Count);
+        Children.Add(child);
+        DispatchEvent(new ChildrenChangedEvent());
     }
 
     public void Add(params Node[] children)
@@ -122,19 +141,22 @@ public partial class Node : IList<Node>
             Add(child);
     }
 
-    /// <summary>
-    /// Removes all children nodes.
-    /// </summary>
     public void Clear()
     {
-        for (var index = Count - 1; index >= 0; index--)
+        ThrowIfDisposed();
+
+        for (var i = Count - 1; i >= 0; i--)
         {
-            Remove(this[index]);
+            Remove(this[i]);
         }
+
+        _yogaNode->RemoveAllChildren();
     }
 
     public bool Contains(Node item)
     {
+        ThrowIfDisposed();
+
         for (var i = 0; i < Count; i++)
         {
             if (this[i] == item)
@@ -151,15 +173,40 @@ public partial class Node : IList<Node>
         if (array.Length == 0)
             return;
 
+        ThrowIfDisposed();
+
         for (var i = 0; i < array.Length; i++)
-            Insert(arrayIndex + i, array[i]);
+        {
+            array[i].Parent = this;
+            _yogaNode->InsertChild(array[i]._yogaNode, arrayIndex + i);
+        }
+
+        Children.InsertRange(arrayIndex, array);
+        DispatchEvent(new ChildrenChangedEvent());
     }
 
-    public IEnumerator<Node> GetEnumerator() => Children.GetEnumerator();
+    public void Traverse(Action<Node> callback)
+    {
+        foreach (var child in Children)
+        {
+            callback(child);
+            child.Traverse(callback);
+        }
+    }
+
+    public IEnumerator<Node> GetEnumerator()
+    {
+        ThrowIfDisposed();
+
+        return new YogaNodeEnumerator<Node>(this);
+    }
+
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
     public int IndexOf(Node child)
     {
+        ThrowIfDisposed();
+
         for (var i = Count - 1; i >= 0; i--)
         {
             if (this[i] == child)
@@ -169,62 +216,69 @@ public partial class Node : IList<Node>
         return -1;
     }
 
-    /// <summary>
-    /// Inserts a child node at the given index.
-    /// </summary>
     public void Insert(int index, Node child)
     {
+        ThrowIfDisposed();
+
         if (child.Parent != null)
             throw new Exception("Child already has a owner, it must be removed first.");
 
         if (HasMeasureFunc)
             throw new Exception("Cannot add child: Nodes with measure functions cannot have children.");
 
-        Children.Insert(index, child);
         child.Parent = this;
-        MarkDirtyAndPropagate();
+        _yogaNode->InsertChild(child._yogaNode, index);
+        Children.Insert(index, child);
+        DispatchEvent(new ChildrenChangedEvent());
     }
 
-    /// <summary>
-    /// Removes the given child node.
-    /// </summary>
     public bool Remove(Node child)
     {
+        ThrowIfDisposed();
+
         if (!Contains(child))
             return false;
 
         if (!Children.Remove(child))
             return false;
 
-        // Children may be shared between parents, which is indicated by not having an
-        // owner. We only want to reset the child completely if it is owned
-        // exclusively by one node.
-        if (child.Parent == this)
-        {
-            child._layout = new(); // layout is no longer valid
-            child.Parent = null;
-        }
-
-        MarkDirtyAndPropagate();
+        child.Parent = null;
+        _yogaNode->RemoveChild(child._yogaNode);
+        Children.Remove(child);
+        DispatchEvent(new ChildrenChangedEvent());
         return true;
     }
 
     public void RemoveAt(int index)
     {
-        if (index > -1 && index < Count)
-            Remove(this[index]);
+        ThrowIfDisposed();
+
+        this[index].Parent = null;
+        _yogaNode->RemoveChild(this[index]._yogaNode);
+        Children.RemoveAt(index);
+        DispatchEvent(new ChildrenChangedEvent());
     }
 
-    public Vector2 AbsolutePosition
+    public class YogaNodeEnumerator<T>(Node node) : IEnumerator<T> where T : Node
     {
-        get
+        private int _index = -1;
+
+        public bool MoveNext()
         {
-            var position = new Vector2(ComputedLeft, ComputedTop);
+            node.ThrowIfDisposed();
 
-            if (Parent != null && Parent.Overflow != Overflow.Scroll)
-                position += Parent.AbsolutePosition;
-
-            return position;
+            _index++;
+            return _index < node.Count;
         }
+
+        public void Reset()
+        {
+            _index = -1;
+        }
+
+        public void Dispose() { }
+
+        object IEnumerator.Current => node[_index];
+        T IEnumerator<T>.Current => (T)node[_index];
     }
 }
