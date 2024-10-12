@@ -69,7 +69,12 @@ public partial class Node : IDisposable
             ComputedBorderTop + ComputedPaddingTop));
 
         DrawDebugBefore();
-        DrawContent();
+
+        if (ImGuiUtils.IsInViewport(ComputedSize))
+        {
+            DrawContent();
+        }
+
         DrawDebugAfter();
 
         foreach (var child in this)
