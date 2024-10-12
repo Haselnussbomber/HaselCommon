@@ -99,8 +99,12 @@ public static class ImGuiUtils
 
     public static bool IsInViewport(Vector2 size)
     {
+        var distanceX = ImGui.GetCursorPosX() - ImGui.GetScrollX();
         var distanceY = ImGui.GetCursorPosY() - ImGui.GetScrollY();
-        return distanceY >= -size.Y && distanceY <= ImGui.GetWindowHeight();
+        return distanceX > -size.X &&
+               distanceY > -size.Y &&
+               distanceX < ImGui.GetWindowWidth() &&
+               distanceY < ImGui.GetWindowHeight();
     }
 
     public static void PushCursor(Vector2 vec)
