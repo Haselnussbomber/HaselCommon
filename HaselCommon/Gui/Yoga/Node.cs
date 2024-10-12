@@ -108,19 +108,19 @@ public partial class Node : IDisposable
     {
         using var id = ImRaii.PushId(Guid.ToString());
 
-        var pos = AbsolutePosition;
+        var pos = AbsolutePosition + new Vector2(ComputedBorderLeft + ComputedPaddingLeft, ComputedBorderTop + ComputedPaddingTop);
+        var size = ComputedSize - new Vector2(ComputedBorderLeft + ComputedBorderRight, ComputedBorderTop + ComputedBorderBottom);
 
         // to make sure ImGui knows about the size of this node
-        // TODO: this does not factor in border (and maybe margin?)
         ImGui.SetCursorPos(pos);
-        ImGui.Dummy(ComputedSize);
+        ImGui.Dummy(size);
 
         ImGui.SetCursorPos(pos);
 
         using var scrollContainer = Overflow is YGOverflow.Scroll or YGOverflow.Hidden
             ? ImRaii.Child(
                 Guid.ToString() + "_ScrollContainer",
-                ComputedSize,
+                size,
                 false,
                 Overflow == YGOverflow.Hidden
                     ? ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse
@@ -129,7 +129,7 @@ public partial class Node : IDisposable
 
         DrawDebugBefore();
 
-        if (ImGuiUtils.IsInViewport(ComputedSize))
+        if (ImGuiUtils.IsInViewport(size))
         {
             DrawContent();
         }
