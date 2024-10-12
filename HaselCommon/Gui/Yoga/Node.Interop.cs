@@ -365,6 +365,9 @@ public unsafe partial class Node
             switch (value.Unit)
             {
                 case YGUnit.Undefined:
+                    _yogaNode->SetFlexBasis(float.NaN);
+                    break;
+
                 case YGUnit.Auto:
                     _yogaNode->SetFlexBasisAuto();
                     break;
@@ -396,6 +399,9 @@ public unsafe partial class Node
             switch (value.Unit)
             {
                 case YGUnit.Undefined:
+                    _yogaNode->SetMargin(YGEdge.All, float.NaN);
+                    break;
+
                 case YGUnit.Auto:
                     _yogaNode->SetMarginAuto(YGEdge.All);
                     break;
@@ -427,6 +433,9 @@ public unsafe partial class Node
             switch (value.Unit)
             {
                 case YGUnit.Undefined:
+                    _yogaNode->SetMargin(YGEdge.Top, float.NaN);
+                    break;
+
                 case YGUnit.Auto:
                     _yogaNode->SetMarginAuto(YGEdge.Top);
                     break;
@@ -458,6 +467,9 @@ public unsafe partial class Node
             switch (value.Unit)
             {
                 case YGUnit.Undefined:
+                    _yogaNode->SetMargin(YGEdge.Bottom, float.NaN);
+                    break;
+
                 case YGUnit.Auto:
                     _yogaNode->SetMarginAuto(YGEdge.Bottom);
                     break;
@@ -489,6 +501,9 @@ public unsafe partial class Node
             switch (value.Unit)
             {
                 case YGUnit.Undefined:
+                    _yogaNode->SetMargin(YGEdge.Left, float.NaN);
+                    break;
+
                 case YGUnit.Auto:
                     _yogaNode->SetMarginAuto(YGEdge.Left);
                     break;
@@ -520,6 +535,9 @@ public unsafe partial class Node
             switch (value.Unit)
             {
                 case YGUnit.Undefined:
+                    _yogaNode->SetMargin(YGEdge.Right, float.NaN);
+                    break;
+
                 case YGUnit.Auto:
                     _yogaNode->SetMarginAuto(YGEdge.Right);
                     break;
@@ -551,6 +569,9 @@ public unsafe partial class Node
             switch (value.Unit)
             {
                 case YGUnit.Undefined:
+                    _yogaNode->SetMargin(YGEdge.Horizontal, float.NaN);
+                    break;
+
                 case YGUnit.Auto:
                     _yogaNode->SetMarginAuto(YGEdge.Horizontal);
                     break;
@@ -582,6 +603,9 @@ public unsafe partial class Node
             switch (value.Unit)
             {
                 case YGUnit.Undefined:
+                    _yogaNode->SetMargin(YGEdge.Vertical, float.NaN);
+                    break;
+
                 case YGUnit.Auto:
                     _yogaNode->SetMarginAuto(YGEdge.Vertical);
                     break;
@@ -612,6 +636,10 @@ public unsafe partial class Node
 
             switch (value.Unit)
             {
+                case YGUnit.Undefined:
+                    _yogaNode->SetPosition(YGEdge.All, float.NaN);
+                    break;
+
                 case YGUnit.Point:
                     _yogaNode->SetPosition(YGEdge.All, value.Value);
                     break;
@@ -641,6 +669,10 @@ public unsafe partial class Node
 
             switch (value.Unit)
             {
+                case YGUnit.Undefined:
+                    _yogaNode->SetPosition(YGEdge.Top, float.NaN);
+                    break;
+
                 case YGUnit.Point:
                     _yogaNode->SetPosition(YGEdge.Top, value.Value);
                     break;
@@ -670,6 +702,10 @@ public unsafe partial class Node
 
             switch (value.Unit)
             {
+                case YGUnit.Undefined:
+                    _yogaNode->SetPosition(YGEdge.Bottom, float.NaN);
+                    break;
+
                 case YGUnit.Point:
                     _yogaNode->SetPosition(YGEdge.Bottom, value.Value);
                     break;
@@ -699,6 +735,10 @@ public unsafe partial class Node
 
             switch (value.Unit)
             {
+                case YGUnit.Undefined:
+                    _yogaNode->SetPosition(YGEdge.Left, float.NaN);
+                    break;
+
                 case YGUnit.Point:
                     _yogaNode->SetPosition(YGEdge.Left, value.Value);
                     break;
@@ -728,6 +768,10 @@ public unsafe partial class Node
 
             switch (value.Unit)
             {
+                case YGUnit.Undefined:
+                    _yogaNode->SetPosition(YGEdge.Right, float.NaN);
+                    break;
+
                 case YGUnit.Point:
                     _yogaNode->SetPosition(YGEdge.Right, value.Value);
                     break;
@@ -757,6 +801,10 @@ public unsafe partial class Node
 
             switch (value.Unit)
             {
+                case YGUnit.Undefined:
+                    _yogaNode->SetPosition(YGEdge.Horizontal, float.NaN);
+                    break;
+
                 case YGUnit.Point:
                     _yogaNode->SetPosition(YGEdge.Horizontal, value.Value);
                     break;
@@ -786,6 +834,10 @@ public unsafe partial class Node
 
             switch (value.Unit)
             {
+                case YGUnit.Undefined:
+                    _yogaNode->SetPosition(YGEdge.Vertical, float.NaN);
+                    break;
+
                 case YGUnit.Point:
                     _yogaNode->SetPosition(YGEdge.Vertical, value.Value);
                     break;
@@ -815,6 +867,10 @@ public unsafe partial class Node
 
             switch (value.Unit)
             {
+                case YGUnit.Undefined:
+                    _yogaNode->SetPosition(YGEdge.Start, float.NaN);
+                    break;
+
                 case YGUnit.Point:
                     _yogaNode->SetPosition(YGEdge.Start, value.Value);
                     break;
@@ -844,6 +900,10 @@ public unsafe partial class Node
 
             switch (value.Unit)
             {
+                case YGUnit.Undefined:
+                    _yogaNode->SetPosition(YGEdge.End, float.NaN);
+                    break;
+
                 case YGUnit.Point:
                     _yogaNode->SetPosition(YGEdge.End, value.Value);
                     break;
@@ -873,6 +933,10 @@ public unsafe partial class Node
 
             switch (value.Unit)
             {
+                case YGUnit.Undefined:
+                    _yogaNode->SetPadding(YGEdge.All, float.NaN);
+                    break;
+
                 case YGUnit.Point:
                     _yogaNode->SetPadding(YGEdge.All, value.Value);
                     break;
@@ -902,6 +966,10 @@ public unsafe partial class Node
 
             switch (value.Unit)
             {
+                case YGUnit.Undefined:
+                    _yogaNode->SetPadding(YGEdge.Top, float.NaN);
+                    break;
+
                 case YGUnit.Point:
                     _yogaNode->SetPadding(YGEdge.Top, value.Value);
                     break;
@@ -931,6 +999,10 @@ public unsafe partial class Node
 
             switch (value.Unit)
             {
+                case YGUnit.Undefined:
+                    _yogaNode->SetPadding(YGEdge.Bottom, float.NaN);
+                    break;
+
                 case YGUnit.Point:
                     _yogaNode->SetPadding(YGEdge.Bottom, value.Value);
                     break;
@@ -960,6 +1032,10 @@ public unsafe partial class Node
 
             switch (value.Unit)
             {
+                case YGUnit.Undefined:
+                    _yogaNode->SetPadding(YGEdge.Left, float.NaN);
+                    break;
+
                 case YGUnit.Point:
                     _yogaNode->SetPadding(YGEdge.Left, value.Value);
                     break;
@@ -989,6 +1065,10 @@ public unsafe partial class Node
 
             switch (value.Unit)
             {
+                case YGUnit.Undefined:
+                    _yogaNode->SetPadding(YGEdge.Right, float.NaN);
+                    break;
+
                 case YGUnit.Point:
                     _yogaNode->SetPadding(YGEdge.Right, value.Value);
                     break;
@@ -1018,6 +1098,10 @@ public unsafe partial class Node
 
             switch (value.Unit)
             {
+                case YGUnit.Undefined:
+                    _yogaNode->SetPadding(YGEdge.Horizontal, float.NaN);
+                    break;
+
                 case YGUnit.Point:
                     _yogaNode->SetPadding(YGEdge.Horizontal, value.Value);
                     break;
@@ -1047,6 +1131,10 @@ public unsafe partial class Node
 
             switch (value.Unit)
             {
+                case YGUnit.Undefined:
+                    _yogaNode->SetPadding(YGEdge.Vertical, float.NaN);
+                    break;
+
                 case YGUnit.Point:
                     _yogaNode->SetPadding(YGEdge.Vertical, value.Value);
                     break;
@@ -1076,6 +1164,10 @@ public unsafe partial class Node
 
             switch (value.Unit)
             {
+                case YGUnit.Undefined:
+                    _yogaNode->SetPadding(YGEdge.Start, float.NaN);
+                    break;
+
                 case YGUnit.Point:
                     _yogaNode->SetPadding(YGEdge.Start, value.Value);
                     break;
@@ -1105,6 +1197,10 @@ public unsafe partial class Node
 
             switch (value.Unit)
             {
+                case YGUnit.Undefined:
+                    _yogaNode->SetPadding(YGEdge.End, float.NaN);
+                    break;
+
                 case YGUnit.Point:
                     _yogaNode->SetPadding(YGEdge.End, value.Value);
                     break;
@@ -1327,6 +1423,9 @@ public unsafe partial class Node
             switch (value.Unit)
             {
                 case YGUnit.Undefined:
+                    _yogaNode->SetWidth(float.NaN);
+                    break;
+
                 case YGUnit.Auto:
                     _yogaNode->SetWidthAuto();
                     break;
@@ -1358,6 +1457,9 @@ public unsafe partial class Node
             switch (value.Unit)
             {
                 case YGUnit.Undefined:
+                    _yogaNode->SetHeight(float.NaN);
+                    break;
+
                 case YGUnit.Auto:
                     _yogaNode->SetHeightAuto();
                     break;
