@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Numerics;
+using HaselCommon.Extensions.Graphics;
 using HaselCommon.Graphics;
 using ImGuiNET;
 
@@ -22,9 +23,10 @@ public partial class Node
     {
         if (_isDebugHovered)
         {
-            var pos = ImGui.GetWindowPos() + AbsolutePosition;
+            var pos = ImGui.GetWindowPos() + AbsolutePosition - new Vector2(ImGui.GetScrollX(), ImGui.GetScrollY());
 
-            ImGuiUtils.DrawDashedBorder(pos, pos + new Vector2(ComputedWidth, ComputedHeight), Color.Red);
+            ImGui.GetForegroundDrawList().AddText(pos - new Vector2(0, ImGui.GetTextLineHeightWithSpacing()), Color.Gold, $"{ComputedWidth}x{ComputedHeight}");
+            ImGui.GetForegroundDrawList().AddDashedBorder(pos, pos + ComputedSize - Vector2.One, Color.Red);
 
             _isDebugHovered = false;
         }
