@@ -127,8 +127,6 @@ public partial class Node : IDisposable
                     : ImGuiWindowFlags.None)
             : null;
 
-        DrawDebugBefore();
-
         if (ImGuiUtils.IsInViewport(size))
         {
             DrawContent();
@@ -144,7 +142,7 @@ public partial class Node : IDisposable
 
         scrollContainer?.Dispose();
 
-        DrawDebugAfter();
+        DrawDebugHighlight();
     }
 
     /// <remarks>

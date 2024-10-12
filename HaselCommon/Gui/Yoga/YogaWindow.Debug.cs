@@ -179,7 +179,7 @@ public partial class YogaWindow
         using var treeNode = ImRaii.TreeNode($"{node.DebugNodeOpenTag}###NodeOpen{node.Guid}", flags);
 
         if (ImGui.IsItemHovered())
-            node._isDebugHovered = true;
+            node._showDebugHighlight = true;
 
         if (ImGui.IsItemClicked(ImGuiMouseButton.Left))
             _debugSelectedNode = node;
