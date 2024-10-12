@@ -1,3 +1,5 @@
+#if DEBUG
+
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
@@ -512,3 +514,5 @@ public partial class YogaWindow
         }
     }
 }
+
+#endif

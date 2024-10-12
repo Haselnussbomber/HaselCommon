@@ -1907,7 +1907,7 @@ public unsafe partial class Node
         {
             var position = ComputedPosition;
 
-            if (Parent != null && Parent.Overflow != YGOverflow.Scroll)
+            if (Parent != null && Parent.Overflow is not (YGOverflow.Scroll or YGOverflow.Hidden))
                 position += Parent.AbsolutePosition;
 
             return position;

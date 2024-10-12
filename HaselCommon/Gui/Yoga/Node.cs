@@ -1,5 +1,6 @@
 using System.Numerics;
 using Dalamud.Interface.Utility.Raii;
+using Dalamud.Plugin.Services;
 using HaselCommon.Gui.Yoga.Attributes;
 using ImGuiNET;
 using YogaSharp;
@@ -9,6 +10,7 @@ namespace HaselCommon.Gui.Yoga;
 public partial class Node : IDisposable
 {
     private bool _isDisposed;
+    private bool _scrollbarPaddingApplied;
 
     [NodeProp("Node")]
     public Guid Guid { get; } = Guid.NewGuid();
@@ -51,6 +53,13 @@ public partial class Node : IDisposable
 
     public void Update()
     {
+        if (HasNewLayout)
+        {
+            UpdateScrollbarPadding();
+            ApplyLayout();
+            HasNewLayout = false;
+        }
+
         ProcessEvents();
         UpdateContent();
 
@@ -60,13 +69,63 @@ public partial class Node : IDisposable
         }
     }
 
+    private void UpdateScrollbarPadding()
+    {
+        if (Overflow == YGOverflow.Scroll)
+        {
+            if (HadOverflow && !_scrollbarPaddingApplied)
+            {
+                if (PaddingRight.Unit is YGUnit.Point or YGUnit.Percent && PaddingRight.Value != 0)
+                {
+                    Service.Get<IPluginLog>().Warning("Scrollable node {guid} has PaddingRight set. PaddingRight will be overwritten for the scrollbar.", Guid.ToString());
+                }
+                else if (PaddingHorizontal.Unit is YGUnit.Point or YGUnit.Percent && Padding.Value != 0)
+                {
+                    Service.Get<IPluginLog>().Warning("Scrollable node {guid} has PaddingHorizontal set. PaddingRight for the scrollbar takes precedence.", Guid.ToString());
+                }
+                else if (Padding.Unit is YGUnit.Point or YGUnit.Percent && Padding.Value != 0)
+                {
+                    Service.Get<IPluginLog>().Warning("Scrollable node {guid} has Padding set. PaddingRight for the scrollbar will not be respected.", Guid.ToString());
+                }
+
+                PaddingRight = ImGui.GetStyle().ScrollbarSize + ImGui.GetStyle().DisplaySafeAreaPadding.X;
+                _scrollbarPaddingApplied = true;
+            }
+            else if (!HadOverflow && _scrollbarPaddingApplied)
+            {
+                PaddingRight = YGValue.Undefined;
+                _scrollbarPaddingApplied = false;
+            }
+        }
+        else if (_scrollbarPaddingApplied)
+        {
+            PaddingRight = YGValue.Undefined;
+            _scrollbarPaddingApplied = false;
+        }
+    }
+
     public void Draw()
     {
         using var id = ImRaii.PushId(Guid.ToString());
 
-        ImGui.SetCursorPos(AbsolutePosition + new Vector2(
-            ComputedBorderLeft + ComputedPaddingLeft,
-            ComputedBorderTop + ComputedPaddingTop));
+        var pos = AbsolutePosition;
+
+        // to make sure ImGui knows about the size of this node
+        // TODO: this does not factor in border (and maybe margin?)
+        ImGui.SetCursorPos(pos);
+        ImGui.Dummy(ComputedSize);
+
+        ImGui.SetCursorPos(pos);
+
+        using var scrollContainer = Overflow is YGOverflow.Scroll or YGOverflow.Hidden
+            ? ImRaii.Child(
+                Guid.ToString() + "_ScrollContainer",
+                ComputedSize,
+                false,
+                Overflow == YGOverflow.Hidden
+                    ? ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse
+                    : ImGuiWindowFlags.None)
+            : null;
 
         DrawDebugBefore();
 
@@ -75,8 +134,6 @@ public partial class Node : IDisposable
             DrawContent();
         }
 
-        DrawDebugAfter();
-
         foreach (var child in this)
         {
             if (child.Display != YGDisplay.None)
@@ -84,6 +141,18 @@ public partial class Node : IDisposable
                 child.Draw();
             }
         }
+
+        scrollContainer?.Dispose();
+
+        DrawDebugAfter();
+    }
+
+    /// <remarks>
+    /// This function is called when the layout changed.
+    /// </remarks>
+    protected virtual void ApplyLayout()
+    {
+
     }
 
     /// <summary>
