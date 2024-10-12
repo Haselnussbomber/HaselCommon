@@ -1,3 +1,6 @@
+using System.Numerics;
+using Dalamud.Interface;
+using Dalamud.Interface.Utility.Raii;
 using HaselCommon.Services;
 using ImGuiNET;
 using YogaSharp;
@@ -6,10 +9,15 @@ namespace HaselCommon.Gui.Yoga;
 
 public partial class YogaWindow : SimpleWindow, IDisposable
 {
-    public Node RootNode { get; } = [];
-    public bool ShowDebugWindow { get; set; }
-
+    private bool _showNodeInspector;
     private bool _updateRootNodePosition = true;
+
+    public Node RootNode { get; } = [];
+    public bool ShowNodeInspector
+    {
+        get => _showNodeInspector;
+        set => _showNodeInspector = value;
+    }
 
     public YogaWindow(WindowManager wm, string name, ImGuiWindowFlags flags = ImGuiWindowFlags.None, bool forceMainWindow = false) : base(wm, name, flags, forceMainWindow)
     {
@@ -17,6 +25,21 @@ public partial class YogaWindow : SimpleWindow, IDisposable
 
         RootNode.PositionType = YGPositionType.Absolute;
         RootNode.Overflow = YGOverflow.Scroll;
+
+#if DEBUG
+        TitleBarButtons.Add(new TitleBarButton()
+        {
+            Icon = FontAwesomeIcon.LayerGroup,
+            IconOffset = Vector2.One,
+            Click = (btn) => ShowNodeInspector = !ShowNodeInspector,
+            ShowTooltip = () =>
+            {
+                ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
+                using var tooltip = ImRaii.Tooltip();
+                ImGui.TextUnformatted($"{(ShowNodeInspector ? "Hide" : "Show")} Node Inspector");
+            }
+        });
+#endif
     }
 
     public override void Dispose()
@@ -35,7 +58,7 @@ public partial class YogaWindow : SimpleWindow, IDisposable
         }
 
 #if DEBUG
-        if (ShowDebugWindow)
+        if (ShowNodeInspector)
         {
             _debugTimer.Restart();
             RootNode.Update();
@@ -68,9 +91,9 @@ public partial class YogaWindow : SimpleWindow, IDisposable
     {
         base.PostDraw();
 
-        if (ShowDebugWindow)
+        if (ShowNodeInspector)
         {
-            DrawDebugWindow();
+            DrawNodeInspectorWindow();
         }
     }
 #endif

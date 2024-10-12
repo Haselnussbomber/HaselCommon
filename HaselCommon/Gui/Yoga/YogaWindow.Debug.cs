@@ -126,12 +126,13 @@ public partial class YogaWindow
     private static string EnumQueryText = string.Empty;
 
     [Conditional("DEBUG")]
-    private void DrawDebugWindow()
+    private void DrawNodeInspectorWindow()
     {
         if (RootNode == null)
             return;
 
-        if (!ImGui.Begin(WindowName + " | Debug", ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse))
+        ImGui.SetNextWindowSize(new Vector2(1200, 500), ImGuiCond.FirstUseEver);
+        if (!ImGui.Begin(WindowName + " | Node Inspector###NodeInspector", ref _showNodeInspector, ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse))
             return;
 
         ImGui.TextUnformatted($"Layout: {_debugLayoutTime.ToString("0.000") + " ms"}");
