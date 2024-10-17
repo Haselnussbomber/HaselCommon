@@ -148,7 +148,15 @@ public partial class Node : IDisposable
     /// <remarks>
     /// This function is called when the layout changed.
     /// </remarks>
-    protected virtual void ApplyLayout()
+    public virtual void ApplyLayout()
+    {
+
+    }
+
+    /// <remarks>
+    /// This function is called when the global font scale changed.
+    /// </remarks>
+    public virtual void ApplyGlobalScale(float globalFontScale)
     {
 
     }

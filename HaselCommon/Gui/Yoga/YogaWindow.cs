@@ -1,6 +1,8 @@
 using System.Numerics;
 using Dalamud.Interface;
+using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Interface.Utility.Raii;
+using Dalamud.Plugin;
 using HaselCommon.Services;
 using ImGuiNET;
 using YogaSharp;
@@ -9,8 +11,9 @@ namespace HaselCommon.Gui.Yoga;
 
 public partial class YogaWindow : SimpleWindow, IDisposable
 {
+    private readonly IFontHandle _defaultFontHandle;
     private bool _showNodeInspector;
-    private bool _updateRootNodePosition = true;
+    private bool _fontUpdated = true;
 
     public Node RootNode { get; } = [];
     public bool ShowNodeInspector
@@ -40,21 +43,33 @@ public partial class YogaWindow : SimpleWindow, IDisposable
             }
         });
 #endif
+
+        _defaultFontHandle = Service.Get<IDalamudPluginInterface>().UiBuilder.DefaultFontHandle;
+        _defaultFontHandle.ImFontChanged += DefaultFontHandle_ImFontChanged;
+    }
+
+    private void DefaultFontHandle_ImFontChanged(IFontHandle fontHandle, ILockedImFont lockedFont)
+    {
+        _fontUpdated = true;
     }
 
     public override void Dispose()
     {
+        _defaultFontHandle.ImFontChanged -= DefaultFontHandle_ImFontChanged;
         RootNode.Dispose();
         GC.SuppressFinalize(this);
     }
 
     public override void Draw()
     {
-        if (_updateRootNodePosition)
+        if (_fontUpdated)
         {
             RootNode.PositionTop = ImGui.GetCursorPosY();
             RootNode.PositionLeft = ImGui.GetCursorPosX();
-            _updateRootNodePosition = false;
+
+            _fontUpdated = false;
+
+            ApplyGlobalScale(ImGui.GetIO().FontGlobalScale);
         }
 
 #if DEBUG
@@ -97,4 +112,9 @@ public partial class YogaWindow : SimpleWindow, IDisposable
         }
     }
 #endif
+
+    private void ApplyGlobalScale(float globalFontScale)
+    {
+        RootNode.Traverse(node => node.ApplyGlobalScale(globalFontScale));
+    }
 }

@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Numerics;
 using Dalamud.Interface.ImGuiSeStringRenderer;
 using Dalamud.Interface.Utility;
+using HaselCommon.Extensions.Strings;
 using HaselCommon.Graphics;
 using HaselCommon.Gui.Yoga.Attributes;
 using HaselCommon.Gui.Yoga.Events;
@@ -17,6 +18,7 @@ namespace HaselCommon.Gui.Yoga;
 public partial class TextNode : Node
 {
     protected ReadOnlySeString _text;
+    private bool _isTextOnly;
     protected bool _hovered;
     protected Vector2 _mousePos;
 
@@ -32,6 +34,7 @@ public partial class TextNode : Node
             if (_text != value)
             {
                 _text = value;
+                _isTextOnly = _text.IsTextOnly();
                 IsDirty = true;
             }
         }
@@ -46,14 +49,42 @@ public partial class TextNode : Node
         EnableMeasureFunc = true;
     }
 
-    public override Vector2 Measure(float width, YGMeasureMode widthMode, float height, YGMeasureMode heightMode)
+    public override void ApplyGlobalScale(float globalFontScale)
     {
+        IsDirty = true;
+    }
+
+    public override unsafe Vector2 Measure(float width, YGMeasureMode widthMode, float height, YGMeasureMode heightMode)
+    {
+        if (_text.IsEmpty)
+            return Vector2.Zero;
+
+        if (_isTextOnly)
+            return ImGuiUtils.CalcTextSize(_text, wrapWidth: width);
+
         return ImGuiHelpers.SeStringWrapped(_text, new SeStringDrawParams() { WrapWidth = width, TargetDrawList = 0 }).Size;
     }
 
-    public override void DrawContent()
+    public override unsafe void DrawContent()
     {
-        var result = ImGuiHelpers.SeStringWrapped(_text, new SeStringDrawParams() { WrapWidth = ComputedWidth, Color = TextColor });
+        if (_text.IsEmpty)
+            return;
+
+        bool clicked;
+        ReadOnlySeString? clickedPayload;
+
+        if (_isTextOnly)
+        {
+            ImGuiUtils.TextUnformatted(_text);
+            clicked = ImGui.IsItemClicked(ImGuiMouseButton.Left);
+            clickedPayload = Text;
+        }
+        else
+        {
+            var result = ImGuiHelpers.SeStringWrapped(_text, new SeStringDrawParams() { WrapWidth = ComputedWidth, Color = TextColor });
+            clicked = result.Clicked;
+            clickedPayload = (ReadOnlySeString)result.InteractedPayloadEnvelope;
+        }
 
         var hovered = ImGui.IsItemHovered();
         if (hovered != _hovered)
@@ -94,13 +125,29 @@ public partial class TextNode : Node
             });
         }
 
-        if (result.Clicked)
+        if (clicked)
         {
             DispatchEvent(new MouseEvent()
             {
                 EventType = MouseEventType.MouseClick,
                 Button = ImGuiMouseButton.Left,
-                Payload = (ReadOnlySeString)result.InteractedPayloadEnvelope
+                Payload = clickedPayload
+            });
+        }
+        else if (ImGui.IsItemClicked(ImGuiMouseButton.Middle))
+        {
+            DispatchEvent(new MouseEvent()
+            {
+                EventType = MouseEventType.MouseClick,
+                Button = ImGuiMouseButton.Middle
+            });
+        }
+        else if (ImGui.IsItemClicked(ImGuiMouseButton.Right))
+        {
+            DispatchEvent(new MouseEvent()
+            {
+                EventType = MouseEventType.MouseClick,
+                Button = ImGuiMouseButton.Right
             });
         }
     }

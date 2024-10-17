@@ -6,14 +6,14 @@ namespace HaselCommon.Extensions.Strings;
 
 public static class ReadOnlySeStringExtensions
 {
-    public static ReadOnlySeString ReplaceText(this ReadOnlySeString rosss, ReadOnlySpan<byte> toFind, ReadOnlySpan<byte> replacement)
+    public static ReadOnlySeString ReplaceText(this ReadOnlySeString ross, ReadOnlySpan<byte> toFind, ReadOnlySpan<byte> replacement)
     {
-        if (rosss.IsEmpty)
-            return rosss;
+        if (ross.IsEmpty)
+            return ross;
 
         var sb = SeStringBuilder.SharedPool.Get();
 
-        foreach (var payload in rosss)
+        foreach (var payload in ross)
         {
             if (payload.Type == ReadOnlySePayloadType.Invalid)
                 continue;
@@ -38,8 +38,22 @@ public static class ReadOnlySeStringExtensions
             ]));
         }
 
-        var ross = sb.ToReadOnlySeString();
+        var output = sb.ToReadOnlySeString();
         SeStringBuilder.SharedPool.Return(sb);
-        return ross;
+        return output;
+    }
+
+    public static bool IsTextOnly(this ReadOnlySeString ross)
+    {
+        if (ross.PayloadCount != 1)
+            return false;
+
+        foreach (var payload in ross)
+        {
+            if (payload.Type != ReadOnlySePayloadType.Text)
+                return false;
+        }
+
+        return true;
     }
 }

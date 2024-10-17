@@ -8,12 +8,29 @@ using HaselCommon.Extensions.Sheets;
 using HaselCommon.Game;
 using HaselCommon.Graphics;
 using ImGuiNET;
+using Lumina.Text.ReadOnly;
 using UIColor = Lumina.Excel.GeneratedSheets.UIColor;
 
 namespace HaselCommon.Gui;
 
 public static class ImGuiUtils
 {
+    public static unsafe Vector2 CalcTextSize(ReadOnlySeString text, bool hideTextAfterDoubleHash = true, float wrapWidth = 0)
+    {
+        var ret = Vector2.Zero;
+
+        fixed (byte* textPtr = text.Data.Span)
+            ImGuiNative.igCalcTextSize(&ret, textPtr, textPtr + text.Data.Length, (byte)(hideTextAfterDoubleHash ? 1 : 0), wrapWidth);
+
+        return ret;
+    }
+
+    public static unsafe void TextUnformatted(ReadOnlySeString text)
+    {
+        fixed (byte* textPtr = text.Data.Span)
+            ImGuiNative.igTextUnformatted(textPtr, textPtr + text.Data.Length);
+    }
+
     public static void DrawPaddedSeparator()
     {
         var itemSpacingHeight = ImGui.GetStyle().ItemSpacing.Y;
