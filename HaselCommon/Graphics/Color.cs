@@ -1,6 +1,8 @@
 using System.Buffers.Binary;
 using System.Numerics;
 using Dalamud.Interface.Utility.Raii;
+using HaselCommon.Extensions.Math;
+using HaselCommon.Math;
 using ImGuiNET;
 
 namespace HaselCommon.Graphics;
@@ -69,6 +71,53 @@ public struct Color
             GetChannelColor(8, hue, lightness, chroma),   // Green channel
             GetChannelColor(4, hue, lightness, chroma),   // Blue channel
             alpha                                         // Alpha channel
+        );
+    }
+
+    //! https://github.com/color-js/color.js/blob/6332f3a/src/spaces/oklab.js
+    private static readonly Matrix3x3 LABtoLMS = new(
+        1f, 0.3963377773761749f, 0.2158037573099136f,
+        1f, -0.1055613458156586f, -0.0638541728258133f,
+        1f, -0.0894841775298119f, -1.2914855480194092f
+    );
+
+    private static readonly Matrix3x3 LMStoXYZ = new(
+        1.2268798758459243f, -0.5578149944602171f, 0.2813910456659647f,
+        -0.0405757452148008f, 1.1122868032803170f, -0.0717110580655164f,
+        -0.0763729366746601f, -0.4214933324022432f, 1.5869240198367816f
+    );
+
+    // https://github.com/color-js/color.js/blob/6332f3a/src/spaces/srgb-linear.js
+    private static readonly Matrix3x3 SRGBLinearfromXYZ = new(
+        3.2409699419045226f, -1.537383177570094f, -0.4986107602930034f,
+        -0.9692436362808796f, 1.8759675015077202f, 0.04155505740717559f,
+        0.05563007969699366f, -0.20397695888897652f, 1.0569715142428786f
+    );
+
+    // https://gist.github.com/dkaraush/65d19d61396f5f3cd8ba7d1b4b3c9432
+    /// <remarks> For sRGB the chroma value will be always below 0.37. </remarks>
+    public static Color FromOKLCH(float lightness, float chroma, float hue, float alpha = 1f)
+    {
+        var lab = new Vector3(
+            lightness,
+            float.IsNaN(hue) ? 0 : chroma * MathF.Cos(hue * MathF.PI / 180),
+            float.IsNaN(hue) ? 0 : chroma * MathF.Sin(hue * MathF.PI / 180));
+
+        var lmsg = LABtoLMS * lab;
+        var lms = lmsg.Pow(3);
+        var xyz = LMStoXYZ * lms;
+        var srgbLinear = SRGBLinearfromXYZ * xyz;
+
+        static float srgbLinear2rgb(float c)
+            => MathF.Abs(c) > 0.0031308f
+                ? (c < 0 ? -1 : 1) * (1.055f * MathF.Pow(MathF.Abs(c), 1 / 2.4f) - 0.055f)
+                : 12.92f * c;
+
+        return From(
+            srgbLinear2rgb(srgbLinear.X),
+            srgbLinear2rgb(srgbLinear.Y),
+            srgbLinear2rgb(srgbLinear.Z),
+            alpha
         );
     }
 
