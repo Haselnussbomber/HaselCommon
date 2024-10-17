@@ -66,6 +66,8 @@ public partial class YogaWindow : SimpleWindow, IDisposable
         {
             RootNode.PositionTop = ImGui.GetCursorPosY();
             RootNode.PositionLeft = ImGui.GetCursorPosX();
+            RootNode.Width = ImGui.GetContentRegionAvail().X;
+            RootNode.Height = ImGui.GetContentRegionAvail().Y;
 
             _fontUpdated = false;
 
