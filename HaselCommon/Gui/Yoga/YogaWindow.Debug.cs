@@ -210,7 +210,7 @@ public partial class YogaWindow
             if (node.DebugHasClosingTag)
             {
                 ImGui.SameLine(0, 0);
-                ImGui.TextUnformatted($"...</{node.TagName}>");
+                ImGui.TextUnformatted($"...</{node.TypeName}>");
             }
             return;
         }
@@ -227,7 +227,7 @@ public partial class YogaWindow
 
         if (node.DebugHasClosingTag)
         {
-            using (ImRaii.TreeNode($"</{node.TagName}>##NodeClose{node.Guid}", flags | ImGuiTreeNodeFlags.Leaf))
+            using (ImRaii.TreeNode($"</{node.TypeName}>##NodeClose{node.Guid}", flags | ImGuiTreeNodeFlags.Leaf))
             {
                 if (ImGui.IsItemClicked(ImGuiMouseButton.Left))
                     _debugSelectedNode = node;

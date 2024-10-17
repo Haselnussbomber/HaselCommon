@@ -12,6 +12,11 @@ public partial class Node : IDisposable
     private bool _isDisposed;
     private bool _scrollbarPaddingApplied;
 
+    public virtual string TypeName => GetType().Name;
+
+    [NodeProp("Node")]
+    public virtual string FullTypeName => GetType().FullName ?? GetType().Name;
+
     [NodeProp("Node")]
     public Guid Guid { get; } = Guid.NewGuid();
 

@@ -22,7 +22,7 @@ public partial class TextNode : Node
     protected bool _hovered;
     protected Vector2 _mousePos;
 
-    public override string TagName => "#text";
+    public override string TypeName => "#text";
     public override string DebugNodeOpenTag => $"{_text.ExtractText().Replace("\n", "")}";
 
     [NodeProp("Text", editable: true)]

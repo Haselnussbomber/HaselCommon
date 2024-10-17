@@ -9,10 +9,9 @@ namespace HaselCommon.Gui.Yoga;
 [DebuggerDisplay("Guid: {Guid.ToString()} | Children: {Count}")]
 public partial class Node
 {
-
     internal bool _showDebugHighlight;
 
-    public virtual string DebugNodeOpenTag => $"<{TagName}{(Count == 0 ? " /" : string.Empty)}>";
+    public virtual string DebugNodeOpenTag => $"<{TypeName}{(Count == 0 ? " /" : string.Empty)}>";
     public virtual bool DebugHasClosingTag => Count != 0;
 
     [Conditional("DEBUG")]
