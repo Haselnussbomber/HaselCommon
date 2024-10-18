@@ -7,7 +7,7 @@ using YogaSharp;
 
 namespace HaselCommon.Gui.Yoga;
 
-public partial class Node : IDisposable
+public partial class Node : INode
 {
     private bool _isDisposed;
     private bool _scrollbarPaddingApplied;
