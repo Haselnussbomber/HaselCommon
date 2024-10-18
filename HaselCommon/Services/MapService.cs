@@ -142,9 +142,6 @@ public class MapService(IClientState ClientState, IGameGui GameGui, TextService 
         ));
     }
 
-    public unsafe bool OpenMap(GatheringPoint point, Item? item = null, string? prefix = null)
-        => OpenMap(point, item, prefix != null ? new ReadOnlySeString(Encoding.UTF8.GetBytes(prefix)) : (ReadOnlySeString?)null);
-
     public unsafe bool OpenMap(GatheringPoint point, Item? item = null, ReadOnlySeString? prefix = null)
     {
         var territoryType = point.TerritoryType.Value;
