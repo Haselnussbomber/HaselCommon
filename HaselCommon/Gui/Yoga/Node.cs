@@ -93,7 +93,7 @@ public partial class Node : INode
                     Service.Get<IPluginLog>().Warning("Scrollable node {guid} has Padding set. PaddingRight for the scrollbar will not be respected.", Guid.ToString());
                 }
 
-                PaddingRight = ImGui.GetStyle().ScrollbarSize + ImGui.GetStyle().DisplaySafeAreaPadding.X;
+                PaddingRight = ImGui.GetStyle().ScrollbarSize;
                 _scrollbarPaddingApplied = true;
             }
             else if (!HadOverflow && _scrollbarPaddingApplied)
@@ -113,12 +113,14 @@ public partial class Node : INode
     {
         using var id = ImRaii.PushId(Guid.ToString());
 
-        var pos = AbsolutePosition + new Vector2(ComputedBorderLeft + ComputedPaddingLeft, ComputedBorderTop + ComputedPaddingTop);
-        var size = ComputedSize - new Vector2(ComputedBorderLeft + ComputedBorderRight, ComputedBorderTop + ComputedBorderBottom);
+        var pos = AbsolutePosition;
+        var size = ComputedSize;
 
         // to make sure ImGui knows about the size of this node
         ImGui.SetCursorPos(pos);
-        ImGui.Dummy(size);
+        ImGui.Dummy(size + new Vector2(
+            ComputedBorderLeft + ComputedBorderRight + ComputedPaddingLeft + ComputedPaddingRight,
+            ComputedBorderTop + ComputedBorderBottom + ComputedPaddingTop + ComputedPaddingBottom));
 
         ImGui.SetCursorPos(pos);
 
