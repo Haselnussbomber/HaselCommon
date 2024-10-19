@@ -13,7 +13,9 @@ public partial class YogaWindow : SimpleWindow, IDisposable
 {
     private readonly IFontHandle _defaultFontHandle;
     private bool _showNodeInspector;
-    private bool _fontUpdated = true;
+    private bool _fontUpdated;
+    private Vector2 _contentRegionAvail;
+    private Vector2 _cursorPosition;
 
     public Node RootNode { get; } = [];
     public bool ShowNodeInspector
@@ -62,14 +64,19 @@ public partial class YogaWindow : SimpleWindow, IDisposable
 
     public override void Draw()
     {
-        if (_fontUpdated)
+        var contentRegionAvail = ImGui.GetContentRegionAvail();
+        var cursorPosition = ImGui.GetCursorPos();
+
+        if (_fontUpdated || _contentRegionAvail != contentRegionAvail || _cursorPosition != cursorPosition)
         {
-            RootNode.PositionTop = ImGui.GetCursorPosY();
-            RootNode.PositionLeft = ImGui.GetCursorPosX();
-            RootNode.Width = ImGui.GetContentRegionAvail().X;
-            RootNode.Height = ImGui.GetContentRegionAvail().Y;
+            RootNode.PositionLeft = cursorPosition.X;
+            RootNode.PositionTop = cursorPosition.Y;
+            RootNode.Width = contentRegionAvail.X;
+            RootNode.Height = contentRegionAvail.Y;
 
             _fontUpdated = false;
+            _contentRegionAvail = contentRegionAvail;
+            _cursorPosition = cursorPosition;
 
             ApplyGlobalScale(ImGui.GetIO().FontGlobalScale);
         }
@@ -83,7 +90,7 @@ public partial class YogaWindow : SimpleWindow, IDisposable
             _debugUpdateTime = _debugTimer.Elapsed.TotalMilliseconds;
 
             _debugTimer.Restart();
-            RootNode.CalculateLayout(ImGui.GetContentRegionAvail());
+            RootNode.CalculateLayout(contentRegionAvail);
             _debugTimer.Stop();
             _debugLayoutTime = _debugTimer.Elapsed.TotalMilliseconds;
 
@@ -96,7 +103,7 @@ public partial class YogaWindow : SimpleWindow, IDisposable
         {
 #endif
             RootNode.Update();
-            RootNode.CalculateLayout(ImGui.GetContentRegionAvail());
+            RootNode.CalculateLayout(contentRegionAvail);
             RootNode.Draw();
 #if DEBUG
         }
