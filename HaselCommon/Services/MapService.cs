@@ -1,5 +1,4 @@
 using System.Numerics;
-using System.Text;
 using Dalamud.Game;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Game.Text;
@@ -270,7 +269,7 @@ public class MapService(IClientState ClientState, IGameGui GameGui, TextService 
             }
         }
 
-        using var title = new Utf8String(titleBuilder.ToReadOnlySeString().Data.Span.WithNullTerminator());
+        using var title = titleBuilder.ToUtf8String();
 
         SeStringBuilder.SharedPool.Return(titleBuilder);
 

@@ -26,18 +26,4 @@ public static class MathUtils
         timeSec ??= Framework.Instance()->FrameDeltaTime;
         return Lerp(startValue, endValue, Clamp01(amount * (float)timeSec * 60));
     }
-
-    public static float MaxOrDefined(float a, float b)
-    {
-        if (!float.IsNaN(a) && !float.IsNaN(b))
-            return MathF.Max(a, b);
-        return float.IsNaN(a) ? b : a;
-    }
-
-    public static float MinOrDefined(float a, float b)
-    {
-        if (!float.IsNaN(a) && !float.IsNaN(b))
-            return MathF.Min(a, b);
-        return float.IsNaN(a) ? b : a;
-    }
 }

@@ -1,4 +1,7 @@
+using FFXIVClientStructs.FFXIV.Client.System.String;
 using HaselCommon.Extensions;
+using HaselCommon.Extensions.Collections;
+using HaselCommon.Extensions.Memory;
 using Lumina.Text;
 using Lumina.Text.ReadOnly;
 
@@ -6,6 +9,11 @@ namespace HaselCommon.Extensions.Strings;
 
 public static class ReadOnlySeStringExtensions
 {
+    public static Utf8String ToUtf8String(this ReadOnlySeString ross)
+    {
+        return new(((ReadOnlySpan<byte>)ross).WithNullTerminator());
+    }
+
     public static ReadOnlySeString ReplaceText(this ReadOnlySeString ross, ReadOnlySpan<byte> toFind, ReadOnlySpan<byte> replacement)
     {
         if (ross.IsEmpty)
