@@ -11,6 +11,8 @@ public partial class Node : INode
 {
     private bool _isDisposed;
     private bool _scrollbarPaddingApplied;
+    private Func<float, float, float>? _baselineFunc;
+    private Func<float, YGMeasureMode, float, YGMeasureMode, YGSize>? _measureFunc;
 
     public virtual string TypeName => GetType().Name;
 
@@ -168,6 +170,24 @@ public partial class Node : INode
 
     }
 
+    public Func<float, float, float>? BaselineFunc
+    {
+        get => _baselineFunc;
+        set
+        {
+            if (value == null)
+            {
+                _baselineFunc = null;
+                EnableBaselineFunc = false;
+            }
+            else
+            {
+                _baselineFunc = value;
+                EnableBaselineFunc = true;
+            }
+        }
+    }
+
     /// <summary>
     /// A custom function for determining the text baseline for use in baseline alignment.
     /// </summary>
@@ -176,7 +196,25 @@ public partial class Node : INode
     /// </remarks>
     public virtual float Baseline(float width, float height)
     {
-        throw new NotImplementedException("Baseline function was not implemented");
+        return BaselineFunc?.Invoke(width, height) ?? throw new NotImplementedException("Baseline function was not implemented");
+    }
+
+    public Func<float, YGMeasureMode, float, YGMeasureMode, YGSize>? MeasureFunc
+    {
+        get => _measureFunc;
+        set
+        {
+            if (value == null)
+            {
+                _measureFunc = null;
+                EnableMeasureFunc = false;
+            }
+            else
+            {
+                _measureFunc = value;
+                EnableMeasureFunc = true;
+            }
+        }
     }
 
     /// <summary>
@@ -188,7 +226,7 @@ public partial class Node : INode
     /// </remarks>
     public virtual Vector2 Measure(float width, YGMeasureMode widthMode, float height, YGMeasureMode heightMode)
     {
-        throw new NotImplementedException("Measure function was not implemented");
+        return MeasureFunc?.Invoke(width, widthMode, height, heightMode) ?? throw new NotImplementedException("Measure function was not implemented");
     }
 
     /// <remarks>
