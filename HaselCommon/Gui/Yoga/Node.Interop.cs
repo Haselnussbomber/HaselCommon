@@ -1877,6 +1877,12 @@ public unsafe partial class Node
         return csNode.Measure(width, widthMode, height, heightMode);
     }
 
+    public void CalculateLayout(float width = float.NaN, float height = float.NaN, YGDirection ownerDirection = YGDirection.LTR)
+    {
+        ThrowIfDisposed();
+        _yogaNode->CalculateLayout(width, height, ownerDirection);
+    }
+
     public void CalculateLayout(Vector2 ownerSize, YGDirection ownerDirection = YGDirection.LTR)
     {
         ThrowIfDisposed();
