@@ -141,16 +141,21 @@ public unsafe partial class Node : IList<Node>
             Add(child);
     }
 
-    public void Clear()
+    public void Clear() => Clear(false);
+
+    public void Clear(bool dispose)
     {
         ThrowIfDisposed();
 
         for (var i = Count - 1; i >= 0; i--)
         {
-            Remove(this[i]);
-        }
+            var node = this[i];
 
-        _yogaNode->RemoveAllChildren();
+            Remove(node);
+
+            if (dispose)
+                node.Dispose();
+        }
     }
 
     public bool Contains(Node item)
