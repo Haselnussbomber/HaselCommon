@@ -1,4 +1,5 @@
-using System.Collections.Generic;
+using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using Dalamud.Game.Config;
 using Dalamud.Interface.Textures;
@@ -14,8 +15,11 @@ using Lumina.Data.Files;
 
 namespace HaselCommon.Services;
 
-public class TextureService(ITextureProvider TextureProvider, IDataManager DataManager, IGameConfig GameConfig)
+public class TextureService(ITextureProvider textureProvider, IDataManager dataManager, IGameConfig gameConfig)
 {
+    private record UldPartKey(byte ThemeType, string UldName, uint PartListId, uint PartIndex);
+    private record UldPartInfo(string Path, Vector2 Uv0, Vector2 Uv1);
+
     private static readonly string[] ThemePaths = ["", "light/", "third/", "fourth/"];
     private static readonly string[] GfdTextures = [
         "common/font/fonticon_xinput.tex",
@@ -25,8 +29,8 @@ public class TextureService(ITextureProvider TextureProvider, IDataManager DataM
         "common/font/fonticon_lys.tex",
     ];
 
-    private readonly Dictionary<(byte ThemeType, string UldName, uint PartListId, uint PartId), (string Path, Vector2 Uv0, Vector2 Uv1)?> _uldPartCache = [];
-    public readonly Lazy<GfdFileView> GfdFileView = new(() => new(DataManager.GetFile("common/font/gfdata.gfd")!.Data));
+    private readonly ConcurrentDictionary<UldPartKey, UldPartInfo?> _uldPartCache = [];
+    public readonly Lazy<GfdFileView> GfdFileView = new(() => new(dataManager.GetFile("common/font/gfdata.gfd")!.Data));
 
     public void Draw(string path, DrawInfo drawInfo)
     {
@@ -36,7 +40,7 @@ public class TextureService(ITextureProvider TextureProvider, IDataManager DataM
             return;
         }
 
-        var textureWrap = TextureProvider.GetFromGame(path).GetWrapOrEmpty();
+        var textureWrap = textureProvider.GetFromGame(path).GetWrapOrEmpty();
         Draw(textureWrap, drawInfo);
     }
 
@@ -48,7 +52,7 @@ public class TextureService(ITextureProvider TextureProvider, IDataManager DataM
             return;
         }
 
-        if (!TextureProvider.TryGetFromGameIcon(gameIconLookup, out var texture))
+        if (!textureProvider.TryGetFromGameIcon(gameIconLookup, out var texture))
         {
             ImGui.Dummy(Vector2.Zero);
             return;
@@ -77,7 +81,7 @@ public class TextureService(ITextureProvider TextureProvider, IDataManager DataM
         var startPos = new Vector2(entry.Left, entry.Top) * 2 + new Vector2(0, 340);
         var size = new Vector2(entry.Width, entry.Height) * 2;
 
-        GameConfig.TryGet(SystemConfigOption.PadSelectButtonIcon, out uint padSelectButtonIcon);
+        gameConfig.TryGet(SystemConfigOption.PadSelectButtonIcon, out uint padSelectButtonIcon);
 
         Draw(GfdTextures[padSelectButtonIcon], new()
         {
@@ -91,57 +95,69 @@ public class TextureService(ITextureProvider TextureProvider, IDataManager DataM
     public unsafe void DrawPart(string uldName, uint partListId, uint partIndex, DrawInfo drawInfo)
     {
         var themeType = RaptureAtkModule.Instance()->AtkUIColorHolder.ActiveColorThemeType;
-        var key = (themeType, uldName, partListId, partIndex);
+        var key = new UldPartKey(themeType, uldName, partListId, partIndex);
 
-        if (_uldPartCache.TryGetValue(key, out var tuple))
+        if (_uldPartCache.TryGetValue(key, out var uldPartInfo))
         {
-            if (tuple == null || !tuple.HasValue)
+            if (uldPartInfo == null || uldPartInfo == null)
             {
                 ImGui.Dummy(drawInfo.DrawSize ?? Vector2.Zero);
                 return;
             }
 
-            drawInfo.Uv0 = tuple.Value.Uv0;
-            drawInfo.Uv1 = tuple.Value.Uv1;
+            drawInfo.Uv0 = uldPartInfo.Uv0;
+            drawInfo.Uv1 = uldPartInfo.Uv1;
             drawInfo.TransformUv = true;
-            Draw(tuple.Value.Path, drawInfo);
+            Draw(uldPartInfo.Path, drawInfo);
             return;
         }
 
-        var uld = DataManager.GetFile<UldFile>($"ui/uld/{uldName}.uld");
+        if (!TryGetUldPartInfo(key, out uldPartInfo))
+        {
+            ImGui.Dummy(drawInfo.DrawSize ?? Vector2.Zero);
+            return;
+        }
 
+        drawInfo.Uv0 = uldPartInfo.Uv0;
+        drawInfo.Uv1 = uldPartInfo.Uv1;
+        drawInfo.TransformUv = true;
+
+        Draw(uldPartInfo.Path, drawInfo);
+    }
+
+    private bool TryGetUldPartInfo(UldPartKey key, [NotNullWhen(returnValue: true)] out UldPartInfo? uldPartInfo)
+    {
+        uldPartInfo = null;
+
+        var uld = dataManager.GetFile<UldFile>($"ui/uld/{key.UldName}.uld");
         if (uld == null)
         {
-            lock (_uldPartCache) _uldPartCache.Add(key, null);
-            ImGui.Dummy(drawInfo.DrawSize ?? Vector2.Zero);
-            return;
+            _uldPartCache.TryAdd(key, null);
+            return false;
         }
 
-        if (!uld.Parts.FindFirst((partList) => partList.Id == partListId, out var partList) || partList.PartCount < partIndex)
+        if (!uld.Parts.FindFirst((partList) => partList.Id == key.PartListId, out var partList) || partList.PartCount < key.PartIndex)
         {
-            lock (_uldPartCache) _uldPartCache.Add(key, null);
-            ImGui.Dummy(drawInfo.DrawSize ?? Vector2.Zero);
-            return;
+            _uldPartCache.TryAdd(key, null);
+            return false;
         }
 
-        var part = partList.Parts[partIndex];
+        var part = partList.Parts[key.PartIndex];
 
         if (!uld.AssetData.FindFirst((asset) => asset.Id == part.TextureId, out var asset))
         {
-            lock (_uldPartCache) _uldPartCache.Add(key, null);
-            ImGui.Dummy(drawInfo.DrawSize ?? Vector2.Zero);
-            return;
+            _uldPartCache.TryAdd(key, null);
+            return false;
         }
 
-        var colorThemePath = ThemePaths[themeType];
-
+        var colorThemePath = ThemePaths[key.ThemeType];
         var assetPath = new string(asset.Path, 0, asset.Path.IndexOf('\0'));
 
         // check if theme high-res texture exists
         var path = assetPath;
         path = path.Insert(7, colorThemePath);
         path = path.Insert(path.LastIndexOf('.'), "_hr1");
-        var exists = DataManager.FileExists(path);
+        var exists = dataManager.FileExists(path);
         var version = 2;
 
         // fallback to theme normal texture
@@ -149,7 +165,7 @@ public class TextureService(ITextureProvider TextureProvider, IDataManager DataM
         {
             path = assetPath;
             path = path.Insert(7, colorThemePath);
-            exists = DataManager.FileExists(path);
+            exists = dataManager.FileExists(path);
             version = 1;
         }
 
@@ -158,7 +174,7 @@ public class TextureService(ITextureProvider TextureProvider, IDataManager DataM
         {
             path = assetPath;
             path = path.Insert(path.LastIndexOf('.'), "_hr1");
-            exists = DataManager.FileExists(path);
+            exists = dataManager.FileExists(path);
             version = 2;
         }
 
@@ -166,29 +182,38 @@ public class TextureService(ITextureProvider TextureProvider, IDataManager DataM
         if (!exists)
         {
             path = assetPath;
-            exists = DataManager.FileExists(path);
+            exists = dataManager.FileExists(path);
             version = 1;
         }
 
         // fallback to dummy
         if (!exists)
         {
-            lock (_uldPartCache) _uldPartCache.Add(key, null);
-            ImGui.Dummy(drawInfo.DrawSize ?? Vector2.Zero);
-            return;
+            _uldPartCache.TryAdd(key, null);
+            return false;
         }
 
         var uv0 = new Vector2(part.U, part.V) * version;
         var uv1 = new Vector2(part.U + part.W, part.V + part.H) * version;
 
-        lock (_uldPartCache)
-            _uldPartCache.Add(key, (path, uv0, uv1));
+        uldPartInfo = new(path, uv0, uv1);
+        _uldPartCache.TryAdd(key, uldPartInfo);
 
-        drawInfo.Uv0 = uv0;
-        drawInfo.Uv1 = uv1;
-        drawInfo.TransformUv = true;
+        return true;
+    }
 
-        Draw(path, drawInfo);
+    public unsafe bool TryGetUldPartSize(string uldName, uint partListId, uint partIndex, out Vector2 size)
+    {
+        var themeType = RaptureAtkModule.Instance()->AtkUIColorHolder.ActiveColorThemeType;
+
+        if (!TryGetUldPartInfo(new(themeType, uldName, partListId, partIndex), out var uldPartInfo))
+        {
+            size = default;
+            return false;
+        }
+
+        size = uldPartInfo.Uv1 - uldPartInfo.Uv0;
+        return true;
     }
 
     public static void Draw(IDalamudTextureWrap? textureWrap, DrawInfo drawInfo)
