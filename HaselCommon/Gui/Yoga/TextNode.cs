@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Numerics;
 using Dalamud.Interface.ImGuiSeStringRenderer;
+using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Interface.Utility;
 using HaselCommon.Extensions.Strings;
 using HaselCommon.Graphics;
@@ -42,6 +43,7 @@ public partial class TextNode : Node
 
     [NodeProp("Text", editable: true)]
     public Color? TextColor { get; set; }
+    public IFontHandle? Font { get; set; }
 
     public TextNode() : base()
     {
@@ -59,6 +61,8 @@ public partial class TextNode : Node
         if (_text.IsEmpty)
             return Vector2.Zero;
 
+        using var font = Font?.Push();
+
         if (_isTextOnly)
             return ImGuiUtils.CalcTextSize(_text, wrapWidth: width);
 
@@ -73,17 +77,20 @@ public partial class TextNode : Node
         bool clicked;
         ReadOnlySeString? clickedPayload;
 
-        if (_isTextOnly)
+        using (Font?.Push())
         {
-            ImGuiUtils.TextUnformatted(_text);
-            clicked = ImGui.IsItemClicked(ImGuiMouseButton.Left);
-            clickedPayload = Text;
-        }
-        else
-        {
-            var result = ImGuiHelpers.SeStringWrapped(_text, new SeStringDrawParams() { WrapWidth = ComputedWidth, Color = TextColor });
-            clicked = result.Clicked;
-            clickedPayload = (ReadOnlySeString)result.InteractedPayloadEnvelope;
+            if (_isTextOnly)
+            {
+                ImGuiUtils.TextUnformatted(_text);
+                clicked = ImGui.IsItemClicked(ImGuiMouseButton.Left);
+                clickedPayload = Text;
+            }
+            else
+            {
+                var result = ImGuiHelpers.SeStringWrapped(_text, new SeStringDrawParams() { WrapWidth = ComputedWidth, Color = TextColor });
+                clicked = result.Clicked;
+                clickedPayload = (ReadOnlySeString)result.InteractedPayloadEnvelope;
+            }
         }
 
         var hovered = ImGui.IsItemHovered();
