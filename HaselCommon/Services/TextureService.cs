@@ -34,9 +34,9 @@ public class TextureService(ITextureProvider textureProvider, IDataManager dataM
 
     public void Draw(string path, DrawInfo drawInfo)
     {
-        if (drawInfo.DrawSize.HasValue && !ImGuiUtils.IsInViewport(drawInfo.DrawSize.Value))
+        if (drawInfo.DrawSize.HasValue && !ImGuiUtils.IsInViewport(drawInfo.DrawSize.Value * (drawInfo.Scale ?? 1f)))
         {
-            ImGui.Dummy(drawInfo.DrawSize.Value);
+            ImGui.Dummy(drawInfo.DrawSize.Value * (drawInfo.Scale ?? 1f));
             return;
         }
 
@@ -46,9 +46,9 @@ public class TextureService(ITextureProvider textureProvider, IDataManager dataM
 
     public void DrawIcon(GameIconLookup gameIconLookup, DrawInfo drawInfo)
     {
-        if (drawInfo.DrawSize.HasValue && !ImGuiUtils.IsInViewport(drawInfo.DrawSize.Value))
+        if (drawInfo.DrawSize.HasValue && !ImGuiUtils.IsInViewport(drawInfo.DrawSize.Value * (drawInfo.Scale ?? 1f)))
         {
-            ImGui.Dummy(drawInfo.DrawSize.Value);
+            ImGui.Dummy(drawInfo.DrawSize.Value * (drawInfo.Scale ?? 1f));
             return;
         }
 
@@ -74,7 +74,7 @@ public class TextureService(ITextureProvider textureProvider, IDataManager dataM
     {
         if (!GfdFileView.Value.TryGetEntry(gfdIconId, out var entry))
         {
-            ImGui.Dummy(drawInfo.DrawSize ?? new(20));
+            ImGui.Dummy((drawInfo.DrawSize ?? new(20)) * (drawInfo.Scale ?? 1f));
             return;
         }
 
@@ -85,7 +85,7 @@ public class TextureService(ITextureProvider textureProvider, IDataManager dataM
 
         Draw(GfdTextures[padSelectButtonIcon], new()
         {
-            DrawSize = drawInfo.DrawSize ?? ImGuiHelpers.ScaledVector2(size.X, size.Y) / 2,
+            DrawSize = (drawInfo.DrawSize ?? ImGuiHelpers.ScaledVector2(size.X, size.Y) / 2) * (drawInfo.Scale ?? 1f),
             Uv0 = startPos,
             Uv1 = startPos + size,
             TransformUv = true,
@@ -101,7 +101,7 @@ public class TextureService(ITextureProvider textureProvider, IDataManager dataM
         {
             if (uldPartInfo == null || uldPartInfo == null)
             {
-                ImGui.Dummy(drawInfo.DrawSize ?? Vector2.Zero);
+                ImGui.Dummy((drawInfo.DrawSize ?? Vector2.Zero) * (drawInfo.Scale ?? 1f));
                 return;
             }
 
@@ -114,7 +114,7 @@ public class TextureService(ITextureProvider textureProvider, IDataManager dataM
 
         if (!TryGetUldPartInfo(key, out uldPartInfo))
         {
-            ImGui.Dummy(drawInfo.DrawSize ?? Vector2.Zero);
+            ImGui.Dummy((drawInfo.DrawSize ?? Vector2.Zero) * (drawInfo.Scale ?? 1f));
             return;
         }
 
@@ -220,11 +220,11 @@ public class TextureService(ITextureProvider textureProvider, IDataManager dataM
     {
         if (textureWrap == null)
         {
-            ImGui.Dummy(drawInfo.DrawSize ?? Vector2.Zero);
+            ImGui.Dummy((drawInfo.DrawSize ?? Vector2.Zero) * (drawInfo.Scale ?? 1f));
             return;
         }
 
-        var size = drawInfo.DrawSize ?? textureWrap.Size;
+        var size = (drawInfo.DrawSize ?? textureWrap.Size) * (drawInfo.Scale ?? 1f);
         var uv0 = drawInfo.Uv0 ?? Vector2.Zero;
         var uv1 = drawInfo.Uv1 ?? Vector2.One;
 
@@ -265,6 +265,7 @@ public struct DrawInfo
         DrawSize = new(width, height);
     }
 
+    public float? Scale { get; set; }
     public Vector2? DrawSize { get; set; }
     public Vector2? Uv0 { get; set; }
     public Vector2? Uv1 { get; set; }
