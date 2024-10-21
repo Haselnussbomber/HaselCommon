@@ -1,4 +1,5 @@
 using System.Numerics;
+using Dalamud.Interface.Utility;
 using HaselCommon.Services;
 using YogaSharp;
 
@@ -23,12 +24,12 @@ public class UldImage : Panel
     {
         if (_textureService.TryGetUldPartSize(UldName, PartListId, PartIndex, out var size))
         {
-            return size * Scale;
+            return size * Scale * ImGuiHelpers.GlobalScale;
         }
 
         if (!float.IsNaN(width) && !float.IsNaN(height))
         {
-            return new Vector2(width, height) * Scale;
+            return new Vector2(width, height) * Scale * ImGuiHelpers.GlobalScale;
         }
 
         return Vector2.Zero;
