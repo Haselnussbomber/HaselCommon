@@ -10,6 +10,17 @@ namespace HaselCommon.Extensions;
 
 public static partial class IEnumerableExtensions
 {
+    public static bool Contains<T>(this IEnumerable<T> source, Predicate<T> predicate)
+    {
+        foreach (var element in source)
+        {
+            if (predicate(element))
+                return true;
+        }
+
+        return false;
+    }
+
     public static void ForEach<T>(this IEnumerable<T> source, Action<T> action)
     {
         foreach (var element in source)
