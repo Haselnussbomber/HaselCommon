@@ -8,8 +8,9 @@ using HaselCommon.Extensions.Sheets;
 using HaselCommon.Game;
 using HaselCommon.Graphics;
 using ImGuiNET;
+using Lumina.Excel;
 using Lumina.Text.ReadOnly;
-using UIColor = Lumina.Excel.GeneratedSheets.UIColor;
+using UIColor = Lumina.Excel.Sheets.UIColor;
 
 namespace HaselCommon.Gui;
 
@@ -40,7 +41,7 @@ public static class ImGuiUtils
         PushCursorY(itemSpacingHeight - 1);
     }
 
-    public static void DrawSection(string label, bool pushDown = true, bool respectUiTheme = false, UIColor? uiColor = null)
+    public static void DrawSection(string label, bool pushDown = true, bool respectUiTheme = false, RowRef<UIColor> uiColor = default)
     {
         var itemSpacingHeight = ImGui.GetStyle().ItemSpacing.Y;
 
@@ -49,8 +50,8 @@ public static class ImGuiUtils
             PushCursorY(itemSpacingHeight * 2);
 
         var color = Color.Gold;
-        if (respectUiTheme && uiColor != null && Misc.IsLightTheme)
-            color = uiColor.GetForegroundColor();
+        if (respectUiTheme && Misc.IsLightTheme && uiColor.IsValid)
+            color = uiColor.Value.GetForegroundColor();
 
         TextUnformattedColored(color, label);
 

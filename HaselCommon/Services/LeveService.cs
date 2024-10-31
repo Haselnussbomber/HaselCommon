@@ -2,11 +2,11 @@ using System.Collections.Generic;
 using System.Linq;
 using FFXIVClientStructs.FFXIV.Application.Network.WorkDefinitions;
 using FFXIVClientStructs.FFXIV.Client.Game;
-using Lumina.Excel.GeneratedSheets;
+using Lumina.Excel.Sheets;
 
 namespace HaselCommon.Services;
 
-public class LeveService(ExcelService ExcelService)
+public class LeveService(ExcelService excelService)
 {
     public unsafe IEnumerable<ushort> GetActiveLeveIds()
     {
@@ -23,7 +23,11 @@ public class LeveService(ExcelService ExcelService)
 
     public IEnumerable<Leve> GetActiveLeves()
     {
-        return GetActiveLeveIds().Select(id => ExcelService.GetRow<Leve>(id)).Where(row => row != null).Cast<Leve>();
+        foreach (var leveId in GetActiveLeveIds())
+        {
+            if (excelService.TryGetRow<Leve>(leveId, out var leve))
+                yield return leve;
+        }
     }
 
     public int GetNumAcceptedLeveQuests()
@@ -85,8 +89,8 @@ public class LeveService(ExcelService ExcelService)
         => leve.RowId is 546 or 556 or 566;
 
     public bool IsCraftLeve(Leve leve)
-        => leve.LeveAssignmentType.Row is >= 5 and <= 12;
+        => leve.LeveAssignmentType.RowId is >= 5 and <= 12;
 
     public bool IsFishingLeve(Leve leve)
-        => leve.LeveAssignmentType.Row is 4;
+        => leve.LeveAssignmentType.RowId is 4;
 }

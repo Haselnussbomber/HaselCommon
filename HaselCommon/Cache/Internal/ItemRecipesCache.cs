@@ -1,26 +1,25 @@
 using System.Collections.Generic;
 using HaselCommon.Services;
-using Lumina.Excel.GeneratedSheets;
+using Lumina.Excel.Sheets;
 
-namespace HaselCommon.Caching.Internal;
+namespace HaselCommon.Cache.Internal;
 
-internal class ItemRecipesCache(ExcelService ExcelService) : MemoryCache<uint, Recipe[]>
+internal class ItemRecipesCache(ExcelService excelService) : MemoryCache<uint, Recipe[]>
 {
     public override Recipe[]? CreateEntry(uint itemId)
     {
-        var lookup = ExcelService.GetRow<RecipeLookup>(itemId);
-        if (lookup == null)
+        if (!excelService.TryGetRow<RecipeLookup>(itemId, out var lookup))
             return [];
 
         var _recipes = new List<Recipe>();
-        if (lookup.CRP.Row != 0 && lookup.CRP.Value != null) _recipes.Add(lookup.CRP.Value);
-        if (lookup.BSM.Row != 0 && lookup.BSM.Value != null) _recipes.Add(lookup.BSM.Value);
-        if (lookup.ARM.Row != 0 && lookup.ARM.Value != null) _recipes.Add(lookup.ARM.Value);
-        if (lookup.GSM.Row != 0 && lookup.GSM.Value != null) _recipes.Add(lookup.GSM.Value);
-        if (lookup.LTW.Row != 0 && lookup.LTW.Value != null) _recipes.Add(lookup.LTW.Value);
-        if (lookup.WVR.Row != 0 && lookup.WVR.Value != null) _recipes.Add(lookup.WVR.Value);
-        if (lookup.ALC.Row != 0 && lookup.ALC.Value != null) _recipes.Add(lookup.ALC.Value);
-        if (lookup.CUL.Row != 0 && lookup.CUL.Value != null) _recipes.Add(lookup.CUL.Value);
+        if (lookup.CRP.RowId != 0 && lookup.CRP.IsValid) _recipes.Add(lookup.CRP.Value);
+        if (lookup.BSM.RowId != 0 && lookup.BSM.IsValid) _recipes.Add(lookup.BSM.Value);
+        if (lookup.ARM.RowId != 0 && lookup.ARM.IsValid) _recipes.Add(lookup.ARM.Value);
+        if (lookup.GSM.RowId != 0 && lookup.GSM.IsValid) _recipes.Add(lookup.GSM.Value);
+        if (lookup.LTW.RowId != 0 && lookup.LTW.IsValid) _recipes.Add(lookup.LTW.Value);
+        if (lookup.WVR.RowId != 0 && lookup.WVR.IsValid) _recipes.Add(lookup.WVR.Value);
+        if (lookup.ALC.RowId != 0 && lookup.ALC.IsValid) _recipes.Add(lookup.ALC.Value);
+        if (lookup.CUL.RowId != 0 && lookup.CUL.IsValid) _recipes.Add(lookup.CUL.Value);
         return [.. _recipes];
     }
 }

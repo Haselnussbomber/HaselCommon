@@ -6,23 +6,24 @@ using Dalamud.Interface;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Utility;
-using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
+using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using HaselCommon.Graphics;
 using HaselCommon.Gui;
 using HaselCommon.Utils;
 using ImGuiNET;
-using Lumina.Excel.GeneratedSheets;
+using Lumina.Excel;
+using Lumina.Excel.Sheets;
 using Lumina.Text.ReadOnly;
 using Action = System.Action;
 using GearsetEntry = FFXIVClientStructs.FFXIV.Client.UI.Misc.RaptureGearsetModule.GearsetEntry;
-using TerritoryType = Lumina.Excel.GeneratedSheets.TerritoryType;
+using TerritoryType = Lumina.Excel.Sheets.TerritoryType;
 
 namespace HaselCommon.Services;
 
-public class ImGuiContextMenuService(TextService TextService, MapService MapService, ItemService ItemService)
+public class ImGuiContextMenuService(TextService textService, MapService mapService, ItemService itemService)
 {
     public void Draw(string id, Action<ImGuiContextMenuBuilder> buildAction)
     {
@@ -30,13 +31,13 @@ public class ImGuiContextMenuService(TextService TextService, MapService MapServ
         if (!popup)
             return;
 
-        var builder = new ImGuiContextMenuBuilder(TextService, MapService, ItemService);
+        var builder = new ImGuiContextMenuBuilder(textService, mapService, itemService);
         buildAction(builder);
         builder.Draw();
     }
 }
 
-public unsafe struct ImGuiContextMenuBuilder(TextService TextService, MapService MapService, ItemService ItemService)
+public unsafe struct ImGuiContextMenuBuilder(TextService textService, MapService mapService, ItemService itemService)
 {
     private readonly List<IImGuiContextMenuEntry> _entries = [];
 
@@ -61,19 +62,19 @@ public unsafe struct ImGuiContextMenuBuilder(TextService TextService, MapService
         return this;
     }
 
-    public ImGuiContextMenuBuilder AddTryOn(Item item, uint glamourItemId = 0, byte stain1Id = 0, byte stain2Id = 0)
+    public ImGuiContextMenuBuilder AddTryOn(RowRef<Item> itemRef, uint glamourItemId = 0, byte stain1Id = 0, byte stain2Id = 0)
     {
         _entries.Add(new ImGuiContextMenuEntry()
         {
-            Visible = ItemService.CanTryOn(item),
-            Label = TextService.GetAddonText(2426), // "Try On"
+            Visible = itemService.CanTryOn(itemRef),
+            Label = textService.GetAddonText(2426), // "Try On"
             LoseFocusOnClick = true,
             ClickCallback = () =>
             {
                 if (ImGui.IsKeyDown(ImGuiKey.LeftShift) || ImGui.IsKeyDown(ImGuiKey.RightShift))
-                    AgentTryon.TryOn(0, item.RowId, stain1Id, stain2Id);
+                    AgentTryon.TryOn(0, itemRef.RowId, stain1Id, stain2Id);
                 else
-                    AgentTryon.TryOn(0, item.RowId, stain1Id, stain2Id, glamourItemId);
+                    AgentTryon.TryOn(0, itemRef.RowId, stain1Id, stain2Id, glamourItemId);
             }
         });
 
@@ -84,7 +85,7 @@ public unsafe struct ImGuiContextMenuBuilder(TextService TextService, MapService
     {
         _entries.Add(new ImGuiContextMenuEntry()
         {
-            Label = TextService.GetAddonText(4379), // "Search for Item"
+            Label = textService.GetAddonText(4379), // "Search for Item"
             LoseFocusOnClick = true,
             ClickCallback = () =>
             {
@@ -97,11 +98,11 @@ public unsafe struct ImGuiContextMenuBuilder(TextService TextService, MapService
 
     public ImGuiContextMenuBuilder AddCopyItemName(uint itemId)
     {
-        var itemName = TextService.GetItemName(itemId);
+        var itemName = textService.GetItemName(itemId);
 
         _entries.Add(new ImGuiContextMenuEntry()
         {
-            Label = TextService.GetAddonText(159), // "Copy Item Name"
+            Label = textService.GetAddonText(159), // "Copy Item Name"
             ClickCallback = () =>
             {
                 ImGui.SetClipboardText(itemName);
@@ -111,18 +112,18 @@ public unsafe struct ImGuiContextMenuBuilder(TextService TextService, MapService
         return this;
     }
 
-    public ImGuiContextMenuBuilder AddItemSearch(Item item)
+    public ImGuiContextMenuBuilder AddItemSearch(RowRef<Item> itemRef)
     {
-        var itemService = ItemService;
+        var _itemService = itemService;
 
         _entries.Add(new ImGuiContextMenuEntry()
         {
-            Visible = ItemService.CanSearchForItem(item),
-            Label = TextService.Translate("ItemContextMenu.SearchTheMarkets"),
+            Visible = _itemService.CanSearchForItem(itemRef),
+            Label = textService.Translate("ItemContextMenu.SearchTheMarkets"),
             LoseFocusOnClick = true,
             ClickCallback = () =>
             {
-                itemService.Search(item);
+                _itemService.Search(itemRef);
             }
         });
 
@@ -134,8 +135,8 @@ public unsafe struct ImGuiContextMenuBuilder(TextService TextService, MapService
         _entries.Add(new ImGuiContextMenuEntry()
         {
             Visible = gearset != null && gearset->GlamourSetLink == 0 && UIState.Instance()->IsUnlockLinkUnlocked(15),
-            Enabled = GameMain.IsInSanctuary(),
-            Label = TextService.GetAddonText(4394),
+            Enabled = UIGlobals.CanApplyGlamourPlates(),
+            Label = textService.GetAddonText(4394),
             LoseFocusOnClick = true,
             ClickCallback = () => AgentMiragePrismMiragePlate.Instance()->OpenForGearset(gearset->Id, gearset->GlamourSetLink)
         });
@@ -148,8 +149,8 @@ public unsafe struct ImGuiContextMenuBuilder(TextService TextService, MapService
         _entries.Add(new ImGuiContextMenuEntry()
         {
             Visible = gearset != null && gearset->GlamourSetLink != 0 && UIState.Instance()->IsUnlockLinkUnlocked(15),
-            Enabled = GameMain.IsInSanctuary(),
-            Label = TextService.GetAddonText(4395),
+            Enabled = UIGlobals.CanApplyGlamourPlates(),
+            Label = textService.GetAddonText(4395),
             ClickCallback = () => AgentMiragePrismMiragePlate.Instance()->OpenForGearset(gearset->Id, gearset->GlamourSetLink)
         });
 
@@ -161,7 +162,7 @@ public unsafe struct ImGuiContextMenuBuilder(TextService TextService, MapService
         _entries.Add(new ImGuiContextMenuEntry()
         {
             Visible = gearset != null && gearset->GlamourSetLink != 0 && UIState.Instance()->IsUnlockLinkUnlocked(15),
-            Label = TextService.GetAddonText(4396),
+            Label = textService.GetAddonText(4396),
             ClickCallback = () => RaptureGearsetModule.Instance()->LinkGlamourPlate(gearset->Id, 0)
         });
 
@@ -173,7 +174,7 @@ public unsafe struct ImGuiContextMenuBuilder(TextService TextService, MapService
         _entries.Add(new ImGuiContextMenuEntry()
         {
             Visible = gearset != null,
-            Label = TextService.GetAddonText(4411),
+            Label = textService.GetAddonText(4411),
             ClickCallback = () =>
             {
                 AgentBannerEditor.Instance()->Hide();
@@ -184,97 +185,96 @@ public unsafe struct ImGuiContextMenuBuilder(TextService TextService, MapService
         return this;
     }
 
-    public ImGuiContextMenuBuilder AddSearchCraftingMethod(Item item)
+    public ImGuiContextMenuBuilder AddSearchCraftingMethod(RowRef<Item> itemRef)
     {
         _entries.Add(new ImGuiContextMenuEntry()
         {
-            Visible = ItemService.IsCraftable(item),
-            Label = TextService.GetAddonText(1414), // "Search for Item by Crafting Method"
+            Visible = itemService.IsCraftable(itemRef),
+            Label = textService.GetAddonText(1414), // "Search for Item by Crafting Method"
             LoseFocusOnClick = true,
             ClickCallback = () =>
             {
-                AgentRecipeNote.Instance()->OpenRecipeByItemId(item.RowId);
+                AgentRecipeNote.Instance()->OpenRecipeByItemId(itemRef.RowId);
             }
         });
 
         return this;
     }
 
-    public ImGuiContextMenuBuilder AddOpenMapForGatheringPoint(Item item, TerritoryType? territoryType, ReadOnlySeString? prefix = null)
+    public ImGuiContextMenuBuilder AddOpenMapForGatheringPoint(RowRef<Item> itemRef, RowRef<TerritoryType> territoryTypeRef, ReadOnlySeString? prefix = null)
     {
-        var mapService = MapService;
-        var itemService = ItemService;
+        var _mapService = mapService;
+        var _itemService = itemService;
 
         _entries.Add(new ImGuiContextMenuEntry()
         {
-            Visible = territoryType != null && ItemService.IsGatherable(item),
-            Label = TextService.GetAddonText(8506), // "Open Map"
+            Visible = territoryTypeRef.IsValid && itemService.IsGatherable(itemRef),
+            Label = textService.GetAddonText(8506), // "Open Map"
             LoseFocusOnClick = true,
             ClickCallback = () =>
             {
-                var point = itemService.GetGatheringPoints(item).First(point => point.TerritoryType.Row == territoryType!.RowId);
-                mapService.OpenMap(point, item, prefix);
+                var point = _itemService.GetGatheringPoints(itemRef).First(point => point.TerritoryType.RowId == territoryTypeRef.RowId);
+                _mapService.OpenMap(point, itemRef, prefix);
             }
         });
 
         return this;
     }
 
-    public ImGuiContextMenuBuilder AddOpenMapForFishingSpot(Item item, ReadOnlySeString? prefix = null)
+    public ImGuiContextMenuBuilder AddOpenMapForFishingSpot(RowRef<Item> itemRef, ReadOnlySeString? prefix = null)
     {
-        var mapService = MapService;
-        var itemService = ItemService;
-        var isFish = itemService.IsFish(item);
-        var isSpearfish = itemService.IsSpearfish(item);
+        var _mapService = mapService;
+        var _itemService = itemService;
+        var isFish = itemService.IsFish(itemRef);
+        var isSpearfish = itemService.IsSpearfish(itemRef);
 
         _entries.Add(new ImGuiContextMenuEntry()
         {
             Visible = isFish || isSpearfish,
-            Label = TextService.GetAddonText(8506), // "Open Map"
+            Label = textService.GetAddonText(8506), // "Open Map"
             LoseFocusOnClick = true,
             ClickCallback = () =>
             {
                 if (isSpearfish)
-                    mapService.OpenMap(itemService.GetSpearfishingGatheringPoints(item).First(), item, prefix);
+                    _mapService.OpenMap(_itemService.GetSpearfishingGatheringPoints(itemRef).First(), itemRef, prefix);
                 else
-                    mapService.OpenMap(itemService.GetFishingSpots(item).First(), item, prefix);
+                    _mapService.OpenMap(_itemService.GetFishingSpots(itemRef).First(), itemRef, prefix);
             }
         });
 
         return this;
     }
 
-    public ImGuiContextMenuBuilder AddSearchGatheringMethod(Item item)
+    public ImGuiContextMenuBuilder AddSearchGatheringMethod(RowRef<Item> itemRef)
     {
         _entries.Add(new ImGuiContextMenuEntry()
         {
-            Visible = ItemService.IsGatherable(item),
-            Label = TextService.GetAddonText(1472), // "Search for Item by Gathering Method"
+            Visible = itemService.IsGatherable(itemRef),
+            Label = textService.GetAddonText(1472), // "Search for Item by Gathering Method"
             LoseFocusOnClick = true,
             ClickCallback = () =>
             {
-                AgentGatheringNote.Instance()->OpenGatherableByItemId((ushort)item.RowId);
+                AgentGatheringNote.Instance()->OpenGatherableByItemId((ushort)itemRef.RowId);
             }
         });
 
         return this;
     }
 
-    public ImGuiContextMenuBuilder AddOpenInFishGuide(Item item)
+    public ImGuiContextMenuBuilder AddOpenInFishGuide(RowRef<Item> itemRef)
     {
-        var itemService = ItemService;
-        var isFish = itemService.IsFish(item);
-        var isSpearfish = itemService.IsSpearfish(item);
+        var isFish = itemService.IsFish(itemRef);
+        var isSpearfish = itemService.IsSpearfish(itemRef);
 
         _entries.Add(new ImGuiContextMenuEntry()
         {
             Visible = isFish || isSpearfish,
-            Label = TextService.Translate("ItemContextMenu.OpenInFishGuide"),
+            Label = textService.Translate("ItemContextMenu.OpenInFishGuide"),
             LoseFocusOnClick = true,
             ClickCallback = () =>
             {
                 var agent = (AgentFishGuide*)AgentModule.Instance()->GetAgentByInternalId(AgentId.FishGuide);
-                agent->OpenForItemId(item.RowId, isSpearfish);
+                agent->OpenForItemId(itemRef.RowId, isSpearfish);
             }
         });
 
@@ -285,7 +285,7 @@ public unsafe struct ImGuiContextMenuBuilder(TextService TextService, MapService
     {
         _entries.Add(new ImGuiContextMenuEntry()
         {
-            Label = TextService.Translate("ItemContextMenu.OpenOnGarlandTools"),
+            Label = textService.Translate("ItemContextMenu.OpenOnGarlandTools"),
             ClickCallback = () =>
             {
                 Task.Run(() => Util.OpenLink($"https://www.garlandtools.org/db/#{type}/{id}"));

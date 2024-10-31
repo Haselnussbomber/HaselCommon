@@ -12,11 +12,11 @@ using HaselCommon.Extensions.Strings;
 using HaselCommon.Graphics;
 using HaselCommon.Services.SeStringEvaluation;
 using ImGuiNET;
-using Lumina.Excel.GeneratedSheets;
+using Lumina.Excel.Sheets;
 using Lumina.Text;
 using Lumina.Text.ReadOnly;
 using Microsoft.Extensions.Logging;
-using ActionSheet = Lumina.Excel.GeneratedSheets.Action;
+using ActionSheet = Lumina.Excel.Sheets.Action;
 
 namespace HaselCommon.Services;
 
@@ -188,13 +188,13 @@ public class TextService : IDisposable
     }
 
     public string GetAddonText(uint id)
-        => ExcelService.GetRow<Addon>(id)?.Text.ExtractText() ?? $"Addon#{id}";
+        => ExcelService.TryGetRow<Addon>(id, out var row) ? row.Text.ExtractText().StripSoftHypen() : $"Addon#{id}";
 
     public string GetItemName(uint itemId, ClientLanguage? language = null)
     {
         // EventItem
         if (itemId is > 2_000_000)
-            return ExcelService.GetRow<EventItem>(itemId, language)?.Name.ExtractText() ?? $"EventItem#{itemId}";
+            return ExcelService.TryGetRow<EventItem>(itemId, language, out var eventItemRow) ? eventItemRow.Name.ExtractText().StripSoftHypen() : $"EventItem#{itemId}";
 
         // HighQuality
         if (itemId is > 1_000_000 and < 2_000_000)
@@ -204,11 +204,11 @@ public class TextService : IDisposable
         if (itemId is > 500_000 and < 1_000_000)
             itemId -= 500_000;
 
-        return ExcelService.GetRow<Item>(itemId, language)?.Name.ExtractText() ?? $"Item#{itemId}";
+        return ExcelService.TryGetRow<Item>(itemId, language, out var itemRow) ? itemRow.Name.ExtractText().StripSoftHypen() : $"Item#{itemId}";
     }
 
     public string GetQuestName(uint id)
-        => ExcelService.GetRow<Quest>(id)?.Name.ExtractText() ?? $"Quest#{id}";
+        => ExcelService.TryGetRow<Quest>(id, out var row) ? row.Name.ExtractText().StripSoftHypen() : $"Quest#{id}";
 
     public string GetBNpcName(uint id)
         => TitleCasedSingularNoun("BNpcName", id);
@@ -229,64 +229,69 @@ public class TextService : IDisposable
         => TitleCasedSingularNoun("Companion", id);
 
     public string GetTraitName(uint id)
-        => ExcelService.GetRow<Trait>(id)?.Name.ExtractText() ?? $"Trait#{id}";
+        => ExcelService.TryGetRow<Trait>(id, out var row) ? row.Name.ExtractText() : $"Trait#{id}";
 
     public string GetActionName(uint id)
-        => ExcelService.GetRow<ActionSheet>(id)?.Name.ExtractText() ?? $"Action#{id}";
+        => ExcelService.TryGetRow<ActionSheet>(id, out var row) ? row.Name.ExtractText() : $"Action#{id}";
 
     public string GetEmoteName(uint id)
-        => ExcelService.GetRow<Emote>(id)?.Name.ExtractText() ?? $"Emote#{id}";
+        => ExcelService.TryGetRow<Emote>(id, out var row) ? row.Name.ExtractText() : $"Emote#{id}";
 
     public string GetEventActionName(uint id)
-        => ExcelService.GetRow<EventAction>(id)?.Name.ExtractText() ?? $"EventAction#{id}";
+        => ExcelService.TryGetRow<EventAction>(id, out var row) ? row.Name.ExtractText() : $"EventAction#{id}";
 
     public string GetGeneralActionName(uint id)
-        => ExcelService.GetRow<GeneralAction>(id)?.Name.ExtractText() ?? $"GeneralAction#{id}";
+        => ExcelService.TryGetRow<GeneralAction>(id, out var row) ? row.Name.ExtractText() : $"GeneralAction#{id}";
 
     public string GetBuddyActionName(uint id)
-        => ExcelService.GetRow<BuddyAction>(id)?.Name.ExtractText() ?? $"BuddyAction#{id}";
+        => ExcelService.TryGetRow<BuddyAction>(id, out var row) ? row.Name.ExtractText() : $"BuddyAction#{id}";
 
     public string GetMainCommandName(uint id)
-        => ExcelService.GetRow<MainCommand>(id)?.Name.ExtractText() ?? $"MainCommand#{id}";
+        => ExcelService.TryGetRow<MainCommand>(id, out var row) ? row.Name.ExtractText() : $"MainCommand#{id}";
 
     public string GetCraftActionName(uint id)
-        => ExcelService.GetRow<CraftAction>(id)?.Name.ExtractText() ?? $"CraftAction#{id}";
+        => ExcelService.TryGetRow<CraftAction>(id, out var row) ? row.Name.ExtractText() : $"CraftAction#{id}";
 
     public string GetPetActionName(uint id)
-        => ExcelService.GetRow<PetAction>(id)?.Name.ExtractText() ?? $"PetAction#{id}";
+        => ExcelService.TryGetRow<PetAction>(id, out var row) ? row.Name.ExtractText() : $"PetAction#{id}";
 
     public string GetCompanyActionName(uint id)
-        => ExcelService.GetRow<CompanyAction>(id)?.Name.ExtractText() ?? $"CompanyAction#{id}";
+        => ExcelService.TryGetRow<CompanyAction>(id, out var row) ? row.Name.ExtractText() : $"CompanyAction#{id}";
 
     public string GetMarkerName(uint id)
-        => ExcelService.GetRow<Marker>(id)?.Name.ExtractText() ?? $"Marker#{id}";
+        => ExcelService.TryGetRow<Marker>(id, out var row) ? row.Name.ExtractText() : $"Marker#{id}";
 
     public string GetFieldMarkerName(uint id)
-        => ExcelService.GetRow<FieldMarker>(id)?.Name.ExtractText() ?? $"FieldMarker#{id}";
+        => ExcelService.TryGetRow<FieldMarker>(id, out var row) ? row.Name.ExtractText() : $"FieldMarker#{id}";
 
     public string GetChocoboRaceAbilityName(uint id)
-        => ExcelService.GetRow<ChocoboRaceAbility>(id)?.Name.ExtractText() ?? $"ChocoboRaceAbility#{id}";
+        => ExcelService.TryGetRow<ChocoboRaceAbility>(id, out var row) ? row.Name.ExtractText() : $"ChocoboRaceAbility#{id}";
 
     public string GetChocoboRaceItemName(uint id)
-        => ExcelService.GetRow<ChocoboRaceItem>(id)?.Name.ExtractText() ?? $"ChocoboRaceItem#{id}";
+        => ExcelService.TryGetRow<ChocoboRaceItem>(id, out var row) ? row.Name.ExtractText() : $"ChocoboRaceItem#{id}";
 
     public string GetExtraCommandName(uint id)
-        => ExcelService.GetRow<ExtraCommand>(id)?.Name.ExtractText() ?? $"ExtraCommand#{id}";
+        => ExcelService.TryGetRow<ExtraCommand>(id, out var row) ? row.Name.ExtractText() : $"ExtraCommand#{id}";
 
     public string GetQuickChatName(uint id)
-        => ExcelService.GetRow<QuickChat>(id)?.NameAction.ExtractText() ?? $"QuickChat#{id}";
+        => ExcelService.TryGetRow<QuickChat>(id, out var row) ? row.NameAction.ExtractText() : $"QuickChat#{id}";
 
     public string GetActionComboRouteName(uint id)
-        => ExcelService.GetRow<ActionComboRoute>(id)?.Name.ExtractText() ?? $"ActionComboRoute#{id}";
+        => ExcelService.TryGetRow<ActionComboRoute>(id, out var row) ? row.Name.ExtractText() : $"ActionComboRoute#{id}";
 
     public string GetBgcArmyActionName(uint id)
-        => ExcelService.GetRow<Lumina.Excel.GeneratedSheets2.BgcArmyAction>(id)?.Unknown0.ExtractText() ?? $"BgcArmyAction#{id}";
+        => ExcelService.TryGetRow<BgcArmyAction>(id, out var row) ? row.Unknown0.ExtractText() : $"BgcArmyAction#{id}";
 
     public string GetPerformanceInstrumentName(uint id)
-        => ExcelService.GetRow<Perform>(id)?.Instrument.ExtractText() ?? $"Perform#{id}";
+        => ExcelService.TryGetRow<Perform>(id, out var row) ? row.Instrument.ExtractText() : $"Perform#{id}";
 
     public string GetMcGuffinName(uint id)
-        => ExcelService.GetRow<McGuffinUIData>(ExcelService.GetRow<McGuffin>(id)?.UIData.Row ?? 0)?.Name.ExtractText() ?? $"McGuffin#{id}";
+    {
+        if (!ExcelService.TryGetRow<McGuffin>(id, out var mcGuffinRow))
+            return $"McGuffin#{id}";
+
+        return ExcelService.TryGetRow<McGuffinUIData>(mcGuffinRow.UIData.RowId, out var mcGuffinUIDataRow) ? mcGuffinUIDataRow.Name.ExtractText() : $"McGuffin#{id}";
+    }
 
     public string GetMountName(uint id)
         => TitleCasedSingularNoun("Mount", id);

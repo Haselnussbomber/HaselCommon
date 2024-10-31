@@ -1,15 +1,14 @@
 using System.Runtime.CompilerServices;
 using System.Text;
 using Dalamud.Game;
-using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using FFXIVClientStructs.FFXIV.Component.Text;
 using HaselCommon.Extensions.Dalamud;
 using HaselCommon.Extensions.Strings;
 using HaselCommon.Services.SeStringEvaluation;
-using Lumina.Excel.GeneratedSheets;
-using Lumina.Text;
+using Lumina.Excel;
+using Lumina.Excel.Sheets;
 using Lumina.Text.Expressions;
 using Lumina.Text.Payloads;
 using Lumina.Text.ReadOnly;
@@ -19,17 +18,13 @@ namespace HaselCommon.Services;
 
 /// <summary>Evaluator for SeStrings.</summary>
 public partial class SeStringEvaluatorService(
-    ILogger<SeStringEvaluatorService> Logger,
-    IDataManager dataManager,
+    ILogger<SeStringEvaluatorService> logger,
     ExcelService excelService,
     TextService textService,
-    TextureService textureService,
     TextDecoder textDecoder)
 {
-    private readonly IDataManager _dataManager = dataManager;
     private readonly ExcelService _excelService = excelService;
     private readonly TextService _textService = textService;
-    private readonly TextureService _textureService = textureService;
     private readonly TextDecoder _textDecoder = textDecoder;
 
     public ReadOnlySeString Evaluate(byte[] str)
@@ -61,11 +56,10 @@ public partial class SeStringEvaluatorService(
     {
         context.Language ??= _textService.ClientLanguage;
 
-        var addonRow = _excelService.GetRow<Addon>(addonId, context.Language);
-        if (addonRow == null)
+        if (!_excelService.TryGetRow<Addon>(addonId, context.Language, out var addonRow))
             return new();
 
-        return Evaluate(addonRow.Text.AsReadOnly(), context);
+        return Evaluate(addonRow.Text, context);
     }
 
     public unsafe bool TryGetGNumDefault(uint parameterIndex, out uint value)
@@ -78,7 +72,7 @@ public partial class SeStringEvaluatorService(
 
         if (!ThreadSafety.IsMainThread)
         {
-            Logger.LogError("Global parameters may only be used from the main thread.");
+            logger.LogError("Global parameters may only be used from the main thread.");
             return false;
         }
 
@@ -94,15 +88,15 @@ public partial class SeStringEvaluatorService(
                 return true;
 
             case TextParameterType.ReferencedUtf8String:
-                Logger.LogError("Requested a number; Utf8String global parameter at {parameterIndex}.", parameterIndex);
+                logger.LogError("Requested a number; Utf8String global parameter at {parameterIndex}.", parameterIndex);
                 return false;
 
             case TextParameterType.String:
-                Logger.LogError("Requested a number; string global parameter at {parameterIndex}.", parameterIndex);
+                logger.LogError("Requested a number; string global parameter at {parameterIndex}.", parameterIndex);
                 return false;
 
             case TextParameterType.Uninitialized:
-                Logger.LogError("Requested a number; uninitialized global parameter at {parameterIndex}.", parameterIndex);
+                logger.LogError("Requested a number; uninitialized global parameter at {parameterIndex}.", parameterIndex);
                 return false;
 
             default:
@@ -123,7 +117,7 @@ public partial class SeStringEvaluatorService(
 
         if (!ThreadSafety.IsMainThread)
         {
-            Logger.LogError("Global parameters may only be used from the main thread.");
+            logger.LogError("Global parameters may only be used from the main thread.");
             return false;
         }
 
@@ -487,15 +481,17 @@ public partial class SeStringEvaluatorService(
 processSheet:
                     var resolvedSheetName = Evaluate(eSheetNameStr, context with { Builder = new() }).ExtractText();
 
-                    var sheet = _dataManager.Excel.GetSheetRaw(resolvedSheetName, (context.Language ?? _textService.ClientLanguage).ToLumina());
+                    if (!_excelService.HasSheet(resolvedSheetName))
+                        return false;
+
+                    var sheet = _excelService.GetSheet<RawRow>(context.Language ?? _textService.ClientLanguage, resolvedSheetName);
                     if (sheet == null)
                         return false;
 
-                    var row = sheet.GetRow(eRowIdValue);
-                    if (row == null)
+                    if (!sheet.TryGetRow(eRowIdValue, out var row))
                         return false;
 
-                    var column = row.ReadColumnRaw((int)eColIndexValue);
+                    var column = row.ReadColumn((int)eColIndexValue);
                     if (column == null)
                         return false;
 
@@ -503,7 +499,7 @@ processSheet:
 
                     switch (column)
                     {
-                        case SeString val:
+                        case ReadOnlySeString val:
                             context.Builder.Append(Evaluate(val, context with { Builder = new(), LocalParameters = [eColParamValue] }));
                             return true;
 
@@ -619,7 +615,7 @@ processSheet:
                     {
                         if (eColorTypeVal == 0)
                             context.Builder.PopColor();
-                        else if (_excelService.GetRow<UIColor>(eColorTypeVal) is { } row)
+                        else if (_excelService.TryGetRow<UIColor>(eColorTypeVal, out var row))
                             context.Builder.PushColorBgra((row.UIForeground >> 8) | (row.UIForeground << 24));
                         return true;
                     }
@@ -634,7 +630,7 @@ processSheet:
                     {
                         if (eColorTypeVal == 0)
                             context.Builder.PopEdgeColor();
-                        else if (_excelService.GetRow<UIColor>(eColorTypeVal) is { } row)
+                        else if (_excelService.TryGetRow<UIColor>(eColorTypeVal, out var row))
                             context.Builder.PushEdgeColorBgra((row.UIForeground >> 8) | (row.UIForeground << 24));
                         return true;
                     }
@@ -650,25 +646,21 @@ processSheet:
                         goto invalidLevelPos;
                     }
 
-                    var level = _excelService.GetRow<Level>(eLevelVal);
-                    if (level == null || level.Map.Value == null)
+                    if (!_excelService.TryGetRow<Level>(eLevelVal, out var level) || !level.Map.IsValid)
                         goto invalidLevelPos;
 
-                    var placeName = _excelService.GetRow<PlaceName>(level.Map.Value.PlaceName.Row, context.Language);
-                    if (placeName == null)
+                    if (!_excelService.TryGetRow<PlaceName>(level.Map.Value.PlaceName.RowId, context.Language, out var placeName))
                         goto invalidLevelPos;
 
-                    var levelFormatRow = _excelService.GetRow<Addon>(1637, context.Language);
-                    if (levelFormatRow == null)
+                    if (!_excelService.TryGetRow<Addon>(1637, context.Language, out var levelFormatRow))
                         goto invalidLevelPos;
 
-                    var addonSeString = levelFormatRow.Text.RawData;
                     var mapPosX = ConvertRawToMapPosX(level.Map.Value, level.X);
                     var mapPosY = ConvertRawToMapPosY(level.Map.Value, level.Z); // Z is [sic]
 
                     context.Builder.Append(
                         Evaluate(
-                            (ReadOnlySeString)addonSeString.ToArray(),
+                            levelFormatRow.Text,
                             new SeStringContext() { LocalParameters = [placeName.Name, mapPosX, mapPosY] }));
                     return true;
 

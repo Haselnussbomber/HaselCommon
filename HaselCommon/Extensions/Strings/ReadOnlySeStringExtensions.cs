@@ -14,6 +14,11 @@ public static class ReadOnlySeStringExtensions
         return new(((ReadOnlySpan<byte>)ross).WithNullTerminator());
     }
 
+    public static bool Contains(this ReadOnlySeString ross, ReadOnlySpan<byte> needle)
+    {
+        return ross.Data.Span.IndexOf(needle) != -1;
+    }
+
     public static ReadOnlySeString ReplaceText(this ReadOnlySeString ross, ReadOnlySpan<byte> toFind, ReadOnlySpan<byte> replacement)
     {
         if (ross.IsEmpty)

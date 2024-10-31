@@ -16,9 +16,56 @@ public static partial class IEnumerableExtensions
             action(element);
     }
 
+    public static bool TryGetFirst<T>(this IEnumerable<T> values, out T result) where T : struct
+    {
+        using var e = values.GetEnumerator();
+        if (e.MoveNext())
+        {
+            result = e.Current;
+            return true;
+        }
+        result = default;
+        return false;
+    }
+
+    public static bool TryGetFirst<T>(this IEnumerable<T> values, Predicate<T> predicate, out T result) where T : struct
+    {
+        using var e = values.GetEnumerator();
+        while (e.MoveNext())
+        {
+            if (predicate(e.Current))
+            {
+                result = e.Current;
+                return true;
+            }
+        }
+        result = default;
+        return false;
+    }
+
+    public static bool TryGetFirst<T>(this IEnumerable<T> values, Predicate<T> predicate, out T result, out int index) where T : struct
+    {
+        using var e = values.GetEnumerator();
+        index = 0;
+        while (e.MoveNext())
+        {
+            if (predicate(e.Current))
+            {
+                result = e.Current;
+                return true;
+            }
+            index++;
+        }
+        result = default;
+        return false;
+    }
+
     public static T? FirstOrNull<T>(this IEnumerable<T> values) where T : class
     {
-        return values.DefaultIfEmpty(null).FirstOrDefault();
+        if (!values.Any())
+            return null;
+
+        return values.First();
     }
 
     public static IEnumerable<(int Score, T Value)> FuzzyMatch<T>(this IEnumerable<T> values, string term, Func<T, string> valueExtractor, FuzzyMatcher.Mode matchMode = FuzzyMatcher.Mode.Fuzzy, CultureInfo? cultureInfo = null)
