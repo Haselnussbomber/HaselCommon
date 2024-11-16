@@ -13,13 +13,14 @@ using HaselCommon.Extensions.Sheets;
 using HaselCommon.Extensions.Strings;
 using HaselCommon.Game;
 using HaselCommon.Services.SeStringEvaluation;
-using Lumina.Excel.GeneratedSheets;
+using Lumina.Excel;
+using Lumina.Excel.Sheets;
 using Lumina.Text;
 using Lumina.Text.ReadOnly;
 
 namespace HaselCommon.Services;
 
-public class MapService(IClientState ClientState, IGameGui GameGui, TextService TextService, ExcelService ExcelService, SeStringEvaluatorService SeStringEvaluatorService)
+public class MapService(IClientState clientState, IGameGui gameGui, TextService textService, ExcelService excelService, SeStringEvaluatorService seStringEvaluatorService)
 {
     public static Vector2 GetCoords(Level level)
     {
@@ -32,8 +33,8 @@ public class MapService(IClientState ClientState, IGameGui GameGui, TextService 
 
     public float GetDistanceFromPlayer(Level level)
     {
-        var localPlayer = ClientState.LocalPlayer;
-        if (localPlayer == null || level.Territory.Row != ClientState.TerritoryType)
+        var localPlayer = clientState.LocalPlayer;
+        if (localPlayer == null || level.Territory.RowId != clientState.TerritoryType)
             return float.MaxValue; // far, far away
 
         return Vector2.Distance(
@@ -48,22 +49,19 @@ public class MapService(IClientState ClientState, IGameGui GameGui, TextService 
         if (territoryId == 0)
             return null;
 
-        var territoryType = ExcelService.GetRow<TerritoryType>(territoryId);
-        if (territoryType == null)
+        if (!excelService.TryGetRow<TerritoryType>(territoryId, out var territoryType))
             return null;
 
-        var mapId = *(uint*)((nint)TerritoryInfo.Instance() + 0x18); // TODO: https://github.com/aers/FFXIVClientStructs/pull/1120
+        var mapId = TerritoryInfo.Instance()->ChatLinkMapIdOverride;
         if (mapId == 0)
             mapId = GameMain.Instance()->CurrentMapId;
         if (mapId == 0)
             return null;
 
-        var map = ExcelService.GetRow<Lumina.Excel.GeneratedSheets.Map>(mapId);
-        if (map == null)
+        if (!excelService.TryGetRow<Lumina.Excel.Sheets.Map>(mapId, out var map))
             return null;
 
-        var placeName = ExcelService.GetRow<PlaceName>(territoryType.PlaceName.Row, language);
-        if (placeName == null)
+        if (!excelService.TryGetRow<PlaceName>(territoryType.PlaceName.RowId, language, out var placeName))
             return null;
 
         var placeNameWithInstanceBuilder = SeStringBuilder.SharedPool.Get()
@@ -80,8 +78,7 @@ public class MapService(IClientState ClientState, IGameGui GameGui, TextService 
         var mapPosY = map.ConvertRawToMapPosY(obj.Position.Z);
 
         ReadOnlySeString linkText;
-        var territoryTransient = ExcelService.GetRow<TerritoryTypeTransient>(territoryId);
-        if (territoryTransient != null && territoryTransient.OffsetZ != -10000)
+        if (!excelService.TryGetRow<TerritoryTypeTransient>(territoryId, out var territoryTransient) && territoryTransient.OffsetZ != -10000)
         {
             var zFloat = obj.Position.Y - territoryTransient.OffsetZ;
             var z = (uint)(int)zFloat;
@@ -89,7 +86,7 @@ public class MapService(IClientState ClientState, IGameGui GameGui, TextService 
                 z -= 10;
             z /= 10;
 
-            linkText = SeStringEvaluatorService.EvaluateFromAddon(1636, new SeStringContext()
+            linkText = seStringEvaluatorService.EvaluateFromAddon(1636, new SeStringContext()
             {
                 Language = language,
                 LocalParameters = [placeNameWithInstance, mapPosX, mapPosY, z]
@@ -97,7 +94,7 @@ public class MapService(IClientState ClientState, IGameGui GameGui, TextService 
         }
         else
         {
-            linkText = SeStringEvaluatorService.EvaluateFromAddon(1635, new SeStringContext()
+            linkText = seStringEvaluatorService.EvaluateFromAddon(1635, new SeStringContext()
             {
                 Language = language,
                 LocalParameters = [placeNameWithInstance, mapPosX, mapPosY]
@@ -113,58 +110,46 @@ public class MapService(IClientState ClientState, IGameGui GameGui, TextService 
         SeStringBuilder.SharedPool.Return(sb);
 
         // Link Marker
-        return SeStringEvaluatorService.EvaluateFromAddon(371, new SeStringContext()
+        return seStringEvaluatorService.EvaluateFromAddon(371, new SeStringContext()
         {
             Language = language,
             LocalParameters = [mapLink]
         });
     }
 
-    public void OpenMap(Level? level)
+    public void OpenMap(Level level)
     {
-        if (level == null)
+        if (!level.Map.IsValid || !level.Map.Value.TerritoryType.IsValid)
             return;
 
-        var map = level.Map.Value;
-        if (map == null)
-            return;
-
-        var terr = map.TerritoryType.Value;
-        if (terr == null)
-            return;
-
-        GameGui.OpenMapWithMapLink(new Dalamud.Game.Text.SeStringHandling.Payloads.MapLinkPayload(
-            terr.RowId,
-            map.RowId,
+        gameGui.OpenMapWithMapLink(new Dalamud.Game.Text.SeStringHandling.Payloads.MapLinkPayload(
+            level.Map.Value.TerritoryType.RowId,
+            level.Map.RowId,
             (int)(level.X * 1_000f),
             (int)(level.Z * 1_000f)
         ));
     }
 
-    public unsafe bool OpenMap(GatheringPoint point, Item? item = null, ReadOnlySeString? prefix = null)
+    public unsafe bool OpenMap(GatheringPoint point, RowRef<Item> itemRef, ReadOnlySeString? prefix = null)
     {
-        var territoryType = point.TerritoryType.Value;
-        if (territoryType == null)
+        if (!point.TerritoryType.IsValid)
             return false;
 
-        var gatheringPointBase = point.GatheringPointBase.Value;
-        if (gatheringPointBase == null)
+        if (!point.GatheringPointBase.IsValid)
             return false;
 
-        var exportedPoint = ExcelService.GetRow<ExportedGatheringPoint>(gatheringPointBase.RowId);
-        if (exportedPoint == null)
+        if (!excelService.TryGetRow<ExportedGatheringPoint>(point.GatheringPointBase.Value.RowId, out var exportedPoint))
             return false;
 
-        var gatheringType = exportedPoint.GatheringType.Value;
-        if (gatheringType == null)
+        if (!exportedPoint.GatheringType.IsValid)
             return false;
 
         var raptureTextModule = RaptureTextModule.Instance();
 
-        var levelText = gatheringPointBase.GatheringLevel == 1
+        var levelText = point.GatheringPointBase.Value.GatheringLevel == 1
             ? raptureTextModule->GetAddonText(242) // "Lv. ???"
-            : raptureTextModule->FormatAddonText1IntIntUInt(35, gatheringPointBase.GatheringLevel, 0, 0);
-        var gatheringPointName = TextService.GetGatheringPointName(point.RowId);
+            : raptureTextModule->FormatAddonText1IntIntUInt(35, point.GatheringPointBase.Value.GatheringLevel, 0, 0);
+        var gatheringPointName = textService.GetGatheringPointName(point.RowId);
 
         var sb = SeStringBuilder.SharedPool.Get();
         using var tooltip = new Utf8String(sb
@@ -174,32 +159,33 @@ public class MapService(IClientState ClientState, IGameGui GameGui, TextService 
         SeStringBuilder.SharedPool.Return(sb);
 
         var iconId = !Misc.IsGatheringTypeRare(exportedPoint.GatheringPointType)
-            ? gatheringType.IconMain
-            : gatheringType.IconOff;
+            ? exportedPoint.GatheringType.Value.IconMain
+            : exportedPoint.GatheringType.Value.IconOff;
 
         return AddGatheringMarkerAndOpenMap(
-            territoryType,
+            point.TerritoryType.Value,
             (int)MathF.Round(exportedPoint.X),
             (int)MathF.Round(exportedPoint.Y),
             exportedPoint.Radius,
             (uint)iconId,
             tooltip,
-            item,
+            itemRef,
             prefix);
     }
 
-    public unsafe bool OpenMap(FishingSpot fishingSpot, Item? item = null, ReadOnlySeString? prefix = null)
+    public unsafe bool OpenMap(FishingSpot fishingSpot, RowRef<Item> itemRef, ReadOnlySeString? prefix = null)
     {
-        var territoryType = fishingSpot.TerritoryType.Value;
-        if (territoryType == null)
+        if (!fishingSpot.TerritoryType.IsValid)
             return false;
 
+        var territoryType = fishingSpot.TerritoryType.Value;
+
         var gatheringItemLevel = 0;
-        if (item != null)
+        if (itemRef.IsValid
+            && excelService.TryFindRow<FishParameter>(row => row.Item.RowId == itemRef.RowId, out var fishParameter)
+            && fishParameter.GatheringItemLevel.IsValid)
         {
-            gatheringItemLevel = ExcelService.FindRow<FishParameter>(row => row?.Item == (item?.RowId ?? 0))
-                ?.GatheringItemLevel.Value
-                ?.GatheringItemLevel ?? 0;
+            gatheringItemLevel = fishParameter.GatheringItemLevel.Value.GatheringItemLevel;
         }
 
         static int convert(short pos, ushort scale) => (pos - 1024) / (scale / 100);
@@ -223,10 +209,10 @@ public class MapService(IClientState ClientState, IGameGui GameGui, TextService 
 
         var iconId = fishingSpot.Rare ? 60466u : 60465u;
 
-        return AddGatheringMarkerAndOpenMap(territoryType, x, y, radius, iconId, tooltip, item, prefix);
+        return AddGatheringMarkerAndOpenMap(territoryType, x, y, radius, iconId, tooltip, itemRef, prefix);
     }
 
-    private unsafe bool AddGatheringMarkerAndOpenMap(TerritoryType territoryType, int x, int y, int radius, uint iconId, Utf8String tooltip, Item? item = null, ReadOnlySeString? prefix = null)
+    private unsafe bool AddGatheringMarkerAndOpenMap(TerritoryType territoryType, int x, int y, int radius, uint iconId, Utf8String tooltip, RowRef<Item> itemRef, ReadOnlySeString? prefix = null)
     {
         var agentMap = AgentMap.Instance();
         if (agentMap == null)
@@ -249,7 +235,7 @@ public class MapService(IClientState ClientState, IGameGui GameGui, TextService 
             titleBuilder.Append(prefix);
         }
 
-        if (item != null)
+        if (itemRef.IsValid)
         {
             if (prefix != null)
             {
@@ -259,7 +245,7 @@ public class MapService(IClientState ClientState, IGameGui GameGui, TextService 
             titleBuilder
                 .PushColorType(549)
                 .PushEdgeColorType(550)
-                .Append(TextService.GetItemName(item.RowId))
+                .Append(textService.GetItemName(itemRef.RowId))
                 .PopEdgeColorType()
                 .PopColorType();
 
@@ -276,7 +262,7 @@ public class MapService(IClientState ClientState, IGameGui GameGui, TextService 
         var mapInfo = new OpenMapInfo
         {
             Type = FFXIVClientStructs.FFXIV.Client.UI.Agent.MapType.GatheringLog,
-            MapId = territoryType.Map.Row,
+            MapId = territoryType.Map.RowId,
             TerritoryId = territoryType.RowId,
             TitleString = title
         };

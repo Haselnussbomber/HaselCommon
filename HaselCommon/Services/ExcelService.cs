@@ -1,27 +1,48 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Dalamud.Game;
 using Dalamud.Plugin.Services;
+using Dalamud.Utility;
+using HaselCommon.Extensions;
 using Lumina.Excel;
 
 namespace HaselCommon.Services;
 
-public class ExcelService(IDataManager DataManager, TextService TextService)
+public class ExcelService(IDataManager dataManager, TextService textService)
 {
-    public ExcelSheet<T> GetSheet<T>(ClientLanguage? language = null) where T : ExcelRow
-        => DataManager.GetExcelSheet<T>(language ?? TextService.ClientLanguage)!;
+    public bool HasSheet(string name)
+        => dataManager.Excel.SheetNames.Contains(name);
 
-    public uint GetRowCount<T>() where T : ExcelRow
-        => GetSheet<T>().RowCount;
+    public ExcelSheet<T> GetSheet<T>(ClientLanguage? language = null) where T : struct, IExcelRow<T>
+        => dataManager.GetExcelSheet<T>(language ?? textService.ClientLanguage)!;
 
-    public T? GetRow<T>(uint rowId, ClientLanguage? language = null) where T : ExcelRow
-        => GetSheet<T>(language).GetRow(rowId);
+    public ExcelSheet<T> GetSheet<T>(ClientLanguage? language, string name) where T : struct, IExcelRow<T>
+        => dataManager.GetExcelSheet<T>(language ?? textService.ClientLanguage, name)!;
 
-    public T? GetRow<T>(uint rowId, uint subRowId, ClientLanguage? language = null) where T : ExcelRow
-        => GetSheet<T>(language).GetRow(rowId, subRowId);
+    public SubrowExcelSheet<T> GetSubrowSheet<T>(ClientLanguage? language = null) where T : struct, IExcelSubrow<T>
+        => dataManager.GetSubrowExcelSheet<T>(language ?? textService.ClientLanguage)!;
 
-    public T? FindRow<T>(Func<T?, bool> predicate) where T : ExcelRow
-        => GetSheet<T>().FirstOrDefault(predicate, null);
+    public int GetRowCount<T>() where T : struct, IExcelRow<T>
+        => GetSheet<T>().Count;
 
-    public T[] FindRows<T>(Func<T?, bool> predicate) where T : ExcelRow
-        => GetSheet<T>().Where(row => row != null && predicate(row)).ToArray();
+    public RowRef<T> CreateRef<T>(uint rowId, ClientLanguage? language = null) where T : struct, IExcelRow<T>
+        => new(dataManager.Excel, rowId, (language ?? textService.ClientLanguage).ToLumina());
+
+    public bool TryGetRow<T>(uint rowId, [NotNullWhen(returnValue: true)] out T row) where T : struct, IExcelRow<T>
+        => GetSheet<T>(textService.ClientLanguage).TryGetRow(rowId, out row);
+
+    public bool TryGetRow<T>(uint rowId, ClientLanguage? language, [NotNullWhen(returnValue: true)] out T row) where T : struct, IExcelRow<T>
+        => GetSheet<T>(language).TryGetRow(rowId, out row);
+
+    public bool TryFindRow<T>(Predicate<T> predicate, out T row) where T : struct, IExcelRow<T>
+        => GetSheet<T>(textService.ClientLanguage).TryGetFirst(predicate, out row);
+
+    public bool TryFindRow<T>(Predicate<T> predicate, ClientLanguage? language, out T row) where T : struct, IExcelRow<T>
+        => GetSheet<T>(language).TryGetFirst(predicate, out row);
+
+    public T[] FindRows<T>(Predicate<T> predicate) where T : struct, IExcelRow<T>
+        => GetSheet<T>().Where(row => predicate(row)).ToArray();
+
+    public T[] FindRows<T>(Predicate<T> predicate, ClientLanguage? language) where T : struct, IExcelRow<T>
+        => GetSheet<T>(language).Where(row => predicate(row)).ToArray();
 }

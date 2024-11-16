@@ -1,6 +1,6 @@
 using System.Buffers.Binary;
 using HaselCommon.Graphics;
-using Lumina.Excel.GeneratedSheets;
+using Lumina.Excel.Sheets;
 
 namespace HaselCommon.Extensions.Sheets;
 

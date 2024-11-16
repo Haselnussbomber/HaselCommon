@@ -1,32 +1,34 @@
 using System.Collections.Generic;
-using Lumina;
-using Lumina.Data;
 using Lumina.Excel;
-using Lumina.Excel.GeneratedSheets;
+using Lumina.Excel.Sheets;
 
 namespace HaselCommon.Sheets;
 
-public class HairMakeTypeCustom : HairMakeType
+[Sheet("HairMakeType")]
+public readonly struct HairMakeTypeCustom(ExcelPage page, uint offset, uint row) : IExcelRow<HairMakeTypeCustom>
 {
-    public LazyRow<CharaMakeCustomize>[] HairStyles { get; private set; } = [];
+    public uint RowId => row;
 
-    public override void PopulateData(RowParser parser, GameData gameData, Language language)
+    // public RowRef<HairMakeType> HairMakeType => new(page.Module, row, page.Language);
+    public HairMakeType HairMakeType => page.Module.GetSheet<HairMakeType>().GetRow(RowId);
+
+    public RowRef<CharaMakeCustomize>[] HairStyles
     {
-        base.PopulateData(parser, gameData, language);
-
-        var hairstyles = new List<uint>();
-
-        for (var i = 0; i < 200; i++)
+        get
         {
-            var id = parser.ReadOffset<uint>(0xC + 4 * i);
-            if (id == 0) break;
-            hairstyles.Add(id);
-        }
+            var hairstyles = new List<RowRef<CharaMakeCustomize>>();
 
-        HairStyles = new LazyRow<CharaMakeCustomize>[hairstyles.Count];
-        for (var i = 0; i < hairstyles.Count; i++)
-        {
-            HairStyles[i] = new LazyRow<CharaMakeCustomize>(gameData, hairstyles[i], language);
+            for (var i = 0u; i < 200; i++)
+            {
+                var id = page.ReadUInt32(offset + 0xC + 4 * i);
+                if (id == 0) break;
+                hairstyles.Add(new RowRef<CharaMakeCustomize>(page.Module, id));
+            }
+
+            return [.. hairstyles];
         }
     }
+
+    static HairMakeTypeCustom IExcelRow<HairMakeTypeCustom>.Create(ExcelPage page, uint offset, uint row)
+        => new(page, offset, row);
 }

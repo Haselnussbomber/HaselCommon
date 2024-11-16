@@ -1,13 +1,13 @@
 using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
-using HaselCommon.Cache;
 using HaselCommon.Extensions.Collections;
 
-namespace HaselCommon.Caching;
+namespace HaselCommon.Cache;
 
 public abstract class MemoryCache<TKey, TValue> : ICache<TKey, TValue>
     where TKey : notnull, IEquatable<TKey>
 {
+
     protected readonly ConcurrentDictionary<TKey, TValue?> Data = [];
 
     public virtual void Dispose()
@@ -38,16 +38,12 @@ public abstract class MemoryCache<TKey, TValue> : ICache<TKey, TValue>
             return true;
         }
 
-        Data.TryAdd(key, _value = CreateEntry(key));
+        var entry = CreateEntry(key);
 
-        if (_value == null)
-        {
-            value = default;
-            return false;
-        }
+        Data.TryAdd(key, entry);
 
-        value = _value;
-        return true;
+        value = entry;
+        return entry != null;
     }
 
     public virtual bool Remove(TKey key)
