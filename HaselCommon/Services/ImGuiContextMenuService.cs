@@ -10,6 +10,7 @@ using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
+using HaselCommon.Extensions;
 using HaselCommon.Graphics;
 using HaselCommon.Gui;
 using HaselCommon.Utils;
@@ -213,8 +214,8 @@ public unsafe struct ImGuiContextMenuBuilder(TextService textService, MapService
             LoseFocusOnClick = true,
             ClickCallback = () =>
             {
-                var point = _itemService.GetGatheringPoints(itemRef).First(point => point.TerritoryType.RowId == territoryTypeRef.RowId);
-                _mapService.OpenMap(point, itemRef, prefix);
+                if (_itemService.GetGatheringPoints(itemRef).TryGetFirst(point => point.TerritoryType.RowId == territoryTypeRef.RowId, out var point))
+                    _mapService.OpenMap(point, itemRef, prefix);
             }
         });
 
@@ -236,9 +237,15 @@ public unsafe struct ImGuiContextMenuBuilder(TextService textService, MapService
             ClickCallback = () =>
             {
                 if (isSpearfish)
-                    _mapService.OpenMap(_itemService.GetSpearfishingGatheringPoints(itemRef).First(), itemRef, prefix);
+                {
+                    if (_itemService.GetSpearfishingGatheringPoints(itemRef).TryGetFirst(out var point))
+                        _mapService.OpenMap(point, itemRef, prefix);
+                }
                 else
-                    _mapService.OpenMap(_itemService.GetFishingSpots(itemRef).First(), itemRef, prefix);
+                {
+                    if (_itemService.GetFishingSpots(itemRef).TryGetFirst(out var spot))
+                        _mapService.OpenMap(spot, itemRef, prefix);
+                }
             }
         });
 

@@ -10,13 +10,13 @@ using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Component.Exd;
 using FFXIVClientStructs.FFXIV.Component.GUI;
-using HaselCommon.Cache.Internal;
 using HaselCommon.Extensions;
 using HaselCommon.Extensions.Sheets;
 using HaselCommon.Game.Enums;
 using HaselCommon.Graphics;
 using HaselCommon.Services.SeStringEvaluation;
 using HaselCommon.Sheets;
+using HaselCommon.Utils;
 using Lumina.Excel;
 using Lumina.Excel.Sheets;
 using Lumina.Text;
@@ -24,12 +24,21 @@ using Lumina.Text.ReadOnly;
 
 namespace HaselCommon.Services;
 
-public class ItemService(IClientState clientState, ExcelService excelService, SeStringEvaluatorService seStringEvaluatorService)
+public class ItemService(IClientState clientState, ExcelService excelService, TextService textService, SeStringEvaluatorService seStringEvaluatorService)
 {
-    private readonly GatheringItemGatheringPointsCache _gatheringItemGatheringPointsCache = new(excelService);
-    private readonly SpearfishingItemGatheringPointsCache _spearfishingItemGatheringPointsCache = new(excelService);
-    private readonly ItemRecipesCache _itemRecipesCache = new(excelService);
-    private readonly ItemIconIdCache _itemIconIdCache = new(excelService);
+    private readonly Dictionary<(uint, ClientLanguage), string> _itemNameCache = [];
+    private readonly Dictionary<uint, bool> _isCraftableCache = [];
+    private readonly Dictionary<uint, bool> _isGatherableCache = [];
+    private readonly Dictionary<uint, bool> _isFishCache = [];
+    private readonly Dictionary<uint, bool> _isSpearfishCache = [];
+    private readonly Dictionary<uint, GatheringPoint[]> _gatheringItemGatheringPointsCache = [];
+    private readonly Dictionary<uint, GatheringPoint[]> _spearfishingItemGatheringPointsCache = [];
+    private readonly Dictionary<uint, uint> _itemIconIdCache = [];
+    private readonly Dictionary<uint, Recipe[]> _recipesCache = [];
+    private readonly Dictionary<uint, ItemAmount[]> _ingredientsCache = [];
+    private readonly Dictionary<uint, GatheringItem[]> _gatheringItemsCache = [];
+    private readonly Dictionary<uint, GatheringPoint[]> _gatheringPointsCache = [];
+    private readonly Dictionary<uint, FishingSpot[]> _fishingSpotsCache = [];
 
     private static FrozenDictionary<short, (uint Min, uint Max)>? MaxLevelRanges = null;
 
@@ -57,47 +66,169 @@ public class ItemService(IClientState clientState, ExcelService excelService, Se
     public bool IsEventItem(RowRef<Item> itemRef) => IsEventItem(itemRef.RowId);
     public bool IsEventItem(uint itemId) => itemId is > 2_000_000;
 
-    public uint GetIconId(uint itemId) => _itemIconIdCache.GetValue(itemId);
-
-    public string GetItemName(uint itemId, ClientLanguage? language = null)
+    public uint GetIconId(uint itemId)
     {
-        if (IsEventItem(itemId))
-            return excelService.TryGetRow<EventItem>(itemId, language, out var eventItem) ? eventItem.Name.ExtractText() : $"EventItem#{itemId}";
+        if (_itemIconIdCache.TryGetValue(itemId, out var iconId))
+            return iconId;
 
-        return excelService.TryGetRow<Item>(GetBaseItemId(itemId), language, out var item) ? item.Name.ExtractText() : $"Item#{itemId}";
+        if (IsEventItem(itemId))
+        {
+            _itemIconIdCache.Add(itemId, iconId = excelService.TryGetRow<EventItem>(itemId, out var eventItem) ? eventItem.Icon : 0u);
+            return iconId;
+        }
+
+        _itemIconIdCache.Add(itemId, excelService.TryGetRow<Item>(GetBaseItemId(itemId), out var item) ? item.Icon : 0u);
+        return iconId;
     }
+
     public string GetItemName(Item item) => GetItemName(item.RowId);
     public string GetItemName(RowRef<Item> itemRef) => GetItemName(itemRef.RowId);
+    public string GetItemName(uint itemId, ClientLanguage? language = null)
+    {
+        var effectiveLanguage = language ?? textService.ClientLanguage;
+        var key = (itemId, effectiveLanguage);
 
-    public IEnumerable<Recipe> GetRecipes(Item item) => GetRecipes(item.RowId);
-    public IEnumerable<Recipe> GetRecipes(RowRef<Item> itemRef) => GetRecipes(itemRef.RowId);
-    public IEnumerable<Recipe> GetRecipes(uint itemId) => _itemRecipesCache.GetValue(itemId) ?? [];
+        if (_itemNameCache.TryGetValue(key, out var name))
+            return name;
 
-    public IEnumerable<GatheringItem> GetGatheringItems(Item item) => GetGatheringItems(item.RowId);
-    public IEnumerable<GatheringItem> GetGatheringItems(RowRef<Item> itemRef) => GetGatheringItems(itemRef.RowId);
-    public IEnumerable<GatheringItem> GetGatheringItems(uint itemId) => excelService.FindRows<GatheringItem>(row => row.Item.RowId == itemId);
+        if (IsEventItem(itemId))
+        {
+            _itemNameCache.Add(key, name = excelService.TryGetRow<EventItem>(itemId, language, out var eventItem) ? eventItem.Name.ExtractText() : $"EventItem#{itemId}");
+            return name;
+        }
 
-    public IEnumerable<GatheringPoint> GetGatheringPoints(Item item) => GetGatheringPoints(item.RowId);
-    public IEnumerable<GatheringPoint> GetGatheringPoints(RowRef<Item> itemRef) => GetGatheringPoints(itemRef.RowId);
-    public IEnumerable<GatheringPoint> GetGatheringPoints(uint itemId) => GetGatheringItems(itemId).SelectMany(GetGatheringPoints).ToArray();
+        _itemNameCache.Add(key, name = excelService.TryGetRow<Item>(GetBaseItemId(itemId), language, out var item) ? item.Name.ExtractText() : $"Item#{itemId}");
+        return name;
+    }
 
-    public IEnumerable<FishingSpot> GetFishingSpots(Item item) => GetFishingSpots(item.RowId);
-    public IEnumerable<FishingSpot> GetFishingSpots(RowRef<Item> itemRef) => GetFishingSpots(itemRef.RowId);
-    public IEnumerable<FishingSpot> GetFishingSpots(uint itemId) => excelService.FindRows<FishingSpot>(row => row.Item.Any(item => item.RowId == itemId));
+    public Recipe[] GetRecipes(Item item) => GetRecipes(item.RowId);
+    public Recipe[] GetRecipes(RowRef<Item> itemRef) => GetRecipes(itemRef.RowId);
+    public Recipe[] GetRecipes(uint itemId)
+    {
+        if (_recipesCache.TryGetValue(itemId, out var recipes))
+            return recipes;
+
+        if (!excelService.TryGetRow<RecipeLookup>(itemId, out var lookup))
+        {
+            _recipesCache.Add(itemId, []);
+            return [];
+        }
+
+        var recipesList = new List<Recipe>();
+
+        if (lookup.CRP.RowId != 0 && lookup.CRP.IsValid) recipesList.Add(lookup.CRP.Value);
+        if (lookup.BSM.RowId != 0 && lookup.BSM.IsValid) recipesList.Add(lookup.BSM.Value);
+        if (lookup.ARM.RowId != 0 && lookup.ARM.IsValid) recipesList.Add(lookup.ARM.Value);
+        if (lookup.GSM.RowId != 0 && lookup.GSM.IsValid) recipesList.Add(lookup.GSM.Value);
+        if (lookup.LTW.RowId != 0 && lookup.LTW.IsValid) recipesList.Add(lookup.LTW.Value);
+        if (lookup.WVR.RowId != 0 && lookup.WVR.IsValid) recipesList.Add(lookup.WVR.Value);
+        if (lookup.ALC.RowId != 0 && lookup.ALC.IsValid) recipesList.Add(lookup.ALC.Value);
+        if (lookup.CUL.RowId != 0 && lookup.CUL.IsValid) recipesList.Add(lookup.CUL.Value);
+
+        var recipesArray = recipesList.ToArray();
+        _recipesCache.Add(itemId, recipesArray);
+        return recipesArray;
+    }
+
+    public ItemAmount[] GetIngredients(Item item) => GetIngredients(item.RowId);
+    public ItemAmount[] GetIngredients(RowRef<Item> itemRef) => GetIngredients(itemRef.RowId);
+    public ItemAmount[] GetIngredients(uint itemId)
+    {
+        if (_ingredientsCache.TryGetValue(itemId, out var ingredients))
+            return ingredients;
+
+        var recipes = GetRecipes(itemId);
+        if (recipes.Length == 0)
+        {
+            _ingredientsCache.Add(itemId, ingredients = []);
+            return ingredients;
+        }
+
+        var list = new List<ItemAmount>();
+        var recipe = recipes.First();
+
+        for (var i = 0; i < recipe.Ingredient.Count; i++)
+        {
+            var ingredient = recipe.Ingredient[i];
+            if (!ingredient.IsValid)
+                continue;
+
+            var amount = recipe.AmountIngredient[i];
+
+            list.Add(new(ingredient.Value, amount));
+        }
+
+        _ingredientsCache.Add(itemId, ingredients = [.. list]);
+
+        return ingredients;
+    }
+
+    public GatheringItem[] GetGatheringItems(Item item) => GetGatheringItems(item.RowId);
+    public GatheringItem[] GetGatheringItems(RowRef<Item> itemRef) => GetGatheringItems(itemRef.RowId);
+    public GatheringItem[] GetGatheringItems(uint itemId)
+    {
+        if (_gatheringItemsCache.TryGetValue(itemId, out var gatheringItems))
+            return gatheringItems;
+
+        _gatheringItemsCache.Add(itemId, gatheringItems = excelService.FindRows<GatheringItem>(row => row.Item.RowId == itemId));
+
+        return gatheringItems;
+    }
+
+    public GatheringPoint[] GetGatheringPoints(Item item) => GetGatheringPoints(item.RowId);
+    public GatheringPoint[] GetGatheringPoints(RowRef<Item> itemRef) => GetGatheringPoints(itemRef.RowId);
+    public GatheringPoint[] GetGatheringPoints(uint itemId)
+    {
+        if (_gatheringPointsCache.TryGetValue(itemId, out var gatheringPoints))
+            return gatheringPoints;
+
+        _gatheringPointsCache.Add(itemId, gatheringPoints = GetGatheringItems(itemId).SelectMany(GetGatheringPoints).ToArray());
+
+        return gatheringPoints;
+    }
+
+    public FishingSpot[] GetFishingSpots(Item item) => GetFishingSpots(item.RowId);
+    public FishingSpot[] GetFishingSpots(RowRef<Item> itemRef) => GetFishingSpots(itemRef.RowId);
+    public FishingSpot[] GetFishingSpots(uint itemId)
+    {
+        if (_fishingSpotsCache.TryGetValue(itemId, out var fishingSpots))
+            return fishingSpots;
+
+        _fishingSpotsCache.Add(itemId, fishingSpots = excelService.FindRows<FishingSpot>(row => row.Item.Any(item => item.RowId == itemId)));
+
+        return fishingSpots;
+    }
 
     public IEnumerable<GatheringPoint> GetSpearfishingGatheringPoints(Item item) => GetSpearfishingGatheringPoints(item.RowId);
     public IEnumerable<GatheringPoint> GetSpearfishingGatheringPoints(RowRef<Item> itemRef) => GetSpearfishingGatheringPoints(itemRef.RowId);
     public IEnumerable<GatheringPoint> GetSpearfishingGatheringPoints(uint itemId)
     {
-        if (!excelService.TryFindRow<SpearfishingItem>(row => row.Item.RowId == itemId, out var spearfishingItem))
-            return [];
+        if (_spearfishingItemGatheringPointsCache.TryGetValue(itemId, out var points))
+            return points;
 
-        return _spearfishingItemGatheringPointsCache.GetValue(spearfishingItem.RowId) ?? [];
+        if (!excelService.TryFindRow<SpearfishingItem>(row => row.Item.RowId == itemId, out var spearfishingItem))
+        {
+            _spearfishingItemGatheringPointsCache.Add(itemId, points = []);
+            return points;
+        }
+
+        var bases = excelService.FindRows<GatheringPointBase>(row => row.GatheringType.RowId == 5 && row.Item.Any(item => item.RowId == itemId));
+        points = excelService.FindRows<GatheringPoint>(row => bases.Any(b => b.RowId == row.GatheringPointBase.RowId));
+        _spearfishingItemGatheringPointsCache.Add(itemId, points);
+        return points;
     }
 
     public bool IsCraftable(Item item) => IsCraftable(item.RowId);
     public bool IsCraftable(RowRef<Item> itemRef) => IsCraftable(itemRef.RowId);
-    public bool IsCraftable(uint itemId) => GetRecipes(itemId).Any();
+    public bool IsCraftable(uint itemId)
+    {
+        if (_isCraftableCache.TryGetValue(itemId, out var result))
+            return result;
+
+        _isCraftableCache.Add(itemId, result = GetRecipes(itemId).Length != 0);
+
+        return result;
+    }
 
     public bool IsCrystal(Item item) => item.ItemUICategory.RowId == 59;
     public bool IsCrystal(RowRef<Item> itemRef) => itemRef.IsValid && IsCrystal(itemRef.Value);
@@ -105,15 +236,39 @@ public class ItemService(IClientState clientState, ExcelService excelService, Se
 
     public bool IsGatherable(Item item) => IsGatherable(item.RowId);
     public bool IsGatherable(RowRef<Item> itemRef) => IsGatherable(itemRef.RowId);
-    public bool IsGatherable(uint itemId) => GetGatheringPoints(itemId).Any();
+    public bool IsGatherable(uint itemId)
+    {
+        if (_isGatherableCache.TryGetValue(itemId, out var result))
+            return result;
+
+        _isGatherableCache.Add(itemId, result = GetGatheringPoints(itemId).Length != 0);
+
+        return result;
+    }
 
     public bool IsFish(Item item) => IsFish(item.RowId);
     public bool IsFish(RowRef<Item> itemRef) => IsFish(itemRef.RowId);
-    public bool IsFish(uint itemId) => GetFishingSpots(itemId).Any();
+    public bool IsFish(uint itemId)
+    {
+        if (_isFishCache.TryGetValue(itemId, out var result))
+            return result;
+
+        _isFishCache.Add(itemId, result = GetFishingSpots(itemId).Length != 0);
+
+        return result;
+    }
 
     public bool IsSpearfish(Item item) => IsSpearfish(item.RowId);
     public bool IsSpearfish(RowRef<Item> itemRef) => IsSpearfish(itemRef.RowId);
-    public bool IsSpearfish(uint itemId) => excelService.TryFindRow<SpearfishingItem>(row => row.Item.RowId == itemId, out _);
+    public bool IsSpearfish(uint itemId)
+    {
+        if (_isSpearfishCache.TryGetValue(itemId, out var result))
+            return result;
+
+        _isSpearfishCache.Add(itemId, result = excelService.TryFindRow<SpearfishingItem>(row => row.Item.RowId == itemId, out _));
+
+        return result;
+    }
 
     public bool IsUnlockable(Item item) => item.ItemAction.RowId != 0 && Enum.GetValues<ItemActionType>().Any(type => (ushort)type == item.ItemAction.Value!.Type);
     public bool IsUnlockable(RowRef<Item> itemRef) => itemRef.IsValid && IsUnlockable(itemRef.Value);
@@ -319,7 +474,62 @@ public class ItemService(IClientState clientState, ExcelService excelService, Se
     }
 
     public GatheringPoint[] GetGatheringPoints(GatheringItem gatheringItem)
-        => _gatheringItemGatheringPointsCache.GetValue(gatheringItem.RowId) ?? [];
+    {
+        if (_gatheringItemGatheringPointsCache.TryGetValue(gatheringItem.RowId, out var points))
+            return points;
+
+        var pointBases = new HashSet<uint>();
+
+        if (gatheringItem.IsHidden)
+        {
+            var gatheringItemPointSheet = excelService.GetSubrowSheet<GatheringItemPoint>();
+
+            foreach (var row in gatheringItemPointSheet)
+            {
+                if (row.RowId < gatheringItem.RowId) continue;
+                if (row.RowId > gatheringItem.RowId) break;
+
+                foreach (var subrow in row)
+                {
+                    if (subrow.RowId != 0 && subrow.GatheringPoint.IsValid)
+                        pointBases.Add(subrow.GatheringPoint.Value.GatheringPointBase.RowId);
+                }
+            }
+        }
+
+        var gatheringPointSheet = excelService.GetSheet<GatheringPoint>();
+
+        foreach (var point in gatheringPointSheet)
+        {
+            if (point.TerritoryType.RowId <= 1)
+                continue;
+
+            if (!point.GatheringPointBase.IsValid)
+                continue;
+
+            var gatheringPointBase = point.GatheringPointBase.Value;
+
+            // only accept Mining, Quarrying, Logging and Harvesting
+            if (gatheringPointBase.GatheringType.RowId >= 5)
+                continue;
+
+            foreach (var id in gatheringPointBase.Item)
+            {
+                if (id.RowId == gatheringItem.RowId)
+                    pointBases.Add(gatheringPointBase.RowId);
+            }
+        }
+
+        points = pointBases
+            .Select((baseId) => gatheringPointSheet.Where((row) => row.TerritoryType.RowId > 1 && row.GatheringPointBase.RowId == baseId))
+            .SelectMany(e => e)
+            .OfType<GatheringPoint>()
+            .ToArray();
+
+        _gatheringItemGatheringPointsCache.Add(gatheringItem.RowId, points);
+
+        return points;
+    }
 
     public ReadOnlySeString GetItemLink(uint id, ClientLanguage? language = null)
     {

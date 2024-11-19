@@ -1,13 +1,19 @@
 using System.Collections.Generic;
 using System.Linq;
+using Dalamud.Game;
 using FFXIVClientStructs.FFXIV.Application.Network.WorkDefinitions;
 using FFXIVClientStructs.FFXIV.Client.Game;
+using HaselCommon.Extensions.Strings;
+using HaselCommon.Utils;
 using Lumina.Excel.Sheets;
 
 namespace HaselCommon.Services;
 
-public class LeveService(ExcelService excelService)
+public class LeveService(ExcelService excelService, TextService textService)
 {
+    private readonly Dictionary<(uint, ClientLanguage), string> _leveNameCache = [];
+    private readonly Dictionary<uint, ItemAmount[]> _requiredItemsCache = [];
+
     public unsafe IEnumerable<ushort> GetActiveLeveIds()
     {
         var leveIds = new HashSet<ushort>();
@@ -93,4 +99,46 @@ public class LeveService(ExcelService excelService)
 
     public bool IsFishingLeve(Leve leve)
         => leve.LeveAssignmentType.RowId is 4;
+
+    public ItemAmount[] GetRequiredItems(Leve leve)
+    {
+        if (_requiredItemsCache.TryGetValue(leve.RowId, out var requiredItems))
+            return requiredItems;
+
+        if (!(IsCraftLeve(leve) || IsFishingLeve(leve)) || !leve.DataId.TryGetValue<CraftLeve>(out var craftLeve))
+        {
+            _requiredItemsCache.Add(leve.RowId, requiredItems = []);
+            return requiredItems;
+        }
+
+        var dict = new Dictionary<uint, ItemAmount>();
+
+        for (var i = 0; i < craftLeve.Item.Count; i++)
+        {
+            var item = craftLeve.Item[i];
+            var count = craftLeve.ItemCount[i];
+
+            if (!item.IsValid || count == 0)
+                continue;
+
+            if (!dict.TryGetValue(item.RowId, out var reqItem))
+                dict.Add(item.RowId, reqItem = new(item.Value, 0));
+
+            reqItem.Amount += count;
+        }
+
+        _requiredItemsCache.Add(leve.RowId, requiredItems = [.. dict.Values]);
+        return requiredItems;
+    }
+
+    public string GetLeveName(Leve leve)
+    {
+        var key = (leve.RowId, textService.ClientLanguage);
+
+        if (_leveNameCache.TryGetValue(key, out var name))
+            return name;
+
+        _leveNameCache.Add(key, name = leve.Name.ExtractText().StripSoftHypen());
+        return name;
+    }
 }
