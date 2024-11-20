@@ -276,17 +276,39 @@ public class ItemService(IClientState clientState, ExcelService excelService, Te
     public bool IsUnlockable(RowRef<Item> itemRef) => itemRef.IsValid && IsUnlockable(itemRef.Value);
     public bool IsUnlockable(uint itemId) => excelService.TryGetRow<Item>(itemId, out var item) && IsUnlockable(item);
 
-    // TODO: check race/sex restrictions
-    public bool CanTryOn(Item item)
+    public unsafe bool CanTryOn(Item item)
     {
-        return item.EquipSlotCategory.RowId switch
+        if (!(item.EquipSlotCategory.RowId switch
         {
-            0 => false,
+            0 => false, // not equippable
             2 when item.FilterGroup != 3 => false, // any OffHand that's not a Shield
             6 => false, // Waist
             17 => false, // SoulCrystal
             _ => true
-        };
+        }))
+        {
+            return false;
+        }
+
+        var playerState = PlayerState.Instance();
+        if (playerState->IsLoaded == 0)
+            return false;
+
+        if (!excelService.TryGetRow<EquipRaceCategory>(item.EquipRestriction, out var equipRaceCategoryRow))
+            return false;
+
+        if (!excelService.GetSheet<RawRow>(null, "EquipRaceCategory").TryGetRow(item.EquipRestriction, out var equipRaceCategoryRawRow))
+            return false;
+
+        var race = playerState->Race;
+        if (race == 0 || !equipRaceCategoryRawRow.ReadBool(race - 1u))
+            return false;
+
+        var sex = playerState->Sex;
+        if (sex == 1) // is female
+            return equipRaceCategoryRow.Female;
+
+        return equipRaceCategoryRow.Male;
     }
     public bool CanTryOn(RowRef<Item> itemRef) => itemRef.IsValid && CanTryOn(itemRef.Value);
     public bool CanTryOn(uint itemId) => excelService.TryGetRow<Item>(itemId, out var item) && CanTryOn(item);
