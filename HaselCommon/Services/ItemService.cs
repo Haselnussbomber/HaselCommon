@@ -150,10 +150,12 @@ public class ItemService(IClientState clientState, ExcelService excelService, Te
         for (var i = 0; i < recipe.Ingredient.Count; i++)
         {
             var ingredient = recipe.Ingredient[i];
-            if (!ingredient.IsValid)
+            if (ingredient.RowId == 0 || !ingredient.IsValid)
                 continue;
 
             var amount = recipe.AmountIngredient[i];
+            if (amount == 0)
+                continue;
 
             list.Add(new(ingredient.Value, amount));
         }
