@@ -3,7 +3,7 @@
 using System.Globalization;
 using System.Runtime.CompilerServices;
 
-namespace HaselCommon.Strings;
+namespace HaselCommon.Utils;
 
 // copied from Dalamud:
 // https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Utility/FuzzyMatcher.cs

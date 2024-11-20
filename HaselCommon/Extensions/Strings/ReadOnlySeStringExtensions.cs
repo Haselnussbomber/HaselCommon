@@ -1,5 +1,5 @@
+using System.Linq;
 using FFXIVClientStructs.FFXIV.Client.System.String;
-using HaselCommon.Extensions;
 using HaselCommon.Extensions.Collections;
 using HaselCommon.Extensions.Memory;
 using Lumina.Text;
@@ -17,6 +17,11 @@ public static class ReadOnlySeStringExtensions
     public static bool Contains(this ReadOnlySeString ross, ReadOnlySpan<byte> needle)
     {
         return ross.Data.Span.IndexOf(needle) != -1;
+    }
+
+    public static ReadOnlySeString StripSoftHypen(this ReadOnlySeString ross)
+    {
+        return ross.ReplaceText("\u00AD"u8, new ReadOnlySpan<byte>());
     }
 
     public static ReadOnlySeString ReplaceText(this ReadOnlySeString ross, ReadOnlySpan<byte> toFind, ReadOnlySpan<byte> replacement)
@@ -44,6 +49,15 @@ public static class ReadOnlySeStringExtensions
                 continue;
             }
 
+            if (replacement.IsEmpty)
+            {
+                sb.Append(new ReadOnlySpan<byte>([
+                    .. payload.Body.Span[..index],
+                    .. payload.Body.Span[(index + toFind.Length)..]
+                ]));
+                continue;
+            }
+
             sb.Append(new ReadOnlySpan<byte>([
                 .. payload.Body.Span[..index],
                 .. replacement,
@@ -58,15 +72,6 @@ public static class ReadOnlySeStringExtensions
 
     public static bool IsTextOnly(this ReadOnlySeString ross)
     {
-        if (ross.PayloadCount != 1)
-            return false;
-
-        foreach (var payload in ross)
-        {
-            if (payload.Type != ReadOnlySePayloadType.Text)
-                return false;
-        }
-
-        return true;
+        return ross.Any(payload => payload.Type != ReadOnlySePayloadType.Text);
     }
 }

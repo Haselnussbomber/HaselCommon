@@ -1,6 +1,5 @@
 using System.Linq;
 using System.Text;
-using Lumina.Text.ReadOnly;
 
 namespace HaselCommon.Extensions.Strings;
 
@@ -15,9 +14,6 @@ public static class StringExtensions
 
     public static string StripSoftHypen(this string input)
         => input.Replace("\u00AD", string.Empty);
-
-    public static ReadOnlySeString ToReadOnlySeString(this string input)
-        => new(Encoding.UTF8.GetBytes(input));
 
     public static string ToKebabCase(this string input)
     {

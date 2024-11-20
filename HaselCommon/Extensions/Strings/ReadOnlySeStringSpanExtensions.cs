@@ -10,9 +10,4 @@ public static class ReadOnlySeStringSpanExtensions
     {
         return new(((ReadOnlySpan<byte>)rosss).WithNullTerminator());
     }
-
-    public static ReadOnlySeString ToReadOnlySeString(this ReadOnlySeStringSpan rosss)
-    {
-        return new(rosss.Data.ToArray());
-    }
 }

@@ -2,7 +2,7 @@ using Lumina.Excel.Sheets;
 
 namespace HaselCommon.Utils;
 
-public record ItemAmount
+public record struct ItemAmount
 {
     public ItemAmount(Item item, uint amount)
     {

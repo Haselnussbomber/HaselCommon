@@ -1,21 +1,13 @@
 using FFXIVClientStructs.FFXIV.Client.System.String;
-using HaselCommon.Extensions;
-using HaselCommon.Extensions.Memory;
 using Lumina.Text;
-using DSeString = Dalamud.Game.Text.SeStringHandling.SeString;
 
 namespace HaselCommon.Extensions.Strings;
 
 public static class SeStringBuilderExtensions
 {
-    public static DSeString ToDalamudString(this SeStringBuilder sb)
-    {
-        return DSeString.Parse(sb.ToArray());
-    }
-
     public static Utf8String ToUtf8String(this SeStringBuilder sb)
     {
-        return new(((ReadOnlySpan<byte>)sb.ToArray().AsSpan()).WithNullTerminator());
+        return new(sb.GetViewAsMemory().Span);
     }
 
     public static bool Contains(this SeStringBuilder builder, ReadOnlySpan<byte> needle)

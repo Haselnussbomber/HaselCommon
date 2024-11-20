@@ -7,7 +7,7 @@ using System.Numerics;
 using System.Reflection;
 using System.Text;
 using Dalamud.Interface.Utility.Raii;
-using HaselCommon.Extensions;
+using HaselCommon.Extensions.Collections;
 using HaselCommon.Graphics;
 using HaselCommon.Gui.Yoga.Attributes;
 using HaselCommon.Services;

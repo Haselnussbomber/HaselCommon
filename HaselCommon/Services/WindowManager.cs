@@ -2,7 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin;
-using HaselCommon.Extensions;
+using HaselCommon.Extensions.Collections;
 using HaselCommon.Gui;
 
 namespace HaselCommon.Services;

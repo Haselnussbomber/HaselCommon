@@ -7,11 +7,12 @@ using Dalamud.Interface.Textures.TextureWraps;
 using Dalamud.Interface.Utility;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.UI;
-using HaselCommon.Extensions;
+using HaselCommon.Extensions.Collections;
 using HaselCommon.Gui;
 using HaselCommon.Utils;
 using ImGuiNET;
 using Lumina.Data.Files;
+using Lumina.Extensions;
 
 namespace HaselCommon.Services;
 
@@ -136,7 +137,7 @@ public class TextureService(ITextureProvider textureProvider, IDataManager dataM
             return false;
         }
 
-        if (!uld.Parts.FindFirst((partList) => partList.Id == key.PartListId, out var partList) || partList.PartCount < key.PartIndex)
+        if (!uld.Parts.TryGetFirst((partList) => partList.Id == key.PartListId, out var partList) || partList.PartCount < key.PartIndex)
         {
             _uldPartCache.TryAdd(key, null);
             return false;
@@ -144,7 +145,7 @@ public class TextureService(ITextureProvider textureProvider, IDataManager dataM
 
         var part = partList.Parts[key.PartIndex];
 
-        if (!uld.AssetData.FindFirst((asset) => asset.Id == part.TextureId, out var asset))
+        if (!uld.AssetData.TryGetFirst((asset) => asset.Id == part.TextureId, out var asset))
         {
             _uldPartCache.TryAdd(key, null);
             return false;
