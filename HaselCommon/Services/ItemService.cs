@@ -40,7 +40,7 @@ public class ItemService(IClientState clientState, ExcelService excelService, Te
     private readonly Dictionary<uint, GatheringPoint[]> _gatheringPointsCache = [];
     private readonly Dictionary<uint, FishingSpot[]> _fishingSpotsCache = [];
 
-    private static FrozenDictionary<short, (uint Min, uint Max)>? MaxLevelRanges = null;
+    private FrozenDictionary<short, (uint Min, uint Max)>? _maxLevelRanges = null;
 
     public uint GetBaseItemId(uint itemId)
     {
@@ -374,8 +374,8 @@ public class ItemService(IClientState clientState, ExcelService excelService, Te
 
     public FrozenDictionary<short, (uint Min, uint Max)> GetMaxLevelRanges()
     {
-        if (MaxLevelRanges != null)
-            return MaxLevelRanges;
+        if (_maxLevelRanges != null)
+            return _maxLevelRanges;
 
         var dict = new Dictionary<short, (uint Min, uint Max)>();
 
@@ -400,7 +400,7 @@ public class ItemService(IClientState clientState, ExcelService excelService, Te
             level += 10;
         }
 
-        return MaxLevelRanges = dict.ToFrozenDictionary();
+        return _maxLevelRanges = dict.ToFrozenDictionary();
     }
 
     public uint GetItemRarityColorType(Item item, bool isEdgeColor = false)
