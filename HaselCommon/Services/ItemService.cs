@@ -78,7 +78,7 @@ public class ItemService(IClientState clientState, ExcelService excelService, Te
             return iconId;
         }
 
-        _itemIconIdCache.Add(itemId, excelService.TryGetRow<Item>(GetBaseItemId(itemId), out var item) ? item.Icon : 0u);
+        _itemIconIdCache.Add(itemId, iconId = excelService.TryGetRow<Item>(GetBaseItemId(itemId), out var item) ? item.Icon : 0u);
         return iconId;
     }
 
