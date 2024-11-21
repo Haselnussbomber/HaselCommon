@@ -11,6 +11,7 @@ using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Component.Exd;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using HaselCommon.Extensions.Sheets;
+using HaselCommon.Extensions.Strings;
 using HaselCommon.Game.Enums;
 using HaselCommon.Graphics;
 using HaselCommon.Services.SeStringEvaluation;
@@ -93,11 +94,15 @@ public class ItemService(IClientState clientState, ExcelService excelService, Te
 
         if (IsEventItem(itemId))
         {
-            _itemNameCache.Add(key, name = excelService.TryGetRow<EventItem>(itemId, language, out var eventItem) ? eventItem.Name.ExtractText() : $"EventItem#{itemId}");
+            _itemNameCache.Add(key, name = excelService.TryGetRow<EventItem>(itemId, language, out var eventItem)
+                ? eventItem.Name.ExtractText().StripSoftHypen()
+                : $"EventItem#{itemId}");
             return name;
         }
 
-        _itemNameCache.Add(key, name = excelService.TryGetRow<Item>(GetBaseItemId(itemId), language, out var item) ? item.Name.ExtractText() : $"Item#{itemId}");
+        _itemNameCache.Add(key, name = excelService.TryGetRow<Item>(GetBaseItemId(itemId), language, out var item)
+            ? item.Name.ExtractText().StripSoftHypen()
+            : $"Item#{itemId}");
         return name;
     }
 

@@ -19,11 +19,6 @@ public static class ReadOnlySeStringExtensions
         return ross.Data.Span.IndexOf(needle) != -1;
     }
 
-    public static ReadOnlySeString StripSoftHypen(this ReadOnlySeString ross)
-    {
-        return ross.ReplaceText("\u00AD"u8, new ReadOnlySpan<byte>());
-    }
-
     public static ReadOnlySeString ReplaceText(this ReadOnlySeString ross, ReadOnlySpan<byte> toFind, ReadOnlySpan<byte> replacement)
     {
         if (ross.IsEmpty)
