@@ -648,6 +648,10 @@ public unsafe partial class Node
                     _yogaNode->SetPositionPercent(YGEdge.All, value.Value);
                     break;
 
+                case YGUnit.Auto:
+                    _yogaNode->SetPositionAuto(YGEdge.All);
+                    break;
+
                 default:
                     throw new InvalidOperationException();
             }
@@ -1408,6 +1412,22 @@ public unsafe partial class Node
     }
 
     [NodeProp("Style", editable: true)]
+    public YGBoxSizing BoxSizing
+    {
+        get
+        {
+            ThrowIfDisposed();
+            return _yogaNode->GetBoxSizing();
+        }
+
+        set
+        {
+            ThrowIfDisposed();
+            _yogaNode->SetBoxSizing(value);
+        }
+    }
+
+    [NodeProp("Style", editable: true)]
     public YGValue Width
     {
         get
@@ -1436,6 +1456,18 @@ public unsafe partial class Node
 
                 case YGUnit.Percent:
                     _yogaNode->SetWidthPercent(value.Value);
+                    break;
+
+                case YGUnit.MaxContent:
+                    _yogaNode->SetWidthMaxContent();
+                    break;
+
+                case YGUnit.FitContent:
+                    _yogaNode->SetWidthFitContent();
+                    break;
+
+                case YGUnit.Stretch:
+                    _yogaNode->SetWidthStretch();
                     break;
             }
         }
@@ -1471,6 +1503,18 @@ public unsafe partial class Node
                 case YGUnit.Percent:
                     _yogaNode->SetHeightPercent(value.Value);
                     break;
+
+                case YGUnit.MaxContent:
+                    _yogaNode->SetHeightMaxContent();
+                    break;
+
+                case YGUnit.FitContent:
+                    _yogaNode->SetHeightFitContent();
+                    break;
+
+                case YGUnit.Stretch:
+                    _yogaNode->SetHeightStretch();
+                    break;
             }
         }
     }
@@ -1501,6 +1545,18 @@ public unsafe partial class Node
 
                 case YGUnit.Percent:
                     _yogaNode->SetMinWidthPercent(value.Value);
+                    break;
+
+                case YGUnit.MaxContent:
+                    _yogaNode->SetMinWidthMaxContent();
+                    break;
+
+                case YGUnit.FitContent:
+                    _yogaNode->SetMinWidthFitContent();
+                    break;
+
+                case YGUnit.Stretch:
+                    _yogaNode->SetMinWidthStretch();
                     break;
             }
         }
@@ -1533,6 +1589,18 @@ public unsafe partial class Node
                 case YGUnit.Percent:
                     _yogaNode->SetMinHeightPercent(value.Value);
                     break;
+
+                case YGUnit.MaxContent:
+                    _yogaNode->SetMinHeightMaxContent();
+                    break;
+
+                case YGUnit.FitContent:
+                    _yogaNode->SetMinHeightFitContent();
+                    break;
+
+                case YGUnit.Stretch:
+                    _yogaNode->SetMinHeightStretch();
+                    break;
             }
         }
     }
@@ -1564,6 +1632,18 @@ public unsafe partial class Node
                 case YGUnit.Percent:
                     _yogaNode->SetMaxWidthPercent(value.Value);
                     break;
+
+                case YGUnit.MaxContent:
+                    _yogaNode->SetMaxWidthMaxContent();
+                    break;
+
+                case YGUnit.FitContent:
+                    _yogaNode->SetMaxWidthFitContent();
+                    break;
+
+                case YGUnit.Stretch:
+                    _yogaNode->SetMaxWidthStretch();
+                    break;
             }
         }
     }
@@ -1594,6 +1674,18 @@ public unsafe partial class Node
 
                 case YGUnit.Percent:
                     _yogaNode->SetMaxHeightPercent(value.Value);
+                    break;
+
+                case YGUnit.MaxContent:
+                    _yogaNode->SetMaxHeightMaxContent();
+                    break;
+
+                case YGUnit.FitContent:
+                    _yogaNode->SetMaxHeightFitContent();
+                    break;
+
+                case YGUnit.Stretch:
+                    _yogaNode->SetMaxHeightStretch();
                     break;
             }
         }
