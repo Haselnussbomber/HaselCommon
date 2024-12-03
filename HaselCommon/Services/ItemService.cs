@@ -323,11 +323,8 @@ public class ItemService(IClientState clientState, ExcelService excelService, Te
         if (item.ItemAction.RowId == 0)
             return false;
 
-        var type = (ItemActionType)item.ItemAction.Value.Type;
-
-        // most of what "E8 ?? ?? ?? ?? 84 C0 75 A6 32 C0" does
         // just to avoid the ExdModule.GetItemRowById call...
-        switch (type)
+        switch ((ItemActionType)item.ItemAction.Value.Type)
         {
             case ItemActionType.Companion:
                 return UIState.Instance()->IsCompanionUnlocked(item.ItemAction.Value.Data[0]);
@@ -361,6 +358,9 @@ public class ItemService(IClientState clientState, ExcelService excelService, Te
 
             case ItemActionType.Glasses:
                 return PlayerState.Instance()->IsGlassesUnlocked((ushort)item.AdditionalData.RowId);
+
+            case ItemActionType.CompanySealVouchers:
+                return false;
         }
 
         var row = ExdModule.GetItemRowById(item.RowId);

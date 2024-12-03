@@ -14,4 +14,5 @@ public enum ItemActionType : ushort
     // FieldNotes = 19743, // bozjan field notes (server side, but cached)
     Ornament = 20086,
     Glasses = 37312,
+    CompanySealVouchers = 41120, // can use = is in grand company, is unlocked = always false
 }
