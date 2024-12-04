@@ -44,20 +44,24 @@ public static class ReadOnlySeStringExtensions
                 continue;
             }
 
-            if (replacement.IsEmpty)
+            var lastIndex = 0;
+            while (index != -1)
             {
-                sb.Append(new ReadOnlySpan<byte>([
-                    .. payload.Body.Span[..index],
-                    .. payload.Body.Span[(index + toFind.Length)..]
-                ]));
-                continue;
+                sb.Append(payload.Body.Span[lastIndex..index]);
+
+                if (!replacement.IsEmpty)
+                {
+                    sb.Append(replacement);
+                }
+
+                lastIndex = index + toFind.Length;
+                index = payload.Body.Span[lastIndex..].IndexOf(toFind);
+
+                if (index != -1)
+                    index += lastIndex;
             }
 
-            sb.Append(new ReadOnlySpan<byte>([
-                .. payload.Body.Span[..index],
-                .. replacement,
-                .. payload.Body.Span[(index + toFind.Length)..]
-            ]));
+            sb.Append(payload.Body.Span[lastIndex..]);
         }
 
         var output = sb.ToReadOnlySeString();
