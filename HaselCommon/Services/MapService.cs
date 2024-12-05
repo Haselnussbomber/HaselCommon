@@ -10,7 +10,6 @@ using FFXIVClientStructs.FFXIV.Client.System.String;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using HaselCommon.Extensions.Sheets;
-using HaselCommon.Extensions.Strings;
 using HaselCommon.Game;
 using HaselCommon.Services.SeStringEvaluation;
 using Lumina.Excel;
@@ -155,7 +154,7 @@ public class MapService(IClientState clientState, IGameGui gameGui, TextService 
         using var tooltip = new Utf8String(sb
             .Append(MemoryMarshal.CreateReadOnlySpanFromNullTerminated(levelText))
             .Append(" " + gatheringPointName)
-            .ToArray());
+            .GetViewAsSpan());
         SeStringBuilder.SharedPool.Return(sb);
 
         var iconId = !Misc.IsGatheringTypeRare(exportedPoint.GatheringPointType)
@@ -204,7 +203,7 @@ public class MapService(IClientState clientState, IGameGui gameGui, TextService 
         var sb = SeStringBuilder.SharedPool.Get();
         using var tooltip = new Utf8String(sb
             .Append(MemoryMarshal.CreateReadOnlySpanFromNullTerminated(levelText))
-            .ToArray());
+            .GetViewAsSpan());
         SeStringBuilder.SharedPool.Return(sb);
 
         var iconId = fishingSpot.Rare ? 60466u : 60465u;
@@ -255,7 +254,7 @@ public class MapService(IClientState clientState, IGameGui gameGui, TextService 
             }
         }
 
-        using var title = titleBuilder.ToUtf8String();
+        using var title = new Utf8String(titleBuilder.GetViewAsSpan());
 
         SeStringBuilder.SharedPool.Return(titleBuilder);
 
