@@ -379,6 +379,18 @@ public unsafe partial class Node
                 case YGUnit.Percent:
                     _yogaNode->SetFlexBasisPercent(value.Value);
                     break;
+
+                case YGUnit.MaxContent:
+                    _yogaNode->SetFlexBasisMaxContent();
+                    break;
+
+                case YGUnit.FitContent:
+                    _yogaNode->SetFlexBasisFitContent();
+                    break;
+
+                case YGUnit.Stretch:
+                    _yogaNode->SetFlexBasisStretch();
+                    break;
             }
         }
     }
