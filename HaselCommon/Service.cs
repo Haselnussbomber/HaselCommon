@@ -105,6 +105,7 @@ public static class Service
             .AddSingleton<TextService>()
             .AddSingleton<TextureService>()
             .AddSingleton<WindowManager>()
-            .AddSingleton<SeStringEvaluatorService>();
+            .AddSingleton<SeStringEvaluatorService>()
+            .AddSingleton<UnlocksObserver>();
     }
 }

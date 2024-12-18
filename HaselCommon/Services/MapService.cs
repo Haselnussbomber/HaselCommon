@@ -16,6 +16,7 @@ using Lumina.Excel;
 using Lumina.Excel.Sheets;
 using Lumina.Text;
 using Lumina.Text.ReadOnly;
+using Map = Lumina.Excel.Sheets.Map;
 
 namespace HaselCommon.Services;
 
@@ -27,6 +28,14 @@ public class MapService(IClientState clientState, IGameGui gameGui, TextService 
         var c = map!.SizeFactor / 100.0f;
         var x = 41.0f / c * (((level.X + map.OffsetX) * c + 1024.0f) / 2048.0f) + 1f;
         var y = 41.0f / c * (((level.Z + map.OffsetY) * c + 1024.0f) / 2048.0f) + 1f;
+        return new(x, y);
+    }
+
+    public static Vector2 GetCoords(Map map, MapMarker mapMarker)
+    {
+        var scale = map.SizeFactor / 100f;
+        var x = (int)(2 * mapMarker.X / scale + 100.9);
+        var y = (int)(2 * mapMarker.Y / scale + 100.9);
         return new(x, y);
     }
 
