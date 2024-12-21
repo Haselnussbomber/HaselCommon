@@ -62,6 +62,16 @@ public partial class SeStringEvaluatorService(
         return Evaluate(addonRow.Text, context);
     }
 
+    public ReadOnlySeString EvaluateFromLobby(uint lobbyId, SeStringContext context)
+    {
+        context.Language ??= _textService.ClientLanguage;
+
+        if (!_excelService.TryGetRow<Lobby>(lobbyId, context.Language, out var lobbyRow))
+            return new();
+
+        return Evaluate(lobbyRow.Text, context);
+    }
+
     public unsafe bool TryGetGNumDefault(uint parameterIndex, out uint value)
     {
         value = 0u;
