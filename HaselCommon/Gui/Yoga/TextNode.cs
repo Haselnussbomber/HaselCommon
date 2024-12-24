@@ -13,8 +13,6 @@ using YogaSharp;
 
 namespace HaselCommon.Gui.Yoga;
 
-#pragma warning disable SeStringRenderer
-
 [DebuggerDisplay("Guid: {Guid.ToString()} | Text: {_text.ExtractText()}")]
 public partial class TextNode : Node
 {
@@ -82,7 +80,7 @@ public partial class TextNode : Node
             if (_isTextOnly)
             {
                 ImGuiUtils.TextUnformatted(_text);
-                clicked = ImGui.IsItemClicked(ImGuiMouseButton.Left);
+                clicked = ImGui.IsItemClicked(ImGuiMouseButton.Left); // TODO: no worky
                 clickedPayload = Text;
             }
             else
