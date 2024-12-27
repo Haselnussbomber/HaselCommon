@@ -99,7 +99,6 @@ public static class Service
             .AddSingleton<LeveService>()
             .AddSingleton<MapService>()
             .AddSingleton<MarketBoardService>()
-            .AddSingleton<PlayerService>()
             .AddSingleton<TeleportService>()
             .AddSingleton<TextDecoder>()
             .AddSingleton<TextService>()
