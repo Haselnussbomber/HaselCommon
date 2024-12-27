@@ -2,20 +2,19 @@ using System.Numerics;
 using Dalamud.Interface.Textures;
 using Dalamud.Interface.Utility;
 using Dalamud.Plugin.Services;
-using HaselCommon.Gui.Yoga.Events;
+using HaselCommon.Graphics;
 using ImGuiNET;
 using YogaSharp;
 
 namespace HaselCommon.Gui.Yoga.Components;
 
-public class IconNode : Panel
+public class IconNode : Node
 {
     private readonly ITextureProvider _textureProvider;
-    private bool _isHovered;
-    private Vector2 _mousePos;
 
     public required GameIconLookup Icon { get; set; }
     public float Scale { get; set; } = 1.0f;
+    public Color BorderColor { get; set; } = Color.Transparent;
     public Vector4 TintColor { get; set; } = Vector4.One;
     public Vector2 Uv0 { get; set; } = Vector2.Zero;
     public Vector2 Uv1 { get; set; } = Vector2.One;
@@ -24,6 +23,7 @@ public class IconNode : Panel
     public IconNode() : base()
     {
         _textureProvider = Service.Get<ITextureProvider>();
+        Overflow = YGOverflow.Hidden;
         EnableMeasureFunc = true;
     }
 
@@ -36,7 +36,9 @@ public class IconNode : Panel
 
         if (_textureProvider.TryGetFromGameIcon(Icon, out var texture) && texture.TryGetWrap(out var textureWrap, out _))
         {
-            return textureWrap.Size * Scale * ImGuiHelpers.GlobalScale;
+            return new Vector2(
+                !float.IsNaN(width) ? width : textureWrap.Width,
+                !float.IsNaN(height) ? height : textureWrap.Height) * Scale * ImGuiHelpers.GlobalScale;
         }
 
         return Vector2.Zero;
@@ -44,25 +46,17 @@ public class IconNode : Panel
 
     public override void DrawContent()
     {
-        if (!ImGuiUtils.IsInViewport(ComputedSize))
-        {
-            ImGui.Dummy(ComputedSize);
+        var size = ComputedSize;
+
+        if (Icon.IconId == 0)
             return;
-        }
 
         if (!_textureProvider.TryGetFromGameIcon(Icon, out var texture))
-        {
-            ImGui.Dummy(ComputedSize);
             return;
-        }
 
         if (!texture.TryGetWrap(out var textureWrap, out _))
-        {
-            ImGui.Dummy(ComputedSize);
             return;
-        }
 
-        var size = ComputedSize;
         var uv0 = Uv0;
         var uv1 = Uv1;
 
@@ -78,76 +72,8 @@ public class IconNode : Panel
             uv0,
             uv1,
             TintColor,
-            BorderColor ?? Vector4.Zero);
+            BorderColor);
 
         HandleInputs();
-    }
-
-    private void HandleInputs()
-    {
-        var clicked = ImGui.IsItemClicked();
-        var hovered = ImGui.IsItemHovered();
-        if (hovered != _isHovered)
-        {
-            _isHovered = hovered;
-
-            if (hovered)
-            {
-                DispatchEvent(new MouseEvent()
-                {
-                    EventType = MouseEventType.MouseOver,
-                });
-            }
-            else
-            {
-                DispatchEvent(new MouseEvent()
-                {
-                    EventType = MouseEventType.MouseOut
-                });
-            }
-        }
-
-        if (hovered)
-        {
-            var mousePos = ImGui.GetMousePos();
-            if (mousePos != _mousePos)
-            {
-                _mousePos = mousePos;
-                DispatchEvent(new MouseEvent()
-                {
-                    EventType = MouseEventType.MouseMove
-                });
-            }
-
-            DispatchEvent(new MouseEvent()
-            {
-                EventType = MouseEventType.MouseHover
-            });
-        }
-
-        if (clicked)
-        {
-            DispatchEvent(new MouseEvent()
-            {
-                EventType = MouseEventType.MouseClick,
-                Button = ImGuiMouseButton.Left
-            });
-        }
-        else if (ImGui.IsItemClicked(ImGuiMouseButton.Middle))
-        {
-            DispatchEvent(new MouseEvent()
-            {
-                EventType = MouseEventType.MouseClick,
-                Button = ImGuiMouseButton.Middle
-            });
-        }
-        else if (ImGui.IsItemClicked(ImGuiMouseButton.Right))
-        {
-            DispatchEvent(new MouseEvent()
-            {
-                EventType = MouseEventType.MouseClick,
-                Button = ImGuiMouseButton.Right
-            });
-        }
     }
 }

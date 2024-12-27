@@ -71,6 +71,6 @@ public static class ReadOnlySeStringExtensions
 
     public static bool IsTextOnly(this ReadOnlySeString ross)
     {
-        return ross.Any(payload => payload.Type != ReadOnlySePayloadType.Text);
+        return ross.All(payload => payload.Type == ReadOnlySePayloadType.Text);
     }
 }

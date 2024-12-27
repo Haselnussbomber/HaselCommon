@@ -5,7 +5,7 @@ using YogaSharp;
 
 namespace HaselCommon.Gui.Yoga.Components;
 
-public class UldImage : Panel
+public class UldImage : Node
 {
     private readonly TextureService _textureService;
 
@@ -38,5 +38,6 @@ public class UldImage : Panel
     public override void DrawContent()
     {
         _textureService.DrawPart(UldName, PartListId, PartIndex, ComputedSize);
+        HandleInputs();
     }
 }

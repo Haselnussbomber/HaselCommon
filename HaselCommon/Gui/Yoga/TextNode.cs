@@ -19,7 +19,6 @@ public partial class TextNode : Node
     protected ReadOnlySeString _text;
     private bool _isTextOnly;
     protected bool _hovered;
-    protected Vector2 _mousePos;
 
     public override string TypeName => "#text";
     public override string DebugNodeOpenTag => $"{_text.ExtractText().Replace("\n", "")}";
@@ -72,29 +71,42 @@ public partial class TextNode : Node
         if (_text.IsEmpty)
             return;
 
-        bool clicked;
-        ReadOnlySeString? clickedPayload;
+        var isLeftClicked = false;
+        var isMiddleClicked = false;
+        var isRightClicked = false;
+        ReadOnlySeString? clickedPayload = null;
 
         using (Font?.Push())
         {
             if (_isTextOnly)
             {
-                ImGuiUtils.TextUnformatted(_text);
-                clicked = ImGui.IsItemClicked(ImGuiMouseButton.Left); // TODO: no worky
-                clickedPayload = Text;
+                var pos = ImGui.GetCursorPos();
+
+                using (TextColor?.Push(ImGuiCol.Text))
+                    ImGuiUtils.TextUnformatted(_text);
+
+                ImGui.SetCursorPos(pos);
+                ImGui.InvisibleButton("##InvisibleButton", ComputedSize);
+                isLeftClicked = ImGui.IsItemClicked(ImGuiMouseButton.Left);
+                isMiddleClicked = ImGui.IsItemClicked(ImGuiMouseButton.Middle);
+                isRightClicked = ImGui.IsItemClicked(ImGuiMouseButton.Right);
+
+                if (isLeftClicked || isMiddleClicked || isRightClicked)
+                    clickedPayload = Text;
             }
             else
             {
                 var result = ImGuiHelpers.SeStringWrapped(_text, new SeStringDrawParams() { WrapWidth = ComputedWidth, Color = TextColor });
-                clicked = result.Clicked;
+                isLeftClicked = result.Clicked;
                 clickedPayload = (ReadOnlySeString)result.InteractedPayloadEnvelope;
             }
         }
 
         var hovered = ImGui.IsItemHovered();
-        if (hovered != _hovered)
+
+        if (hovered != IsHovered)
         {
-            _hovered = hovered;
+            IsHovered = hovered;
 
             if (hovered)
             {
@@ -130,7 +142,7 @@ public partial class TextNode : Node
             });
         }
 
-        if (clicked)
+        if (isLeftClicked)
         {
             DispatchEvent(new MouseEvent()
             {
@@ -139,20 +151,22 @@ public partial class TextNode : Node
                 Payload = clickedPayload
             });
         }
-        else if (ImGui.IsItemClicked(ImGuiMouseButton.Middle))
+        else if (isMiddleClicked)
         {
             DispatchEvent(new MouseEvent()
             {
                 EventType = MouseEventType.MouseClick,
-                Button = ImGuiMouseButton.Middle
+                Button = ImGuiMouseButton.Middle,
+                Payload = clickedPayload
             });
         }
-        else if (ImGui.IsItemClicked(ImGuiMouseButton.Right))
+        else if (isRightClicked)
         {
             DispatchEvent(new MouseEvent()
             {
                 EventType = MouseEventType.MouseClick,
-                Button = ImGuiMouseButton.Right
+                Button = ImGuiMouseButton.Right,
+                Payload = clickedPayload
             });
         }
     }

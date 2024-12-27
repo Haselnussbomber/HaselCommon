@@ -84,7 +84,7 @@ public class TeleportService : IDisposable
             8370121 or 8658159 => 70u,
 
             // Find Aetheryte in the same Map and TerritoryType
-            _ =>_aetherytes
+            _ => _aetherytes
                 .Where(entry => entry.Aetheryte.Map.RowId == level.Map.RowId && entry.Aetheryte.Territory.RowId == level.Territory.RowId)
                 .Select(entry => new
                 {

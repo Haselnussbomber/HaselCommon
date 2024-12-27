@@ -115,28 +115,25 @@ public partial class Node : INode
     {
         using var id = ImRaii.PushId(Guid.ToString());
 
-        var pos = AbsolutePosition;
+        var pos = ComputedPosition;
         var size = ComputedSize;
+        var border = ComputedBorder;
+        var padding = ComputedPadding;
 
         // to make sure ImGui knows about the size of this node
         ImGui.SetCursorPos(pos);
-        ImGui.Dummy(size + new Vector2(
-            ComputedBorderLeft + ComputedBorderRight + ComputedPaddingLeft + ComputedPaddingRight,
-            ComputedBorderTop + ComputedBorderBottom + ComputedPaddingTop + ComputedPaddingBottom));
-
+        ImGui.Dummy(size + border + padding);
         ImGui.SetCursorPos(pos);
 
-        using var scrollContainer = Overflow is YGOverflow.Scroll or YGOverflow.Hidden
-            ? ImRaii.Child(
-                Guid.ToString() + "_ScrollContainer",
-                size,
-                false,
-                Overflow == YGOverflow.Hidden
-                    ? ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse
-                    : ImGuiWindowFlags.None)
-            : null;
+        var scrollFlags = Overflow == YGOverflow.Hidden
+            ? ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse
+            : ImGuiWindowFlags.None;
 
-        if (ImGuiUtils.IsInViewport(size))
+        using var scrollContainerStyle = ImRaii.PushStyle(ImGuiStyleVar.FramePadding, Vector2.Zero);
+        using var scrollContainer = ImRaii.Child("##ScrollContainer", size + border + padding, false, scrollFlags);
+        scrollContainerStyle.Dispose();
+
+        if (ImGui.IsRectVisible(size))
         {
             DrawContent();
         }
@@ -149,7 +146,7 @@ public partial class Node : INode
             }
         }
 
-        scrollContainer?.Dispose();
+        scrollContainer.Dispose();
 
         DrawDebugHighlight();
     }

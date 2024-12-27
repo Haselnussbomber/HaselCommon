@@ -115,16 +115,6 @@ public static class ImGuiUtils
     public static void SameLineSpace()
         => ImGui.SameLine(0, ImGui.CalcTextSize(" ").X);
 
-    public static bool IsInViewport(Vector2 size)
-    {
-        var distanceX = ImGui.GetCursorPosX() - ImGui.GetScrollX();
-        var distanceY = ImGui.GetCursorPosY() - ImGui.GetScrollY();
-        return distanceX > -size.X &&
-               distanceY > -size.Y &&
-               distanceX < ImGui.GetWindowWidth() &&
-               distanceY < ImGui.GetWindowHeight();
-    }
-
     public static void PushCursor(Vector2 vec)
         => ImGui.SetCursorPos(ImGui.GetCursorPos() + vec);
 

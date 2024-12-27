@@ -19,7 +19,7 @@ public partial class Node
     {
         if (_showDebugHighlight)
         {
-            var pos = ImGui.GetWindowPos() - new Vector2(ImGui.GetScrollX(), ImGui.GetScrollY()) + AbsolutePosition;
+            var pos = ImGui.GetWindowPos() - new Vector2(ImGui.GetScrollX(), ImGui.GetScrollY()) + ComputedPosition;
 
             var text = $"{ComputedWidth}x{ComputedHeight}";
             var textSize = ImGui.CalcTextSize(text);

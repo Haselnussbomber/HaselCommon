@@ -2011,6 +2011,28 @@ public unsafe partial class Node
         }
     }
 
+    public Vector2 ComputedPadding
+    {
+        get
+        {
+            ThrowIfDisposed();
+            return new(
+                _yogaNode->GetComputedPadding(YGEdge.Left) + _yogaNode->GetComputedPadding(YGEdge.Right),
+                _yogaNode->GetComputedPadding(YGEdge.Top) + _yogaNode->GetComputedPadding(YGEdge.Bottom));
+        }
+    }
+
+    public Vector2 ComputedBorder
+    {
+        get
+        {
+            ThrowIfDisposed();
+            return new(
+                _yogaNode->GetComputedBorder(YGEdge.Left) + _yogaNode->GetComputedBorder(YGEdge.Right),
+                _yogaNode->GetComputedBorder(YGEdge.Top) + _yogaNode->GetComputedBorder(YGEdge.Bottom));
+        }
+    }
+
     public Vector2 AbsolutePosition
     {
         get

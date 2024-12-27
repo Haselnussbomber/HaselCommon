@@ -8,7 +8,6 @@ using Dalamud.Interface.Utility;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using HaselCommon.Extensions.Collections;
-using HaselCommon.Gui;
 using HaselCommon.Utils;
 using ImGuiNET;
 using Lumina.Data.Files;
@@ -35,7 +34,7 @@ public class TextureService(ITextureProvider textureProvider, IDataManager dataM
 
     public void Draw(string path, DrawInfo drawInfo)
     {
-        if (drawInfo.DrawSize.HasValue && !ImGuiUtils.IsInViewport(drawInfo.DrawSize.Value * (drawInfo.Scale ?? 1f)))
+        if (drawInfo.DrawSize.HasValue && !ImGui.IsRectVisible(drawInfo.DrawSize.Value * (drawInfo.Scale ?? 1f)))
         {
             ImGui.Dummy(drawInfo.DrawSize.Value * (drawInfo.Scale ?? 1f));
             return;
@@ -47,7 +46,7 @@ public class TextureService(ITextureProvider textureProvider, IDataManager dataM
 
     public void DrawIcon(GameIconLookup gameIconLookup, DrawInfo drawInfo)
     {
-        if (drawInfo.DrawSize.HasValue && !ImGuiUtils.IsInViewport(drawInfo.DrawSize.Value * (drawInfo.Scale ?? 1f)))
+        if (drawInfo.DrawSize.HasValue && !ImGui.IsRectVisible(drawInfo.DrawSize.Value * (drawInfo.Scale ?? 1f)))
         {
             ImGui.Dummy(drawInfo.DrawSize.Value * (drawInfo.Scale ?? 1f));
             return;

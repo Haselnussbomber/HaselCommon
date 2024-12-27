@@ -15,11 +15,38 @@ public class MouseEvent : YogaEvent
 
 public enum MouseEventType
 {
+    /// <summary>
+    /// Is fired when the cursor moves into the node.
+    /// </summary>
     MouseOver,
+
+    /// <summary>
+    /// Is fired when the cursor moves off of the node.
+    /// </summary>
     MouseOut,
+
+    /// <summary>
+    /// Is fired when the mouse is clicked on the node.
+    /// </summary>
     MouseClick,
+
+    /// <summary>
+    /// Is only fired when the cursor is moved over the node.
+    /// </summary>
     MouseMove,
+
+    /// <summary>
+    /// Is fired every frame the cursor is hovering over the node.
+    /// </summary>
     MouseHover,
+
+    /// <summary>
+    /// Is fired when a mouse button is pressed down.
+    /// </summary>
     MouseDown,
+
+    /// <summary>
+    /// Is fired when a mouse button is released.
+    /// </summary>
     MouseUp,
 }
