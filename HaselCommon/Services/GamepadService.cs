@@ -3,7 +3,7 @@ using Dalamud.Plugin.Services;
 
 namespace HaselCommon.Services;
 
-public class GamepadService(IGamepadState GamepadState, IGameConfig GameConfig)
+public class GamepadService(IGamepadState gamepadState, IGameConfig gameConfig)
 {
     // Mapping between SystemConfigOption and Dalamuds GamepadButtons
     private readonly (string, GamepadButtons)[] _mapping =
@@ -20,7 +20,7 @@ public class GamepadService(IGamepadState GamepadState, IGameConfig GameConfig)
 
         foreach (var (configOption, gamepadButton) in _mapping)
         {
-            if (!GameConfig.System.TryGet(configOption, out string value))
+            if (!gameConfig.System.TryGet(configOption, out string value))
                 continue;
 
             if (value == bindingName)
@@ -31,7 +31,7 @@ public class GamepadService(IGamepadState GamepadState, IGameConfig GameConfig)
     }
 
     public bool IsPressed(GamepadBinding binding)
-        => GamepadState.Pressed(GetButton(binding)) == 1;
+        => gamepadState.Pressed(GetButton(binding)) == 1;
 }
 
 public enum GamepadBinding

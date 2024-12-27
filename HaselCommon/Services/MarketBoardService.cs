@@ -9,8 +9,8 @@ namespace HaselCommon.Services;
 public unsafe class MarketBoardService : IDisposable
 {
     private readonly IMarketBoard _marketBoard;
-    private readonly Hook<InfoProxyItemSearch.Delegates.ProcessRequestResult>? _processRequestResultHook;
-    private readonly Hook<InfoProxyItemSearch.Delegates.EndRequest>? _endRequestHook;
+    private readonly Hook<InfoProxyItemSearch.Delegates.ProcessRequestResult> _processRequestResultHook;
+    private readonly Hook<InfoProxyItemSearch.Delegates.EndRequest> _endRequestHook;
     private readonly List<IMarketBoardItemListing> _listings = [];
 
     public delegate void ListingsStartDelegate();
@@ -34,8 +34,8 @@ public unsafe class MarketBoardService : IDisposable
             InfoProxyItemSearch.StaticVirtualTablePointer->EndRequest,
             EndRequestDetour);
 
-        _processRequestResultHook?.Enable();
-        _endRequestHook?.Enable();
+        _processRequestResultHook.Enable();
+        _endRequestHook.Enable();
 
         _marketBoard.OfferingsReceived += OnOfferingsReceived;
     }
@@ -43,8 +43,8 @@ public unsafe class MarketBoardService : IDisposable
     public void Dispose()
     {
         _marketBoard.OfferingsReceived -= OnOfferingsReceived;
-        _processRequestResultHook?.Dispose();
-        _endRequestHook?.Dispose();
+        _processRequestResultHook.Dispose();
+        _endRequestHook.Dispose();
 
         GC.SuppressFinalize(this);
     }
@@ -53,12 +53,12 @@ public unsafe class MarketBoardService : IDisposable
     {
         _listings.Clear();
         ListingsStart?.Invoke();
-        return _processRequestResultHook!.Original(infoProxy, a2, a3, a4, a5, a6, a7);
+        return _processRequestResultHook.Original(infoProxy, a2, a3, a4, a5, a6, a7);
     }
 
     private void EndRequestDetour(InfoProxyItemSearch* infoProxy)
     {
-        _endRequestHook!.Original(infoProxy);
+        _endRequestHook.Original(infoProxy);
         ListingsEnd?.Invoke(_listings);
         _listings.Clear();
     }
