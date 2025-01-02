@@ -28,17 +28,13 @@ public class ImGuiContextMenuService(TextService textService, MapService mapServ
 {
     public void Draw(string id, Action<ImGuiContextMenuBuilder> buildAction)
     {
-        using var popup = ImRaii.ContextPopupItem(id);
-        if (!popup)
-            return;
-
-        var builder = new ImGuiContextMenuBuilder(textService, mapService, itemService);
+        var builder = new ImGuiContextMenuBuilder(id, textService, mapService, itemService);
         buildAction(builder);
         builder.Draw();
     }
 }
 
-public unsafe struct ImGuiContextMenuBuilder(TextService textService, MapService mapService, ItemService itemService)
+public unsafe struct ImGuiContextMenuBuilder(string id, TextService textService, MapService mapService, ItemService itemService)
 {
     private readonly List<IImGuiContextMenuEntry> _entries = [];
 
@@ -46,6 +42,11 @@ public unsafe struct ImGuiContextMenuBuilder(TextService textService, MapService
     {
         var visibleEntries = _entries.Where(entry => entry.Visible);
         var count = visibleEntries.Count();
+        if (count == 0)
+            return;
+        using var popup = ImRaii.ContextPopupItem(id);
+        if (!popup)
+            return;
         var i = 0;
         foreach (var entry in visibleEntries)
             entry.Draw(new IterationArgs(i++, count));
