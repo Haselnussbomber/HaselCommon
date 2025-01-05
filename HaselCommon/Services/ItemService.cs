@@ -40,6 +40,7 @@ public class ItemService(IClientState clientState, ExcelService excelService, La
     private readonly Dictionary<uint, GatheringItem[]> _gatheringItemsCache = [];
     private readonly Dictionary<uint, GatheringPoint[]> _gatheringPointsCache = [];
     private readonly Dictionary<uint, FishingSpot[]> _fishingSpotsCache = [];
+    private readonly int _eventItemRowCount = excelService.GetRowCount<EventItem>();
 
     private FrozenDictionary<short, (uint Min, uint Max)>? _maxLevelRanges = null;
 
@@ -53,19 +54,19 @@ public class ItemService(IClientState clientState, ExcelService excelService, La
 
     public bool IsNormalItem(Item item) => IsNormalItem(item.RowId);
     public bool IsNormalItem(RowRef<Item> itemRef) => IsNormalItem(itemRef.RowId);
-    public bool IsNormalItem(uint itemId) => itemId is < 500_000;
+    public bool IsNormalItem(uint itemId) => itemId < 500_000;
 
     public bool IsCollectible(Item item) => IsCollectible(item.RowId);
     public bool IsCollectible(RowRef<Item> itemRef) => IsCollectible(itemRef.RowId);
-    public bool IsCollectible(uint itemId) => itemId is > 500_000 and < 1_000_000;
+    public bool IsCollectible(uint itemId) => itemId is >= 500_000 and < 1_000_000;
 
     public bool IsHighQuality(Item item) => IsHighQuality(item.RowId);
     public bool IsHighQuality(RowRef<Item> itemRef) => IsHighQuality(itemRef.RowId);
-    public bool IsHighQuality(uint itemId) => itemId is > 1_000_000 and < 2_000_000;
+    public bool IsHighQuality(uint itemId) => itemId is >= 1_000_000 and < 2_000_000;
 
     public bool IsEventItem(Item item) => IsEventItem(item.RowId);
     public bool IsEventItem(RowRef<Item> itemRef) => IsEventItem(itemRef.RowId);
-    public bool IsEventItem(uint itemId) => itemId is > 2_000_000;
+    public bool IsEventItem(uint itemId) => itemId >= 2_000_000 && itemId - 2_000_000 < _eventItemRowCount;
 
     public uint GetIconId(uint itemId)
     {
