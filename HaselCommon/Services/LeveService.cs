@@ -9,7 +9,7 @@ using Lumina.Excel.Sheets;
 
 namespace HaselCommon.Services;
 
-public class LeveService(ExcelService excelService, TextService textService)
+public class LeveService(ExcelService excelService, LanguageProvider languageProvider)
 {
     private readonly Dictionary<(uint, ClientLanguage), string> _leveNameCache = [];
     private readonly Dictionary<uint, ItemAmount[]> _requiredItemsCache = [];
@@ -133,7 +133,7 @@ public class LeveService(ExcelService excelService, TextService textService)
 
     public string GetLeveName(Leve leve)
     {
-        var key = (leve.RowId, textService.ClientLanguage);
+        var key = (leve.RowId, languageProvider.ClientLanguage);
 
         if (_leveNameCache.TryGetValue(key, out var name))
             return name;

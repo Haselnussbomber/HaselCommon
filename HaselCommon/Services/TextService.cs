@@ -1,13 +1,11 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
 using System.Reflection;
 using System.Text.Json;
 using Dalamud.Game;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Plugin;
-using HaselCommon.Extensions.Dalamud;
 using HaselCommon.Extensions.Strings;
 using HaselCommon.Graphics;
 using HaselCommon.Services.SeStringEvaluation;
@@ -20,43 +18,25 @@ using ActionSheet = Lumina.Excel.Sheets.Action;
 
 namespace HaselCommon.Services;
 
-public class TextService : IDisposable
+public class TextService
 {
     private readonly Dictionary<string, Dictionary<string, string>> _translations = [];
     private readonly ILogger<TextService> _logger;
-    private readonly IDalamudPluginInterface _pluginInterface;
-    private readonly TextDecoder _textDecoder;
+    private readonly LanguageProvider _languageProvider;
 
     private ExcelService? _excelService;
-
-    public CultureInfo CultureInfo { get; private set; }
-    public ClientLanguage ClientLanguage { get; private set; }
-    public string LanguageCode { get; private set; }
-
-    public event Action<string>? LanguageChanged;
+    private SeStringEvaluatorService? _seStringEvaluator;
 
     private ExcelService ExcelService => _excelService ??= Service.Get<ExcelService>();
+    private SeStringEvaluatorService SeStringEvaluator => _seStringEvaluator ??= Service.Get<SeStringEvaluatorService>();
 
-    public TextService(ILogger<TextService> logger, IDalamudPluginInterface pluginInterface, TextDecoder textDecoder)
+    public TextService(ILogger<TextService> logger, IDalamudPluginInterface pluginInterface, LanguageProvider languageProvider)
     {
         _logger = logger;
-        _pluginInterface = pluginInterface;
-        _textDecoder = textDecoder;
+        _languageProvider = languageProvider;
 
         LoadEmbeddedResource(GetType().Assembly, "HaselCommon.Translations.json");
-        LoadEmbeddedResource(Service.PluginAssembly, $"{_pluginInterface.InternalName}.Translations.json");
-
-        LanguageCode = _pluginInterface.UiLanguage;
-        ClientLanguage = _pluginInterface.UiLanguage.ToClientlanguage();
-        CultureInfo = GetCultureInfoFromLangCode(LanguageCode);
-
-        _pluginInterface.LanguageChanged += PluginInterface_LanguageChanged;
-    }
-
-    public void Dispose()
-    {
-        _pluginInterface.LanguageChanged -= PluginInterface_LanguageChanged;
-        GC.SuppressFinalize(this);
+        LoadEmbeddedResource(Service.PluginAssembly, $"{pluginInterface.InternalName}.Translations.json");
     }
 
     public void LoadEmbeddedResource(Assembly assembly, string filename)
@@ -77,36 +57,17 @@ public class TextService : IDisposable
             _translations.Add(key, translations[key]);
     }
 
-    private void PluginInterface_LanguageChanged(string langCode)
-    {
-        LanguageCode = _pluginInterface.UiLanguage;
-        ClientLanguage = _pluginInterface.UiLanguage.ToClientlanguage();
-        CultureInfo = GetCultureInfoFromLangCode(LanguageCode);
-        LanguageChanged?.Invoke(LanguageCode);
-    }
-
-    /// copied from <see cref="Dalamud.Localization.GetCultureInfoFromLangCode"/>
-    public static CultureInfo GetCultureInfoFromLangCode(string langCode)
-    {
-        return CultureInfo.GetCultureInfo(langCode switch
-        {
-            "tw" => "zh-hant",
-            "zh" => "zh-hans",
-            _ => langCode,
-        });
-    }
-
     public bool TryGetTranslation(string key, [MaybeNullWhen(false)] out string text)
     {
         text = default;
-        return _translations.TryGetValue(key, out var entry) && (entry.TryGetValue(LanguageCode, out text) || entry.TryGetValue("en", out text));
+        return _translations.TryGetValue(key, out var entry) && (entry.TryGetValue(_languageProvider.LanguageCode, out text) || entry.TryGetValue("en", out text));
     }
 
     public string Translate(string key)
         => TryGetTranslation(key, out var text) ? text : key;
 
     public string Translate(string key, params object?[] args)
-        => TryGetTranslation(key, out var text) ? string.Format(CultureInfo, text, args) : key;
+        => TryGetTranslation(key, out var text) ? string.Format(_languageProvider.CultureInfo, text, args) : key;
 
     public ReadOnlySeString TranslateSeString(string key, params SeStringParameter[] args)
     {
@@ -303,5 +264,11 @@ public class TextService : IDisposable
         => TitleCasedSingularNoun("Glasses", id);
 
     private string TitleCasedSingularNoun(string sheetName, uint id)
-        => CultureInfo.TextInfo.ToTitleCase(_textDecoder.ProcessNoun(ClientLanguage, sheetName, 5, (int)id).ExtractText()).StripSoftHypen();
+    {
+        return SeStringEvaluator.EvaluateFromAddon(2025, new SeStringContext()
+        {
+            Language = _languageProvider.ClientLanguage,
+            LocalParameters = [id]
+        }).ExtractText().StripSoftHypen();
+    }
 }

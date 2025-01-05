@@ -8,6 +8,7 @@ public class CommandHandler : IDisposable
 {
     private readonly CommandService _commandService;
     private readonly ICommandManager _dalamudCommandManager;
+    private readonly LanguageProvider _languageProvider;
     private readonly TextService _textService;
     private CommandInfo? _commandInfo;
     private bool _isDisposed;
@@ -22,6 +23,7 @@ public class CommandHandler : IDisposable
     public CommandHandler(
         CommandService commandService,
         ICommandManager dalamudCommandManager,
+        LanguageProvider languageProvider,
         TextService textService,
         string command,
         string helpMessageKey,
@@ -31,6 +33,7 @@ public class CommandHandler : IDisposable
     {
         _commandService = commandService;
         _dalamudCommandManager = dalamudCommandManager;
+        _languageProvider = languageProvider;
         _textService = textService;
 
         Command = command;
@@ -38,7 +41,7 @@ public class CommandHandler : IDisposable
         ShowInHelp = showInHelp;
         Handler = handler;
 
-        _textService.LanguageChanged += OnLanguageChanged;
+        _languageProvider.LanguageChanged += OnLanguageChanged;
 
         _commandService.Register(this);
 
@@ -49,7 +52,7 @@ public class CommandHandler : IDisposable
     {
         if (_isDisposed) return;
 
-        _textService.LanguageChanged -= OnLanguageChanged;
+        _languageProvider.LanguageChanged -= OnLanguageChanged;
 
         SetEnabled(false);
         _commandService.Unregister(this);

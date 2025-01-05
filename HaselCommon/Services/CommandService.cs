@@ -8,7 +8,11 @@ using Microsoft.Extensions.Logging;
 
 namespace HaselCommon.Services;
 
-public class CommandService(ILogger<CommandService> logger, ICommandManager commandManager, TextService textService) : IDisposable
+public class CommandService(
+    ILogger<CommandService> logger,
+    ICommandManager commandManager,
+    LanguageProvider languageProvider,
+    TextService textService) : IDisposable
 {
     private readonly Dictionary<string, CommandHandler> _commandHandlers = [];
 
@@ -26,6 +30,7 @@ public class CommandService(ILogger<CommandService> logger, ICommandManager comm
         return new CommandHandler(
             this,
             commandManager,
+            languageProvider,
             textService,
             attr.Command,
             attr.HelpMessageKey,

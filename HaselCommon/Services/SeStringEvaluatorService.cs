@@ -20,11 +20,11 @@ namespace HaselCommon.Services;
 public partial class SeStringEvaluatorService(
     ILogger<SeStringEvaluatorService> logger,
     ExcelService excelService,
-    TextService textService,
+    LanguageProvider languageProvider,
     TextDecoder textDecoder)
 {
     private readonly ExcelService _excelService = excelService;
-    private readonly TextService _textService = textService;
+    private readonly LanguageProvider _languageProvider = languageProvider;
     private readonly TextDecoder _textDecoder = textDecoder;
 
     public ReadOnlySeString Evaluate(byte[] str)
@@ -44,7 +44,7 @@ public partial class SeStringEvaluatorService(
 
     public ReadOnlySeString Evaluate(ReadOnlySeStringSpan str, SeStringContext context)
     {
-        context.Language ??= _textService.ClientLanguage;
+        context.Language ??= _languageProvider.ClientLanguage;
 
         foreach (var payload in str)
             ResolveStringPayload(ref context, payload);
@@ -54,7 +54,7 @@ public partial class SeStringEvaluatorService(
 
     public ReadOnlySeString EvaluateFromAddon(uint addonId, SeStringContext context)
     {
-        context.Language ??= _textService.ClientLanguage;
+        context.Language ??= _languageProvider.ClientLanguage;
 
         if (!_excelService.TryGetRow<Addon>(addonId, context.Language, out var addonRow))
             return new();
@@ -64,7 +64,7 @@ public partial class SeStringEvaluatorService(
 
     public ReadOnlySeString EvaluateFromLobby(uint lobbyId, SeStringContext context)
     {
-        context.Language ??= _textService.ClientLanguage;
+        context.Language ??= _languageProvider.ClientLanguage;
 
         if (!_excelService.TryGetRow<Lobby>(lobbyId, context.Language, out var lobbyRow))
             return new();
@@ -494,7 +494,7 @@ processSheet:
                     if (!_excelService.HasSheet(resolvedSheetName))
                         return false;
 
-                    var sheet = _excelService.GetSheet<RawRow>(context.Language ?? _textService.ClientLanguage, resolvedSheetName);
+                    var sheet = _excelService.GetSheet<RawRow>(context.Language ?? _languageProvider.ClientLanguage, resolvedSheetName);
                     if (sheet == null)
                         return false;
 
@@ -605,9 +605,9 @@ processSheet:
 
                         if (p.Type == ReadOnlySePayloadType.Text)
                         {
-                            var cultureInfo = _textService.ClientLanguage == context.Language
-                                ? _textService.CultureInfo
-                                : TextService.GetCultureInfoFromLangCode((context.Language ?? ClientLanguage.English).ToCode());
+                            var cultureInfo = _languageProvider.ClientLanguage == context.Language
+                                ? _languageProvider.CultureInfo
+                                : LanguageProvider.GetCultureInfoFromLangCode((context.Language ?? ClientLanguage.English).ToCode());
                             context.Builder.Append(cultureInfo.TextInfo.ToTitleCase(Encoding.UTF8.GetString(p.Body.ToArray())));
                             continue;
                         }

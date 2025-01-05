@@ -79,7 +79,7 @@ public static class IEnumerableExtensions
     {
         var results = new PriorityQueue<T, int>(values.Count(), new ReverseComparer<int>());
 
-        cultureInfo ??= Service.Get<TextService>().CultureInfo;
+        cultureInfo ??= Service.Get<LanguageProvider>().CultureInfo;
 
         foreach (var value in values)
         {

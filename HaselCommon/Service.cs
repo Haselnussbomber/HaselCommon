@@ -101,6 +101,7 @@ public static class Service
             .AddSingleton<MarketBoardService>()
             .AddSingleton<TeleportService>()
             .AddSingleton<TextDecoder>()
+            .AddSingleton<LanguageProvider>()
             .AddSingleton<TextService>()
             .AddSingleton<TextureService>()
             .AddSingleton<WindowManager>()

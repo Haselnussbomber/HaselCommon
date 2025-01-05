@@ -25,7 +25,7 @@ using Lumina.Text.ReadOnly;
 
 namespace HaselCommon.Services;
 
-public class ItemService(IClientState clientState, ExcelService excelService, TextService textService, SeStringEvaluatorService seStringEvaluatorService)
+public class ItemService(IClientState clientState, ExcelService excelService, LanguageProvider languageProvider, SeStringEvaluatorService seStringEvaluatorService)
 {
     private readonly Dictionary<(uint, ClientLanguage), string> _itemNameCache = [];
     private readonly Dictionary<uint, bool> _isCraftableCache = [];
@@ -86,7 +86,7 @@ public class ItemService(IClientState clientState, ExcelService excelService, Te
     public string GetItemName(RowRef<Item> itemRef) => GetItemName(itemRef.RowId);
     public string GetItemName(uint itemId, ClientLanguage? language = null)
     {
-        var effectiveLanguage = language ?? textService.ClientLanguage;
+        var effectiveLanguage = language ?? languageProvider.ClientLanguage;
         var key = (itemId, effectiveLanguage);
 
         if (_itemNameCache.TryGetValue(key, out var name))
