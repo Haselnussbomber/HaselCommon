@@ -1,8 +1,7 @@
-using System.Collections.Generic;
-using Dalamud.Game;
+using System.Collections.Concurrent;
 using Dalamud.Plugin.Services;
 using Dalamud.Utility;
-using HaselCommon.Extensions.Strings;
+using Lumina.Data;
 using Lumina.Excel;
 using Lumina.Text;
 using Lumina.Text.ReadOnly;
@@ -59,18 +58,116 @@ Attributive sheet:
     Unknown40 = ?
 */
 
+public enum JapaneseArticleType
+{
+    /// <summary>
+    /// Near listener (それら).
+    /// </summary>
+    NearListener = 1,
+
+    /// <summary>
+    /// Distant from both speaker and listener (あれら).
+    /// </summary>
+    Distant = 2,
+}
+
+public enum EnglishArticleType
+{
+    /// <summary>
+    /// Indefinite article (a, an).
+    /// </summary>
+    Indefinite = 1,
+
+    /// <summary>
+    /// Definite article (the).
+    /// </summary>
+    Definite = 2,
+}
+
+public enum GermanArticleType
+{
+    /// <summary>
+    /// Indefinite article (ein, eine, etc.).
+    /// </summary>
+    Indefinite = 1,
+
+    /// <summary>
+    /// Definite article (der, die, das, etc.).
+    /// </summary>
+    Definite = 2,
+
+    /// <summary>
+    /// Possessive article (dein, deine, etc.).
+    /// </summary>
+    Possessive = 3,
+
+    /// <summary>
+    /// Quantitative article (kein, keine, etc.).
+    /// </summary>
+    Quantitative = 4,
+
+    /// <summary>
+    /// No article.
+    /// </summary>
+    NoArticle = 5,
+
+    /// <summary>
+    /// Demonstrative article (dieser, diese, etc.).
+    /// </summary>
+    Demonstrative = 6,
+}
+
+public enum FrenchArticleType
+{
+    /// <summary>
+    /// Indefinite article (une, des).
+    /// </summary>
+    Indefinite = 1,
+
+    /// <summary>
+    /// Definite article (le, la, les).
+    /// </summary>
+    Definite = 2,
+
+    /// <summary>
+    /// Possessive article (mon, mes).
+    /// </summary>
+    PossessiveFirstPerson = 3,
+
+    /// <summary>
+    /// Possessive article (ton, tes).
+    /// </summary>
+    PossessiveSecondPerson = 4,
+
+    /// <summary>
+    /// Possessive article (son, ses).
+    /// </summary>
+    PossessiveThirdPerson = 5,
+}
+
+/// <summary>
+/// Provides functionality to process texts from sheets containing grammatical placeholders.
+/// </summary>
+/// <param name="logger">An instance of <see cref="ILogger"/> used for logging warnings.</param>
+/// <param name="excelModule">An instance of <see cref="ExcelModule"/> providing access to sheet data.</param>
 public class NounProcessor(ILogger<NounProcessor> logger, IDataManager dataManager)
 {
-    private readonly ReadOnlySeString _empty = default;
-    private readonly Dictionary<(ClientLanguage Language, string SheetName, int RowId, int Amount, int Person, int Case), ReadOnlySeString> _cache = [];
+    private readonly ConcurrentDictionary<(
+        Language Language,
+        string SheetName,
+        uint RowId,
+        int Quantity,
+        int ArticleType,
+        int GrammaticalCase
+    ), ReadOnlySeString> _cache = [];
 
-    // column names from ExdSchema
+    // column names from ExdSchema, most likely incorrect
     private const int SingularColumnIdx = 0;
     private const int AdjectiveColumnIdx = 1;
     private const int PluralColumnIdx = 2;
     private const int PossessivePronounColumnIdx = 3;
     private const int StartsWithVowelColumnIdx = 4;
-    private const int Unknown5ColumnIdx = 5;
+    private const int Unknown5ColumnIdx = 5; // probably used in Chinese texts
     private const int PronounColumnIdx = 6;
     private const int ArticleColumnIdx = 7;
 
@@ -81,42 +178,45 @@ public class NounProcessor(ILogger<NounProcessor> logger, IDataManager dataManag
     // [p] = plural
     // [pa] = ?
 
-    // SeString macro parameters:
-    // <XXnoun(SheetName,Person,RowId,Amount,Case[,UnkInt5])>
-    // UnkInt5 used in EN/FR/CH* (technically only in chinese, maybe for script variant?)
-    // made linkMarker from the noun ctors optional, since it's processed in the pronoun module
-    public ReadOnlySeString ProcessNoun(ClientLanguage language, string sheetName, int person, int rowId, int amount = 1, int grammaticalCase = 1, int unkInt5 = 1, ReadOnlySeString linkMarker = default)
+    /// <summary>
+    /// Processes a specific row from a sheet and generates a formatted string based on grammatical and language-specific rules.
+    /// </summary>
+    /// <param name="language">The language of the sheet to be processed.</param>
+    /// <param name="sheetName">The name of the sheet containing the row to process.</param>
+    /// <param name="rowId">The row id within the sheet to process.</param>
+    /// <param name="quantity">The quantity of the entity (default is 1). Used to determine grammatical number (e.g., singular or plural).</param>
+    /// <param name="person">The grammatical person. Mainly used for German and French texts. 5 is neutral.</param>
+    /// <param name="grammaticalCase">The grammatical case (e.g., Nominative, Genitive, Dative, Accusative) used for German texts (default is 0).</param>
+    /// <param name="linkMarker">An optional string that is placed in front of the text that should be linked, such as item names (default is an empty string; the game uses "//").</param>
+    /// <returns>A ReadOnlySeString representing the processed text.</returns>
+    public ReadOnlySeString ProcessRow(
+        string sheetName,
+        uint rowId,
+        Language? language = null,
+        int quantity = 1,
+        int articleType = 1,
+        int grammaticalCase = 0,
+        ReadOnlySeString linkMarker = default)
     {
-        grammaticalCase--;
+        var lang = language ?? dataManager.GameData.Options.DefaultExcelLanguage;
 
-        if (grammaticalCase > 5 || (language != ClientLanguage.German && grammaticalCase != 0))
-            return _empty;
-
-        var key = (language, sheetName, rowId, amount, person, grammaticalCase);
-        if (_cache.TryGetValue(key, out var value))
+        if (_cache.TryGetValue((lang, sheetName, rowId, quantity, articleType, grammaticalCase), out var value))
             return value;
 
-        var attributiveSheet = dataManager.GameData.Excel.GetSheet<RawRow>(language.ToLumina(), "Attributive");
-        if (attributiveSheet == null)
-        {
-            logger.LogWarning("Sheet Attributive not found");
-            return _empty;
-        }
-
-        var sheet = dataManager.GameData.Excel.GetSheet<RawRow>(language.ToLumina(), sheetName);
+        var sheet = dataManager.Excel.GetSheet<RawRow>(lang, sheetName);
         if (sheet == null)
         {
             logger.LogWarning("Sheet {SheetName} not found", sheetName);
-            return _empty;
+            return default;
         }
 
-        if (!sheet.HasRow((uint)rowId))
+        if (!sheet.HasRow(rowId))
         {
             logger.LogWarning("Sheet {SheetName} does not contain row #{RowId}", sheetName, rowId);
-            return _empty;
+            return default;
         }
 
-        var row = sheet.GetRow((uint)rowId);
+        var row = sheet.GetRow(rowId);
 
         // see "E8 ?? ?? ?? ?? 44 8B 6B 08"
         var columnOffset = sheetName switch
@@ -129,38 +229,95 @@ public class NounProcessor(ILogger<NounProcessor> logger, IDataManager dataManag
             _ => 0
         };
 
-        var output = language switch
+        return ProcessRow(sheetName, row, lang, columnOffset, quantity, articleType, grammaticalCase, linkMarker);
+    }
+
+    /// <summary>
+    /// Processes a specific row and generates a formatted string based on grammatical and language-specific rules.
+    /// </summary>
+    /// <param name="sheetName">The name of the sheet containing the row to process. Used for caching.</param>
+    /// <param name="row">The row to process.</param>
+    /// <param name="language">The language of the row to be processed. If null, <see cref="LuminaOptions.DefaultExcelLanguage"/> is used.</param>
+    /// <param name="columnOffset">The starting position offset for the text-related columns within the row.</param>
+    /// <param name="quantity">The quantity of the entity, used to determine grammatical number (e.g., singular or plural; default is 1).</param>
+    /// <param name="person">The grammatical person. Mainly used for German and French texts. 5 is neutral.</param>
+    /// <param name="grammaticalCase">The grammatical case (e.g., Nominative, Genitive, Dative, Accusative) used for German texts (default is 0).</param>
+    /// <param name="linkMarker">An optional string that is placed in front of the text that should be linked, such as item names (default is an empty string; the game uses "//").</param>
+    /// <returns>A ReadOnlySeString representing the processed text.</returns>
+    public ReadOnlySeString ProcessRow(
+        string sheetName,
+        RawRow row,
+        Language? language = null,
+        int columnOffset = 0,
+        int quantity = 1,
+        int articleType = 1,
+        int grammaticalCase = 0,
+        ReadOnlySeString linkMarker = default)
+    {
+        var lang = language ?? dataManager.GameData.Options.DefaultExcelLanguage;
+
+        if ((short)grammaticalCase < 0 || (short)grammaticalCase > 5)
+            return default;
+
+        var key = (lang, sheetName, row.RowId, quantity, articleType, grammaticalCase);
+
+        if (_cache.TryGetValue(key, out var value))
+            return value;
+
+        var attributiveSheet = dataManager.Excel.GetSheet<RawRow>(lang, "Attributive");
+        if (attributiveSheet == null)
         {
-            ClientLanguage.Japanese => ResolveNounJa(amount, person, attributiveSheet, row, linkMarker),
-            ClientLanguage.English => ResolveNounEn(amount, person, attributiveSheet, row, columnOffset, linkMarker),
-            ClientLanguage.German => ResolveNounDe(amount, person, grammaticalCase, attributiveSheet, row, columnOffset, linkMarker),
-            ClientLanguage.French => ResolveNounFr(amount, person, attributiveSheet, row, columnOffset, linkMarker),
-            _ => _empty
+            logger.LogWarning("Sheet Attributive not found");
+            return default;
+        }
+
+        var output = lang switch
+        {
+            Language.Japanese => ResolveNounJa(row, quantity, (JapaneseArticleType)articleType, attributiveSheet, linkMarker, columnOffset),
+            Language.English => ResolveNounEn(row, quantity, (EnglishArticleType)articleType, attributiveSheet, linkMarker, columnOffset),
+            Language.German => ResolveNounDe(row, quantity, (GermanArticleType)articleType, attributiveSheet, linkMarker, columnOffset, (ushort)grammaticalCase),
+            Language.French => ResolveNounFr(row, quantity, (FrenchArticleType)articleType, attributiveSheet, linkMarker, columnOffset),
+            _ => default
         };
 
-        _cache.Add(key, output);
+        _cache.TryAdd(key, output);
+
         return output;
     }
 
-    // Component::Text::Localize::NounJa.Resolve
-    private static ReadOnlySeString ResolveNounJa(int amount, int person, ExcelSheet<RawRow> attributiveSheet, RawRow row, ReadOnlySeString linkMarker)
+    /// <summary>
+    /// Resolves noun placeholders in Japanese text.
+    /// </summary>
+    /// <param name="row">The row containing the unprocessed text.</param>
+    /// <param name="quantity">The grammatical number representing the quantity.</param>
+    /// <param name="person">The grammatical person (e.g., 1 for first person, 2 for second person).</param>
+    /// <param name="attributiveSheet">The sheet containing the data used for resolving the noun.</param>
+    /// <param name="linkMarker">An optional prefix string for linked text, such as item names.</param>
+    /// <param name="columnOffset">The starting position offset for the text-related columns within the row.</param>
+    /// <returns>A ReadOnlySeString representing the processed text.</returns>
+    /// <remarks>
+    /// This is a C# implementation of Component::Text::Localize::NounJa.Resolve.
+    /// </remarks>
+    private static ReadOnlySeString ResolveNounJa(RawRow row, int quantity, JapaneseArticleType articleType, ExcelSheet<RawRow> attributiveSheet, ReadOnlySeString linkMarker, int columnOffset)
     {
         var builder = SeStringBuilder.SharedPool.Get();
 
         // Ko-So-A-Do
-        var ksad = attributiveSheet.GetRow((uint)person).ReadStringColumn(amount > 1 ? 1 : 0);
+        var ksad = attributiveSheet.GetRow((uint)articleType).ReadStringColumn(quantity > 1 ? 1 : 0);
         if (!ksad.IsEmpty)
         {
             builder.Append(ksad);
 
-            if (amount > 1)
-                builder.ReplaceText("[n]"u8, ReadOnlySeString.FromText(amount.ToString()));
+            if (quantity > 1)
+            {
+                ReplaceText(ref builder, "[n]"u8, ReadOnlySeString.FromText(quantity.ToString()));
+            }
         }
 
         if (!linkMarker.IsEmpty)
             builder.Append(linkMarker);
 
-        var text = row.ReadStringColumn(0);
+        var text = row.ReadStringColumn(columnOffset);
         if (!text.IsEmpty)
             builder.Append(text);
 
@@ -169,8 +326,20 @@ public class NounProcessor(ILogger<NounProcessor> logger, IDataManager dataManag
         return ross;
     }
 
-    // Component::Text::Localize::NounEn.Resolve
-    private static ReadOnlySeString ResolveNounEn(int amount, int person, ExcelSheet<RawRow> attributiveSheet, RawRow row, int columnOffset, ReadOnlySeString linkMarker)
+    /// <summary>
+    /// Resolves noun placeholders in English text.
+    /// </summary>
+    /// <param name="row">The row containing the unprocessed text.</param>
+    /// <param name="quantity">The grammatical number representing the quantity.</param>
+    /// <param name="person">The grammatical person (e.g., 1 for first person, 2 for second person).</param>
+    /// <param name="attributiveSheet">The sheet containing the data used for resolving the noun.</param>
+    /// <param name="linkMarker">An optional prefix string for linked text, such as item names.</param>
+    /// <param name="columnOffset">The starting position offset for the text-related columns within the row.</param>
+    /// <returns>A ReadOnlySeString representing the processed text.</returns>
+    /// <remarks>
+    /// This is a C# implementation of Component::Text::Localize::NounEn.Resolve.
+    /// </remarks>
+    public static ReadOnlySeString ResolveNounEn(RawRow row, int quantity, EnglishArticleType articleType, ExcelSheet<RawRow> attributiveSheet, ReadOnlySeString linkMarker, int columnOffset)
     {
         /*
           a1->Offsets[0] = SingularColumnIdx
@@ -190,8 +359,8 @@ public class NounProcessor(ILogger<NounProcessor> logger, IDataManager dataManag
             var startsWithVowel = startsWithVowelColumn >= 0 ? row.ReadInt8Column(startsWithVowelColumn) : ~startsWithVowelColumn;
 
             var articleColumn = startsWithVowel + 2 * (startsWithVowel + 1);
-            var grammaticalNumberColumnOffset = amount == 1 ? SingularColumnIdx : PluralColumnIdx;
-            var article = attributiveSheet.GetRow((uint)person).ReadStringColumn(articleColumn + grammaticalNumberColumnOffset);
+            var grammaticalNumberColumnOffset = quantity == 1 ? SingularColumnIdx : PluralColumnIdx;
+            var article = attributiveSheet.GetRow((uint)articleType).ReadStringColumn(articleColumn + grammaticalNumberColumnOffset);
             if (!article.IsEmpty)
                 builder.Append(article);
 
@@ -199,19 +368,32 @@ public class NounProcessor(ILogger<NounProcessor> logger, IDataManager dataManag
                 builder.Append(linkMarker);
         }
 
-        var text = row.ReadStringColumn(columnOffset + (amount == 1 ? SingularColumnIdx : PluralColumnIdx));
+        var text = row.ReadStringColumn(columnOffset + (quantity == 1 ? SingularColumnIdx : PluralColumnIdx));
         if (!text.IsEmpty)
             builder.Append(text);
 
-        builder.ReplaceText("[n]"u8, ReadOnlySeString.FromText(amount.ToString()));
+        ReplaceText(ref builder, "[n]"u8, ReadOnlySeString.FromText(quantity.ToString()));
 
         var ross = builder.ToReadOnlySeString();
         SeStringBuilder.SharedPool.Return(builder);
         return ross;
     }
 
-    // Component::Text::Localize::NounDe.Resolve
-    private static ReadOnlySeString ResolveNounDe(int amount, int person, int grammaticalCase, ExcelSheet<RawRow> attributiveSheet, RawRow row, int columnOffset, ReadOnlySeString linkMarker)
+    /// <summary>
+    /// Resolves noun placeholders in German text.
+    /// </summary>
+    /// <param name="row">The row containing the unprocessed text.</param>
+    /// <param name="quantity">The grammatical number representing the quantity.</param>
+    /// <param name="person">The grammatical person (e.g., 1 for first person, 2 for second person).</param>
+    /// <param name="attributiveSheet">The sheet containing the data used for resolving the noun.</param>
+    /// <param name="linkMarker">An optional prefix string for linked text, such as item names.</param>
+    /// <param name="columnOffset">The starting position offset for the text-related columns within the row.</param>
+    /// <param name="grammaticalCase">The grammatical case (e.g., Nominative, Genitive, Dative, Accusative; default is 0).</param>
+    /// <returns>A ReadOnlySeString representing the processed text.</returns>
+    /// <remarks>
+    /// This is a C# implementation of Component::Text::Localize::NounDe.Resolve.
+    /// </remarks>
+    public static ReadOnlySeString ResolveNounDe(RawRow row, int quantity, GermanArticleType articleType, ExcelSheet<RawRow> attributiveSheet, ReadOnlySeString linkMarker, int columnOffset, ushort grammaticalCase)
     {
         /*
              a1->Offsets[0] = SingularColumnIdx
@@ -234,7 +416,7 @@ public class NounProcessor(ILogger<NounProcessor> logger, IDataManager dataManag
         if (readColumnDirectly != 0)
         {
             builder.Append(row.ReadStringColumn(grammaticalCase - 0x10000));
-            builder.ReplaceText("[n]"u8, ReadOnlySeString.FromText(amount.ToString()));
+            ReplaceText(ref builder, "[n]"u8, ReadOnlySeString.FromText(quantity.ToString()));
 
             ross = builder.ToReadOnlySeString();
             SeStringBuilder.SharedPool.Return(builder);
@@ -249,21 +431,21 @@ public class NounProcessor(ILogger<NounProcessor> logger, IDataManager dataManag
 
         var caseColumnOffset = 4 * grammaticalCase + 8;
 
-        var caseRowOffsetColumn = columnOffset + (amount == 1 ? AdjectiveColumnIdx : PossessivePronounColumnIdx);
+        var caseRowOffsetColumn = columnOffset + (quantity == 1 ? AdjectiveColumnIdx : PossessivePronounColumnIdx);
         var caseRowOffset = caseRowOffsetColumn >= 0 ? row.ReadInt8Column(caseRowOffsetColumn) : (sbyte)~caseRowOffsetColumn;
 
-        if (amount != 1)
+        if (quantity != 1)
             genderIndex = 3;
 
         var has_t = false;
-        var text = row.ReadStringColumn(columnOffset + (amount == 1 ? SingularColumnIdx : PluralColumnIdx));
+        var text = row.ReadStringColumn(columnOffset + (quantity == 1 ? SingularColumnIdx : PluralColumnIdx));
         if (!text.IsEmpty)
         {
-            has_t = text.Contains("[t]"u8);
+            has_t = ContainsText(text, "[t]"u8);
 
             if (articleIndex == 0 && !has_t)
             {
-                var grammaticalGender = attributiveSheet.GetRow((uint)person).ReadStringColumn(caseColumnOffset + genderIndex); // Genus
+                var grammaticalGender = attributiveSheet.GetRow((uint)articleType).ReadStringColumn(caseColumnOffset + genderIndex); // Genus
                 if (!grammaticalGender.IsEmpty)
                     builder.Append(grammaticalGender);
             }
@@ -274,44 +456,57 @@ public class NounProcessor(ILogger<NounProcessor> logger, IDataManager dataManag
             builder.Append(text);
 
             var plural = attributiveSheet.GetRow((uint)(caseRowOffset + 26)).ReadStringColumn(caseColumnOffset + genderIndex);
-            if (builder.Contains("[p]"u8))
-                builder.ReplaceText("[p]"u8, plural);
+            if (ContainsText(builder, "[p]"u8))
+                ReplaceText(ref builder, "[p]"u8, plural);
             else
                 builder.Append(plural);
 
             if (has_t)
             {
                 var article = attributiveSheet.GetRow(39).ReadStringColumn(caseColumnOffset + genderIndex); // Definiter Artikel
-                builder.ReplaceText("[t]"u8, article);
+                ReplaceText(ref builder, "[t]"u8, article);
             }
         }
 
         var pa = attributiveSheet.GetRow(24).ReadStringColumn(caseColumnOffset + genderIndex);
-        builder.ReplaceText("[pa]"u8, pa);
+        ReplaceText(ref builder, "[pa]"u8, pa);
 
         RawRow declensionRow;
 
-        if (person is 2 or 6 || has_t)
+        if (articleType is GermanArticleType.Possessive or GermanArticleType.Demonstrative || has_t)
             declensionRow = attributiveSheet.GetRow(25); // Schwache Flexion eines Adjektivs?!
-        else if (person == 5)
+        else if (articleType == GermanArticleType.NoArticle)
             declensionRow = attributiveSheet.GetRow(38); // Starke Deklination
-        else if (person == 1)
+        else if (articleType == GermanArticleType.Definite)
             declensionRow = attributiveSheet.GetRow(37); // Gemischte Deklination
         else
             declensionRow = attributiveSheet.GetRow(26); // Starke Flexion eines Artikels?!
 
         var declension = declensionRow.ReadStringColumn(caseColumnOffset + genderIndex);
-        builder.ReplaceText("[a]"u8, declension);
+        ReplaceText(ref builder, "[a]"u8, declension);
 
-        builder.ReplaceText("[n]"u8, ReadOnlySeString.FromText(amount.ToString()));
+        ReplaceText(ref builder, "[n]"u8, ReadOnlySeString.FromText(quantity.ToString()));
 
         ross = builder.ToReadOnlySeString();
         SeStringBuilder.SharedPool.Return(builder);
         return ross;
     }
 
-    // Component::Text::Localize::NounFr.Resolve
-    private static ReadOnlySeString ResolveNounFr(int amount, int person, ExcelSheet<RawRow> attributiveSheet, RawRow row, int columnOffset, ReadOnlySeString linkMarker)
+    // Component::Text::Localize::.Resolve
+    /// <summary>
+    /// Resolves noun placeholders in French text.
+    /// </summary>
+    /// <param name="row">The row containing the unprocessed text.</param>
+    /// <param name="quantity">The grammatical number representing the quantity.</param>
+    /// <param name="person">The grammatical person (e.g., 1 for first person, 2 for second person).</param>
+    /// <param name="attributiveSheet">The sheet containing the data used for resolving the noun.</param>
+    /// <param name="linkMarker">An optional prefix string for linked text, such as item names.</param>
+    /// <param name="columnOffset">The starting position offset for the text-related columns within the row.</param>
+    /// <returns>A ReadOnlySeString representing the processed text.</returns>
+    /// <remarks>
+    /// This is a C# implementation of Component::Text::Localize::NounFr.Resolve.
+    /// </remarks>
+    public static ReadOnlySeString ResolveNounFr(RawRow row, int quantity, FrenchArticleType articleType, ExcelSheet<RawRow> attributiveSheet, ReadOnlySeString linkMarker, int columnOffset)
     {
         /*
             a1->Offsets[0] = SingularColumnIdx
@@ -338,19 +533,19 @@ public class NounProcessor(ILogger<NounProcessor> logger, IDataManager dataManag
 
         if (article != 0)
         {
-            var v21 = attributiveSheet.GetRow((uint)person).ReadStringColumn(v20);
+            var v21 = attributiveSheet.GetRow((uint)articleType).ReadStringColumn(v20);
             if (!v21.IsEmpty)
                 builder.Append(v21);
 
             if (!linkMarker.IsEmpty)
                 builder.Append(linkMarker);
 
-            var text = row.ReadStringColumn(columnOffset + (amount <= 1 ? SingularColumnIdx : PluralColumnIdx));
+            var text = row.ReadStringColumn(columnOffset + (quantity <= 1 ? SingularColumnIdx : PluralColumnIdx));
             if (!text.IsEmpty)
                 builder.Append(text);
 
-            if (amount <= 1)
-                builder.ReplaceText("[n]"u8, ReadOnlySeString.FromText(amount.ToString()));
+            if (quantity <= 1)
+                ReplaceText(ref builder, "[n]"u8, ReadOnlySeString.FromText(quantity.ToString()));
 
             ross = builder.ToReadOnlySeString();
             SeStringBuilder.SharedPool.Return(builder);
@@ -358,9 +553,9 @@ public class NounProcessor(ILogger<NounProcessor> logger, IDataManager dataManag
         }
 
         var v17 = row.ReadInt8Column(columnOffset + Unknown5ColumnIdx);
-        if (v17 != 0 && (amount > 1 || v17 == 2))
+        if (v17 != 0 && (quantity > 1 || v17 == 2))
         {
-            var v29 = attributiveSheet.GetRow((uint)person).ReadStringColumn(v20 + 2);
+            var v29 = attributiveSheet.GetRow((uint)articleType).ReadStringColumn(v20 + 2);
             if (!v29.IsEmpty)
             {
                 builder.Append(v29);
@@ -375,7 +570,7 @@ public class NounProcessor(ILogger<NounProcessor> logger, IDataManager dataManag
         }
         else
         {
-            var v27 = attributiveSheet.GetRow((uint)person).ReadStringColumn(v20 + (v17 != 0 ? 1 : 3));
+            var v27 = attributiveSheet.GetRow((uint)articleType).ReadStringColumn(v20 + (v17 != 0 ? 1 : 3));
             if (!v27.IsEmpty)
                 builder.Append(v27);
 
@@ -387,10 +582,92 @@ public class NounProcessor(ILogger<NounProcessor> logger, IDataManager dataManag
                 builder.Append(text);
         }
 
-        builder.ReplaceText("[n]"u8, ReadOnlySeString.FromText(amount.ToString()));
+        ReplaceText(ref builder, "[n]"u8, ReadOnlySeString.FromText(quantity.ToString()));
 
         ross = builder.ToReadOnlySeString();
         SeStringBuilder.SharedPool.Return(builder);
         return ross;
+    }
+
+    private static bool ContainsText(ReadOnlySeString ross, ReadOnlySpan<byte> needle)
+    {
+        foreach (var payload in ross)
+        {
+            if (payload.Type != ReadOnlySePayloadType.Text)
+                continue;
+
+            if (payload.Body.Span.IndexOf(needle) != -1)
+                return true;
+        }
+
+        return false;
+    }
+
+    private static bool ContainsText(SeStringBuilder builder, ReadOnlySpan<byte> needle)
+    {
+        return ContainsText(builder.ToReadOnlySeString(), needle);
+    }
+
+    private static ReadOnlySeString ReplaceText(ReadOnlySeString ross, ReadOnlySpan<byte> toFind, ReadOnlySpan<byte> replacement)
+    {
+        if (ross.IsEmpty)
+            return ross;
+
+        var sb = SeStringBuilder.SharedPool.Get();
+
+        foreach (var payload in ross)
+        {
+            if (payload.Type == ReadOnlySePayloadType.Invalid)
+                continue;
+
+            if (payload.Type != ReadOnlySePayloadType.Text)
+            {
+                sb.Append(payload);
+                continue;
+            }
+
+            var index = payload.Body.Span.IndexOf(toFind);
+            if (index == -1)
+            {
+                sb.Append(payload);
+                continue;
+            }
+
+            var lastIndex = 0;
+            while (index != -1)
+            {
+                sb.Append(payload.Body.Span[lastIndex..index]);
+
+                if (!replacement.IsEmpty)
+                {
+                    sb.Append(replacement);
+                }
+
+                lastIndex = index + toFind.Length;
+                index = payload.Body.Span[lastIndex..].IndexOf(toFind);
+
+                if (index != -1)
+                    index += lastIndex;
+            }
+
+            sb.Append(payload.Body.Span[lastIndex..]);
+        }
+
+        var output = sb.ToReadOnlySeString();
+        SeStringBuilder.SharedPool.Return(sb);
+        return output;
+    }
+
+    private static void ReplaceText(ref SeStringBuilder builder, ReadOnlySpan<byte> toFind, ReadOnlySpan<byte> replacement)
+    {
+        if (toFind.IsEmpty)
+            return;
+
+        var str = builder.ToReadOnlySeString();
+        if (str.IsEmpty)
+            return;
+
+        builder.Clear();
+        builder.Append(ReplaceText(str, toFind, replacement));
     }
 }

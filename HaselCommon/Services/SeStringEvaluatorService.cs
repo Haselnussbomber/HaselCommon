@@ -19,8 +19,8 @@ namespace HaselCommon.Services;
 /// <summary>Evaluator for SeStrings.</summary>
 public partial class SeStringEvaluatorService(
     ILogger<SeStringEvaluatorService> logger,
-    ExcelService excelService,
     LanguageProvider languageProvider,
+    ExcelService excelService,
     NounProcessor nounProcessor)
 {
     private readonly ExcelService _excelService = excelService;
@@ -934,7 +934,6 @@ invalidLevelPos:
     {
         var eAmountVal = 1;
         var eCaseVal = 1;
-        var eUnkInt5Val = 1;
 
         var enu = payload.GetEnumerator();
         if (!enu.MoveNext())
@@ -945,20 +944,20 @@ invalidLevelPos:
         if (!eSheetName.TryGetString(out var eSheetNameStr))
             return false;
 
-        var resolvedSheetName = Evaluate(eSheetNameStr, context with { Builder = new() }).ExtractText();
+        var sheetName = Evaluate(eSheetNameStr, context with { Builder = new() }).ExtractText();
 
         if (!enu.MoveNext())
             return false;
 
-        var ePerson = enu.Current;
-        if (!TryResolveInt(ref context, ePerson, out var ePersonVal))
+        var eArticleType = enu.Current;
+        if (!TryResolveInt(ref context, eArticleType, out var eArticleTypeVal))
             return false;
 
         if (!enu.MoveNext())
             return false;
 
         var eRowId = enu.Current;
-        if (!TryResolveInt(ref context, eRowId, out var eRowIdVal))
+        if (!TryResolveUInt(ref context, eRowId, out var eRowIdVal))
             return false;
 
         if (!enu.MoveNext())
@@ -978,12 +977,14 @@ invalidLevelPos:
         if (!enu.MoveNext())
             goto decode;
 
-        var eUnkInt5 = enu.Current;
-        if (!TryResolveInt(ref context, eUnkInt5, out eUnkInt5Val))
-            return false;
+/* For Chinese texts?
+var eUnkInt5 = enu.Current;
+if (!TryResolveInt(ref context, eUnkInt5, out eUnkInt5Val))
+    return false;
+*/
 
 decode:
-        context.Builder.Append(_nounProcessor.ProcessNoun(language, resolvedSheetName, ePersonVal, eRowIdVal, eAmountVal, eCaseVal, eUnkInt5Val));
+        context.Builder.Append(_nounProcessor.ProcessRow(sheetName, eRowIdVal, language.ToLumina(), eAmountVal, eArticleTypeVal, eCaseVal - 1));
 
         return true;
     }
