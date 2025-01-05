@@ -960,6 +960,10 @@ invalidLevelPos:
         if (!TryResolveUInt(ref context, eRowId, out var eRowIdVal))
             return false;
 
+        ResolveSheetRedirect(ref sheetName, ref eRowIdVal);
+        if (string.IsNullOrEmpty(sheetName))
+            return false;
+
         if (!enu.MoveNext())
             goto decode;
 
@@ -987,5 +991,166 @@ decode:
         context.Builder.Append(_nounProcessor.ProcessRow(sheetName, eRowIdVal, language.ToLumina(), eAmountVal, eArticleTypeVal, eCaseVal - 1));
 
         return true;
+    }
+
+    private static readonly string[] ActStrSheetNames = [
+        "Trait",
+        "Action",
+        "Item",
+        "EventItem",
+        "EventAction",
+        "GeneralAction",
+        "BuddyAction",
+        "MainCommand",
+        "Companion",
+        "CraftAction",
+        "Action",
+        "PetAction",
+        "CompanyAction",
+        "Mount",
+        string.Empty,
+        string.Empty,
+        string.Empty,
+        string.Empty,
+        string.Empty,
+        "BgcArmyAction",
+        "Ornament",
+    ];
+
+    private static readonly string[] ObjStrSheetNames = [
+        "BNpcName",
+        "ENpcResident",
+        "Treasure",
+        "Aetheryte",
+        "GatheringPointName",
+        "EObjName",
+        "Mount",
+        "Companion",
+        string.Empty,
+        string.Empty,
+        "Item",
+    ];
+
+    public void ResolveSheetRedirect(ref string sheetName, ref uint rowId, ushort flags = 0xFFFF)
+    {
+        // TODO: contribute after thinking about it
+        // "8D 41 FE 83 F8 0C 77 4D"
+        // ToObjStrId(ObjectKind, id)
+
+        // "E8 ?? ?? ?? ?? 44 8B E8 A8 10"
+        // uint ResolveSheetRedirect(
+        //    Client::UI::Misc::RaptureTextModule* a1,
+        //    Client::System::String::Utf8String* sheetName,
+        //    uint* rowId,
+        //    int* flags)
+
+        if (sheetName is "Item" or "ItemHQ" or "ItemMP") // MP means Masterpiece
+        {
+            if (rowId is > 500_000 and < 1_000_000) // Collectible
+            {
+                sheetName = "Item";
+                rowId -= 500_000;
+            }
+            else if (rowId - 2_000_000 < _excelService.GetRowCount<EventItem>()) // EventItem
+            {
+                sheetName = "EventItem";
+            }
+            else if (rowId >= 1_000_000) // HighQuality
+            {
+                rowId -= 1_000_000;
+            }
+            else
+            {
+                sheetName = "Item";
+            }
+        }
+        else if (sheetName == "ActStr")
+        {
+            var index = rowId / 1000000;
+
+            if (index >= 0 && index < ActStrSheetNames.Length)
+                sheetName = ActStrSheetNames[index];
+
+            rowId %= 1000000;
+        }
+        else if (sheetName == "ObjStr")
+        {
+            var index = rowId / 1000000;
+
+            if (index >= 0 && index < ObjStrSheetNames.Length)
+                sheetName = ObjStrSheetNames[index];
+
+            rowId %= 1000000;
+
+            if (index == 0) // BNpcName
+            {
+                if (rowId >= 100000)
+                    rowId += 900000;
+            }
+            else if (index == 1) // ENpcResident
+            {
+                rowId += 1000000;
+            }
+            else if (index == 2) // Treasure
+            {
+                if (_excelService.TryGetRow<Treasure>(rowId, out var treasureRow) && treasureRow.Unknown0.IsEmpty)
+                    rowId = 0; // defaulting to "Treasure Coffer"
+            }
+            else if (index == 3) // Aetheryte
+            {
+                rowId = _excelService.TryGetRow<Aetheryte>(rowId, out var aetheryteRow) && aetheryteRow.IsAetheryte
+                    ? 0u // "Aetheryte"
+                    : 1; // "Aethernet Shard"
+            }
+            else if (index == 5) // EObjName
+            {
+                rowId += 2000000;
+            }
+        }
+        else if (sheetName == "EObj" && (flags <= 7 || flags == 0xFFFF))
+        {
+            sheetName = "EObjName";
+        }
+        else if (sheetName == "Treasure")
+        {
+            if (_excelService.TryGetRow<Treasure>(rowId, out var treasureRow) && treasureRow.Unknown0.IsEmpty)
+                rowId = 0; // defaulting to "Treasure Coffer"
+        }
+        else if (sheetName == "WeatherPlaceName")
+        {
+            sheetName = "PlaceName";
+
+            var _rowId = rowId;
+            if (_excelService.TryFindRow<WeatherReportReplace>(row => row.PlaceNameSub.RowId == _rowId, out var row))
+                rowId = row.PlaceNameParent.RowId;
+        }
+        else if (sheetName == "InstanceContent" && flags == 3)
+        {
+            sheetName = "ContentFinderCondition";
+
+            if (_excelService.TryGetRow<InstanceContent>(rowId, out var row))
+                rowId = row.Order;
+        }
+        else if (sheetName == "PartyContent" && flags == 2)
+        {
+            sheetName = "ContentFinderCondition";
+
+            if (_excelService.TryGetRow<PartyContent>(rowId, out var row))
+                rowId = row.ContentFinderCondition.RowId;
+        }
+        else if (sheetName == "PublicContent" && flags == 3)
+        {
+            sheetName = "ContentFinderCondition";
+
+            if (_excelService.TryGetRow<PublicContent>(rowId, out var row))
+                rowId = row.ContentFinderCondition.RowId;
+        }
+        else if (sheetName == "AkatsukiNote")
+        {
+            sheetName = "AkatsukiNoteString";
+
+            if (_excelService.GetSubrowSheet<AkatsukiNote>().TryGetRow(rowId, out var row))
+                rowId = (uint)row[0].Unknown2;
+        }
     }
 }
