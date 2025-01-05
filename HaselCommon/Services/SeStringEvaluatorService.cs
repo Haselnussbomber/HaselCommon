@@ -21,11 +21,11 @@ public partial class SeStringEvaluatorService(
     ILogger<SeStringEvaluatorService> logger,
     ExcelService excelService,
     LanguageProvider languageProvider,
-    TextDecoder textDecoder)
+    NounProcessor nounProcessor)
 {
     private readonly ExcelService _excelService = excelService;
     private readonly LanguageProvider _languageProvider = languageProvider;
-    private readonly TextDecoder _textDecoder = textDecoder;
+    private readonly NounProcessor _nounProcessor = nounProcessor;
 
     public ReadOnlySeString Evaluate(byte[] str)
         => Evaluate(str, new());
@@ -983,7 +983,7 @@ invalidLevelPos:
             return false;
 
 decode:
-        context.Builder.Append(_textDecoder.ProcessNoun(language, resolvedSheetName, ePersonVal, eRowIdVal, eAmountVal, eCaseVal, eUnkInt5Val));
+        context.Builder.Append(_nounProcessor.ProcessNoun(language, resolvedSheetName, ePersonVal, eRowIdVal, eAmountVal, eCaseVal, eUnkInt5Val));
 
         return true;
     }

@@ -59,7 +59,7 @@ Attributive sheet:
     Unknown40 = ?
 */
 
-public class TextDecoder(ILogger<TextDecoder> logger, IDataManager dataManager)
+public class NounProcessor(ILogger<NounProcessor> logger, IDataManager dataManager)
 {
     private readonly ReadOnlySeString _empty = default;
     private readonly Dictionary<(ClientLanguage Language, string SheetName, int RowId, int Amount, int Person, int Case), ReadOnlySeString> _cache = [];

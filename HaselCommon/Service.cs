@@ -100,7 +100,7 @@ public static class Service
             .AddSingleton<MapService>()
             .AddSingleton<MarketBoardService>()
             .AddSingleton<TeleportService>()
-            .AddSingleton<TextDecoder>()
+            .AddSingleton<NounProcessor>()
             .AddSingleton<LanguageProvider>()
             .AddSingleton<TextService>()
             .AddSingleton<TextureService>()
