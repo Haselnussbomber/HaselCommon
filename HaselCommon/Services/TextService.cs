@@ -6,6 +6,7 @@ using Dalamud.Game;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Plugin;
+using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using HaselCommon.Extensions.Strings;
 using HaselCommon.Graphics;
 using HaselCommon.Services.SeStringEvaluation;
@@ -23,17 +24,22 @@ public class TextService
     private readonly Dictionary<string, Dictionary<string, string>> _translations = [];
     private readonly ILogger<TextService> _logger;
     private readonly LanguageProvider _languageProvider;
-
+    private readonly NounProcessor _nounProcessor;
     private ExcelService? _excelService;
     private SeStringEvaluatorService? _seStringEvaluator;
 
     private ExcelService ExcelService => _excelService ??= Service.Get<ExcelService>();
     private SeStringEvaluatorService SeStringEvaluator => _seStringEvaluator ??= Service.Get<SeStringEvaluatorService>();
 
-    public TextService(ILogger<TextService> logger, IDalamudPluginInterface pluginInterface, LanguageProvider languageProvider)
+    public TextService(
+        ILogger<TextService> logger,
+        IDalamudPluginInterface pluginInterface,
+        LanguageProvider languageProvider,
+        NounProcessor nounProcessor)
     {
         _logger = logger;
         _languageProvider = languageProvider;
+        _nounProcessor = nounProcessor;
 
         LoadEmbeddedResource(GetType().Assembly, "HaselCommon.Translations.json");
         LoadEmbeddedResource(Service.PluginAssembly, $"{pluginInterface.InternalName}.Translations.json");
@@ -171,24 +177,6 @@ public class TextService
     public string GetQuestName(uint id)
         => ExcelService.TryGetRow<Quest>(id, out var row) ? row.Name.ExtractText().StripSoftHypen() : $"Quest#{id}";
 
-    public string GetBNpcName(uint id)
-        => TitleCasedSingularNoun("BNpcName", id);
-
-    public string GetENpcResidentName(uint id)
-        => TitleCasedSingularNoun("ENpcResident", id);
-
-    public string GetTreasureName(uint id)
-        => TitleCasedSingularNoun("Treasure", id);
-
-    public string GetGatheringPointName(uint id)
-        => TitleCasedSingularNoun("GatheringPointName", id);
-
-    public string GetEObjName(uint id)
-        => TitleCasedSingularNoun("EObjName", id);
-
-    public string GetCompanionName(uint id)
-        => TitleCasedSingularNoun("Companion", id);
-
     public string GetTraitName(uint id)
         => ExcelService.TryGetRow<Trait>(id, out var row) ? row.Name.ExtractText().StripSoftHypen() : $"Trait#{id}";
 
@@ -254,21 +242,59 @@ public class TextService
         return ExcelService.TryGetRow<McGuffinUIData>(mcGuffinRow.UIData.RowId, out var mcGuffinUIDataRow) ? mcGuffinUIDataRow.Name.ExtractText().StripSoftHypen() : $"McGuffin#{id}";
     }
 
-    public string GetMountName(uint id)
-        => TitleCasedSingularNoun("Mount", id);
+    public string GetGlassesName(uint id)
+        => ExcelService.TryGetRow<Glasses>(id, out var row) ? row.Name.ExtractText().StripSoftHypen() : $"Glasses#{id}";
 
     public string GetOrnamentName(uint id)
-        => TitleCasedSingularNoun("Ornament", id);
+        => ExcelService.TryGetRow<Ornament>(id, out var row) ? row.Singular.ExtractText().StripSoftHypen() : $"Ornament#{id}";
 
-    public string GetGlassesName(uint id)
-        => TitleCasedSingularNoun("Glasses", id);
+    public string GetMountName(uint id)
+        => ExcelService.TryGetRow<Mount>(id, out var row) ? row.Singular.ExtractText().StripSoftHypen() : $"Mount#{id}";
 
-    private string TitleCasedSingularNoun(string sheetName, uint id)
+    public string GetBNpcName(uint id)
+        => FromObjStr(ObjectKind.BattleNpc, id);
+
+    public string GetENpcResidentName(uint id)
+        => FromObjStr(ObjectKind.EventNpc, id);
+
+    public string GetTreasureName(uint id)
+        => FromObjStr(ObjectKind.Treasure, id);
+
+    public string GetGatheringPointName(uint id)
+        => FromObjStr(ObjectKind.GatheringPoint, id);
+
+    public string GetEObjName(uint id)
+        => FromObjStr(ObjectKind.EventObj, id);
+
+    public string GetCompanionName(uint id)
+        => FromObjStr(ObjectKind.Companion, id);
+
+    private string FromObjStr(ObjectKind objectKind, uint id)
     {
+        var objStrId = GetObjStrId(objectKind, id);
+
         return SeStringEvaluator.EvaluateFromAddon(2025, new SeStringContext()
         {
             Language = _languageProvider.ClientLanguage,
-            LocalParameters = [id]
+            LocalParameters = [objStrId]
         }).ExtractText().StripSoftHypen();
+    }
+
+    // "8D 41 FE 83 F8 0C 77 4D"
+    private static uint GetObjStrId(ObjectKind objectKind, uint id)
+    {
+        return objectKind switch
+        {
+            ObjectKind.BattleNpc => id < 1000000 ? id : id - 900000,
+            ObjectKind.EventNpc => id,
+            ObjectKind.Treasure or
+            ObjectKind.Aetheryte or
+            ObjectKind.GatheringPoint or
+            ObjectKind.Companion or
+            ObjectKind.HousingEventObject => id + 1000000 * (uint)objectKind - 2000000,
+            ObjectKind.EventObj => id + 1000000 * (uint)objectKind - 4000000,
+            ObjectKind.MjiObject => id + 3000000,
+            _ => 0,
+        };
     }
 }
