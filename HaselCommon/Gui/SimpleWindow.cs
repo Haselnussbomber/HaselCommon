@@ -7,6 +7,7 @@ namespace HaselCommon.Gui;
 public abstract class SimpleWindow : Window, IDisposable
 {
     protected readonly WindowManager WindowManager;
+    private readonly Lazy<AddonObserver> _addonObserver = new(Service.Get<AddonObserver>);
 
     protected SimpleWindow(WindowManager windowManager, string windowName, ImGuiWindowFlags flags = ImGuiWindowFlags.None, bool forceMainWindow = false)
         : base(windowName, flags, forceMainWindow)
@@ -39,6 +40,11 @@ public abstract class SimpleWindow : Window, IDisposable
     public override void OnClose()
     {
         WindowManager.RemoveWindow(this);
+    }
+
+    public override bool DrawConditions()
+    {
+        return !_addonObserver.Value.IsAddonVisible("Filter");
     }
 
     public override void PostDraw()
