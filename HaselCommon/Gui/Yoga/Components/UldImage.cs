@@ -35,6 +35,11 @@ public class UldImage : Node
         return Vector2.Zero;
     }
 
+    public override void ApplyGlobalScale(float globalFontScale)
+    {
+        IsDirty = true;
+    }
+
     public override void DrawContent()
     {
         _textureService.DrawPart(UldName, PartListId, PartIndex, ComputedSize);
