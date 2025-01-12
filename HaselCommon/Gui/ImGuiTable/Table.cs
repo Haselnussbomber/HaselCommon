@@ -3,85 +3,165 @@ using System.Linq;
 using System.Numerics;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
+using HaselCommon.Services;
 using ImGuiNET;
 
 namespace HaselCommon.Gui.ImGuiTable;
 
-public class Table<T>(string id)
+public static class Table
 {
-    public string Id { get; set; } = id;
-    public List<T> Rows { get; set; } = [];
+    public const float ArrowWidth = 10;
+}
+
+public class Table<T> : IDisposable
+{
+    protected readonly LanguageProvider _languageProvider;
+    protected List<T> _rows = [];
+    protected List<T>? _filteredRows;
+
+    public string Id { get; set; }
+    public List<T> Rows
+    {
+        get => _rows;
+        set { _rows = value; IsSortDirty |= true; }
+    }
     public Column<T>[] Columns { get; set; } = [];
-    public ImGuiTableFlags Flags { get; set; } = ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg | ImGuiTableFlags.ScrollY | ImGuiTableFlags.Resizable;
-    public bool IsSearchDirty { get; set; }
+    public bool IsFilterDirty { get; set; } = true;
+    public bool IsSortDirty { get; set; } = true;
     public float? LineHeight { get; set; } = null;
 
-    protected IReadOnlyList<T>? FilteredRows { get; set; }
+    protected bool Sortable
+    {
+        get => Flags.HasFlag(ImGuiTableFlags.Sortable);
+        set => Flags = value ? Flags | ImGuiTableFlags.Sortable : Flags & ~ImGuiTableFlags.Sortable;
+    }
 
-    protected virtual void PreDraw() { }
-    protected virtual void PostDraw() { }
-    protected virtual void PreDrawRows() { }
-    protected virtual void PostDrawRows() { }
+    public ImGuiTableFlags Flags = ImGuiTableFlags.RowBg
+      | ImGuiTableFlags.Sortable
+      | ImGuiTableFlags.BordersOuter
+      | ImGuiTableFlags.ScrollY
+      | ImGuiTableFlags.BordersInnerV
+      | ImGuiTableFlags.NoBordersInBodyUntilResize;
+
+    public Table(string id, LanguageProvider languageProvider)
+    {
+        Id = id;
+        _languageProvider = languageProvider;
+        _languageProvider.LanguageChanged += OnLanguageChanged;
+    }
+
+    public void Dispose()
+    {
+        _languageProvider.LanguageChanged -= OnLanguageChanged;
+        GC.SuppressFinalize(this);
+    }
+
+    protected virtual void OnLanguageChanged(string langCode)
+        => IsSortDirty |= true;
 
     public void Draw()
     {
-        PreDraw();
+        using var id = ImRaii.PushId(Id);
+        DrawTableInternal();
+    }
 
-        using var table = ImRaii.Table(Id, Columns.Length, Flags);
-        if (!table) return;
+    protected virtual void DrawFilters()
+        => throw new NotImplementedException();
+
+    private void SortInternal()
+    {
+        if (!Sortable)
+            return;
+
+        var sortSpecs = ImGui.TableGetSortSpecs();
+        IsSortDirty |= sortSpecs.SpecsDirty;
+
+        if (!IsSortDirty)
+            return;
+
+        var sortIdx = sortSpecs.Specs.ColumnIndex;
+        if (Columns.Length <= sortIdx)
+            sortIdx = 0;
+
+        if (sortSpecs.SpecsCount == 0)
+        {
+            if (Flags.HasFlag(ImGuiTableFlags.SortTristate))
+                SortTristate();
+        }
+        else
+        {
+            var column = Columns[sortIdx];
+            _rows.Sort((a, b) => (sortSpecs.Specs.SortDirection == ImGuiSortDirection.Descending ? -1 : 1) * column.Compare(a, b));
+            _filteredRows = null;
+        }
+
+        sortSpecs.SpecsDirty = IsSortDirty = false;
+    }
+
+    protected virtual void SortTristate()
+    {
+        throw new NotImplementedException();
+    }
+
+    private void UpdateFilter()
+    {
+        if (_filteredRows != null && !IsFilterDirty)
+            return;
+
+        _filteredRows?.Clear();
+        _filteredRows ??= [];
+        _filteredRows.AddRange(_rows.Where(row => Columns.All(column => column.ShouldShow(row))));
+
+        IsFilterDirty = false;
+    }
+
+    private void DrawTableInternal()
+    {
+        using var table = ImRaii.Table("Table", Columns.Length, Flags, ImGui.GetContentRegionAvail());
+        if (!table)
+            return;
+
+        ImGui.TableSetupScrollFreeze(1, 1);
 
         foreach (var column in Columns)
             ImGui.TableSetupColumn(column.Label, column.Flags, column.Width * ImGuiHelpers.GlobalScale);
 
-        ImGui.TableSetupScrollFreeze(0, 1);
         ImGui.TableNextRow(ImGuiTableRowFlags.Headers);
 
-        var columnIndex = 0;
-        foreach (var column in Columns)
+        for (var columnIndex = 0; columnIndex < Columns.Length; columnIndex++)
         {
-            if (!ImGui.TableSetColumnIndex(columnIndex++))
+            var column = Columns[columnIndex];
+
+            if (!ImGui.TableSetColumnIndex(columnIndex))
                 continue;
 
             using var id = ImRaii.PushId($"ColumnHeader{columnIndex}");
-            using var style = ImRaii.PushStyle(ImGuiStyleVar.ItemSpacing, Vector2.Zero);
-            ImGui.TableHeader(string.Empty);
-            ImGui.SameLine();
-            style.Pop();
 
-            column.DrawColumnHeader(this);
+            using (ImRaii.PushStyle(ImGuiStyleVar.ItemSpacing, Vector2.Zero))
+            {
+                ImGui.TableHeader(string.Empty);
+                ImGui.SameLine();
+            }
+
+            IsFilterDirty |= column.DrawFilter();
         }
 
-        if (Rows.Count == 0)
-            return;
+        SortInternal();
+        UpdateFilter();
 
-        PreDrawRows();
-
-        if (IsSearchDirty || FilteredRows == null)
-        {
-            FilteredRows = Columns.Any(column => column.IsSearchable)
-                ? Rows.Where(row => Columns.Where(column => column.IsSearchable).All(column => column.ShouldShow(row))).ToList()
-                : Rows;
-
-            IsSearchDirty = false;
-        }
-
-        ImGuiClip.ClippedDraw(FilteredRows, DrawRow, LineHeight ?? ImGui.GetTextLineHeightWithSpacing());
-        PostDrawRows();
-
-        table.Dispose();
-        PostDraw();
+        ImGuiClip.ClippedDraw(_filteredRows!, DrawItem, LineHeight ?? ImGui.GetTextLineHeightWithSpacing());
     }
 
-    protected virtual void DrawRow(T row, int rowIndex)
+    private void DrawItem(T row, int rowIndex)
     {
-        using var rowId = ImRaii.PushId($"Row{rowIndex}");
-        ImGui.TableNextRow();
-
-        for (var i = 0; i < Columns.Length; i++)
+        var column = 0;
+        using var id = ImRaii.PushId(rowIndex);
+        foreach (var header in Columns)
         {
-            ImGui.TableNextColumn();
-            using (ImRaii.PushId($"Column{i}"))
-                Columns[i].DrawColumn(row);
+            id.Push(column++);
+            if (ImGui.TableNextColumn())
+                header.DrawColumn(row);
+            id.Pop();
         }
     }
 }

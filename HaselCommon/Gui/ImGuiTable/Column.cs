@@ -1,49 +1,41 @@
-using System.Collections.Generic;
-using Dalamud.Interface.Utility;
-using Dalamud.Interface.Utility.Raii;
 using ImGuiNET;
 
 namespace HaselCommon.Gui.ImGuiTable;
 
-public class Column<T> : IComparer<T>
+public class Column<T>
 {
-    protected const float ArrowWidth = 10;
+    private ImGuiTableColumnFlags _flags = ImGuiTableColumnFlags.NoResize | ImGuiTableColumnFlags.WidthStretch;
 
     public string Label { get; set; } = string.Empty;
-    public ImGuiTableColumnFlags Flags { get; set; }
-    public float Width { get; set; }
-    public bool IsSearchable { get; set; }
-    public string SearchQuery { get; set; } = string.Empty;
-
-    public virtual void DrawColumnHeader(Table<T> table)
+    public float Width { get; set; } = -1;
+    public ImGuiTableColumnFlags Flags
     {
-        if (!IsSearchable)
+        get => _flags;
+        set
         {
-            ImGui.AlignTextToFramePadding();
-            ImGui.TextUnformatted(Label);
-            return;
-        }
+            if (value.HasFlag(ImGuiTableColumnFlags.WidthFixed) && _flags.HasFlag(ImGuiTableColumnFlags.WidthStretch))
+                _flags &= ~ImGuiTableColumnFlags.WidthStretch;
+            else if (value.HasFlag(ImGuiTableColumnFlags.WidthStretch) && _flags.HasFlag(ImGuiTableColumnFlags.WidthFixed))
+                _flags &= ~ImGuiTableColumnFlags.WidthFixed;
 
-        using var style = ImRaii.PushStyle(ImGuiStyleVar.FrameRounding, 0);
-
-        var text = SearchQuery;
-        ImGui.SetNextItemWidth(-ArrowWidth * ImGuiHelpers.GlobalScale);
-        if (ImGui.InputTextWithHint($"##Filter", $"{Label}...", ref text, 255, ImGuiInputTextFlags.AutoSelectAll))
-        {
-            SearchQuery = text;
-            table.IsSearchDirty |= true;
+            _flags |= value;
         }
     }
 
-    public virtual void DrawColumn(T row) { }
-
-    public virtual int Compare(T? x, T? y)
+    public virtual bool DrawFilter()
     {
-        return 0;
+        ImGui.AlignTextToFramePadding();
+        ImGui.TextUnformatted(Label);
+        return false;
     }
 
     public virtual bool ShouldShow(T row)
+        => true;
+
+    public virtual int Compare(T lhs, T rhs)
+        => 0;
+
+    public virtual void DrawColumn(T row)
     {
-        return true;
     }
 }
