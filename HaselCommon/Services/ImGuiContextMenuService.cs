@@ -88,6 +88,7 @@ public unsafe struct ImGuiContextMenuBuilder(string id, TextService textService,
     {
         _entries.Add(new ImGuiContextMenuEntry()
         {
+            Visible = AgentLobby.Instance()->IsLoggedIn,
             Label = textService.GetAddonText(4379), // "Search for Item"
             LoseFocusOnClick = true,
             ClickCallback = () => ItemFinderModule.Instance()->SearchForItem(itemId)
