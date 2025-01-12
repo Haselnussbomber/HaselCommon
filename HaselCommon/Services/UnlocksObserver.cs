@@ -28,6 +28,7 @@ public unsafe class UnlocksObserver : IDisposable
     public void Dispose()
     {
         _updateHook.Dispose();
+        GC.SuppressFinalize(this);
     }
 
     private void RaptureAtkModuleUpdateDetour(RaptureAtkModule* module, float delta)

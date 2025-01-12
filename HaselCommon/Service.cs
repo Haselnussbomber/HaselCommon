@@ -5,7 +5,7 @@ using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
 using HaselCommon.Logger;
 using HaselCommon.Services;
-using HaselCommon.Services.Internal;
+using HaselCommon.Utils.Internal;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
