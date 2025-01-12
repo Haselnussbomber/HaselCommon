@@ -16,6 +16,7 @@ public static class Table
 public class Table<T> : IDisposable
 {
     protected readonly LanguageProvider _languageProvider;
+    protected bool _rowsLoaded;
     protected List<T> _rows = [];
     protected List<T>? _filteredRows;
 
@@ -23,7 +24,7 @@ public class Table<T> : IDisposable
     public List<T> Rows
     {
         get => _rows;
-        set { _rows = value; IsSortDirty |= true; }
+        set { _rows = value; _rowsLoaded = true; IsSortDirty |= true; }
     }
     public Column<T>[] Columns { get; set; } = [];
     public bool IsFilterDirty { get; set; } = true;
@@ -57,7 +58,15 @@ public class Table<T> : IDisposable
     }
 
     protected virtual void OnLanguageChanged(string langCode)
-        => IsSortDirty |= true;
+    {
+        if (_rowsLoaded)
+        {
+            Rows.Clear();
+            LoadRows();
+        }
+
+        IsSortDirty |= true;
+    }
 
     public void Draw()
     {
@@ -65,8 +74,9 @@ public class Table<T> : IDisposable
         DrawTableInternal();
     }
 
-    protected virtual void DrawFilters()
-        => throw new NotImplementedException();
+    protected virtual void LoadRows()
+    {
+    }
 
     private void SortInternal()
     {
@@ -144,6 +154,12 @@ public class Table<T> : IDisposable
             }
 
             IsFilterDirty |= column.DrawFilter();
+        }
+
+        if (!_rowsLoaded)
+        {
+            LoadRows();
+            _rowsLoaded = true;
         }
 
         SortInternal();
