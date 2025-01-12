@@ -4,31 +4,53 @@ using Dalamud.Interface.Windowing;
 using Dalamud.Plugin;
 using HaselCommon.Extensions.Collections;
 using HaselCommon.Gui;
+using Microsoft.Extensions.Logging;
 
 namespace HaselCommon.Services;
 
 public class WindowManager : IDisposable
 {
+    private readonly ILogger<WindowManager> _logger;
     private readonly IDalamudPluginInterface _pluginInterface;
+    private readonly GlobalScaleObserver _globalScaleObserver;
     private readonly WindowSystem _windowSystem;
 
-    public WindowManager(IDalamudPluginInterface pluginInterface)
+    public WindowManager(ILogger<WindowManager> logger, IDalamudPluginInterface pluginInterface, GlobalScaleObserver globalScaleObserver)
     {
+        _logger = logger;
         _pluginInterface = pluginInterface;
+        _globalScaleObserver = globalScaleObserver;
 
         _windowSystem = new(_pluginInterface.InternalName);
 
         _pluginInterface.UiBuilder.Draw += _windowSystem.Draw;
+        _globalScaleObserver.ScaleChange += OnScaleChange;
     }
 
     void IDisposable.Dispose()
     {
         _pluginInterface.UiBuilder.Draw -= _windowSystem.Draw;
+        _globalScaleObserver.ScaleChange -= OnScaleChange;
 
         _windowSystem.Windows.OfType<IDisposable>().ForEach(window => window.Dispose());
         _windowSystem.RemoveAllWindows();
 
         GC.SuppressFinalize(this);
+    }
+
+    private void OnScaleChange(float scale)
+    {
+        foreach (var window in _windowSystem.Windows.OfType<SimpleWindow>())
+        {
+            try
+            {
+                window.OnScaleChange(scale);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while propagating scale change");
+            }
+        }
     }
 
     public bool TryGetWindow<T>(string windowName, [NotNullWhen(returnValue: true)] out T? outWindow) where T : Window

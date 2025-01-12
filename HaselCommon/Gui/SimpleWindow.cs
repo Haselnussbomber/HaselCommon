@@ -54,6 +54,8 @@ public abstract class SimpleWindow : Window, IDisposable
             Collapsed = null;
     }
 
+    public virtual void OnScaleChange(float scale) { }
+
     public virtual void Dispose()
     {
         GC.SuppressFinalize(this);
