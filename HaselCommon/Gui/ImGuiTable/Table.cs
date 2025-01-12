@@ -9,18 +9,24 @@ namespace HaselCommon.Gui.ImGuiTable;
 
 public class Table<T>(string id)
 {
-    private IReadOnlyList<T>? _filteredRows;
-
     public string Id { get; set; } = id;
     public List<T> Rows { get; set; } = [];
     public Column<T>[] Columns { get; set; } = [];
     public ImGuiTableFlags Flags { get; set; } = ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg | ImGuiTableFlags.ScrollY | ImGuiTableFlags.Resizable;
-    public bool IsSortDirty { get; set; } = true;
     public bool IsSearchDirty { get; set; }
     public float? LineHeight { get; set; } = null;
 
+    protected IReadOnlyList<T>? FilteredRows { get; set; }
+
+    protected virtual void PreDraw() { }
+    protected virtual void PostDraw() { }
+    protected virtual void PreDrawRows() { }
+    protected virtual void PostDrawRows() { }
+
     public void Draw()
     {
+        PreDraw();
+
         using var table = ImRaii.Table(Id, Columns.Length, Flags);
         if (!table) return;
 
@@ -48,46 +54,23 @@ public class Table<T>(string id)
         if (Rows.Count == 0)
             return;
 
-        if (Flags.HasFlag(ImGuiTableFlags.Sortable))
+        PreDrawRows();
+
+        if (IsSearchDirty || FilteredRows == null)
         {
-            var sortSpecs = ImGui.TableGetSortSpecs();
-            IsSortDirty |= sortSpecs.SpecsDirty;
-
-            if (IsSortDirty)
-            {
-                if (sortSpecs.SpecsCount == 0)
-                {
-                    if (Flags.HasFlag(ImGuiTableFlags.SortTristate))
-                        SortTristate();
-                }
-                else
-                {
-                    var column = Columns[sortSpecs.Specs.ColumnIndex];
-                    Rows.Sort((a, b) => (sortSpecs.Specs.SortDirection == ImGuiSortDirection.Descending ? -1 : 1) * column.Compare(a, b));
-                }
-
-                sortSpecs.SpecsDirty = IsSortDirty = false;
-            }
-        }
-
-        if (IsSearchDirty || _filteredRows == null)
-        {
-            if (Columns.Any(column => column.IsSearchable))
-            {
-                _filteredRows = Rows.Where(row => Columns.Where(column => column.IsSearchable).All(column => column.ShouldShow(row))).ToList();
-            }
-            else
-            {
-                _filteredRows = Rows;
-            }
+            FilteredRows = Columns.Any(column => column.IsSearchable)
+                ? Rows.Where(row => Columns.Where(column => column.IsSearchable).All(column => column.ShouldShow(row))).ToList()
+                : Rows;
 
             IsSearchDirty = false;
         }
 
-        ImGuiClip.ClippedDraw(_filteredRows, DrawRow, LineHeight ?? ImGui.GetTextLineHeightWithSpacing());
-    }
+        ImGuiClip.ClippedDraw(FilteredRows, DrawRow, LineHeight ?? ImGui.GetTextLineHeightWithSpacing());
+        PostDrawRows();
 
-    protected virtual void SortTristate() { }
+        table.Dispose();
+        PostDraw();
+    }
 
     protected virtual void DrawRow(T row, int rowIndex)
     {
