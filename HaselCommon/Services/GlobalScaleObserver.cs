@@ -4,6 +4,7 @@ using Dalamud.Plugin;
 
 namespace HaselCommon.Services;
 
+[RegisterSingleton]
 public class GlobalScaleObserver : IDisposable
 {
     private readonly IFontHandle _defaultFontHandle;

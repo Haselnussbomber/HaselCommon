@@ -150,6 +150,7 @@ public enum FrenchArticleType
 /// </summary>
 /// <param name="logger">An instance of <see cref="ILogger"/> used for logging warnings.</param>
 /// <param name="excelModule">An instance of <see cref="ExcelModule"/> providing access to sheet data.</param>
+[RegisterSingleton]
 public class NounProcessor(ILogger<NounProcessor> logger, IDataManager dataManager)
 {
     private readonly ConcurrentDictionary<(

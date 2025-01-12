@@ -5,6 +5,7 @@ using FFXIVClientStructs.FFXIV.Component.GUI;
 
 namespace HaselCommon.Services;
 
+[RegisterSingleton]
 public unsafe class AddonObserver : IDisposable
 {
     public delegate void CallbackDelegate(string addonName);

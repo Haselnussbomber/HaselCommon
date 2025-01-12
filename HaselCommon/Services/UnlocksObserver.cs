@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 
 namespace HaselCommon.Services;
 
+[RegisterSingleton]
 public unsafe class UnlocksObserver : IDisposable
 {
     private readonly ILogger<UnlocksObserver> _logger;

@@ -9,6 +9,7 @@ using Lumina.Excel.Sheets;
 
 namespace HaselCommon.Services;
 
+[RegisterSingleton]
 public class TeleportService : IDisposable
 {
     private readonly FrozenDictionary<uint, MapMarker> _aetheryteMapMarkers;

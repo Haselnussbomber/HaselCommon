@@ -6,6 +6,7 @@ using FFXIVClientStructs.FFXIV.Client.UI.Info;
 
 namespace HaselCommon.Services;
 
+[RegisterSingleton]
 public unsafe class MarketBoardService : IDisposable
 {
     private readonly IMarketBoard _marketBoard;

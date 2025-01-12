@@ -13,15 +13,11 @@ namespace HaselCommon;
 
 public static class Service
 {
-    internal static Assembly PluginAssembly { get; private set; } = null!;
-
-    public static IServiceCollection Collection { get; } = new ServiceCollection();
+    public static IServiceCollection Collection { get; set; } = new ServiceCollection();
     public static ServiceProvider? Provider { get; private set; }
 
     public static void BuildProvider()
-    {
-        Provider = Collection.BuildServiceProvider();
-    }
+        => Provider = Collection.BuildServiceProvider();
 
     public static void Dispose()
         => Provider?.Dispose();
@@ -29,19 +25,12 @@ public static class Service
     public static T Get<T>() where T : notnull
         => Provider!.GetRequiredService<T>();
 
-    public static IServiceCollection Initialize(IDalamudPluginInterface pluginInterface, IPluginLog pluginLog)
-    {
-        PluginAssembly = Assembly.GetCallingAssembly();
-        AddDefaultServices(pluginInterface, pluginLog);
-        return Collection;
-    }
-
-    private static void AddDefaultServices(IDalamudPluginInterface pluginInterface, IPluginLog pluginLog)
+    public static IServiceCollection AddDalamud(this IServiceCollection collection, IDalamudPluginInterface pluginInterface)
     {
         T DalamudServiceFactory<T>(IServiceProvider serviceProvider) => new DalamudServiceWrapper<T>(pluginInterface).Service;
 
-        Collection
-            // Dalamud
+        collection
+            .AddSingleton(new PluginAssemblyProvider(Assembly.GetCallingAssembly()))
             .AddSingleton(pluginInterface)
             .AddSingleton(DalamudServiceFactory<IAddonEventManager>)
             .AddSingleton(DalamudServiceFactory<IAddonLifecycle>)
@@ -80,33 +69,17 @@ public static class Service
             .AddSingleton(DalamudServiceFactory<ITextureSubstitutionProvider>)
             .AddSingleton(DalamudServiceFactory<ITitleScreenMenu>)
             .AddSingleton(DalamudServiceFactory<IToastGui>)
-
-            // Logger
             .AddLogging(builder =>
             {
                 builder.ClearProviders();
                 builder.SetMinimumLevel(LogLevel.Trace);
-                builder.AddProvider(new DalamudLoggerProvider(pluginLog));
-            })
+                builder.Services.AddSingleton<ILoggerProvider>(serviceProvider =>
+                {
+                    var pluginLog = serviceProvider.GetRequiredService<IPluginLog>();
+                    return new DalamudLoggerProvider(pluginLog);
+                });
+            });
 
-            // HaselCommon
-            .AddSingleton<AddonObserver>()
-            .AddSingleton<CommandService>()
-            .AddSingleton<ExcelService>()
-            .AddSingleton<GamepadService>()
-            .AddSingleton<GlobalScaleObserver>()
-            .AddSingleton<ImGuiContextMenuService>()
-            .AddSingleton<ItemService>()
-            .AddSingleton<LeveService>()
-            .AddSingleton<MapService>()
-            .AddSingleton<MarketBoardService>()
-            .AddSingleton<TeleportService>()
-            .AddSingleton<NounProcessor>()
-            .AddSingleton<LanguageProvider>()
-            .AddSingleton<TextService>()
-            .AddSingleton<TextureService>()
-            .AddSingleton<WindowManager>()
-            .AddSingleton<SeStringEvaluatorService>()
-            .AddSingleton<UnlocksObserver>();
+        return collection;
     }
 }

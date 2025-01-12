@@ -17,6 +17,7 @@ using Microsoft.Extensions.Logging;
 namespace HaselCommon.Services;
 
 /// <summary>Evaluator for SeStrings.</summary>
+[RegisterSingleton]
 public partial class SeStringEvaluatorService(
     ILogger<SeStringEvaluatorService> logger,
     LanguageProvider languageProvider,

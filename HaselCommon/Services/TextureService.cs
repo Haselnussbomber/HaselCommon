@@ -15,6 +15,7 @@ using Lumina.Extensions;
 
 namespace HaselCommon.Services;
 
+[RegisterSingleton]
 public class TextureService(ITextureProvider textureProvider, IDataManager dataManager, IGameConfig gameConfig)
 {
     private record UldPartKey(byte ThemeType, string UldName, uint PartListId, uint PartIndex);

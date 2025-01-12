@@ -5,6 +5,7 @@ using HaselCommon.Extensions.Dalamud;
 
 namespace HaselCommon.Services;
 
+[RegisterSingleton]
 public class LanguageProvider : IDisposable
 {
     private readonly IDalamudPluginInterface _pluginInterface;

@@ -8,6 +8,7 @@ using Lumina.Extensions;
 
 namespace HaselCommon.Services;
 
+[RegisterSingleton]
 public class ExcelService(IDataManager dataManager, LanguageProvider languageProvider)
 {
     public bool HasSheet(string name)

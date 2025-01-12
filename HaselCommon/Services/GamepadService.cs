@@ -3,6 +3,7 @@ using Dalamud.Plugin.Services;
 
 namespace HaselCommon.Services;
 
+[RegisterSingleton]
 public class GamepadService(IGamepadState gamepadState, IGameConfig gameConfig)
 {
     // Mapping between SystemConfigOption and Dalamuds GamepadButtons

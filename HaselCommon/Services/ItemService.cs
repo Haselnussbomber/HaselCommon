@@ -25,6 +25,7 @@ using Lumina.Text.ReadOnly;
 
 namespace HaselCommon.Services;
 
+[RegisterSingleton]
 public class ItemService(IClientState clientState, ExcelService excelService, LanguageProvider languageProvider, SeStringEvaluatorService seStringEvaluatorService)
 {
     private readonly Dictionary<(uint, ClientLanguage), string> _itemNameCache = [];

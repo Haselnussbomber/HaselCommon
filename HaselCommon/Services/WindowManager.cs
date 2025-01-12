@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 
 namespace HaselCommon.Services;
 
+[RegisterSingleton]
 public class WindowManager : IDisposable
 {
     private readonly ILogger<WindowManager> _logger;

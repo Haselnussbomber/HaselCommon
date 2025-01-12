@@ -9,6 +9,7 @@ using Lumina.Excel.Sheets;
 
 namespace HaselCommon.Services;
 
+[RegisterSingleton]
 public class LeveService(ExcelService excelService, LanguageProvider languageProvider)
 {
     private readonly Dictionary<(uint, ClientLanguage), string> _leveNameCache = [];

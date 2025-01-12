@@ -20,6 +20,7 @@ using Map = Lumina.Excel.Sheets.Map;
 
 namespace HaselCommon.Services;
 
+[RegisterSingleton]
 public class MapService(IClientState clientState, IGameGui gameGui, TextService textService, ExcelService excelService, SeStringEvaluatorService seStringEvaluatorService)
 {
     public static Vector2 GetCoords(Level level)

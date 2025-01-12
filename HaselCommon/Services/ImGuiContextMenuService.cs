@@ -24,6 +24,7 @@ using TerritoryType = Lumina.Excel.Sheets.TerritoryType;
 
 namespace HaselCommon.Services;
 
+[RegisterSingleton]
 public class ImGuiContextMenuService(TextService textService, MapService mapService, ItemService itemService)
 {
     public void Draw(string id, Action<ImGuiContextMenuBuilder> buildAction)

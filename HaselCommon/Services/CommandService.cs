@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 
 namespace HaselCommon.Services;
 
+[RegisterSingleton]
 public class CommandService(
     ILogger<CommandService> logger,
     ICommandManager commandManager,

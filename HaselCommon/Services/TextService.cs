@@ -19,30 +19,30 @@ using ActionSheet = Lumina.Excel.Sheets.Action;
 
 namespace HaselCommon.Services;
 
+[RegisterSingleton]
 public class TextService
 {
     private readonly Dictionary<string, Dictionary<string, string>> _translations = [];
     private readonly ILogger<TextService> _logger;
     private readonly LanguageProvider _languageProvider;
-    private readonly NounProcessor _nounProcessor;
-    private ExcelService? _excelService;
-    private SeStringEvaluatorService? _seStringEvaluator;
-
-    private ExcelService ExcelService => _excelService ??= Service.Get<ExcelService>();
-    private SeStringEvaluatorService SeStringEvaluator => _seStringEvaluator ??= Service.Get<SeStringEvaluatorService>();
+    private readonly ExcelService _excelService;
+    private readonly SeStringEvaluatorService _seStringEvaluator;
 
     public TextService(
         ILogger<TextService> logger,
         IDalamudPluginInterface pluginInterface,
         LanguageProvider languageProvider,
-        NounProcessor nounProcessor)
+        PluginAssemblyProvider pluginAssemblyProvider,
+        ExcelService excelService,
+        SeStringEvaluatorService seStringEvaluator)
     {
         _logger = logger;
         _languageProvider = languageProvider;
-        _nounProcessor = nounProcessor;
+        _excelService = excelService;
+        _seStringEvaluator = seStringEvaluator;
 
         LoadEmbeddedResource(GetType().Assembly, "HaselCommon.Translations.json");
-        LoadEmbeddedResource(Service.PluginAssembly, $"{pluginInterface.InternalName}.Translations.json");
+        LoadEmbeddedResource(pluginAssemblyProvider.Assembly, $"{pluginInterface.InternalName}.Translations.json");
     }
 
     public void LoadEmbeddedResource(Assembly assembly, string filename)
@@ -155,13 +155,13 @@ public class TextService
     }
 
     public string GetAddonText(uint id)
-        => ExcelService.TryGetRow<Addon>(id, out var row) ? row.Text.ExtractText().StripSoftHypen() : $"Addon#{id}";
+        => _excelService.TryGetRow<Addon>(id, out var row) ? row.Text.ExtractText().StripSoftHypen() : $"Addon#{id}";
 
     public string GetItemName(uint itemId, ClientLanguage? language = null)
     {
         // EventItem
         if (itemId is > 2_000_000)
-            return ExcelService.TryGetRow<EventItem>(itemId, language, out var eventItemRow) ? eventItemRow.Name.ExtractText().StripSoftHypen() : $"EventItem#{itemId}";
+            return _excelService.TryGetRow<EventItem>(itemId, language, out var eventItemRow) ? eventItemRow.Name.ExtractText().StripSoftHypen() : $"EventItem#{itemId}";
 
         // HighQuality
         if (itemId is > 1_000_000 and < 2_000_000)
@@ -171,85 +171,85 @@ public class TextService
         if (itemId is > 500_000 and < 1_000_000)
             itemId -= 500_000;
 
-        return ExcelService.TryGetRow<Item>(itemId, language, out var itemRow) ? itemRow.Name.ExtractText().StripSoftHypen() : $"Item#{itemId}";
+        return _excelService.TryGetRow<Item>(itemId, language, out var itemRow) ? itemRow.Name.ExtractText().StripSoftHypen() : $"Item#{itemId}";
     }
 
     public string GetQuestName(uint id)
-        => ExcelService.TryGetRow<Quest>(id, out var row) ? row.Name.ExtractText().StripSoftHypen() : $"Quest#{id}";
+        => _excelService.TryGetRow<Quest>(id, out var row) ? row.Name.ExtractText().StripSoftHypen() : $"Quest#{id}";
 
     public string GetTraitName(uint id)
-        => ExcelService.TryGetRow<Trait>(id, out var row) ? row.Name.ExtractText().StripSoftHypen() : $"Trait#{id}";
+        => _excelService.TryGetRow<Trait>(id, out var row) ? row.Name.ExtractText().StripSoftHypen() : $"Trait#{id}";
 
     public string GetActionName(uint id)
-        => ExcelService.TryGetRow<ActionSheet>(id, out var row) ? row.Name.ExtractText().StripSoftHypen() : $"Action#{id}";
+        => _excelService.TryGetRow<ActionSheet>(id, out var row) ? row.Name.ExtractText().StripSoftHypen() : $"Action#{id}";
 
     public string GetEmoteName(uint id)
-        => ExcelService.TryGetRow<Emote>(id, out var row) ? row.Name.ExtractText().StripSoftHypen() : $"Emote#{id}";
+        => _excelService.TryGetRow<Emote>(id, out var row) ? row.Name.ExtractText().StripSoftHypen() : $"Emote#{id}";
 
     public string GetEventActionName(uint id)
-        => ExcelService.TryGetRow<EventAction>(id, out var row) ? row.Name.ExtractText().StripSoftHypen() : $"EventAction#{id}";
+        => _excelService.TryGetRow<EventAction>(id, out var row) ? row.Name.ExtractText().StripSoftHypen() : $"EventAction#{id}";
 
     public string GetGeneralActionName(uint id)
-        => ExcelService.TryGetRow<GeneralAction>(id, out var row) ? row.Name.ExtractText().StripSoftHypen() : $"GeneralAction#{id}";
+        => _excelService.TryGetRow<GeneralAction>(id, out var row) ? row.Name.ExtractText().StripSoftHypen() : $"GeneralAction#{id}";
 
     public string GetBuddyActionName(uint id)
-        => ExcelService.TryGetRow<BuddyAction>(id, out var row) ? row.Name.ExtractText().StripSoftHypen() : $"BuddyAction#{id}";
+        => _excelService.TryGetRow<BuddyAction>(id, out var row) ? row.Name.ExtractText().StripSoftHypen() : $"BuddyAction#{id}";
 
     public string GetMainCommandName(uint id)
-        => ExcelService.TryGetRow<MainCommand>(id, out var row) ? row.Name.ExtractText().StripSoftHypen() : $"MainCommand#{id}";
+        => _excelService.TryGetRow<MainCommand>(id, out var row) ? row.Name.ExtractText().StripSoftHypen() : $"MainCommand#{id}";
 
     public string GetCraftActionName(uint id)
-        => ExcelService.TryGetRow<CraftAction>(id, out var row) ? row.Name.ExtractText().StripSoftHypen() : $"CraftAction#{id}";
+        => _excelService.TryGetRow<CraftAction>(id, out var row) ? row.Name.ExtractText().StripSoftHypen() : $"CraftAction#{id}";
 
     public string GetPetActionName(uint id)
-        => ExcelService.TryGetRow<PetAction>(id, out var row) ? row.Name.ExtractText().StripSoftHypen() : $"PetAction#{id}";
+        => _excelService.TryGetRow<PetAction>(id, out var row) ? row.Name.ExtractText().StripSoftHypen() : $"PetAction#{id}";
 
     public string GetCompanyActionName(uint id)
-        => ExcelService.TryGetRow<CompanyAction>(id, out var row) ? row.Name.ExtractText().StripSoftHypen() : $"CompanyAction#{id}";
+        => _excelService.TryGetRow<CompanyAction>(id, out var row) ? row.Name.ExtractText().StripSoftHypen() : $"CompanyAction#{id}";
 
     public string GetMarkerName(uint id)
-        => ExcelService.TryGetRow<Marker>(id, out var row) ? row.Name.ExtractText().StripSoftHypen() : $"Marker#{id}";
+        => _excelService.TryGetRow<Marker>(id, out var row) ? row.Name.ExtractText().StripSoftHypen() : $"Marker#{id}";
 
     public string GetFieldMarkerName(uint id)
-        => ExcelService.TryGetRow<FieldMarker>(id, out var row) ? row.Name.ExtractText().StripSoftHypen() : $"FieldMarker#{id}";
+        => _excelService.TryGetRow<FieldMarker>(id, out var row) ? row.Name.ExtractText().StripSoftHypen() : $"FieldMarker#{id}";
 
     public string GetChocoboRaceAbilityName(uint id)
-        => ExcelService.TryGetRow<ChocoboRaceAbility>(id, out var row) ? row.Name.ExtractText().StripSoftHypen() : $"ChocoboRaceAbility#{id}";
+        => _excelService.TryGetRow<ChocoboRaceAbility>(id, out var row) ? row.Name.ExtractText().StripSoftHypen() : $"ChocoboRaceAbility#{id}";
 
     public string GetChocoboRaceItemName(uint id)
-        => ExcelService.TryGetRow<ChocoboRaceItem>(id, out var row) ? row.Name.ExtractText().StripSoftHypen() : $"ChocoboRaceItem#{id}";
+        => _excelService.TryGetRow<ChocoboRaceItem>(id, out var row) ? row.Name.ExtractText().StripSoftHypen() : $"ChocoboRaceItem#{id}";
 
     public string GetExtraCommandName(uint id)
-        => ExcelService.TryGetRow<ExtraCommand>(id, out var row) ? row.Name.ExtractText().StripSoftHypen() : $"ExtraCommand#{id}";
+        => _excelService.TryGetRow<ExtraCommand>(id, out var row) ? row.Name.ExtractText().StripSoftHypen() : $"ExtraCommand#{id}";
 
     public string GetQuickChatName(uint id)
-        => ExcelService.TryGetRow<QuickChat>(id, out var row) ? row.NameAction.ExtractText().StripSoftHypen() : $"QuickChat#{id}";
+        => _excelService.TryGetRow<QuickChat>(id, out var row) ? row.NameAction.ExtractText().StripSoftHypen() : $"QuickChat#{id}";
 
     public string GetActionComboRouteName(uint id)
-        => ExcelService.TryGetRow<ActionComboRoute>(id, out var row) ? row.Name.ExtractText().StripSoftHypen() : $"ActionComboRoute#{id}";
+        => _excelService.TryGetRow<ActionComboRoute>(id, out var row) ? row.Name.ExtractText().StripSoftHypen() : $"ActionComboRoute#{id}";
 
     public string GetBgcArmyActionName(uint id)
-        => ExcelService.TryGetRow<BgcArmyAction>(id, out var row) ? row.Unknown0.ExtractText().StripSoftHypen() : $"BgcArmyAction#{id}";
+        => _excelService.TryGetRow<BgcArmyAction>(id, out var row) ? row.Unknown0.ExtractText().StripSoftHypen() : $"BgcArmyAction#{id}";
 
     public string GetPerformanceInstrumentName(uint id)
-        => ExcelService.TryGetRow<Perform>(id, out var row) ? row.Instrument.ExtractText().StripSoftHypen() : $"Perform#{id}";
+        => _excelService.TryGetRow<Perform>(id, out var row) ? row.Instrument.ExtractText().StripSoftHypen() : $"Perform#{id}";
 
     public string GetMcGuffinName(uint id)
     {
-        if (!ExcelService.TryGetRow<McGuffin>(id, out var mcGuffinRow))
+        if (!_excelService.TryGetRow<McGuffin>(id, out var mcGuffinRow))
             return $"McGuffin#{id}";
 
-        return ExcelService.TryGetRow<McGuffinUIData>(mcGuffinRow.UIData.RowId, out var mcGuffinUIDataRow) ? mcGuffinUIDataRow.Name.ExtractText().StripSoftHypen() : $"McGuffin#{id}";
+        return _excelService.TryGetRow<McGuffinUIData>(mcGuffinRow.UIData.RowId, out var mcGuffinUIDataRow) ? mcGuffinUIDataRow.Name.ExtractText().StripSoftHypen() : $"McGuffin#{id}";
     }
 
     public string GetGlassesName(uint id)
-        => ExcelService.TryGetRow<Glasses>(id, out var row) ? row.Name.ExtractText().StripSoftHypen() : $"Glasses#{id}";
+        => _excelService.TryGetRow<Glasses>(id, out var row) ? row.Name.ExtractText().StripSoftHypen() : $"Glasses#{id}";
 
     public string GetOrnamentName(uint id)
-        => ExcelService.TryGetRow<Ornament>(id, out var row) ? row.Singular.ExtractText().StripSoftHypen() : $"Ornament#{id}";
+        => _excelService.TryGetRow<Ornament>(id, out var row) ? row.Singular.ExtractText().StripSoftHypen() : $"Ornament#{id}";
 
     public string GetMountName(uint id)
-        => ExcelService.TryGetRow<Mount>(id, out var row) ? row.Singular.ExtractText().StripSoftHypen() : $"Mount#{id}";
+        => _excelService.TryGetRow<Mount>(id, out var row) ? row.Singular.ExtractText().StripSoftHypen() : $"Mount#{id}";
 
     public string GetBNpcName(uint id)
         => FromObjStr(ObjectKind.BattleNpc, id);
@@ -273,7 +273,7 @@ public class TextService
     {
         var objStrId = GetObjStrId(objectKind, id);
 
-        return SeStringEvaluator.EvaluateFromAddon(2025, new SeStringContext()
+        return _seStringEvaluator.EvaluateFromAddon(2025, new SeStringContext()
         {
             Language = _languageProvider.ClientLanguage,
             LocalParameters = [objStrId]
