@@ -90,10 +90,7 @@ public unsafe struct ImGuiContextMenuBuilder(string id, TextService textService,
         {
             Label = textService.GetAddonText(4379), // "Search for Item"
             LoseFocusOnClick = true,
-            ClickCallback = () =>
-            {
-                ItemFinderModule.Instance()->SearchForItem(itemId);
-            }
+            ClickCallback = () => ItemFinderModule.Instance()->SearchForItem(itemId)
         });
 
         return this;
@@ -106,10 +103,7 @@ public unsafe struct ImGuiContextMenuBuilder(string id, TextService textService,
         _entries.Add(new ImGuiContextMenuEntry()
         {
             Label = textService.GetAddonText(159), // "Copy Item Name"
-            ClickCallback = () =>
-            {
-                ImGui.SetClipboardText(itemName);
-            }
+            ClickCallback = () => ImGui.SetClipboardText(itemName)
         });
 
         return this;
@@ -124,10 +118,7 @@ public unsafe struct ImGuiContextMenuBuilder(string id, TextService textService,
             Visible = _itemService.CanSearchForItem(itemRef),
             Label = textService.Translate("ItemContextMenu.SearchTheMarkets"),
             LoseFocusOnClick = true,
-            ClickCallback = () =>
-            {
-                _itemService.Search(itemRef);
-            }
+            ClickCallback = () =>  _itemService.Search(itemRef)
         });
 
         return this;
@@ -195,10 +186,7 @@ public unsafe struct ImGuiContextMenuBuilder(string id, TextService textService,
             Visible = itemService.IsCraftable(itemRef),
             Label = textService.GetAddonText(1414), // "Search for Item by Crafting Method"
             LoseFocusOnClick = true,
-            ClickCallback = () =>
-            {
-                AgentRecipeNote.Instance()->OpenRecipeByItemId(itemRef.RowId);
-            }
+            ClickCallback = () => AgentRecipeNote.Instance()->OpenRecipeByItemId(itemRef.RowId)
         });
 
         return this;
@@ -261,10 +249,7 @@ public unsafe struct ImGuiContextMenuBuilder(string id, TextService textService,
             Visible = itemService.IsGatherable(itemRef),
             Label = textService.GetAddonText(1472), // "Search for Item by Gathering Method"
             LoseFocusOnClick = true,
-            ClickCallback = () =>
-            {
-                AgentGatheringNote.Instance()->OpenGatherableByItemId((ushort)itemRef.RowId);
-            }
+            ClickCallback = () => AgentGatheringNote.Instance()->OpenGatherableByItemId((ushort)itemRef.RowId)
         });
 
         return this;
@@ -280,11 +265,7 @@ public unsafe struct ImGuiContextMenuBuilder(string id, TextService textService,
             Visible = isFish || isSpearfish,
             Label = textService.Translate("ItemContextMenu.OpenInFishGuide"),
             LoseFocusOnClick = true,
-            ClickCallback = () =>
-            {
-                var agent = (AgentFishGuide*)AgentModule.Instance()->GetAgentByInternalId(AgentId.FishGuide);
-                agent->OpenForItemId(itemRef.RowId, isSpearfish);
-            }
+            ClickCallback = () => AgentFishGuide.Instance()->OpenForItemId(itemRef.RowId, isSpearfish)
         });
 
         return this;
