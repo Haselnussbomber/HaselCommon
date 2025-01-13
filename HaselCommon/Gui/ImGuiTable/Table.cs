@@ -168,10 +168,18 @@ public class Table<T> : IDisposable
         SortInternal();
         UpdateFilter();
 
-        ImGuiClip.ClippedDraw(_filteredRows!, DrawItem, LineHeight ?? ImGui.GetTextLineHeightWithSpacing());
+        if (LineHeight == 0)
+        {
+            for (var i = 0; i < _filteredRows!.Count; i++)
+                DrawRow(_filteredRows[i], i);
+        }
+        else
+        {
+            ImGuiClip.ClippedDraw(_filteredRows!, DrawRow, LineHeight ?? ImGui.GetTextLineHeightWithSpacing());
+        }
     }
 
-    private void DrawItem(T row, int rowIndex)
+    private void DrawRow(T row, int rowIndex)
     {
         var column = 0;
         using var id = ImRaii.PushId(rowIndex);
