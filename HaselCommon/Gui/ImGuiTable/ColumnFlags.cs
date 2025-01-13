@@ -9,16 +9,16 @@ public class ColumnFlags<T, TItem> : Column<TItem> where T : struct, Enum
 {
     public T AllFlags = default;
 
-    protected virtual IReadOnlyList<T> Values
+    public virtual IReadOnlyList<T> Values
         => Enum.GetValues<T>();
 
-    protected virtual string[] Names
+    public virtual string[] Names
         => Enum.GetNames<T>();
 
     public virtual T FilterValue
         => default;
 
-    protected virtual void SetValue(T value, bool enable)
+    public virtual void SetValue(T value, bool enable)
         => throw new NotImplementedException();
 
     public override bool DrawFilter()

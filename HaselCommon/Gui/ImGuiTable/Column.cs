@@ -38,4 +38,8 @@ public class Column<T>
     public virtual void DrawColumn(T row)
     {
     }
+
+    public virtual void OnLanguageChanged(string langCode)
+    {
+    }
 }

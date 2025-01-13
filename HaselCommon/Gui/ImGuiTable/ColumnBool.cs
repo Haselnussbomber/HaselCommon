@@ -43,7 +43,7 @@ public class ColumnBool<TRow> : ColumnFlags<BoolValues, TRow>
     public override unsafe int Compare(TRow a, TRow b)
         => ToBool(a).CompareTo(ToBool(b));
 
-    protected override void SetValue(BoolValues value, bool enable)
+    public override void SetValue(BoolValues value, bool enable)
     {
         if (enable)
             _filterValue |= value;

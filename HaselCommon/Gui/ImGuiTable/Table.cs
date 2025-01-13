@@ -31,7 +31,7 @@ public class Table<T> : IDisposable
     public bool IsSortDirty { get; set; } = true;
     public float? LineHeight { get; set; } = null;
 
-    protected bool Sortable
+    public bool Sortable
     {
         get => Flags.HasFlag(ImGuiTableFlags.Sortable);
         set => Flags = value ? Flags | ImGuiTableFlags.Sortable : Flags & ~ImGuiTableFlags.Sortable;
@@ -57,12 +57,15 @@ public class Table<T> : IDisposable
         GC.SuppressFinalize(this);
     }
 
-    protected virtual void OnLanguageChanged(string langCode)
+    public virtual void OnLanguageChanged(string langCode)
     {
         if (_rowsLoaded)
         {
             Rows.Clear();
             LoadRows();
+
+            foreach (var column in Columns)
+                column.OnLanguageChanged(langCode);
         }
 
         IsSortDirty |= true;
@@ -74,7 +77,7 @@ public class Table<T> : IDisposable
         DrawTableInternal();
     }
 
-    protected virtual void LoadRows()
+    public virtual void LoadRows()
     {
     }
 
@@ -108,7 +111,7 @@ public class Table<T> : IDisposable
         sortSpecs.SpecsDirty = IsSortDirty = false;
     }
 
-    protected virtual void SortTristate()
+    public virtual void SortTristate()
     {
         throw new NotImplementedException();
     }
