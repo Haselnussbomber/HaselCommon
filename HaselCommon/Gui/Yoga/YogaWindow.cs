@@ -52,8 +52,8 @@ public partial class YogaWindow : SimpleWindow, IDisposable
 
     public override void Dispose()
     {
-        Service.Get<GlobalScaleObserver>().ScaleChange -= OnScaleChange;
         RootNode.Dispose();
+        base.Dispose();
         GC.SuppressFinalize(this);
     }
 
