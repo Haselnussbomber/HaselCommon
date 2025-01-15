@@ -92,10 +92,6 @@ public class Table<T> : IDisposable
         if (!IsSortDirty)
             return;
 
-        var sortIdx = sortSpecs.Specs.ColumnIndex;
-        if (Columns.Length <= sortIdx)
-            sortIdx = 0;
-
         if (sortSpecs.SpecsCount == 0)
         {
             if (Flags.HasFlag(ImGuiTableFlags.SortTristate))
@@ -103,11 +99,11 @@ public class Table<T> : IDisposable
         }
         else
         {
-            var column = Columns[sortIdx];
+            var column = Columns[Columns.Length <= sortSpecs.Specs.ColumnIndex ? 0 : sortSpecs.Specs.ColumnIndex];
             _rows.Sort((a, b) => (sortSpecs.Specs.SortDirection == ImGuiSortDirection.Descending ? -1 : 1) * column.Compare(a, b));
-            _filteredRows = null;
         }
 
+        _filteredRows = null;
         sortSpecs.SpecsDirty = IsSortDirty = false;
     }
 
