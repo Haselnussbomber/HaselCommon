@@ -14,7 +14,12 @@ public class GlobalScaleObserver : IDisposable
     public GlobalScaleObserver(IDalamudPluginInterface pluginInterface)
     {
         _defaultFontHandle = pluginInterface.UiBuilder.DefaultFontHandle;
-        _defaultFontHandle.ImFontChanged += OnDefaultFontChanged;
+
+        pluginInterface.UiBuilder.RunWhenUiPrepared(() =>
+        {
+            _defaultFontHandle.ImFontChanged += OnDefaultFontChanged;
+            return true;
+        }, true);
     }
 
     public void Dispose()
