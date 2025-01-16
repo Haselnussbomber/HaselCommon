@@ -41,6 +41,7 @@ public class ItemService(IClientState clientState, ExcelService excelService, La
     private readonly Dictionary<uint, GatheringItem[]> _gatheringItemsCache = [];
     private readonly Dictionary<uint, GatheringPoint[]> _gatheringPointsCache = [];
     private readonly Dictionary<uint, FishingSpot[]> _fishingSpotsCache = [];
+    private readonly Dictionary<(uint, byte, byte), uint> _hairStyleIconsCache = [];
     private readonly int _eventItemRowCount = excelService.GetRowCount<EventItem>();
 
     private FrozenDictionary<short, (uint Min, uint Max)>? _maxLevelRanges = null;
@@ -610,12 +611,26 @@ public class ItemService(IClientState clientState, ExcelService excelService, La
                 sexId = character->DrawData.CustomizeData.Sex;
         }
 
-        if (!excelService.TryFindRow<HairMakeTypeCustom>(t => t.HairMakeType.Tribe.RowId == tribeId && t.HairMakeType.Gender == sexId, out var hairMakeType))
-            return 0;
+        var key = (id, (byte)tribeId, (byte)sexId);
+        if (_hairStyleIconsCache.TryGetValue(key, out var icon))
+            return icon;
 
-        if (!hairMakeType.HairStyles.TryGetFirst(h => h.Value.HintItem.RowId == id, out var item) || item.IsValid)
+        if (!excelService.TryFindRow<CustomHairMakeType>(t => t.Tribe.RowId == tribeId && t.Gender == sexId, out var hairMakeType))
+        {
+            _hairStyleIconsCache.Add(key, 0);
             return 0;
+        }
 
+        if (!hairMakeType.CharaMakeStruct[0].SubMenuParam
+            .Select(rowId => excelService.CreateRef<CharaMakeCustomize>(rowId))
+            .Where(rowRef => rowRef.RowId != 0 && rowRef.IsValid)
+            .TryGetFirst(h => h.Value.HintItem.RowId == id, out var item) || item.IsValid)
+        {
+            _hairStyleIconsCache.Add(key, 0);
+            return 0;
+        }
+
+        _hairStyleIconsCache.Add(key, item.Value.Icon);
         return item.Value.Icon;
     }
 }
