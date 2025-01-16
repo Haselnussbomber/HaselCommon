@@ -157,6 +157,9 @@ public class TextService
     public string GetAddonText(uint id)
         => _excelService.TryGetRow<Addon>(id, out var row) ? row.Text.ExtractText().StripSoftHypen() : $"Addon#{id}";
 
+    public string GetLobbyText(uint id)
+        => _excelService.TryGetRow<Lobby>(id, out var row) ? row.Text.ExtractText().StripSoftHypen() : $"Lobby#{id}";
+
     public string GetItemName(uint itemId, ClientLanguage? language = null)
     {
         // EventItem
