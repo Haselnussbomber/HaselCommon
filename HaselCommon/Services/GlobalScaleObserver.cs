@@ -7,29 +7,29 @@ namespace HaselCommon.Services;
 [RegisterSingleton]
 public class GlobalScaleObserver : IDisposable
 {
-    private readonly IFontHandle _defaultFontHandle;
+    private readonly IDalamudPluginInterface _pluginInterface;
+    private float _globalScale;
 
     public event Action<float>? ScaleChange;
 
     public GlobalScaleObserver(IDalamudPluginInterface pluginInterface)
     {
-        _defaultFontHandle = pluginInterface.UiBuilder.DefaultFontHandle;
-
-        pluginInterface.UiBuilder.RunWhenUiPrepared(() =>
-        {
-            _defaultFontHandle.ImFontChanged += OnDefaultFontChanged;
-            return true;
-        }, true);
+        _pluginInterface = pluginInterface;
+        _pluginInterface.UiBuilder.FontAtlas.BuildStepChange += OnBuildStepChange;
     }
 
     public void Dispose()
     {
-        _defaultFontHandle.ImFontChanged -= OnDefaultFontChanged;
+        _pluginInterface.UiBuilder.FontAtlas.BuildStepChange -= OnBuildStepChange;
         GC.SuppressFinalize(this);
     }
 
-    private void OnDefaultFontChanged(IFontHandle fontHandle, ILockedImFont lockedFont)
+    private void OnBuildStepChange(IFontAtlasBuildToolkit toolkit)
     {
-        ScaleChange?.Invoke(ImGuiHelpers.GlobalScale);
+        if (toolkit.BuildStep == FontAtlasBuildStep.PostBuild && _globalScale != ImGuiHelpers.GlobalScaleSafe)
+        {
+            ScaleChange?.Invoke(ImGuiHelpers.GlobalScaleSafe);
+            _globalScale = ImGuiHelpers.GlobalScaleSafe;
+        }
     }
 }
