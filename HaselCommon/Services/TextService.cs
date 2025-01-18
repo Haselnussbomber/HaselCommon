@@ -254,6 +254,9 @@ public class TextService
     public string GetMountName(uint id)
         => _excelService.TryGetRow<Mount>(id, out var row) ? row.Singular.ExtractText().StripSoftHypen() : $"Mount#{id}";
 
+    public string GetFateName(uint id)
+        => _excelService.TryGetRow<Fate>(id, out var row) ? _seStringEvaluator.Evaluate(row.Name).ExtractText().StripSoftHypen() : $"Fate#{id}";
+
     public string GetBNpcName(uint id)
         => FromObjStr(ObjectKind.BattleNpc, id);
 
