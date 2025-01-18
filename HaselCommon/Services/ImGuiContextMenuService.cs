@@ -303,12 +303,12 @@ public unsafe struct ImGuiContextMenuBuilder(string id, TextService textService,
 
 public interface IImGuiContextMenuEntry
 {
-    public bool Visible { get; set; }
-    public bool Enabled { get; set; }
-    public string Label { get; set; }
-    public bool LoseFocusOnClick { get; set; }
-    public Action? ClickCallback { get; set; }
-    public Action? HoverCallback { get; set; }
+    public bool Visible { get; }
+    public bool Enabled { get; }
+    public string Label { get; }
+    public bool LoseFocusOnClick { get; }
+    public Action? ClickCallback { get; }
+    public Action? HoverCallback { get; }
     public void Draw(IterationArgs args);
 }
 
