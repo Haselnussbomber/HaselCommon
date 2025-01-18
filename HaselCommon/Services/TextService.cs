@@ -11,6 +11,7 @@ using HaselCommon.Extensions.Strings;
 using HaselCommon.Graphics;
 using HaselCommon.Services.SeStringEvaluation;
 using ImGuiNET;
+using Lumina.Excel;
 using Lumina.Excel.Sheets;
 using Lumina.Text;
 using Lumina.Text.ReadOnly;
@@ -253,6 +254,9 @@ public class TextService
 
     public string GetMountName(uint id)
         => _excelService.TryGetRow<Mount>(id, out var row) ? row.Singular.ExtractText().StripSoftHypen() : $"Mount#{id}";
+
+    public string GetPlaceName(uint id)
+        => _excelService.TryGetRow<PlaceName>(id, out var row) ? row.Name.ExtractText().StripSoftHypen() : $"PlaceName#{id}";
 
     public string GetFateName(uint id)
         => _excelService.TryGetRow<Fate>(id, out var row) ? _seStringEvaluator.Evaluate(row.Name).ExtractText().StripSoftHypen() : $"Fate#{id}";
