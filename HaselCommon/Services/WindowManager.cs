@@ -1,6 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using Dalamud.Interface.Utility;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin;
 using HaselCommon.Extensions.Collections;
@@ -14,33 +13,25 @@ public class WindowManager : IDisposable
 {
     private readonly ILogger<WindowManager> _logger;
     private readonly IDalamudPluginInterface _pluginInterface;
+    private readonly GlobalScaleObserver _globalScaleObserver;
     private readonly WindowSystem _windowSystem;
-    private float _globalScale;
 
-    public WindowManager(ILogger<WindowManager> logger, IDalamudPluginInterface pluginInterface)
+    public WindowManager(ILogger<WindowManager> logger, IDalamudPluginInterface pluginInterface, GlobalScaleObserver globalScaleObserver)
     {
         _logger = logger;
         _pluginInterface = pluginInterface;
+        _globalScaleObserver = globalScaleObserver;
 
         _windowSystem = new(_pluginInterface.InternalName);
 
-        _pluginInterface.UiBuilder.Draw += Draw;
-    }
-
-    private void Draw()
-    {
-        if (_globalScale != ImGuiHelpers.GlobalScaleSafe)
-        {
-            OnScaleChange();
-            _globalScale = ImGuiHelpers.GlobalScaleSafe;
-        }
-
-        _windowSystem.Draw();
+        _pluginInterface.UiBuilder.Draw += _windowSystem.Draw;
+        _globalScaleObserver.ScaleChange += OnScaleChange;
     }
 
     void IDisposable.Dispose()
     {
-        _pluginInterface.UiBuilder.Draw -= Draw;
+        _pluginInterface.UiBuilder.Draw -= _windowSystem.Draw;
+        _globalScaleObserver.ScaleChange -= OnScaleChange;
 
         _windowSystem.Windows.OfType<IDisposable>().ForEach(window => window.Dispose());
         _windowSystem.RemoveAllWindows();
@@ -48,13 +39,13 @@ public class WindowManager : IDisposable
         GC.SuppressFinalize(this);
     }
 
-    private void OnScaleChange()
+    private void OnScaleChange(float scale)
     {
         foreach (var window in _windowSystem.Windows.OfType<SimpleWindow>())
         {
             try
             {
-                window.OnScaleChange(_globalScale);
+                window.OnScaleChange(scale);
             }
             catch (Exception ex)
             {
