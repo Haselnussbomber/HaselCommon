@@ -11,13 +11,11 @@ using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Component.Exd;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using HaselCommon.Extensions.Sheets;
-using HaselCommon.Extensions.Strings;
 using HaselCommon.Game.Enums;
 using HaselCommon.Graphics;
 using HaselCommon.Services.SeStringEvaluation;
 using HaselCommon.Sheets;
 using HaselCommon.Utils;
-using Lumina.Excel;
 using Lumina.Excel.Sheets;
 using Lumina.Extensions;
 using Lumina.Text;
@@ -26,9 +24,8 @@ using Lumina.Text.ReadOnly;
 namespace HaselCommon.Services;
 
 [RegisterSingleton]
-public class ItemService(IClientState clientState, ExcelService excelService, LanguageProvider languageProvider, SeStringEvaluatorService seStringEvaluatorService)
+public class ItemService(IClientState clientState, ExcelService excelService, SeStringEvaluatorService seStringEvaluatorService, TextService textService)
 {
-    private readonly Dictionary<(uint, ClientLanguage), string> _itemNameCache = [];
     private readonly Dictionary<uint, bool> _isCraftableCache = [];
     private readonly Dictionary<uint, bool> _isGatherableCache = [];
     private readonly Dictionary<uint, bool> _isFishCache = [];
@@ -42,81 +39,30 @@ public class ItemService(IClientState clientState, ExcelService excelService, La
     private readonly Dictionary<uint, GatheringPoint[]> _gatheringPointsCache = [];
     private readonly Dictionary<uint, FishingSpot[]> _fishingSpotsCache = [];
     private readonly Dictionary<(uint, byte, byte), uint> _hairStyleIconsCache = [];
-    private readonly int _eventItemRowCount = excelService.GetRowCount<EventItem>();
 
     private FrozenDictionary<short, (uint Min, uint Max)>? _maxLevelRanges = null;
 
-    public uint GetBaseItemId(uint itemId)
-    {
-        if (IsEventItem(itemId)) return itemId; // uses EventItem sheet
-        if (IsHighQuality(itemId)) return itemId - 1_000_000;
-        if (IsCollectible(itemId)) return itemId - 500_000;
-        return itemId;
-    }
-
-    public bool IsNormalItem(Item item) => IsNormalItem(item.RowId);
-    public bool IsNormalItem(RowRef<Item> itemRef) => IsNormalItem(itemRef.RowId);
-    public bool IsNormalItem(uint itemId) => itemId < 500_000;
-
-    public bool IsCollectible(Item item) => IsCollectible(item.RowId);
-    public bool IsCollectible(RowRef<Item> itemRef) => IsCollectible(itemRef.RowId);
-    public bool IsCollectible(uint itemId) => itemId is >= 500_000 and < 1_000_000;
-
-    public bool IsHighQuality(Item item) => IsHighQuality(item.RowId);
-    public bool IsHighQuality(RowRef<Item> itemRef) => IsHighQuality(itemRef.RowId);
-    public bool IsHighQuality(uint itemId) => itemId is >= 1_000_000 and < 2_000_000;
-
-    public bool IsEventItem(Item item) => IsEventItem(item.RowId);
-    public bool IsEventItem(RowRef<Item> itemRef) => IsEventItem(itemRef.RowId);
-    public bool IsEventItem(uint itemId) => itemId >= 2_000_000 && itemId - 2_000_000 < _eventItemRowCount;
-
-    public uint GetIconId(uint itemId)
+    public uint GetIconId(ItemId itemId)
     {
         if (_itemIconIdCache.TryGetValue(itemId, out var iconId))
             return iconId;
 
-        if (IsEventItem(itemId))
+        if (itemId.IsEventItem)
         {
             _itemIconIdCache.Add(itemId, iconId = excelService.TryGetRow<EventItem>(itemId, out var eventItem) ? eventItem.Icon : 0u);
             return iconId;
         }
 
-        _itemIconIdCache.Add(itemId, iconId = excelService.TryGetRow<Item>(GetBaseItemId(itemId), out var item) ? item.Icon : 0u);
+        _itemIconIdCache.Add(itemId, iconId = excelService.TryGetRow<Item>(itemId.BaseItemId, out var item) ? item.Icon : 0u);
         return iconId;
     }
 
-    public string GetItemName(Item item) => GetItemName(item.RowId);
-    public string GetItemName(RowRef<Item> itemRef) => GetItemName(itemRef.RowId);
-    public string GetItemName(uint itemId, ClientLanguage? language = null)
-    {
-        var effectiveLanguage = language ?? languageProvider.ClientLanguage;
-        var key = (itemId, effectiveLanguage);
-
-        if (_itemNameCache.TryGetValue(key, out var name))
-            return name;
-
-        if (IsEventItem(itemId))
-        {
-            _itemNameCache.Add(key, name = excelService.TryGetRow<EventItem>(itemId, language, out var eventItem)
-                ? eventItem.Name.ExtractText().StripSoftHypen()
-                : $"EventItem#{itemId}");
-            return name;
-        }
-
-        _itemNameCache.Add(key, name = excelService.TryGetRow<Item>(GetBaseItemId(itemId), language, out var item)
-            ? item.Name.ExtractText().StripSoftHypen()
-            : $"Item#{itemId}");
-        return name;
-    }
-
-    public Recipe[] GetRecipes(Item item) => GetRecipes(item.RowId);
-    public Recipe[] GetRecipes(RowRef<Item> itemRef) => GetRecipes(itemRef.RowId);
-    public Recipe[] GetRecipes(uint itemId)
+    public Recipe[] GetRecipes(ItemId itemId)
     {
         if (_recipesCache.TryGetValue(itemId, out var recipes))
             return recipes;
 
-        if (!excelService.TryGetRow<RecipeLookup>(itemId, out var lookup))
+        if (!excelService.TryGetRawRow("RecipeLookup", itemId, out var lookup))
         {
             _recipesCache.Add(itemId, []);
             return [];
@@ -124,23 +70,18 @@ public class ItemService(IClientState clientState, ExcelService excelService, La
 
         var recipesList = new List<Recipe>();
 
-        if (lookup.CRP.RowId != 0 && lookup.CRP.IsValid) recipesList.Add(lookup.CRP.Value);
-        if (lookup.BSM.RowId != 0 && lookup.BSM.IsValid) recipesList.Add(lookup.BSM.Value);
-        if (lookup.ARM.RowId != 0 && lookup.ARM.IsValid) recipesList.Add(lookup.ARM.Value);
-        if (lookup.GSM.RowId != 0 && lookup.GSM.IsValid) recipesList.Add(lookup.GSM.Value);
-        if (lookup.LTW.RowId != 0 && lookup.LTW.IsValid) recipesList.Add(lookup.LTW.Value);
-        if (lookup.WVR.RowId != 0 && lookup.WVR.IsValid) recipesList.Add(lookup.WVR.Value);
-        if (lookup.ALC.RowId != 0 && lookup.ALC.IsValid) recipesList.Add(lookup.ALC.Value);
-        if (lookup.CUL.RowId != 0 && lookup.CUL.IsValid) recipesList.Add(lookup.CUL.Value);
+        for (nuint i = 0; i < 8; i++)
+        {
+            if (excelService.TryGetRow<Recipe>(lookup.ReadUInt16(lookup.Offset + i * 2), out var recipe))
+                recipesList.Add(recipe);
+        }
 
         var recipesArray = recipesList.ToArray();
         _recipesCache.Add(itemId, recipesArray);
         return recipesArray;
     }
 
-    public ItemAmount[] GetIngredients(Item item) => GetIngredients(item.RowId);
-    public ItemAmount[] GetIngredients(RowRef<Item> itemRef) => GetIngredients(itemRef.RowId);
-    public ItemAmount[] GetIngredients(uint itemId)
+    public ItemAmount[] GetIngredients(ItemId itemId)
     {
         if (_ingredientsCache.TryGetValue(itemId, out var ingredients))
             return ingredients;
@@ -173,9 +114,7 @@ public class ItemService(IClientState clientState, ExcelService excelService, La
         return ingredients;
     }
 
-    public GatheringItem[] GetGatheringItems(Item item) => GetGatheringItems(item.RowId);
-    public GatheringItem[] GetGatheringItems(RowRef<Item> itemRef) => GetGatheringItems(itemRef.RowId);
-    public GatheringItem[] GetGatheringItems(uint itemId)
+    public GatheringItem[] GetGatheringItems(ItemId itemId)
     {
         if (_gatheringItemsCache.TryGetValue(itemId, out var gatheringItems))
             return gatheringItems;
@@ -185,9 +124,7 @@ public class ItemService(IClientState clientState, ExcelService excelService, La
         return gatheringItems;
     }
 
-    public GatheringPoint[] GetGatheringPoints(Item item) => GetGatheringPoints(item.RowId);
-    public GatheringPoint[] GetGatheringPoints(RowRef<Item> itemRef) => GetGatheringPoints(itemRef.RowId);
-    public GatheringPoint[] GetGatheringPoints(uint itemId)
+    public GatheringPoint[] GetGatheringPoints(ItemId itemId)
     {
         if (_gatheringPointsCache.TryGetValue(itemId, out var gatheringPoints))
             return gatheringPoints;
@@ -197,9 +134,7 @@ public class ItemService(IClientState clientState, ExcelService excelService, La
         return gatheringPoints;
     }
 
-    public FishingSpot[] GetFishingSpots(Item item) => GetFishingSpots(item.RowId);
-    public FishingSpot[] GetFishingSpots(RowRef<Item> itemRef) => GetFishingSpots(itemRef.RowId);
-    public FishingSpot[] GetFishingSpots(uint itemId)
+    public FishingSpot[] GetFishingSpots(ItemId itemId)
     {
         if (_fishingSpotsCache.TryGetValue(itemId, out var fishingSpots))
             return fishingSpots;
@@ -209,9 +144,7 @@ public class ItemService(IClientState clientState, ExcelService excelService, La
         return fishingSpots;
     }
 
-    public IEnumerable<GatheringPoint> GetSpearfishingGatheringPoints(Item item) => GetSpearfishingGatheringPoints(item.RowId);
-    public IEnumerable<GatheringPoint> GetSpearfishingGatheringPoints(RowRef<Item> itemRef) => GetSpearfishingGatheringPoints(itemRef.RowId);
-    public IEnumerable<GatheringPoint> GetSpearfishingGatheringPoints(uint itemId)
+    public IEnumerable<GatheringPoint> GetSpearfishingGatheringPoints(ItemId itemId)
     {
         if (_spearfishingItemGatheringPointsCache.TryGetValue(itemId, out var points))
             return points;
@@ -228,9 +161,7 @@ public class ItemService(IClientState clientState, ExcelService excelService, La
         return points;
     }
 
-    public bool IsCraftable(Item item) => IsCraftable(item.RowId);
-    public bool IsCraftable(RowRef<Item> itemRef) => IsCraftable(itemRef.RowId);
-    public bool IsCraftable(uint itemId)
+    public bool IsCraftable(ItemId itemId)
     {
         if (_isCraftableCache.TryGetValue(itemId, out var result))
             return result;
@@ -240,13 +171,12 @@ public class ItemService(IClientState clientState, ExcelService excelService, La
         return result;
     }
 
-    public bool IsCrystal(Item item) => item.ItemUICategory.RowId == 59;
-    public bool IsCrystal(RowRef<Item> itemRef) => itemRef.IsValid && IsCrystal(itemRef.Value);
-    public bool IsCrystal(uint itemId) => excelService.TryGetRow<Item>(itemId, out var item) && IsCrystal(item);
+    public bool IsCrystal(ItemId itemId)
+    {
+        return excelService.TryGetRow<Item>(itemId, out var item) && IsCrystal(item);
+    }
 
-    public bool IsGatherable(Item item) => IsGatherable(item.RowId);
-    public bool IsGatherable(RowRef<Item> itemRef) => IsGatherable(itemRef.RowId);
-    public bool IsGatherable(uint itemId)
+    public bool IsGatherable(ItemId itemId)
     {
         if (_isGatherableCache.TryGetValue(itemId, out var result))
             return result;
@@ -256,9 +186,7 @@ public class ItemService(IClientState clientState, ExcelService excelService, La
         return result;
     }
 
-    public bool IsFish(Item item) => IsFish(item.RowId);
-    public bool IsFish(RowRef<Item> itemRef) => IsFish(itemRef.RowId);
-    public bool IsFish(uint itemId)
+    public bool IsFish(ItemId itemId)
     {
         if (_isFishCache.TryGetValue(itemId, out var result))
             return result;
@@ -268,9 +196,7 @@ public class ItemService(IClientState clientState, ExcelService excelService, La
         return result;
     }
 
-    public bool IsSpearfish(Item item) => IsSpearfish(item.RowId);
-    public bool IsSpearfish(RowRef<Item> itemRef) => IsSpearfish(itemRef.RowId);
-    public bool IsSpearfish(uint itemId)
+    public bool IsSpearfish(ItemId itemId)
     {
         if (_isSpearfishCache.TryGetValue(itemId, out var result))
             return result;
@@ -280,12 +206,30 @@ public class ItemService(IClientState clientState, ExcelService excelService, La
         return result;
     }
 
-    public bool IsUnlockable(Item item) => item.ItemAction.RowId != 0 && Enum.GetValues<ItemActionType>().Any(type => (ushort)type == item.ItemAction.Value!.Type);
-    public bool IsUnlockable(RowRef<Item> itemRef) => itemRef.IsValid && IsUnlockable(itemRef.Value);
-    public bool IsUnlockable(uint itemId) => excelService.TryGetRow<Item>(itemId, out var item) && IsUnlockable(item);
-
-    public unsafe bool CanTryOn(Item item)
+    public bool IsUnlockable(ItemId itemId)
     {
+        if (!excelService.TryGetRow<Item>(itemId, out var item))
+            return false;
+
+        return (ItemActionType)item.ItemAction.RowId is
+            ItemActionType.Companion or
+            ItemActionType.BuddyEquip or
+            ItemActionType.Mount or
+            ItemActionType.SecretRecipeBook or
+            ItemActionType.UnlockLink or
+            ItemActionType.TripleTriadCard or
+            ItemActionType.FolkloreTome or
+            ItemActionType.OrchestrionRoll or
+            ItemActionType.FramersKit or
+            ItemActionType.Ornament or
+            ItemActionType.Glasses;
+    }
+
+    public unsafe bool CanTryOn(ItemId itemId)
+    {
+        if (!excelService.TryGetRow<Item>(itemId, out var item))
+            return false;
+
         if (!(item.EquipSlotCategory.RowId switch
         {
             0 => false, // not equippable
@@ -305,7 +249,7 @@ public class ItemService(IClientState clientState, ExcelService excelService, La
         if (!excelService.TryGetRow<EquipRaceCategory>(item.EquipRestriction, out var equipRaceCategoryRow))
             return false;
 
-        if (!excelService.GetSheet<RawRow>(null, "EquipRaceCategory").TryGetRow(item.EquipRestriction, out var equipRaceCategoryRawRow))
+        if (!excelService.TryGetRawRow("EquipRaceCategory", item.EquipRestriction, out var equipRaceCategoryRawRow))
             return false;
 
         var race = playerState->Race;
@@ -318,11 +262,12 @@ public class ItemService(IClientState clientState, ExcelService excelService, La
 
         return equipRaceCategoryRow.Male;
     }
-    public bool CanTryOn(RowRef<Item> itemRef) => itemRef.IsValid && CanTryOn(itemRef.Value);
-    public bool CanTryOn(uint itemId) => excelService.TryGetRow<Item>(itemId, out var item) && CanTryOn(item);
 
-    public unsafe bool IsUnlocked(Item item)
+    public unsafe bool IsUnlocked(ItemId itemId)
     {
+        if (!excelService.TryGetRow<Item>(itemId, out var item))
+            return false;
+
         if (item.ItemAction.RowId == 0)
             return false;
 
@@ -369,14 +314,13 @@ public class ItemService(IClientState clientState, ExcelService excelService, La
         var row = ExdModule.GetItemRowById(item.RowId);
         return row != null && UIState.Instance()->IsItemActionUnlocked(row) == 1;
     }
-    public bool IsUnlocked(RowRef<Item> itemRef) => itemRef.IsValid && IsUnlocked(itemRef.Value);
-    public bool IsUnlocked(uint itemId) => excelService.TryGetRow<Item>(itemId, out var item) && IsUnlocked(item);
 
-    public bool CanSearchForItem(Item item) => !item.IsUntradable && !item.IsCollectable && IsAddonOpen(AgentId.ItemSearch);
-    public bool CanSearchForItem(RowRef<Item> itemRef) => itemRef.IsValid && CanSearchForItem(itemRef.Value);
-    public bool CanSearchForItem(uint itemId) => excelService.TryGetRow<Item>(itemId, out var item) && CanSearchForItem(item);
+    public bool CanSearchForItem(ItemId itemId)
+    {
+        return excelService.TryGetRow<Item>(itemId, out var item) && !item.IsUntradable && !item.IsCollectable && IsAddonOpen(AgentId.ItemSearch);
+    }
 
-    public unsafe void Search(Item item)
+    public unsafe void Search(ItemId item)
     {
         if (!CanSearchForItem(item))
             return;
@@ -387,7 +331,7 @@ public class ItemService(IClientState clientState, ExcelService excelService, La
         if (TryGetAddon<AtkUnitBase>("ItemSearchResult", out var itemSearchResult))
             itemSearchResult->Hide2();
 
-        var itemName = GetItemName(item.RowId, clientState.ClientLanguage);
+        var itemName = textService.GetItemName(item, clientState.ClientLanguage);
         if (itemName.Length > 40)
             itemName = itemName[..40];
 
@@ -395,11 +339,6 @@ public class ItemService(IClientState clientState, ExcelService excelService, La
 
         addon->SetModeFilter(AddonItemSearch.SearchMode.Normal, -1);
         addon->RunSearch(false);
-    }
-    public void Search(RowRef<Item> itemRef)
-    {
-        if (itemRef.IsValid)
-            Search(itemRef.Value);
     }
 
     public FrozenDictionary<short, (uint Min, uint Max)> GetMaxLevelRanges()
@@ -433,38 +372,29 @@ public class ItemService(IClientState clientState, ExcelService excelService, La
         return _maxLevelRanges = dict.ToFrozenDictionary();
     }
 
-    public uint GetItemRarityColorType(Item item, bool isEdgeColor = false)
-        => (isEdgeColor ? 548u : 547u) + item.Rarity * 2u;
-
-    public uint GetItemRarityColorType(RowRef<Item> itemRef, bool isEdgeColor = false)
-        => GetItemRarityColorType(itemRef.RowId, isEdgeColor);
-
-    public uint GetItemRarityColorType(uint itemId, bool isEdgeColor = false)
+    public uint GetItemRarityColorType(ItemId itemId, bool isEdgeColor = false)
     {
-        if (IsEventItem(itemId))
+        if (itemId.IsEventItem)
             return GetItemRarityColorType(1, isEdgeColor);
 
-        if (!excelService.TryGetRow<Item>(GetBaseItemId(itemId), out var item))
+        if (!excelService.TryGetRow<Item>(itemId.BaseItemId, out var item))
             return GetItemRarityColorType(1, isEdgeColor);
 
-        return GetItemRarityColorType(item, isEdgeColor);
+        return (isEdgeColor ? 548u : 547u) + item.Rarity * 2u;
     }
 
-    public Color GetItemRarityColor(Item item, bool isEdgeColor = false)
-        => excelService.TryGetRow<UIColor>(GetItemRarityColorType(item, isEdgeColor), out var color) ? color.GetForegroundColor() : Color.White;
-
-    public Color GetItemRarityColor(RowRef<Item> itemRef, bool isEdgeColor = false)
-        => itemRef.IsValid ? GetItemRarityColor(itemRef) : Color.White;
-
-    public Color GetItemRarityColor(uint itemId, bool isEdgeColor = false)
+    public Color GetItemRarityColor(ItemId itemId, bool isEdgeColor = false)
     {
-        if (IsEventItem(itemId))
+        if (itemId.IsEventItem)
             return isEdgeColor ? Color.FromABGR(0x000000FF) : Color.White;
 
-        if (!excelService.TryGetRow<Item>(GetBaseItemId(itemId), out var item))
+        if (!excelService.TryGetRow<Item>(itemId.BaseItemId, out var item))
             return isEdgeColor ? Color.FromABGR(0x000000FF) : Color.White;
 
-        return GetItemRarityColor(item, isEdgeColor);
+        if (!excelService.TryGetRow<UIColor>(GetItemRarityColorType(item, isEdgeColor), out var color))
+            return Color.White;
+
+        return color.GetForegroundColor();
     }
 
     public unsafe Color GetItemLevelColor(byte classJob, Item item, params Vector4[] colors)
@@ -563,20 +493,20 @@ public class ItemService(IClientState clientState, ExcelService excelService, La
         return points;
     }
 
-    public ReadOnlySeString GetItemLink(uint id, ClientLanguage? language = null)
+    public ReadOnlySeString GetItemLink(ItemId itemId, ClientLanguage? language = null)
     {
-        var itemName = GetItemName(id, language);
+        var itemName = textService.GetItemName(itemId, language);
 
-        if (IsHighQuality(id))
+        if (itemId.IsHighQuality)
             itemName += " \uE03C";
-        else if (IsCollectible(id))
+        else if (itemId.IsCollectible)
             itemName += " \uE03D";
 
         var sb = SeStringBuilder.SharedPool.Get();
         var itemLink = sb
-            .PushColorType(GetItemRarityColorType(id, false))
-            .PushEdgeColorType(GetItemRarityColorType(id, true))
-            .PushLinkItem(id, itemName)
+            .PushColorType(GetItemRarityColorType(itemId, false))
+            .PushEdgeColorType(GetItemRarityColorType(itemId, true))
+            .PushLinkItem(itemId, itemName)
             .Append(itemName)
             .PopLink()
             .PopEdgeColorType()
