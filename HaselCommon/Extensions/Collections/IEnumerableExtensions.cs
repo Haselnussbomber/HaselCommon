@@ -55,6 +55,26 @@ public static class IEnumerableExtensions
             action(element);
     }
 
+    public static bool TryGetFirst<T>(this IEnumerable<T> values, Predicate<T> predicate, out T result, out int index) where T : struct
+    {
+        using var e = values.GetEnumerator();
+        index = 0;
+
+        while (e.MoveNext())
+        {
+            if (predicate(e.Current))
+            {
+                result = e.Current;
+                return true;
+            }
+
+            index++;
+        }
+
+        result = default;
+        return false;
+    }
+
     public static IEnumerable<(int Score, T Value)> FuzzyMatch<T>(this IEnumerable<T> values, string term, Func<T, string> valueExtractor, FuzzyMatcher.Mode matchMode = FuzzyMatcher.Mode.Fuzzy, CultureInfo? cultureInfo = null)
     {
         var results = new PriorityQueue<T, int>(values.Count(), new ReverseComparer<int>());
