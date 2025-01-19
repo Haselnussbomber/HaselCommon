@@ -119,7 +119,7 @@ public unsafe struct ImGuiContextMenuBuilder(string id, TextService textService,
             Visible = _itemService.CanSearchForItem(itemRef),
             Label = textService.Translate("ItemContextMenu.SearchTheMarkets"),
             LoseFocusOnClick = true,
-            ClickCallback = () =>  _itemService.Search(itemRef)
+            ClickCallback = () => _itemService.Search(itemRef)
         });
 
         return this;

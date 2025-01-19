@@ -251,7 +251,7 @@ public class TextService
         => GetOrCreateCachedText<PlaceName>(id, language, (row) => row.Name);
 
     public string GetFateName(uint id, ClientLanguage? language = null)
-        => GetOrCreateCachedText<Fate>(id, language, (row) => _seStringEvaluator.Evaluate(row.Name).ExtractText().StripSoftHypen());
+        => GetOrCreateCachedText<Fate>(id, language, (row) => _seStringEvaluator.Evaluate(row.Name));
 
     public string GetBNpcName(uint id)
         => FromObjStr(ObjectKind.BattleNpc, id);
