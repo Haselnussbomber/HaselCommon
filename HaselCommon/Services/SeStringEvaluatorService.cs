@@ -7,7 +7,6 @@ using FFXIVClientStructs.FFXIV.Component.Text;
 using HaselCommon.Extensions.Dalamud;
 using HaselCommon.Extensions.Strings;
 using HaselCommon.Services.SeStringEvaluation;
-using Lumina.Excel;
 using Lumina.Excel.Sheets;
 using Lumina.Text.Expressions;
 using Lumina.Text.Payloads;
@@ -495,11 +494,7 @@ processSheet:
                     if (!_excelService.HasSheet(resolvedSheetName))
                         return false;
 
-                    var sheet = _excelService.GetSheet<RawRow>(context.Language ?? _languageProvider.ClientLanguage, resolvedSheetName);
-                    if (sheet == null)
-                        return false;
-
-                    if (!sheet.TryGetRow(eRowIdValue, out var row))
+                    if (!_excelService.TryGetRawRow(resolvedSheetName, eRowIdValue, context.Language ?? _languageProvider.ClientLanguage, out var row))
                         return false;
 
                     var column = row.ReadColumn((int)eColIndexValue);
