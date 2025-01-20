@@ -72,7 +72,7 @@ public class ItemService(IClientState clientState, ExcelService excelService, Se
 
         for (nuint i = 0; i < 8; i++)
         {
-            if (excelService.TryGetRow<Recipe>(lookup.ReadUInt16(lookup.Offset + i * 2), out var recipe))
+            if (excelService.TryGetRow<Recipe>(lookup.ReadUInt16(i * 2), out var recipe))
                 recipesList.Add(recipe);
         }
 
