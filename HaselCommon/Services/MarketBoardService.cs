@@ -50,11 +50,11 @@ public unsafe class MarketBoardService : IDisposable
         GC.SuppressFinalize(this);
     }
 
-    private nint ProcessRequestResultDetour(InfoProxyItemSearch* infoProxy, nint a2, nint a3, nint a4, int a5, byte a6, int a7)
+    private nint ProcessRequestResultDetour(InfoProxyItemSearch* infoProxy, byte a2, int a3)
     {
         _listings.Clear();
         ListingsStart?.Invoke();
-        return _processRequestResultHook.Original(infoProxy, a2, a3, a4, a5, a6, a7);
+        return _processRequestResultHook.Original(infoProxy, a2, a3);
     }
 
     private void EndRequestDetour(InfoProxyItemSearch* infoProxy)
