@@ -12,7 +12,7 @@ using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using HaselCommon.Extensions.Sheets;
 using HaselCommon.Game;
 using HaselCommon.Services.SeStringEvaluation;
-using Lumina.Excel;
+using HaselCommon.Utils;
 using Lumina.Excel.Sheets;
 using Lumina.Text;
 using Lumina.Text.ReadOnly;
@@ -139,7 +139,7 @@ public class MapService(IClientState clientState, IGameGui gameGui, TextService 
         ));
     }
 
-    public unsafe bool OpenMap(GatheringPoint point, RowRef<Item> itemRef, ReadOnlySeString? prefix = null)
+    public unsafe bool OpenMap(GatheringPoint point, ItemId itemId, ReadOnlySeString? prefix = null)
     {
         if (!point.TerritoryType.IsValid)
             return false;
@@ -178,11 +178,11 @@ public class MapService(IClientState clientState, IGameGui gameGui, TextService 
             exportedPoint.Radius,
             (uint)iconId,
             tooltip,
-            itemRef,
+            itemId,
             prefix);
     }
 
-    public unsafe bool OpenMap(FishingSpot fishingSpot, RowRef<Item> itemRef, ReadOnlySeString? prefix = null)
+    public unsafe bool OpenMap(FishingSpot fishingSpot, ItemId itemId, ReadOnlySeString? prefix = null)
     {
         if (!fishingSpot.TerritoryType.IsValid)
             return false;
@@ -190,8 +190,8 @@ public class MapService(IClientState clientState, IGameGui gameGui, TextService 
         var territoryType = fishingSpot.TerritoryType.Value;
 
         var gatheringItemLevel = 0;
-        if (itemRef.IsValid
-            && excelService.TryFindRow<FishParameter>(row => row.Item.RowId == itemRef.RowId, out var fishParameter)
+        if (itemId != 0
+            && excelService.TryFindRow<FishParameter>(row => row.Item.RowId == itemId, out var fishParameter)
             && fishParameter.GatheringItemLevel.IsValid)
         {
             gatheringItemLevel = fishParameter.GatheringItemLevel.Value.GatheringItemLevel;
@@ -218,10 +218,10 @@ public class MapService(IClientState clientState, IGameGui gameGui, TextService 
 
         var iconId = fishingSpot.Rare ? 60466u : 60465u;
 
-        return AddGatheringMarkerAndOpenMap(territoryType, x, y, radius, iconId, tooltip, itemRef, prefix);
+        return AddGatheringMarkerAndOpenMap(territoryType, x, y, radius, iconId, tooltip, itemId, prefix);
     }
 
-    private unsafe bool AddGatheringMarkerAndOpenMap(TerritoryType territoryType, int x, int y, int radius, uint iconId, Utf8String tooltip, RowRef<Item> itemRef, ReadOnlySeString? prefix = null)
+    private unsafe bool AddGatheringMarkerAndOpenMap(TerritoryType territoryType, int x, int y, int radius, uint iconId, Utf8String tooltip, ItemId itemId, ReadOnlySeString? prefix = null)
     {
         var agentMap = AgentMap.Instance();
         if (agentMap == null)
@@ -244,7 +244,7 @@ public class MapService(IClientState clientState, IGameGui gameGui, TextService 
             titleBuilder.Append(prefix);
         }
 
-        if (itemRef.IsValid)
+        if (itemId != 0 && excelService.GetSheet<Item>().HasRow(itemId))
         {
             if (prefix != null)
             {
@@ -254,7 +254,7 @@ public class MapService(IClientState clientState, IGameGui gameGui, TextService 
             titleBuilder
                 .PushColorType(549)
                 .PushEdgeColorType(550)
-                .Append(textService.GetItemName(itemRef.RowId))
+                .Append(textService.GetItemName(itemId))
                 .PopEdgeColorType()
                 .PopColorType();
 
