@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text;
 using Dalamud.Game;
@@ -511,34 +512,32 @@ processSheet:
                             context.Builder.Append(Evaluate(val, context with { Builder = new(), LocalParameters = [eColParamValue] }));
                             return true;
 
-                        // TODO: these should be strings. see Client::UI::Misc::RaptureTextModule___Component::Text::MacroDecoder_vf32 into Component::Text::TextModule_vf15
-                        // need to parse the raw number string then in TryResolveUInt
                         case bool val:
-                            context.Builder.BeginMacro(MacroCode.Num).AppendUIntExpression(val ? 1u : 0).EndMacro();
+                            context.Builder.Append((val ? 1u : 0).ToString("D", CultureInfo.InvariantCulture));
                             return true;
 
                         case sbyte val:
-                            context.Builder.BeginMacro(MacroCode.Num).AppendIntExpression(val).EndMacro();
+                            context.Builder.Append(val.ToString("D", CultureInfo.InvariantCulture));
                             return true;
 
                         case byte val:
-                            context.Builder.BeginMacro(MacroCode.Num).AppendUIntExpression(val).EndMacro();
+                            context.Builder.Append(val.ToString("D", CultureInfo.InvariantCulture));
                             return true;
 
                         case short val:
-                            context.Builder.BeginMacro(MacroCode.Num).AppendIntExpression(val).EndMacro();
+                            context.Builder.Append(val.ToString("D", CultureInfo.InvariantCulture));
                             return true;
 
                         case ushort val:
-                            context.Builder.BeginMacro(MacroCode.Num).AppendUIntExpression(val).EndMacro();
+                            context.Builder.Append(val.ToString("D", CultureInfo.InvariantCulture));
                             return true;
 
                         case int val:
-                            context.Builder.BeginMacro(MacroCode.Num).AppendIntExpression(val).EndMacro();
+                            context.Builder.Append(val.ToString("D", CultureInfo.InvariantCulture));
                             return true;
 
                         case uint val:
-                            context.Builder.BeginMacro(MacroCode.Num).AppendUIntExpression(val).EndMacro();
+                            context.Builder.Append(val.ToString("D", CultureInfo.InvariantCulture));
                             return true;
 
                         case { } val:
