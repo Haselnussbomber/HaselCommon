@@ -22,6 +22,18 @@ public readonly struct ExcelRowId<T>(uint rowId) where T : struct, IExcelRow<T>
         return excelService.TryGetRow(RowId, out row);
     }
 
+    public bool TryGetRow<TRow>(out TRow row) where TRow : struct, IExcelRow<TRow>
+    {
+        var excelService = Service.Provider?.GetService<ExcelService>();
+        if (excelService == null)
+        {
+            row = default;
+            return false;
+        }
+
+        return excelService.TryGetRow(RowId, out row);
+    }
+
     public override bool Equals([NotNullWhen(true)] object? obj) => obj is ExcelRowId<T> rowId && RowId == rowId;
     public override int GetHashCode() => RowId.GetHashCode();
     public override string ToString() => RowId.ToString();
