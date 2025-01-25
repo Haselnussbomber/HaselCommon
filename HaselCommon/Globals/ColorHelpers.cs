@@ -6,6 +6,13 @@ namespace HaselCommon.Globals;
 public static class ColorHelpers
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Color hex(uint value)
+        => rgb(
+            (byte)((value >> 16) & 0xFF) / 255f,
+            (byte)((value >> 8) & 0xFF) / 255f,
+            (byte)(value & 0xFF) / 255f);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Color rgb(float red, float green, float blue)
         => Color.From(red, green, blue);
 
