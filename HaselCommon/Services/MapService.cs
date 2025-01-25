@@ -139,7 +139,7 @@ public class MapService(IClientState clientState, IGameGui gameGui, TextService 
         ));
     }
 
-    public unsafe bool OpenMap(GatheringPoint point, ItemId itemId, ReadOnlySeString? prefix = null)
+    public unsafe bool OpenMap(GatheringPoint point, ExcelRowId<Item> itemId, ReadOnlySeString? prefix = null)
     {
         if (!point.TerritoryType.IsValid)
             return false;
@@ -182,7 +182,7 @@ public class MapService(IClientState clientState, IGameGui gameGui, TextService 
             prefix);
     }
 
-    public unsafe bool OpenMap(FishingSpot fishingSpot, ItemId itemId, ReadOnlySeString? prefix = null)
+    public unsafe bool OpenMap(FishingSpot fishingSpot, ExcelRowId<Item> itemId, ReadOnlySeString? prefix = null)
     {
         if (!fishingSpot.TerritoryType.IsValid)
             return false;
@@ -221,7 +221,7 @@ public class MapService(IClientState clientState, IGameGui gameGui, TextService 
         return AddGatheringMarkerAndOpenMap(territoryType, x, y, radius, iconId, tooltip, itemId, prefix);
     }
 
-    private unsafe bool AddGatheringMarkerAndOpenMap(TerritoryType territoryType, int x, int y, int radius, uint iconId, Utf8String tooltip, ItemId itemId, ReadOnlySeString? prefix = null)
+    private unsafe bool AddGatheringMarkerAndOpenMap(TerritoryType territoryType, int x, int y, int radius, uint iconId, Utf8String tooltip, ExcelRowId<Item> itemId, ReadOnlySeString? prefix = null)
     {
         var agentMap = AgentMap.Instance();
         if (agentMap == null)

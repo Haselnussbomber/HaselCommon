@@ -38,77 +38,93 @@ public class LeveService(ExcelService excelService, LanguageProvider languagePro
     }
 
     public int GetNumAcceptedLeveQuests()
-        => GetActiveLeveIds().Count();
+    {
+        return GetActiveLeveIds().Count();
+    }
 
     public bool HasAcceptedLeveQuests()
-        => GetActiveLeveIds().Any();
+    {
+        return GetActiveLeveIds().Any();
+    }
 
     public unsafe int GetNumLeveAllowances()
-        => QuestManager.Instance()->NumLeveAllowances;
+    {
+        return QuestManager.Instance()->NumLeveAllowances;
+    }
 
-    public unsafe LeveWork* GetLeveWork(Leve leve)
+    public unsafe LeveWork* GetLeveWork(ExcelRowId<Leve> leveId)
     {
         var leveQuests = QuestManager.Instance()->LeveQuests;
 
         for (var i = 0; i < leveQuests.Length; i++)
         {
-            if (leveQuests[i].LeveId == leve.RowId)
+            if (leveQuests[i].LeveId == leveId.RowId)
                 return leveQuests.GetPointer(i);
         }
 
         return null;
     }
 
-    public unsafe bool IsComplete(Leve leve)
-        => QuestManager.Instance()->IsLevequestComplete((ushort)leve.RowId);
-
-    public bool IsAccepted(Leve leve)
-        => GetActiveLeveIds().Any(id => id == leve.RowId);
-
-    public unsafe bool IsReadyForTurnIn(Leve leve)
+    public unsafe bool IsComplete(ExcelRowId<Leve> leveId)
     {
-        var leveWork = GetLeveWork(leve);
+        return QuestManager.Instance()->IsLevequestComplete((ushort)leveId.RowId);
+    }
+
+    public bool IsAccepted(ExcelRowId<Leve> leveId)
+    {
+        return GetActiveLeveIds().Any(id => id == leveId.RowId);
+    }
+
+    public unsafe bool IsReadyForTurnIn(ExcelRowId<Leve> leveId)
+    {
+        var leveWork = GetLeveWork(leveId);
         if (leveWork == null)
             return false;
 
         return leveWork->Sequence == 255;
     }
 
-    public unsafe bool IsStarted(Leve leve)
+    public unsafe bool IsStarted(ExcelRowId<Leve> leveId)
     {
-        var leveWork = GetLeveWork(leve);
+        var leveWork = GetLeveWork(leveId);
         if (leveWork == null)
             return false;
 
         return leveWork->Sequence == 1 && leveWork->ClearClass != 0;
     }
 
-    public unsafe bool IsFailed(Leve leve)
+    public unsafe bool IsFailed(ExcelRowId<Leve> leveId)
     {
-        var leveWork = GetLeveWork(leve);
+        var leveWork = GetLeveWork(leveId);
         if (leveWork == null)
             return false;
 
         return leveWork->Sequence == 3;
     }
 
-    public bool IsTownLocked(Leve leve)
-        => leve.RowId is 546 or 556 or 566;
-
-    public bool IsCraftLeve(Leve leve)
-        => leve.LeveAssignmentType.RowId is >= 5 and <= 12;
-
-    public bool IsFishingLeve(Leve leve)
-        => leve.LeveAssignmentType.RowId is 4;
-
-    public ItemAmount[] GetRequiredItems(Leve leve)
+    public bool IsTownLocked(ExcelRowId<Leve> leveId)
     {
-        if (_requiredItemsCache.TryGetValue(leve.RowId, out var requiredItems))
+        return leveId.RowId is 546 or 556 or 566;
+    }
+
+    public bool IsCraftLeve(ExcelRowId<Leve> leveId)
+    {
+        return leveId.TryGetRow(out var leve) && leve.LeveAssignmentType.RowId is >= 5 and <= 12;
+    }
+
+    public bool IsFishingLeve(ExcelRowId<Leve> leveId)
+    {
+        return leveId.TryGetRow(out var leve) && leve.LeveAssignmentType.RowId is 4;
+    }
+
+    public ItemAmount[] GetRequiredItems(ExcelRowId<Leve> leveId)
+    {
+        if (_requiredItemsCache.TryGetValue(leveId.RowId, out var requiredItems))
             return requiredItems;
 
-        if (!(IsCraftLeve(leve) || IsFishingLeve(leve)) || !leve.DataId.TryGetValue<CraftLeve>(out var craftLeve))
+        if (!(IsCraftLeve(leveId) || IsFishingLeve(leveId)) || !leveId.TryGetRow(out var leve) || !leve.DataId.TryGetValue<CraftLeve>(out var craftLeve))
         {
-            _requiredItemsCache.Add(leve.RowId, requiredItems = []);
+            _requiredItemsCache.Add(leveId.RowId, requiredItems = []);
             return requiredItems;
         }
 
@@ -128,16 +144,19 @@ public class LeveService(ExcelService excelService, LanguageProvider languagePro
             reqItem.Amount += count;
         }
 
-        _requiredItemsCache.Add(leve.RowId, requiredItems = [.. dict.Values]);
+        _requiredItemsCache.Add(leveId.RowId, requiredItems = [.. dict.Values]);
         return requiredItems;
     }
 
-    public string GetLeveName(Leve leve)
+    public string GetLeveName(ExcelRowId<Leve> leveId)
     {
-        var key = (leve.RowId, languageProvider.ClientLanguage);
+        var key = (leveId.RowId, languageProvider.ClientLanguage);
 
         if (_leveNameCache.TryGetValue(key, out var name))
             return name;
+
+        if (!leveId.TryGetRow(out var leve))
+            return string.Empty;
 
         _leveNameCache.Add(key, name = leve.Name.ExtractText().StripSoftHypen());
         return name;

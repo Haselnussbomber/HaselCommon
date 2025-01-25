@@ -163,10 +163,10 @@ public class TextService
     public string GetLobbyText(uint id, ClientLanguage? language = null)
         => GetOrCreateCachedText<Lobby>(id, language, (row) => row.Text);
 
-    public string GetItemName(ItemId itemId, ClientLanguage? language = null)
-        => itemId.IsEventItem
+    public string GetItemName(ExcelRowId<Item> itemId, ClientLanguage? language = null)
+        => itemId.IsEventItem()
             ? GetOrCreateCachedText<EventItem>(itemId, language, (row) => row.Name)
-            : GetOrCreateCachedText<Item>(itemId.BaseItemId, language, (row) => row.Name);
+            : GetOrCreateCachedText<Item>(itemId.GetBaseId(), language, (row) => row.Name);
 
     public string GetQuestName(uint id, ClientLanguage? language = null)
         => GetOrCreateCachedText<Quest>(id, language, (row) => row.Name);
