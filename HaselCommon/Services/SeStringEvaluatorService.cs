@@ -491,6 +491,8 @@ public partial class SeStringEvaluatorService(
 processSheet:
                     var resolvedSheetName = Evaluate(eSheetNameStr, context with { Builder = new() }).ExtractText();
 
+                    ResolveSheetRedirect(ref resolvedSheetName, ref eRowIdValue);
+
                     if (!_excelService.HasSheet(resolvedSheetName))
                         return false;
 
