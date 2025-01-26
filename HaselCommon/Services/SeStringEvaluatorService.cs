@@ -3,16 +3,21 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using Dalamud.Game;
 using Dalamud.Utility;
+using FFXIVClientStructs.FFXIV.Client.UI;
+using FFXIVClientStructs.FFXIV.Client.UI.Agent;
+using FFXIVClientStructs.FFXIV.Client.UI.Info;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using FFXIVClientStructs.FFXIV.Component.Text;
 using HaselCommon.Extensions.Dalamud;
 using HaselCommon.Extensions.Strings;
 using HaselCommon.Services.SeStringEvaluation;
 using Lumina.Excel.Sheets;
+using Lumina.Text;
 using Lumina.Text.Expressions;
 using Lumina.Text.Payloads;
 using Lumina.Text.ReadOnly;
 using Microsoft.Extensions.Logging;
+using QuestManager = FFXIVClientStructs.FFXIV.Client.Game.QuestManager;
 
 namespace HaselCommon.Services;
 
@@ -282,10 +287,10 @@ public partial class SeStringEvaluatorService(
                     return true;
                 }
 
-            case MacroCode.SoftHyphen:
-                if (!context.StripSoftHypen)
-                    context.Builder.Append("\u00AD"u8);
-                return true;
+            //case MacroCode.SoftHyphen:
+            //    if (!context.StripSoftHypen)
+            //        context.Builder.Append("\u00AD"u8);
+            //    return true;
 
             case MacroCode.Bold:
                 {
@@ -311,13 +316,13 @@ public partial class SeStringEvaluatorService(
                     return false;
                 }
 
-            case MacroCode.NonBreakingSpace:
-                context.Builder.Append("\u00A0"u8);
-                return true;
+            //case MacroCode.NonBreakingSpace:
+            //    context.Builder.Append("\u00A0"u8);
+            //    return true;
 
-            case MacroCode.Hyphen:
-                context.Builder.Append('-');
-                return true;
+            //case MacroCode.Hyphen:
+            //    context.Builder.Append('-');
+            //    return true;
 
             case MacroCode.Num:
                 {
@@ -493,6 +498,8 @@ processSheet:
                     var resolvedSheetName = Evaluate(eSheetNameStr, context with { Builder = new() }).ExtractText();
 
                     ResolveSheetRedirect(ref resolvedSheetName, ref eRowIdValue);
+                    if (string.IsNullOrEmpty(resolvedSheetName))
+                        return false;
 
                     if (!_excelService.HasSheet(resolvedSheetName))
                         return false;
@@ -653,7 +660,7 @@ processSheet:
                         goto invalidLevelPos;
                     }
 
-                    if (!_excelService.TryGetRow<Level>(eLevelVal, out var level) || !level.Map.IsValid)
+                    if (!_excelService.TryGetRow<Level>(eLevelVal, context.Language, out var level) || !level.Map.IsValid)
                         goto invalidLevelPos;
 
                     if (!_excelService.TryGetRow<PlaceName>(level.Map.Value.PlaceName.RowId, context.Language, out var placeName))
@@ -674,19 +681,6 @@ processSheet:
 invalidLevelPos:
                     context.Builder.Append("??? ( ???  , ??? )"); // TODO: missing new line?
                     return false;
-
-                    // "41 0F BF C0 66 0F 6E D0 B8"
-                    static uint ConvertRawToMapPos(Map map, short offset, float value)
-                    {
-                        var scale = map.SizeFactor / 100.0f;
-                        return (uint)(10 - (int)(((value + offset) * scale + 1024f) * -0.2f / scale));
-                    }
-
-                    static uint ConvertRawToMapPosX(Map map, float x)
-                        => ConvertRawToMapPos(map, map.OffsetX, x);
-
-                    static uint ConvertRawToMapPosY(Map map, float y)
-                        => ConvertRawToMapPos(map, map.OffsetY, y);
                 }
 
             case MacroCode.JaNoun:
@@ -700,6 +694,477 @@ invalidLevelPos:
 
             case MacroCode.FrNoun:
                 return TryResolveNoun(ClientLanguage.French, ref context, ref payload);
+
+            case MacroCode.Fixed:
+                {
+                    // second function in Client::UI::Misc::PronounModule_ProcessString
+
+                    var enu = payload.GetEnumerator();
+                    if (!enu.MoveNext() || !TryResolveInt(ref context, enu.Current, out var e0Val))
+                        return false;
+
+                    if (!enu.MoveNext() || !TryResolveInt(ref context, enu.Current, out var e1Val))
+                        return false;
+
+                    if (e0Val is 100 or 200)
+                    {
+                        switch (e1Val)
+                        {
+                            // Player link
+                            case 1:
+                                {
+                                    if (!enu.MoveNext() || !TryResolveUInt(ref context, enu.Current, out var worldId))
+                                        return false;
+
+                                    if (!enu.MoveNext() || !enu.Current.TryGetString(out var playerName))
+                                        return false;
+
+                                    if (UIGlobals.IsValidPlayerCharacterName(playerName.ExtractText()))
+                                    {
+                                        var flags = 0u;
+                                        if (InfoModule.Instance()->IsInCrossWorldDuty())
+                                            flags |= 0x10;
+
+                                        context.Builder.PushLink(LinkMacroPayloadType.Character, flags, worldId, 0u, playerName);
+                                        context.Builder.Append(playerName);
+                                        context.Builder.PopLink();
+                                    }
+                                    else
+                                    {
+                                        context.Builder.Append(playerName);
+                                    }
+
+                                    if (worldId == AgentLobby.Instance()->LobbyData.HomeWorldId)
+                                        return true;
+
+                                    if (!_excelService.TryGetRow<World>(worldId, context.Language, out var worldRow))
+                                        return false;
+
+                                    context.Builder.AppendIcon(88);
+                                    context.Builder.Append(worldRow.Name);
+                                }
+                                return true;
+
+                            // ClassJob name and level
+                            case 2:
+                                {
+                                    if (!enu.MoveNext() || !TryResolveInt(ref context, enu.Current, out var classJobId) || classJobId <= 0)
+                                        return false;
+
+                                    if (!enu.MoveNext() || !TryResolveInt(ref context, enu.Current, out var level))
+                                        return false;
+
+                                    if (!_excelService.TryGetRow<ClassJob>((uint)classJobId, context.Language, out var classJobRow))
+                                        return false;
+
+                                    context.Builder.Append(classJobRow.Name);
+
+                                    if (level != 0)
+                                    {
+                                        context.Builder.Append('(');
+                                        context.Builder.Append(level.ToString("D", CultureInfo.InvariantCulture));
+                                        context.Builder.Append(')');
+                                    }
+                                }
+                                return true;
+
+                            // Map link
+                            case 3:
+                                {
+                                    if (!enu.MoveNext() || !TryResolveUInt(ref context, enu.Current, out var territoryTypeId))
+                                        return false;
+
+                                    if (!enu.MoveNext() || !TryResolveUInt(ref context, enu.Current, out var packedIds))
+                                        return false;
+
+                                    if (!enu.MoveNext() || !TryResolveInt(ref context, enu.Current, out var rawX))
+                                        return false;
+
+                                    if (!enu.MoveNext() || !TryResolveInt(ref context, enu.Current, out var rawY))
+                                        return false;
+
+                                    if (!enu.MoveNext() || !TryResolveInt(ref context, enu.Current, out var rawZ))
+                                        return false;
+
+                                    if (!enu.MoveNext() || !TryResolveUInt(ref context, enu.Current, out var placeNameIdInt))
+                                        return false;
+
+                                    var instance = packedIds >> 0x10;
+                                    var mapId = packedIds & 0xFF;
+
+                                    if (_excelService.TryGetRow<TerritoryType>(territoryTypeId, context.Language, out var territoryTypeRow))
+                                    {
+                                        if (!_excelService.TryGetRow<PlaceName>(placeNameIdInt == 0 ? territoryTypeRow.PlaceName.RowId : placeNameIdInt, context.Language, out var placeNameRow))
+                                            return false;
+
+                                        if (!_excelService.TryGetRow<Map>(mapId, out var mapRow))
+                                            return false;
+
+                                        var sb = SeStringBuilder.SharedPool.Get();
+
+                                        sb.Append(placeNameRow.Name);
+                                        if (instance > 0 && instance <= 9)
+                                            sb.Append((char)((char)0xE0B0 + (char)instance));
+
+                                        var placeNameWithInstance = sb.ToReadOnlySeString();
+                                        SeStringBuilder.SharedPool.Return(sb);
+
+                                        var mapPosX = ConvertRawToMapPosX(mapRow, rawX / 1000f);
+                                        var mapPosY = ConvertRawToMapPosY(mapRow, rawY / 1000f);
+
+                                        ReadOnlySeString linkText;
+                                        if (rawZ == -30000)
+                                        {
+                                            linkText = EvaluateFromAddon(1635, new SeStringContext()
+                                            {
+                                                Language = context.Language,
+                                                LocalParameters = [placeNameWithInstance, mapPosX, mapPosY]
+                                            });
+                                        }
+                                        else
+                                        {
+                                            linkText = EvaluateFromAddon(1636, new SeStringContext()
+                                            {
+                                                Language = context.Language,
+                                                LocalParameters = [placeNameWithInstance, mapPosX, mapPosY, rawZ / (rawZ >= 0 ? 10 : -10), rawZ]
+                                            });
+                                        }
+
+                                        context.Builder.PushLinkMapPosition(territoryTypeId, mapId, rawX, rawY);
+                                        context.Builder.Append(EvaluateFromAddon(371, new SeStringContext()
+                                        {
+                                            Language = context.Language,
+                                            LocalParameters = [linkText]
+                                        }));
+                                        context.Builder.PopLink();
+
+                                        return true;
+                                    }
+                                    else if (mapId == 0)
+                                    {
+                                        if (_excelService.TryGetRow<Addon>(875, out var addonRow)) // "(No location set for map link)"
+                                            context.Builder.Append(addonRow.Text);
+
+                                        return true;
+                                    }
+                                    else if (mapId == 1)
+                                    {
+                                        if (_excelService.TryGetRow<Addon>(874, out var addonRow)) // "(Map link unavailable in this area)"
+                                            context.Builder.Append(addonRow.Text);
+
+                                        return true;
+                                    }
+                                    else if (mapId == 2)
+                                    {
+                                        if (_excelService.TryGetRow<Addon>(13743, out var addonRow)) // "(Unable to set map link)"
+                                            context.Builder.Append(addonRow.Text);
+
+                                        return true;
+                                    }
+                                }
+
+                                return false;
+
+                            // Item link
+                            case 4:
+                                {
+                                    if (!enu.MoveNext() || !TryResolveUInt(ref context, enu.Current, out var itemId))
+                                        return false;
+
+                                    if (!enu.MoveNext() || !TryResolveUInt(ref context, enu.Current, out var rarity))
+                                        return false;
+
+                                    if (!enu.MoveNext() || !TryResolveInt(ref context, enu.Current, out var unk2))
+                                        return false;
+
+                                    if (!enu.MoveNext() || !TryResolveInt(ref context, enu.Current, out var unk3))
+                                        return false;
+
+                                    if (!enu.MoveNext() || !enu.Current.TryGetString(out var itemName)) // TODO: unescape??
+                                        return false;
+
+                                    // rarity color start
+                                    context.Builder.Append(EvaluateFromAddon(6, new SeStringContext()
+                                    {
+                                        Language = context.Language,
+                                        LocalParameters = [rarity]
+                                    }));
+
+                                    var v2 = (ushort)((unk2 & 0xFF) + (unk3 << 0x10)); // TODO: find out what this does
+
+                                    context.Builder.PushLink(LinkMacroPayloadType.Item, itemId, rarity, v2);
+
+                                    // arrow and item name
+                                    context.Builder.Append(EvaluateFromAddon(371, new SeStringContext()
+                                    {
+                                        Language = context.Language,
+                                        LocalParameters = [itemName]
+                                    }));
+
+                                    context.Builder.PopLink();
+                                    context.Builder.PopColor();
+                                }
+
+                                return true;
+
+                            // Chat Sound Effect
+                            case 5:
+                                {
+                                    if (!enu.MoveNext() || !TryResolveUInt(ref context, enu.Current, out var soundEffectId))
+                                        return false;
+
+                                    context.Builder.Append($"<se.{soundEffectId + 1}>");
+
+                                    // the game would play it here
+                                }
+
+                                return true;
+
+                            // ObjStr
+                            case 6:
+                                {
+                                    if (!enu.MoveNext() || !TryResolveUInt(ref context, enu.Current, out var objStrId))
+                                        return false;
+
+                                    var name = EvaluateFromAddon(2025, new SeStringContext() // "<head(<denoun(ObjStr,5,lnum1,1,1,1)>)>"
+                                    {
+                                        Language = context.Language,
+                                        LocalParameters = [objStrId]
+                                    });
+
+                                    // TODO: for some reason the game doesn't do that
+                                    // i think it checks if it could get row 2025 instead of that the text is empty
+                                    if (name.IsEmpty)
+                                    {
+                                        if (_excelService.TryGetRow<Addon>(3619, out var addonRow)) // "???"
+                                            context.Builder.Append(addonRow.Text);
+                                    }
+                                    else
+                                    {
+                                        context.Builder.Append(name);
+                                    }
+                                }
+
+                                return true;
+
+                            // Just a string?
+                            case 7:
+                                {
+                                    if (!enu.MoveNext() || !enu.Current.TryGetString(out var text))
+                                        return false;
+
+                                    // formats it through vsprintf using "%s"??
+                                    context.Builder.Append(text);
+                                }
+
+                                return true;
+
+                            // Time remaining
+                            case 8:
+                                {
+                                    if (!enu.MoveNext() || !TryResolveUInt(ref context, enu.Current, out var seconds))
+                                        return false;
+
+                                    if (seconds != 0)
+                                    {
+                                        context.Builder.Append(EvaluateFromAddon(33, new SeStringContext() // "<num(lnum1)>:<sec(lnum2)>"
+                                        {
+                                            Language = context.Language,
+                                            LocalParameters = [seconds / 60, seconds % 60]
+                                        }));
+                                    }
+                                    else
+                                    {
+                                        if (_excelService.TryGetRow<Addon>(48, out var addonRow)) // "--:--"
+                                            context.Builder.Append(addonRow.Text);
+                                    }
+                                }
+
+                                return true;
+
+                            // Reads a uint and saves it to PronounModule+0x3AC
+                            // TODO: figure out what it's for
+                            case 9:
+                                return true;
+
+                            // Status link
+                            case 10:
+                                {
+                                    if (!enu.MoveNext() || !TryResolveUInt(ref context, enu.Current, out var statusId))
+                                        return false;
+
+                                    if (!enu.MoveNext() || !TryResolveBool(ref context, enu.Current, out var hasOverride))
+                                        return false;
+
+                                    if (!_excelService.TryGetRow<Status>(statusId, out var statusRow))
+                                        return false;
+
+                                    ReadOnlySeStringSpan statusName;
+                                    ReadOnlySeStringSpan statusDescription;
+
+                                    if (hasOverride)
+                                    {
+                                        if (!enu.MoveNext() || !enu.Current.TryGetString(out statusName))
+                                            return false;
+
+                                        if (!enu.MoveNext() || !enu.Current.TryGetString(out statusDescription))
+                                            return false;
+                                    }
+                                    else
+                                    {
+                                        statusName = statusRow.Name.AsSpan();
+                                        statusDescription = statusRow.Description.AsSpan();
+                                    }
+
+                                    var sb = SeStringBuilder.SharedPool.Get();
+
+                                    if (statusRow.StatusCategory == 1)
+                                    {
+                                        sb.Append(EvaluateFromAddon(376, new SeStringContext() // buff icon
+                                        {
+                                            Language = context.Language,
+                                        }));
+                                    }
+                                    else if (statusRow.StatusCategory == 2)
+                                    {
+                                        sb.Append(EvaluateFromAddon(377, new SeStringContext() // debuff icon
+                                        {
+                                            Language = context.Language,
+                                        }));
+                                    }
+
+                                    sb.Append(statusName);
+
+                                    var linkText = sb.ToReadOnlySeString();
+                                    SeStringBuilder.SharedPool.Return(sb);
+
+                                    context.Builder
+                                       .BeginMacro(MacroCode.Link)
+                                        .AppendUIntExpression((uint)LinkMacroPayloadType.Status)
+                                        .AppendUIntExpression(statusId)
+                                        .AppendUIntExpression(0)
+                                        .AppendUIntExpression(0)
+                                        .AppendStringExpression(statusName)
+                                        .AppendStringExpression(statusDescription)
+                                        .EndMacro();
+
+                                    context.Builder.Append(EvaluateFromAddon(371, new SeStringContext()
+                                    {
+                                        Language = context.Language,
+                                        LocalParameters = [linkText]
+                                    }));
+
+                                    context.Builder.PopLink();
+                                }
+
+                                return true;
+
+                            // PartyFinder link
+                            case 11:
+                                {
+                                    if (!enu.MoveNext() || !TryResolveUInt(ref context, enu.Current, out var listingId))
+                                        return false;
+
+                                    if (!enu.MoveNext() || !TryResolveUInt(ref context, enu.Current, out var unk1))
+                                        return false;
+
+                                    if (!enu.MoveNext() || !TryResolveUInt(ref context, enu.Current, out var worldId))
+                                        return false;
+
+                                    if (!enu.MoveNext() || !TryResolveInt(ref context, enu.Current, out var crossWorldFlag)) // 0 = cross world, 1 = not cross world
+                                        return false;
+
+                                    if (!enu.MoveNext() || !enu.Current.TryGetString(out var playerName))
+                                        return false;
+
+                                    context.Builder
+                                       .BeginMacro(MacroCode.Link)
+                                        .AppendUIntExpression((uint)LinkMacroPayloadType.PartyFinder)
+                                        .AppendUIntExpression(listingId)
+                                        .AppendUIntExpression(unk1)
+                                        .AppendUIntExpression((uint)(crossWorldFlag << 0x10) + worldId)
+                                        .EndMacro();
+
+                                    context.Builder.Append(EvaluateFromAddon(371, new SeStringContext()
+                                    {
+                                        Language = context.Language,
+                                        LocalParameters = [
+                                            EvaluateFromAddon(2265, new SeStringContext()
+                                        {
+                                            Language = context.Language,
+                                            LocalParameters = [playerName, crossWorldFlag]
+                                        })
+                                        ]
+                                    }));
+
+                                    context.Builder.PopLink();
+                                }
+
+                                return true;
+
+                            // Quest link
+                            case 12:
+                                {
+                                    if (!enu.MoveNext() || !TryResolveUInt(ref context, enu.Current, out var questId))
+                                        return false;
+
+                                    if (!enu.MoveNext() || !enu.MoveNext() || !enu.MoveNext()) // unused
+                                        return false;
+
+                                    if (!enu.MoveNext() || !enu.Current.TryGetString(out var questName))
+                                        return false;
+
+                                    /* TODO some day
+                                    if (!QuestManager.IsQuestComplete(questId) && !QuestManager.Instance()->IsQuestAccepted(questId))
+                                    {
+                                        var questRecompleteManager = QuestRecompleteManager.Instance();
+                                        if (questRecompleteManager == null || !questRecompleteManager->"E8 ?? ?? ?? ?? 0F B6 57 FF"(questId)) {
+                                            if (_excelService.TryGetRow<Addon>(5497, out var addonRow))
+                                                questName = addonRow.Text.AsSpan();
+                                        }
+                                    }
+                                    */
+
+                                    context.Builder
+                                       .BeginMacro(MacroCode.Link)
+                                        .AppendUIntExpression((uint)LinkMacroPayloadType.Quest)
+                                        .AppendUIntExpression(questId)
+                                        .AppendUIntExpression(0)
+                                        .AppendUIntExpression(0)
+                                        .EndMacro();
+
+                                    context.Builder.Append(EvaluateFromAddon(371, new SeStringContext()
+                                    {
+                                        Language = context.Language,
+                                        LocalParameters = [questName]
+                                    }));
+
+                                    context.Builder.PopLink();
+                                }
+
+                                return true;
+                        }
+
+                        return false;
+                    }
+
+                    // auto-translate / completion
+
+                    /* I don't know yet
+
+                    if (!_excelService.TryGetRow<Completion>((uint)e1Val, context.Language, out var completionRow))
+                        return false;
+
+                    context.Builder.AppendIcon(54); // <icon(54)>
+                    context.Builder.Append("Auto Translate");
+                    context.Builder.AppendIcon(55); // <icon(55)>
+
+                    return false;
+                    */
+
+                    context.Builder.Append(payload);
+                    return false;
+                }
 
             default:
                 context.Builder.Append(payload);
@@ -800,13 +1265,14 @@ invalidLevelPos:
 
                     if (operand1.TryGetString(out var strval1) && operand2.TryGetString(out var strval2))
                     {
-                        var resolvedStr1 = Evaluate(new ReadOnlySeStringSpan(strval1.Data), context);
-                        var resolvedStr2 = Evaluate(new ReadOnlySeStringSpan(strval1.Data), context);
+                        var resolvedStr1 = Evaluate(strval1, context);
+                        var resolvedStr2 = Evaluate(strval2, context);
+                        var equals = resolvedStr1.Equals(resolvedStr2);
 
                         if ((ExpressionType)exprType == ExpressionType.Equal)
-                            value = resolvedStr1.Equals(resolvedStr2) ? 1u : 0u;
+                            value = equals ? 1u : 0u;
                         else
-                            value = resolvedStr1.Equals(resolvedStr2) ? 0u : 1u;
+                            value = equals ? 0u : 1u;
                         return true;
                     }
 
@@ -936,9 +1402,7 @@ invalidLevelPos:
         if (!enu.MoveNext())
             return false;
 
-        var eSheetName = enu.Current;
-
-        if (!eSheetName.TryGetString(out var eSheetNameStr))
+        if (!enu.Current.TryGetString(out var eSheetNameStr))
             return false;
 
         var sheetName = Evaluate(eSheetNameStr, context with { Builder = new() }).ExtractText();
@@ -946,15 +1410,13 @@ invalidLevelPos:
         if (!enu.MoveNext())
             return false;
 
-        var eArticleType = enu.Current;
-        if (!TryResolveInt(ref context, eArticleType, out var eArticleTypeVal))
+        if (!TryResolveInt(ref context, enu.Current, out var eArticleTypeVal))
             return false;
 
         if (!enu.MoveNext())
             return false;
 
-        var eRowId = enu.Current;
-        if (!TryResolveUInt(ref context, eRowId, out var eRowIdVal))
+        if (!TryResolveUInt(ref context, enu.Current, out var eRowIdVal))
             return false;
 
         ResolveSheetRedirect(ref sheetName, ref eRowIdVal);
@@ -964,15 +1426,13 @@ invalidLevelPos:
         if (!enu.MoveNext())
             goto decode;
 
-        var eAmount = enu.Current;
-        if (!TryResolveInt(ref context, eAmount, out eAmountVal))
+        if (!TryResolveInt(ref context, enu.Current, out eAmountVal))
             return false;
 
         if (!enu.MoveNext())
             goto decode;
 
-        var eCase = enu.Current;
-        if (!TryResolveInt(ref context, eCase, out eCaseVal))
+        if (!TryResolveInt(ref context, enu.Current, out eCaseVal))
             return false;
 
         if (!enu.MoveNext())
@@ -989,6 +1449,19 @@ decode:
 
         return true;
     }
+
+    // "41 0F BF C0 66 0F 6E D0 B8"
+    private static uint ConvertRawToMapPos(Map map, short offset, float value)
+    {
+        var scale = map.SizeFactor / 100.0f;
+        return (uint)(10 - (int)(((value + offset) * scale + 1024f) * -0.2f / scale));
+    }
+
+    private static uint ConvertRawToMapPosX(Map map, float x)
+        => ConvertRawToMapPos(map, map.OffsetX, x);
+
+    private static uint ConvertRawToMapPosY(Map map, float y)
+        => ConvertRawToMapPos(map, map.OffsetY, y);
 
     private static readonly string[] ActStrSheetNames = [
         "Trait",
@@ -1030,17 +1503,6 @@ decode:
 
     public void ResolveSheetRedirect(ref string sheetName, ref uint rowId, ushort flags = 0xFFFF)
     {
-        // TODO: contribute after thinking about it
-        // "8D 41 FE 83 F8 0C 77 4D"
-        // ToObjStrId(ObjectKind, id)
-
-        // "E8 ?? ?? ?? ?? 44 8B E8 A8 10"
-        // uint ResolveSheetRedirect(
-        //    Client::UI::Misc::RaptureTextModule* a1,
-        //    Client::System::String::Utf8String* sheetName,
-        //    uint* rowId,
-        //    int* flags)
-
         if (sheetName is "Item" or "ItemHQ" or "ItemMP") // MP means Masterpiece
         {
             if (rowId is > 500_000 and < 1_000_000) // Collectible
