@@ -983,7 +983,8 @@ invalidLevelPos:
                                 return true;
 
                             // Reads a uint and saves it to PronounModule+0x3AC
-                            // TODO: figure out what it's for
+                            // TODO: handle this? looks like it's for the mentor/beginner icon of the player link in novice network
+                            // see "FF 50 50 8B B0"
                             case 9:
                                 return true;
 
