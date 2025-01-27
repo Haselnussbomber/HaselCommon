@@ -1,4 +1,47 @@
 {
+  "CoordsXY": {
+    "en": "X: {0}, Y: {1}"
+  },
+  "CompassHeadings.E": {
+    "en": "E",
+    "de": "O",
+    "zh": "东"
+  },
+  "CompassHeadings.NE": {
+    "en": "NE",
+    "de": "NO",
+    "zh": "东北"
+  },
+  "CompassHeadings.N": {
+    "en": "N",
+    "de": "N",
+    "zh": "北"
+  },
+  "CompassHeadings.NW": {
+    "en": "NW",
+    "de": "NW",
+    "zh": "西北"
+  },
+  "CompassHeadings.W": {
+    "en": "W",
+    "de": "W",
+    "zh": "西"
+  },
+  "CompassHeadings.SW": {
+    "en": "SW",
+    "de": "SW",
+    "zh": "西南"
+  },
+  "CompassHeadings.S": {
+    "en": "S",
+    "de": "S",
+    "zh": "南"
+  },
+  "CompassHeadings.SE": {
+    "en": "SE",
+    "de": "SO",
+    "zh": "东南"
+  },
   "Notification.CouldNotLoadConfig": {
     "en": "Could not load the configuration file. Creating a new one.",
     "de": "Die Konfigurationsdatei konnte nicht geladen werden. Es wird eine neue erstellt."

@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Numerics;
 using Dalamud.Game;
 using Dalamud.Game.ClientState.Objects.Types;
@@ -23,6 +24,8 @@ namespace HaselCommon.Services;
 [RegisterSingleton]
 public class MapService(IClientState clientState, IGameGui gameGui, TextService textService, ExcelService excelService, SeStringEvaluatorService seStringEvaluatorService)
 {
+    private static readonly string[] CompassHeadings = ["E", "NE", "N", "NW", "W", "SW", "S", "SE"];
+
     public static Vector2 GetCoords(Level level)
     {
         var map = level.Map.Value;
@@ -40,6 +43,14 @@ public class MapService(IClientState clientState, IGameGui gameGui, TextService 
         return new(x, y);
     }
 
+    public string GetHumanReadableCoords(Level level)
+    {
+        var coords = GetCoords(level);
+        var x = coords.X.ToString("0.0", CultureInfo.InvariantCulture);
+        var y = coords.Y.ToString("0.0", CultureInfo.InvariantCulture);
+        return textService.Translate("CoordsXY", x, y);
+    }
+
     public float GetDistanceFromPlayer(Level level)
     {
         var localPlayer = clientState.LocalPlayer;
@@ -49,6 +60,28 @@ public class MapService(IClientState clientState, IGameGui gameGui, TextService 
         return Vector2.Distance(
             new Vector2(localPlayer.Position.X, localPlayer.Position.Z),
             new Vector2(level.X, level.Z)
+        );
+    }
+
+    //! https://gamedev.stackexchange.com/a/49300
+    public string GetCompassDirection(Vector2 a, Vector2 b)
+    {
+        var vector = a - b;
+        var angle = MathF.Atan2(vector.Y, vector.X);
+        var octant = (int)MathF.Round(8 * angle / (2 * MathF.PI) + 8) % 8;
+
+        return textService.Translate($"CompassHeadings.{CompassHeadings[octant]}");
+    }
+
+    public string GetCompassDirection(Level level)
+    {
+        var localPlayer = clientState.LocalPlayer;
+        if (localPlayer == null)
+            return string.Empty;
+
+        return GetCompassDirection(
+            new Vector2(-localPlayer.Position.X, localPlayer.Position.Z),
+            new Vector2(-level.X, level.Z)
         );
     }
 
