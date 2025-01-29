@@ -11,13 +11,13 @@ using FFXIVClientStructs.FFXIV.Component.Text;
 using HaselCommon.Extensions.Dalamud;
 using HaselCommon.Extensions.Strings;
 using HaselCommon.Services.SeStringEvaluation;
+using Lumina.Excel;
 using Lumina.Excel.Sheets;
 using Lumina.Text;
 using Lumina.Text.Expressions;
 using Lumina.Text.Payloads;
 using Lumina.Text.ReadOnly;
 using Microsoft.Extensions.Logging;
-using QuestManager = FFXIVClientStructs.FFXIV.Client.Game.QuestManager;
 
 namespace HaselCommon.Services;
 
@@ -1149,22 +1149,97 @@ invalidLevelPos:
                         return false;
                     }
 
-                    // auto-translate / completion
+                    // Auto-Translation / Completion
+                    var group = (uint)(e0Val + 1);
+                    var rowId = (uint)e1Val;
 
-                    /* I don't know yet
-
-                    if (!_excelService.TryGetRow<Completion>((uint)e1Val, context.Language, out var completionRow))
+                    if (!_excelService.TryFindRow<Completion>(row => row.Group == group && !row.LookupTable.IsEmpty, context.Language, out var groupRow))
                         return false;
 
-                    context.Builder.AppendIcon(54); // <icon(54)>
-                    context.Builder.Append("Auto Translate");
-                    context.Builder.AppendIcon(55); // <icon(55)>
+                    context.Builder.AppendIcon(54); // auto-translation open icon
 
-                    return false;
-                    */
+                    var lookupTable = (
+                        groupRow.LookupTable.IsTextOnly()
+                            ? groupRow.LookupTable
+                            : Evaluate(groupRow.LookupTable.AsSpan(), context with { Builder = new() })
+                        ).ExtractText();
 
-                    context.Builder.Append(payload);
-                    return false;
+                    // Completion sheet
+                    if (lookupTable.Equals('@'))
+                    {
+                        if (_excelService.TryGetRow<Completion>(rowId, context.Language, out var completionRow))
+                        {
+                            context.Builder.Append(completionRow.Text);
+                        }
+
+                        context.Builder.AppendIcon(55); // auto-translation close icon
+                        return true;
+                    }
+                    // CategoryDataCache
+                    else if (lookupTable.Equals('#'))
+                    {
+                        // couldn't find any, so we don't handle them :p
+                        context.Builder.Append(payload);
+                        return false;
+                    }
+
+                    // All other sheets
+                    var rangesStart = lookupTable.IndexOf('[');
+                    RawRow row = default;
+                    if (rangesStart == -1) // Sheet without ranges
+                    {
+                        if (_excelService.GetSheet<RawRow>(lookupTable, context.Language).TryGetRow(rowId, out row))
+                        {
+                            context.Builder.Append(row.ReadStringColumn(0));
+                            context.Builder.AppendIcon(55);
+                            return true;
+                        }
+                    }
+
+                    var sheetName = lookupTable[..rangesStart];
+                    var ranges = lookupTable[(rangesStart + 1)..(lookupTable.Length - 1)];
+                    if (ranges.Length == 0)
+                    {
+                        context.Builder.AppendIcon(55);
+                        return true;
+                    }
+
+                    var isNoun = false;
+                    var col = 0;
+
+                    if (ranges.StartsWith("noun"))
+                    {
+                        isNoun = true;
+                    }
+                    else if (ranges.StartsWith("col"))
+                    {
+                        var colRangeEnd = ranges.IndexOf(',');
+                        if (colRangeEnd == -1)
+                            colRangeEnd = ranges.Length;
+
+                        col = int.Parse(ranges[4..colRangeEnd]);
+                    }
+                    else if (ranges.StartsWith("tail"))
+                    {
+                        // couldn't find any, so we don't handle them :p
+                        context.Builder.Append(payload);
+                        return false;
+                    }
+
+                    if (_excelService.GetSheet<RawRow>(sheetName, context.Language).TryGetRow(rowId, out row))
+                    {
+                        if (isNoun && sheetName == "Companion" && context.Language == ClientLanguage.German)
+                        {
+                            context.Builder.Append(_nounProcessor.ProcessRow(sheetName, rowId, Lumina.Data.Language.German, 1, 5));
+                        }
+                        else
+                        {
+                            context.Builder.Append(row.ReadStringColumn(col));
+                        }
+                    }
+
+                    context.Builder.AppendIcon(55);
+                    return true;
                 }
 
             default:
