@@ -738,16 +738,16 @@ processSheet:
     private bool TryResolveLevelPos(ref SeStringContext context, in ReadOnlySePayloadSpan payload)
     {
         if (!payload.TryGetExpression(out var eLevel) || !TryResolveUInt(ref context, eLevel, out var eLevelVal))
-            goto invalidLevelPos;
+            return false;
 
         if (!_excelService.TryGetRow<Level>(eLevelVal, context.Language, out var level) || !level.Map.IsValid)
-            goto invalidLevelPos;
+            return false;
 
         if (!_excelService.TryGetRow<PlaceName>(level.Map.Value.PlaceName.RowId, context.Language, out var placeName))
-            goto invalidLevelPos;
+            return false;
 
         if (!_excelService.TryGetRow<Addon>(1637, context.Language, out var levelFormatRow))
-            goto invalidLevelPos;
+            return false;
 
         var mapPosX = ConvertRawToMapPosX(level.Map.Value, level.X);
         var mapPosY = ConvertRawToMapPosY(level.Map.Value, level.Z); // Z is [sic]
@@ -758,10 +758,6 @@ processSheet:
                 new SeStringContext() { LocalParameters = [placeName.Name, mapPosX, mapPosY] }));
 
         return true;
-
-invalidLevelPos:
-        context.Builder.Append("??? ( ???  , ??? )"); // TODO: missing new line?
-        return false;
     }
 
     private bool TryResolveFixed(ref SeStringContext context, in ReadOnlySePayloadSpan payload)
