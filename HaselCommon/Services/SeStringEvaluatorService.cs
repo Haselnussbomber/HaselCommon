@@ -778,28 +778,28 @@ invalidLevelPos:
         {
             100 or 200 => e1Val switch
             {
-                1 => TryResolveFixedPlayerLink(ref context, enu),
-                2 => TryResolveFixedClassJobLevel(ref context, enu),
-                3 => TryResolveFixedMapLink(ref context, enu),
-                4 => TryResolveFixedItemLink(ref context, enu),
-                5 => TryResolveFixedChatSoundEffect(ref context, enu),
-                6 => TryResolveFixedObjStr(ref context, enu),
-                7 => TryResolveFixedString(ref context, enu),
-                8 => TryResolveFixedTimeRemaining(ref context, enu),
+                1 => TryResolveFixedPlayerLink(ref context, ref enu),
+                2 => TryResolveFixedClassJobLevel(ref context, ref enu),
+                3 => TryResolveFixedMapLink(ref context, ref enu),
+                4 => TryResolveFixedItemLink(ref context, ref enu),
+                5 => TryResolveFixedChatSoundEffect(ref context, ref enu),
+                6 => TryResolveFixedObjStr(ref context, ref enu),
+                7 => TryResolveFixedString(ref context, ref enu),
+                8 => TryResolveFixedTimeRemaining(ref context, ref enu),
                 // Reads a uint and saves it to PronounModule+0x3AC
                 // TODO: handle this? looks like it's for the mentor/beginner icon of the player link in novice network
                 // see "FF 50 50 8B B0"
                 9 => true,
-                10 => TryResolveFixedStatusLink(ref context, enu),
-                11 => TryResolveFixedPartyFinderLink(ref context, enu),
-                12 => TryResolveFixedQuestLink(ref context, enu),
+                10 => TryResolveFixedStatusLink(ref context, ref enu),
+                11 => TryResolveFixedPartyFinderLink(ref context, ref enu),
+                12 => TryResolveFixedQuestLink(ref context, ref enu),
                 _ => false,
             },
             _ => TryResolveFixedAutoTranslation(ref context, payload, e0Val, e1Val),
         };
     }
 
-    private unsafe bool TryResolveFixedPlayerLink(ref SeStringContext context, in ReadOnlySePayloadSpan.Enumerator enu)
+    private unsafe bool TryResolveFixedPlayerLink(ref SeStringContext context, ref ReadOnlySePayloadSpan.Enumerator enu)
     {
         if (!enu.MoveNext() || !TryResolveUInt(ref context, enu.Current, out var worldId))
             return false;
@@ -834,7 +834,7 @@ invalidLevelPos:
         return true;
     }
 
-    private bool TryResolveFixedClassJobLevel(ref SeStringContext context, in ReadOnlySePayloadSpan.Enumerator enu)
+    private bool TryResolveFixedClassJobLevel(ref SeStringContext context, ref ReadOnlySePayloadSpan.Enumerator enu)
     {
         if (!enu.MoveNext() || !TryResolveInt(ref context, enu.Current, out var classJobId) || classJobId <= 0)
             return false;
@@ -857,7 +857,7 @@ invalidLevelPos:
         return true;
     }
 
-    private bool TryResolveFixedMapLink(ref SeStringContext context, in ReadOnlySePayloadSpan.Enumerator enu)
+    private bool TryResolveFixedMapLink(ref SeStringContext context, ref ReadOnlySePayloadSpan.Enumerator enu)
     {
         if (!enu.MoveNext() || !TryResolveUInt(ref context, enu.Current, out var territoryTypeId))
             return false;
@@ -953,7 +953,7 @@ invalidLevelPos:
         return false;
     }
 
-    private bool TryResolveFixedItemLink(ref SeStringContext context, in ReadOnlySePayloadSpan.Enumerator enu)
+    private bool TryResolveFixedItemLink(ref SeStringContext context, ref ReadOnlySePayloadSpan.Enumerator enu)
     {
         if (!enu.MoveNext() || !TryResolveUInt(ref context, enu.Current, out var itemId))
             return false;
@@ -994,7 +994,7 @@ invalidLevelPos:
         return true;
     }
 
-    private bool TryResolveFixedChatSoundEffect(ref SeStringContext context, in ReadOnlySePayloadSpan.Enumerator enu)
+    private bool TryResolveFixedChatSoundEffect(ref SeStringContext context, ref ReadOnlySePayloadSpan.Enumerator enu)
     {
         if (!enu.MoveNext() || !TryResolveUInt(ref context, enu.Current, out var soundEffectId))
             return false;
@@ -1006,7 +1006,7 @@ invalidLevelPos:
         return true;
     }
 
-    private bool TryResolveFixedObjStr(ref SeStringContext context, in ReadOnlySePayloadSpan.Enumerator enu)
+    private bool TryResolveFixedObjStr(ref SeStringContext context, ref ReadOnlySePayloadSpan.Enumerator enu)
     {
         if (!enu.MoveNext() || !TryResolveUInt(ref context, enu.Current, out var objStrId))
             return false;
@@ -1032,7 +1032,7 @@ invalidLevelPos:
         return true;
     }
 
-    private bool TryResolveFixedString(ref SeStringContext context, in ReadOnlySePayloadSpan.Enumerator enu)
+    private bool TryResolveFixedString(ref SeStringContext context, ref ReadOnlySePayloadSpan.Enumerator enu)
     {
         if (!enu.MoveNext() || !enu.Current.TryGetString(out var text))
             return false;
@@ -1043,7 +1043,7 @@ invalidLevelPos:
         return true;
     }
 
-    private bool TryResolveFixedTimeRemaining(ref SeStringContext context, in ReadOnlySePayloadSpan.Enumerator enu)
+    private bool TryResolveFixedTimeRemaining(ref SeStringContext context, ref ReadOnlySePayloadSpan.Enumerator enu)
     {
         if (!enu.MoveNext() || !TryResolveUInt(ref context, enu.Current, out var seconds))
             return false;
@@ -1065,7 +1065,7 @@ invalidLevelPos:
         return true;
     }
 
-    private bool TryResolveFixedStatusLink(ref SeStringContext context, in ReadOnlySePayloadSpan.Enumerator enu)
+    private bool TryResolveFixedStatusLink(ref SeStringContext context, ref ReadOnlySePayloadSpan.Enumerator enu)
     {
         if (!enu.MoveNext() || !TryResolveUInt(ref context, enu.Current, out var statusId))
             return false;
@@ -1136,7 +1136,7 @@ invalidLevelPos:
         return true;
     }
 
-    private bool TryResolveFixedPartyFinderLink(ref SeStringContext context, in ReadOnlySePayloadSpan.Enumerator enu)
+    private bool TryResolveFixedPartyFinderLink(ref SeStringContext context, ref ReadOnlySePayloadSpan.Enumerator enu)
     {
         if (!enu.MoveNext() || !TryResolveUInt(ref context, enu.Current, out var listingId))
             return false;
@@ -1178,7 +1178,7 @@ invalidLevelPos:
         return true;
     }
 
-    private bool TryResolveFixedQuestLink(ref SeStringContext context, in ReadOnlySePayloadSpan.Enumerator enu)
+    private bool TryResolveFixedQuestLink(ref SeStringContext context, ref ReadOnlySePayloadSpan.Enumerator enu)
     {
         if (!enu.MoveNext() || !TryResolveUInt(ref context, enu.Current, out var questId))
             return false;
