@@ -1237,7 +1237,7 @@ invalidLevelPos:
             ).ExtractText();
 
         // Completion sheet
-        if (lookupTable.Equals('@'))
+        if (lookupTable.Equals("@"))
         {
             if (_excelService.TryGetRow<Completion>(rowId, context.Language, out var completionRow))
             {
@@ -1246,7 +1246,7 @@ invalidLevelPos:
             return true;
         }
         // CategoryDataCache
-        else if (lookupTable.Equals('#'))
+        else if (lookupTable.Equals("#"))
         {
             // couldn't find any, so we don't handle them :p
             context.Builder.Append(payload);
