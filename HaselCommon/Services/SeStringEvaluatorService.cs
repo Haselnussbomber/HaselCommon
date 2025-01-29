@@ -179,113 +179,30 @@ public partial class SeStringEvaluatorService(
         switch (payload.MacroCode)
         {
             case MacroCode.SetResetTime:
-                {
-                    DateTime date;
-                    if (payload.TryGetExpression(out var eHour, out var eWeekday)
-                        && TryResolveInt(ref context, eHour, out var eHourVal)
-                        && TryResolveInt(ref context, eWeekday, out var eWeekdayVal))
-                    {
-                        var t = DateTime.UtcNow.AddDays((eWeekdayVal - (int)DateTime.UtcNow.DayOfWeek + 7) % 7);
-                        date = new DateTime(t.Year, t.Month, t.Day, eHourVal, 0, 0, DateTimeKind.Utc).ToLocalTime();
-                    }
-                    else if (payload.TryGetExpression(out eHour)
-                             && TryResolveInt(ref context, eHour, out eHourVal))
-                    {
-                        var t = DateTime.UtcNow;
-                        date = new DateTime(t.Year, t.Month, t.Day, eHourVal, 0, 0, DateTimeKind.Utc).ToLocalTime();
-                    }
-                    else
-                    {
-                        return false;
-                    }
-
-                    MacroDecoder.GetMacroTime()->SetTime(date);
-                    return true;
-                }
+                return TryResolveSetResetTime(ref context, payload);
 
             case MacroCode.SetTime:
-                {
-                    if (payload.TryGetExpression(out var eTime)
-                        && TryResolveUInt(ref context, eTime, out var eTimeVal))
-                    {
-                        var date = DateTimeOffset.FromUnixTimeSeconds(eTimeVal).LocalDateTime;
-                        MacroDecoder.GetMacroTime()->SetTime(date);
-                        return true;
-                    }
-
-                    return false;
-                }
+                return TryResolveSetTime(ref context, payload);
 
             case MacroCode.If:
-                {
-                    return
-                        payload.TryGetExpression(out var eCond, out var eTrue, out var eFalse)
-                        && ResolveStringExpression(
-                            ref context,
-                            TryResolveBool(ref context, eCond, out var eCondVal) && eCondVal
-                                ? eTrue
-                                : eFalse);
-                }
+                return TryResolveIf(ref context, payload);
 
             case MacroCode.Switch:
-                {
-                    var cond = -1;
-                    foreach (var e in payload)
-                    {
-                        switch (cond)
-                        {
-                            case -1:
-                                cond = TryResolveUInt(ref context, e, out var eVal) ? (int)eVal : 0;
-                                break;
-                            case > 1:
-                                cond--;
-                                break;
-                            default:
-                                return ResolveStringExpression(ref context, e);
-                        }
-                    }
-
-                    return false;
-                }
+                return TryResolveSwitch(ref context, payload);
 
             case MacroCode.NewLine:
-                context.Builder.BeginMacro(MacroCode.NewLine).EndMacro();
+                context.Builder.AppendNewLine();
                 return true;
 
             case MacroCode.Icon:
-            case MacroCode.Icon2: // ?
-                {
-                    if (!payload.TryGetExpression(out var eIcon)
-                        || !TryResolveUInt(ref context, eIcon, out var eIconValue))
-                    {
-                        return false;
-                    }
-
-                    context.Builder.AppendIcon(eIconValue);
-                    return true;
-                }
+            case MacroCode.Icon2: // TODO: Icon2 handles controller icons based on button mapping - https://discord.com/channels/581875019861328007/653504487352303619/1235201758012112977
+                return TryResolveIcon(ref context, payload);
 
             case MacroCode.Color:
-                {
-                    if (!payload.TryGetExpression(out var eColor))
-                        return false;
-                    if (eColor.TryGetPlaceholderExpression(out var ph) && ph == (int)ExpressionType.StackColor)
-                        context.Builder.PopColor();
-                    else if (TryResolveUInt(ref context, eColor, out var eColorVal))
-                        context.Builder.PushColorBgra(eColorVal);
-                    return true;
-                }
+                return TryResolveColor(ref context, payload);
 
             case MacroCode.EdgeColor:
-                {
-                    if (!payload.TryGetExpression(out var eColor))
-                        return false;
-                    if (eColor.TryGetPlaceholderExpression(out var ph) && ph == (int)ExpressionType.StackColor)
-                        context.Builder.PopEdgeColor();
-                    else if (TryResolveUInt(ref context, eColor, out var eColorVal))
-                        context.Builder.PushEdgeColorBgra(eColorVal);
-                    return true;
-                }
+                return TryResolveEdgeColor(ref context, payload);
 
             //case MacroCode.SoftHyphen:
             //    if (!context.StripSoftHypen)
@@ -293,28 +210,10 @@ public partial class SeStringEvaluatorService(
             //    return true;
 
             case MacroCode.Bold:
-                {
-                    if (payload.TryGetExpression(out var eEnable)
-                        && TryResolveBool(ref context, eEnable, out var eEnableVal))
-                    {
-                        context.Builder.AppendSetBold(eEnableVal);
-                        return true;
-                    }
-
-                    return false;
-                }
+                return TryResolveBold(ref context, payload);
 
             case MacroCode.Italic:
-                {
-                    if (payload.TryGetExpression(out var eEnable)
-                        && TryResolveBool(ref context, eEnable, out var eEnableVal))
-                    {
-                        context.Builder.AppendSetItalic(eEnableVal);
-                        return true;
-                    }
-
-                    return false;
-                }
+                return TryResolveItalic(ref context, payload);
 
             //case MacroCode.NonBreakingSpace:
             //    context.Builder.Append("\u00A0"u8);
@@ -325,922 +224,59 @@ public partial class SeStringEvaluatorService(
             //    return true;
 
             case MacroCode.Num:
-                {
-                    if (payload.TryGetExpression(out var eInt) && TryResolveInt(ref context, eInt, out var eIntVal))
-                    {
-                        context.Builder.Append(eIntVal.ToString());
-                        return true;
-                    }
-
-                    context.Builder.Append('0');
-                    return true;
-                }
+                return TryResolveNum(ref context, payload);
 
             case MacroCode.Hex:
-                {
-                    if (payload.TryGetExpression(out var eUInt) &&
-                        TryResolveUInt(ref context, eUInt, out var eUIntVal))
-                    {
-                        context.Builder.Append("0x{0:X08}".Format(eUIntVal));
-                        return true;
-                    }
-
-                    context.Builder.Append("0x00000000"u8);
-                    return true;
-                }
+                return TryResolveHex(ref context, payload);
 
             case MacroCode.Kilo:
-                {
-                    if (payload.TryGetExpression(out var eInt, out var eSep)
-                        && TryResolveInt(ref context, eInt, out var eIntVal))
-                    {
-                        if (eIntVal == int.MinValue)
-                        {
-                            context.Builder.Append("-2"u8);
-                            // 2147483648
-                            ResolveStringExpression(ref context, eSep);
-                            context.Builder.Append("147"u8);
-                            ResolveStringExpression(ref context, eSep);
-                            context.Builder.Append("483"u8);
-                            ResolveStringExpression(ref context, eSep);
-                            context.Builder.Append("648"u8);
-                            return true;
-                        }
-
-                        if (eIntVal < 0)
-                        {
-                            context.Builder.Append('-');
-                            eIntVal = -eIntVal;
-                        }
-
-                        if (eIntVal == 0)
-                        {
-                            context.Builder.Append('0');
-                            return true;
-                        }
-
-                        var anyDigitPrinted = false;
-                        for (var i = 1_000_000_000; i > 0; i /= 10)
-                        {
-                            var digit = eIntVal / i % 10;
-                            switch (anyDigitPrinted)
-                            {
-                                case false when digit == 0:
-                                    continue;
-                                case true when i % 3 == 0:
-                                    ResolveStringExpression(ref context, eSep);
-                                    break;
-                            }
-
-                            anyDigitPrinted = true;
-                            context.Builder.Append((char)('0' + digit));
-                        }
-
-                        return true;
-                    }
-
-                    context.Builder.Append('0');
-                    return true;
-                }
+                return TryResolveKilo(ref context, payload);
 
             case MacroCode.Digit:
-                {
-                    if (!payload.TryGetExpression(out var eValue, out var eTargetLength))
-                        return false;
-
-                    if (!TryResolveInt(ref context, eValue, out var eValueVal))
-                        return false;
-
-                    if (!TryResolveInt(ref context, eTargetLength, out var eTargetLengthVal))
-                        return false;
-
-                    context.Builder.Append(eValueVal.ToString($"{new string('0', eTargetLengthVal)}"));
-                    return true;
-                }
+                return TryResolveDigit(ref context, payload);
 
             case MacroCode.Sec:
-                {
-                    if (payload.TryGetExpression(out var eInt) && TryResolveUInt(ref context, eInt, out var eIntVal))
-                    {
-                        context.Builder.Append("{0:00}".Format(eIntVal));
-                        return true;
-                    }
-
-                    context.Builder.Append("00"u8);
-                    return true;
-                }
+                return TryResolveSec(ref context, payload);
 
             case MacroCode.Float:
-                {
-                    if (!payload.TryGetExpression(out var eValue, out var eRadix, out var eSeparator)
-                        || !TryResolveInt(ref context, eValue, out var eValueVal)
-                        || !TryResolveInt(ref context, eRadix, out var eRadixVal))
-                    {
-                        return false;
-                    }
-
-                    var (integerPart, fractionalPart) = int.DivRem(eValueVal, eRadixVal);
-                    if (fractionalPart < 0)
-                    {
-                        integerPart--;
-                        fractionalPart += eRadixVal;
-                    }
-
-                    context.Builder.Append(integerPart.ToString());
-                    ResolveStringExpression(ref context, eSeparator);
-
-                    // brain fried code
-                    Span<byte> fractionalDigits = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-                    var pos = fractionalDigits.Length - 1;
-                    for (var r = eRadixVal; r > 1; r /= 10)
-                    {
-                        fractionalDigits[pos--] = (byte)('0' + fractionalPart % 10);
-                        fractionalPart /= 10;
-                    }
-
-                    context.Builder.Append(fractionalDigits[(pos + 1)..]);
-                    return true;
-                }
+                return TryResolveFloat(ref context, payload);
 
             case MacroCode.Sheet:
-                {
-                    var eColParamValue = 0u;
-
-                    var enu = payload.GetEnumerator();
-                    if (!enu.MoveNext())
-                        return false;
-
-                    var eSheetName = enu.Current;
-                    if (!eSheetName.TryGetString(out var eSheetNameStr))
-                        return false;
-
-                    if (!enu.MoveNext())
-                        return false;
-
-                    var eRowId = enu.Current;
-                    if (!TryResolveUInt(ref context, eRowId, out var eRowIdValue))
-                        return false;
-
-                    if (!enu.MoveNext())
-                        return false;
-
-                    var eColIndex = enu.Current;
-                    if (!TryResolveUInt(ref context, eColIndex, out var eColIndexValue))
-                        return false;
-
-                    if (!enu.MoveNext())
-                        goto processSheet;
-
-                    if (!TryResolveUInt(ref context, enu.Current, out eColParamValue))
-                        return false;
-
-processSheet:
-                    var resolvedSheetName = Evaluate(eSheetNameStr, context with { Builder = new() }).ExtractText();
-
-                    ResolveSheetRedirect(ref resolvedSheetName, ref eRowIdValue);
-                    if (string.IsNullOrEmpty(resolvedSheetName))
-                        return false;
-
-                    if (!_excelService.HasSheet(resolvedSheetName))
-                        return false;
-
-                    if (!_excelService.TryGetRawRow(resolvedSheetName, eRowIdValue, context.Language ?? _languageProvider.ClientLanguage, out var row))
-                        return false;
-
-                    var column = row.ReadColumn((int)eColIndexValue);
-                    if (column == null)
-                        return false;
-
-                    var expressions = payload.Body[(eSheetName.Body.Length + eRowId.Body.Length + eColIndex.Body.Length)..];
-
-                    switch (column)
-                    {
-                        case ReadOnlySeString val:
-                            context.Builder.Append(Evaluate(val, context with { Builder = new(), LocalParameters = [eColParamValue] }));
-                            return true;
-
-                        case bool val:
-                            context.Builder.Append((val ? 1u : 0).ToString("D", CultureInfo.InvariantCulture));
-                            return true;
-
-                        case sbyte val:
-                            context.Builder.Append(val.ToString("D", CultureInfo.InvariantCulture));
-                            return true;
-
-                        case byte val:
-                            context.Builder.Append(val.ToString("D", CultureInfo.InvariantCulture));
-                            return true;
-
-                        case short val:
-                            context.Builder.Append(val.ToString("D", CultureInfo.InvariantCulture));
-                            return true;
-
-                        case ushort val:
-                            context.Builder.Append(val.ToString("D", CultureInfo.InvariantCulture));
-                            return true;
-
-                        case int val:
-                            context.Builder.Append(val.ToString("D", CultureInfo.InvariantCulture));
-                            return true;
-
-                        case uint val:
-                            context.Builder.Append(val.ToString("D", CultureInfo.InvariantCulture));
-                            return true;
-
-                        case { } val:
-                            context.Builder.Append(val.ToString());
-                            return true;
-                    }
-
-                    return false;
-                }
+                return TryResolveSheet(ref context, payload);
 
             case MacroCode.String:
                 return payload.TryGetExpression(out var eStr) && ResolveStringExpression(ref context, eStr);
 
             case MacroCode.Head:
-                {
-                    if (!payload.TryGetExpression(out eStr))
-                        return false;
-
-                    var headContext = context with { Builder = new() };
-
-                    if (!ResolveStringExpression(ref headContext, eStr))
-                        return false;
-
-                    var str = headContext.Builder.ToReadOnlySeString();
-                    var pIdx = 0;
-
-                    foreach (var p in str)
-                    {
-                        pIdx++;
-
-                        if (p.Type == ReadOnlySePayloadType.Invalid)
-                            continue;
-
-                        if (pIdx == 1 && p.Type == ReadOnlySePayloadType.Text)
-                        {
-                            context.Builder.Append(Encoding.UTF8.GetString(p.Body.ToArray()).FirstCharToUpper());
-                            continue;
-                        }
-
-                        context.Builder.Append(p);
-                    }
-
-                    return true;
-                }
+                return TryResolveHead(ref context, payload);
 
             case MacroCode.HeadAll:
-                {
-                    if (!payload.TryGetExpression(out eStr))
-                        return false;
-
-                    var headContext = context with { Builder = new() };
-
-                    if (!ResolveStringExpression(ref headContext, eStr))
-                        return false;
-
-                    var str = headContext.Builder.ToReadOnlySeString();
-
-                    foreach (var p in str)
-                    {
-                        if (p.Type == ReadOnlySePayloadType.Invalid)
-                            continue;
-
-                        if (p.Type == ReadOnlySePayloadType.Text)
-                        {
-                            var cultureInfo = _languageProvider.ClientLanguage == context.Language
-                                ? _languageProvider.CultureInfo
-                                : LanguageProvider.GetCultureInfoFromLangCode((context.Language ?? ClientLanguage.English).ToCode());
-                            context.Builder.Append(cultureInfo.TextInfo.ToTitleCase(Encoding.UTF8.GetString(p.Body.ToArray())));
-                            continue;
-                        }
-
-                        context.Builder.Append(p);
-                    }
-
-                    return true;
-                }
+                return TryResolveHeadAll(ref context, payload);
 
             case MacroCode.ColorType:
-                {
-                    if (payload.TryGetExpression(out var eColorType)
-                        && TryResolveUInt(ref context, eColorType, out var eColorTypeVal))
-                    {
-                        if (eColorTypeVal == 0)
-                            context.Builder.PopColor();
-                        else if (_excelService.TryGetRow<UIColor>(eColorTypeVal, out var row))
-                            context.Builder.PushColorBgra((row.UIForeground >> 8) | (row.UIForeground << 24));
-                        return true;
-                    }
-
-                    return false;
-                }
+                return TryResolveColorType(ref context, payload);
 
             case MacroCode.EdgeColorType:
-                {
-                    if (payload.TryGetExpression(out var eColorType) &&
-                        TryResolveUInt(ref context, eColorType, out var eColorTypeVal))
-                    {
-                        if (eColorTypeVal == 0)
-                            context.Builder.PopEdgeColor();
-                        else if (_excelService.TryGetRow<UIColor>(eColorTypeVal, out var row))
-                            context.Builder.PushEdgeColorBgra((row.UIForeground >> 8) | (row.UIForeground << 24));
-                        return true;
-                    }
-
-                    return false;
-                }
+                return TryResolveEdgeColorType(ref context, payload);
 
             case MacroCode.LevelPos:
-                {
-                    if (!payload.TryGetExpression(out var eLevel)
-                        || !TryResolveUInt(ref context, eLevel, out var eLevelVal))
-                    {
-                        goto invalidLevelPos;
-                    }
-
-                    if (!_excelService.TryGetRow<Level>(eLevelVal, context.Language, out var level) || !level.Map.IsValid)
-                        goto invalidLevelPos;
-
-                    if (!_excelService.TryGetRow<PlaceName>(level.Map.Value.PlaceName.RowId, context.Language, out var placeName))
-                        goto invalidLevelPos;
-
-                    if (!_excelService.TryGetRow<Addon>(1637, context.Language, out var levelFormatRow))
-                        goto invalidLevelPos;
-
-                    var mapPosX = ConvertRawToMapPosX(level.Map.Value, level.X);
-                    var mapPosY = ConvertRawToMapPosY(level.Map.Value, level.Z); // Z is [sic]
-
-                    context.Builder.Append(
-                        Evaluate(
-                            levelFormatRow.Text,
-                            new SeStringContext() { LocalParameters = [placeName.Name, mapPosX, mapPosY] }));
-                    return true;
-
-invalidLevelPos:
-                    context.Builder.Append("??? ( ???  , ??? )"); // TODO: missing new line?
-                    return false;
-                }
-
-            case MacroCode.JaNoun:
-                return TryResolveNoun(ClientLanguage.Japanese, ref context, ref payload);
-
-            case MacroCode.EnNoun:
-                return TryResolveNoun(ClientLanguage.English, ref context, ref payload);
-
-            case MacroCode.DeNoun:
-                return TryResolveNoun(ClientLanguage.German, ref context, ref payload);
-
-            case MacroCode.FrNoun:
-                return TryResolveNoun(ClientLanguage.French, ref context, ref payload);
+                return TryResolveLevelPos(ref context, payload);
 
             case MacroCode.Fixed:
-                {
-                    // second function in Client::UI::Misc::PronounModule_ProcessString
+                // second function in Client::UI::Misc::PronounModule_ProcessString
+                return TryResolveFixed(ref context, payload);
 
-                    var enu = payload.GetEnumerator();
-                    if (!enu.MoveNext() || !TryResolveInt(ref context, enu.Current, out var e0Val))
-                        return false;
+            case MacroCode.JaNoun:
+                return TryResolveNoun(ClientLanguage.Japanese, ref context, payload);
 
-                    if (!enu.MoveNext() || !TryResolveInt(ref context, enu.Current, out var e1Val))
-                        return false;
+            case MacroCode.EnNoun:
+                return TryResolveNoun(ClientLanguage.English, ref context, payload);
 
-                    if (e0Val is 100 or 200)
-                    {
-                        switch (e1Val)
-                        {
-                            // Player link
-                            case 1:
-                                {
-                                    if (!enu.MoveNext() || !TryResolveUInt(ref context, enu.Current, out var worldId))
-                                        return false;
+            case MacroCode.DeNoun:
+                return TryResolveNoun(ClientLanguage.German, ref context, payload);
 
-                                    if (!enu.MoveNext() || !enu.Current.TryGetString(out var playerName))
-                                        return false;
-
-                                    if (UIGlobals.IsValidPlayerCharacterName(playerName.ExtractText()))
-                                    {
-                                        var flags = 0u;
-                                        if (InfoModule.Instance()->IsInCrossWorldDuty())
-                                            flags |= 0x10;
-
-                                        context.Builder.PushLink(LinkMacroPayloadType.Character, flags, worldId, 0u, playerName);
-                                        context.Builder.Append(playerName);
-                                        context.Builder.PopLink();
-                                    }
-                                    else
-                                    {
-                                        context.Builder.Append(playerName);
-                                    }
-
-                                    if (worldId == AgentLobby.Instance()->LobbyData.HomeWorldId)
-                                        return true;
-
-                                    if (!_excelService.TryGetRow<World>(worldId, context.Language, out var worldRow))
-                                        return false;
-
-                                    context.Builder.AppendIcon(88);
-                                    context.Builder.Append(worldRow.Name);
-                                }
-                                return true;
-
-                            // ClassJob name and level
-                            case 2:
-                                {
-                                    if (!enu.MoveNext() || !TryResolveInt(ref context, enu.Current, out var classJobId) || classJobId <= 0)
-                                        return false;
-
-                                    if (!enu.MoveNext() || !TryResolveInt(ref context, enu.Current, out var level))
-                                        return false;
-
-                                    if (!_excelService.TryGetRow<ClassJob>((uint)classJobId, context.Language, out var classJobRow))
-                                        return false;
-
-                                    context.Builder.Append(classJobRow.Name);
-
-                                    if (level != 0)
-                                    {
-                                        context.Builder.Append('(');
-                                        context.Builder.Append(level.ToString("D", CultureInfo.InvariantCulture));
-                                        context.Builder.Append(')');
-                                    }
-                                }
-                                return true;
-
-                            // Map link
-                            case 3:
-                                {
-                                    if (!enu.MoveNext() || !TryResolveUInt(ref context, enu.Current, out var territoryTypeId))
-                                        return false;
-
-                                    if (!enu.MoveNext() || !TryResolveUInt(ref context, enu.Current, out var packedIds))
-                                        return false;
-
-                                    if (!enu.MoveNext() || !TryResolveInt(ref context, enu.Current, out var rawX))
-                                        return false;
-
-                                    if (!enu.MoveNext() || !TryResolveInt(ref context, enu.Current, out var rawY))
-                                        return false;
-
-                                    if (!enu.MoveNext() || !TryResolveInt(ref context, enu.Current, out var rawZ))
-                                        return false;
-
-                                    if (!enu.MoveNext() || !TryResolveUInt(ref context, enu.Current, out var placeNameIdInt))
-                                        return false;
-
-                                    var instance = packedIds >> 0x10;
-                                    var mapId = packedIds & 0xFF;
-
-                                    if (_excelService.TryGetRow<TerritoryType>(territoryTypeId, context.Language, out var territoryTypeRow))
-                                    {
-                                        if (!_excelService.TryGetRow<PlaceName>(placeNameIdInt == 0 ? territoryTypeRow.PlaceName.RowId : placeNameIdInt, context.Language, out var placeNameRow))
-                                            return false;
-
-                                        if (!_excelService.TryGetRow<Map>(mapId, out var mapRow))
-                                            return false;
-
-                                        var sb = SeStringBuilder.SharedPool.Get();
-
-                                        sb.Append(placeNameRow.Name);
-                                        if (instance > 0 && instance <= 9)
-                                            sb.Append((char)((char)0xE0B0 + (char)instance));
-
-                                        var placeNameWithInstance = sb.ToReadOnlySeString();
-                                        SeStringBuilder.SharedPool.Return(sb);
-
-                                        var mapPosX = ConvertRawToMapPosX(mapRow, rawX / 1000f);
-                                        var mapPosY = ConvertRawToMapPosY(mapRow, rawY / 1000f);
-
-                                        ReadOnlySeString linkText;
-                                        if (rawZ == -30000)
-                                        {
-                                            linkText = EvaluateFromAddon(1635, new SeStringContext()
-                                            {
-                                                Language = context.Language,
-                                                LocalParameters = [placeNameWithInstance, mapPosX, mapPosY]
-                                            });
-                                        }
-                                        else
-                                        {
-                                            linkText = EvaluateFromAddon(1636, new SeStringContext()
-                                            {
-                                                Language = context.Language,
-                                                LocalParameters = [placeNameWithInstance, mapPosX, mapPosY, rawZ / (rawZ >= 0 ? 10 : -10), rawZ]
-                                            });
-                                        }
-
-                                        context.Builder.PushLinkMapPosition(territoryTypeId, mapId, rawX, rawY);
-                                        context.Builder.Append(EvaluateFromAddon(371, new SeStringContext()
-                                        {
-                                            Language = context.Language,
-                                            LocalParameters = [linkText]
-                                        }));
-                                        context.Builder.PopLink();
-
-                                        return true;
-                                    }
-                                    else if (mapId == 0)
-                                    {
-                                        if (_excelService.TryGetRow<Addon>(875, out var addonRow)) // "(No location set for map link)"
-                                            context.Builder.Append(addonRow.Text);
-
-                                        return true;
-                                    }
-                                    else if (mapId == 1)
-                                    {
-                                        if (_excelService.TryGetRow<Addon>(874, out var addonRow)) // "(Map link unavailable in this area)"
-                                            context.Builder.Append(addonRow.Text);
-
-                                        return true;
-                                    }
-                                    else if (mapId == 2)
-                                    {
-                                        if (_excelService.TryGetRow<Addon>(13743, out var addonRow)) // "(Unable to set map link)"
-                                            context.Builder.Append(addonRow.Text);
-
-                                        return true;
-                                    }
-                                }
-
-                                return false;
-
-                            // Item link
-                            case 4:
-                                {
-                                    if (!enu.MoveNext() || !TryResolveUInt(ref context, enu.Current, out var itemId))
-                                        return false;
-
-                                    if (!enu.MoveNext() || !TryResolveUInt(ref context, enu.Current, out var rarity))
-                                        return false;
-
-                                    if (!enu.MoveNext() || !TryResolveInt(ref context, enu.Current, out var unk2))
-                                        return false;
-
-                                    if (!enu.MoveNext() || !TryResolveInt(ref context, enu.Current, out var unk3))
-                                        return false;
-
-                                    if (!enu.MoveNext() || !enu.Current.TryGetString(out var itemName)) // TODO: unescape??
-                                        return false;
-
-                                    // rarity color start
-                                    context.Builder.Append(EvaluateFromAddon(6, new SeStringContext()
-                                    {
-                                        Language = context.Language,
-                                        LocalParameters = [rarity]
-                                    }));
-
-                                    var v2 = (ushort)((unk2 & 0xFF) + (unk3 << 0x10)); // TODO: find out what this does
-
-                                    context.Builder.PushLink(LinkMacroPayloadType.Item, itemId, rarity, v2);
-
-                                    // arrow and item name
-                                    context.Builder.Append(EvaluateFromAddon(371, new SeStringContext()
-                                    {
-                                        Language = context.Language,
-                                        LocalParameters = [itemName]
-                                    }));
-
-                                    context.Builder.PopLink();
-                                    context.Builder.PopColor();
-                                }
-
-                                return true;
-
-                            // Chat Sound Effect
-                            case 5:
-                                {
-                                    if (!enu.MoveNext() || !TryResolveUInt(ref context, enu.Current, out var soundEffectId))
-                                        return false;
-
-                                    context.Builder.Append($"<se.{soundEffectId + 1}>");
-
-                                    // the game would play it here
-                                }
-
-                                return true;
-
-                            // ObjStr
-                            case 6:
-                                {
-                                    if (!enu.MoveNext() || !TryResolveUInt(ref context, enu.Current, out var objStrId))
-                                        return false;
-
-                                    var name = EvaluateFromAddon(2025, new SeStringContext() // "<head(<denoun(ObjStr,5,lnum1,1,1,1)>)>"
-                                    {
-                                        Language = context.Language,
-                                        LocalParameters = [objStrId]
-                                    });
-
-                                    // TODO: for some reason the game doesn't do that
-                                    // i think it checks if it could get row 2025 instead of that the text is empty
-                                    if (name.IsEmpty)
-                                    {
-                                        if (_excelService.TryGetRow<Addon>(3619, out var addonRow)) // "???"
-                                            context.Builder.Append(addonRow.Text);
-                                    }
-                                    else
-                                    {
-                                        context.Builder.Append(name);
-                                    }
-                                }
-
-                                return true;
-
-                            // Just a string?
-                            case 7:
-                                {
-                                    if (!enu.MoveNext() || !enu.Current.TryGetString(out var text))
-                                        return false;
-
-                                    // formats it through vsprintf using "%s"??
-                                    context.Builder.Append(text);
-                                }
-
-                                return true;
-
-                            // Time remaining
-                            case 8:
-                                {
-                                    if (!enu.MoveNext() || !TryResolveUInt(ref context, enu.Current, out var seconds))
-                                        return false;
-
-                                    if (seconds != 0)
-                                    {
-                                        context.Builder.Append(EvaluateFromAddon(33, new SeStringContext() // "<num(lnum1)>:<sec(lnum2)>"
-                                        {
-                                            Language = context.Language,
-                                            LocalParameters = [seconds / 60, seconds % 60]
-                                        }));
-                                    }
-                                    else
-                                    {
-                                        if (_excelService.TryGetRow<Addon>(48, out var addonRow)) // "--:--"
-                                            context.Builder.Append(addonRow.Text);
-                                    }
-                                }
-
-                                return true;
-
-                            // Reads a uint and saves it to PronounModule+0x3AC
-                            // TODO: handle this? looks like it's for the mentor/beginner icon of the player link in novice network
-                            // see "FF 50 50 8B B0"
-                            case 9:
-                                return true;
-
-                            // Status link
-                            case 10:
-                                {
-                                    if (!enu.MoveNext() || !TryResolveUInt(ref context, enu.Current, out var statusId))
-                                        return false;
-
-                                    if (!enu.MoveNext() || !TryResolveBool(ref context, enu.Current, out var hasOverride))
-                                        return false;
-
-                                    if (!_excelService.TryGetRow<Status>(statusId, out var statusRow))
-                                        return false;
-
-                                    ReadOnlySeStringSpan statusName;
-                                    ReadOnlySeStringSpan statusDescription;
-
-                                    if (hasOverride)
-                                    {
-                                        if (!enu.MoveNext() || !enu.Current.TryGetString(out statusName))
-                                            return false;
-
-                                        if (!enu.MoveNext() || !enu.Current.TryGetString(out statusDescription))
-                                            return false;
-                                    }
-                                    else
-                                    {
-                                        statusName = statusRow.Name.AsSpan();
-                                        statusDescription = statusRow.Description.AsSpan();
-                                    }
-
-                                    var sb = SeStringBuilder.SharedPool.Get();
-
-                                    if (statusRow.StatusCategory == 1)
-                                    {
-                                        sb.Append(EvaluateFromAddon(376, new SeStringContext() // buff icon
-                                        {
-                                            Language = context.Language,
-                                        }));
-                                    }
-                                    else if (statusRow.StatusCategory == 2)
-                                    {
-                                        sb.Append(EvaluateFromAddon(377, new SeStringContext() // debuff icon
-                                        {
-                                            Language = context.Language,
-                                        }));
-                                    }
-
-                                    sb.Append(statusName);
-
-                                    var linkText = sb.ToReadOnlySeString();
-                                    SeStringBuilder.SharedPool.Return(sb);
-
-                                    context.Builder
-                                       .BeginMacro(MacroCode.Link)
-                                        .AppendUIntExpression((uint)LinkMacroPayloadType.Status)
-                                        .AppendUIntExpression(statusId)
-                                        .AppendUIntExpression(0)
-                                        .AppendUIntExpression(0)
-                                        .AppendStringExpression(statusName)
-                                        .AppendStringExpression(statusDescription)
-                                        .EndMacro();
-
-                                    context.Builder.Append(EvaluateFromAddon(371, new SeStringContext()
-                                    {
-                                        Language = context.Language,
-                                        LocalParameters = [linkText]
-                                    }));
-
-                                    context.Builder.PopLink();
-                                }
-
-                                return true;
-
-                            // PartyFinder link
-                            case 11:
-                                {
-                                    if (!enu.MoveNext() || !TryResolveUInt(ref context, enu.Current, out var listingId))
-                                        return false;
-
-                                    if (!enu.MoveNext() || !TryResolveUInt(ref context, enu.Current, out var unk1))
-                                        return false;
-
-                                    if (!enu.MoveNext() || !TryResolveUInt(ref context, enu.Current, out var worldId))
-                                        return false;
-
-                                    if (!enu.MoveNext() || !TryResolveInt(ref context, enu.Current, out var crossWorldFlag)) // 0 = cross world, 1 = not cross world
-                                        return false;
-
-                                    if (!enu.MoveNext() || !enu.Current.TryGetString(out var playerName))
-                                        return false;
-
-                                    context.Builder
-                                       .BeginMacro(MacroCode.Link)
-                                        .AppendUIntExpression((uint)LinkMacroPayloadType.PartyFinder)
-                                        .AppendUIntExpression(listingId)
-                                        .AppendUIntExpression(unk1)
-                                        .AppendUIntExpression((uint)(crossWorldFlag << 0x10) + worldId)
-                                        .EndMacro();
-
-                                    context.Builder.Append(EvaluateFromAddon(371, new SeStringContext()
-                                    {
-                                        Language = context.Language,
-                                        LocalParameters = [
-                                            EvaluateFromAddon(2265, new SeStringContext()
-                                        {
-                                            Language = context.Language,
-                                            LocalParameters = [playerName, crossWorldFlag]
-                                        })
-                                        ]
-                                    }));
-
-                                    context.Builder.PopLink();
-                                }
-
-                                return true;
-
-                            // Quest link
-                            case 12:
-                                {
-                                    if (!enu.MoveNext() || !TryResolveUInt(ref context, enu.Current, out var questId))
-                                        return false;
-
-                                    if (!enu.MoveNext() || !enu.MoveNext() || !enu.MoveNext()) // unused
-                                        return false;
-
-                                    if (!enu.MoveNext() || !enu.Current.TryGetString(out var questName))
-                                        return false;
-
-                                    /* TODO some day
-                                    if (!QuestManager.IsQuestComplete(questId) && !QuestManager.Instance()->IsQuestAccepted(questId))
-                                    {
-                                        var questRecompleteManager = QuestRecompleteManager.Instance();
-                                        if (questRecompleteManager == null || !questRecompleteManager->"E8 ?? ?? ?? ?? 0F B6 57 FF"(questId)) {
-                                            if (_excelService.TryGetRow<Addon>(5497, out var addonRow))
-                                                questName = addonRow.Text.AsSpan();
-                                        }
-                                    }
-                                    */
-
-                                    context.Builder
-                                       .BeginMacro(MacroCode.Link)
-                                        .AppendUIntExpression((uint)LinkMacroPayloadType.Quest)
-                                        .AppendUIntExpression(questId)
-                                        .AppendUIntExpression(0)
-                                        .AppendUIntExpression(0)
-                                        .EndMacro();
-
-                                    context.Builder.Append(EvaluateFromAddon(371, new SeStringContext()
-                                    {
-                                        Language = context.Language,
-                                        LocalParameters = [questName]
-                                    }));
-
-                                    context.Builder.PopLink();
-                                }
-
-                                return true;
-                        }
-
-                        return false;
-                    }
-
-                    // Auto-Translation / Completion
-                    var group = (uint)(e0Val + 1);
-                    var rowId = (uint)e1Val;
-
-                    if (!_excelService.TryFindRow<Completion>(row => row.Group == group && !row.LookupTable.IsEmpty, context.Language, out var groupRow))
-                        return false;
-
-                    context.Builder.AppendIcon(54); // auto-translation open icon
-
-                    var lookupTable = (
-                        groupRow.LookupTable.IsTextOnly()
-                            ? groupRow.LookupTable
-                            : Evaluate(groupRow.LookupTable.AsSpan(), context with { Builder = new() })
-                        ).ExtractText();
-
-                    // Completion sheet
-                    if (lookupTable.Equals('@'))
-                    {
-                        if (_excelService.TryGetRow<Completion>(rowId, context.Language, out var completionRow))
-                        {
-                            context.Builder.Append(completionRow.Text);
-                        }
-
-                        context.Builder.AppendIcon(55); // auto-translation close icon
-                        return true;
-                    }
-                    // CategoryDataCache
-                    else if (lookupTable.Equals('#'))
-                    {
-                        // couldn't find any, so we don't handle them :p
-                        context.Builder.Append(payload);
-                        return false;
-                    }
-
-                    // All other sheets
-                    var rangesStart = lookupTable.IndexOf('[');
-                    RawRow row = default;
-                    if (rangesStart == -1) // Sheet without ranges
-                    {
-                        if (_excelService.GetSheet<RawRow>(lookupTable, context.Language).TryGetRow(rowId, out row))
-                        {
-                            context.Builder.Append(row.ReadStringColumn(0));
-                            context.Builder.AppendIcon(55);
-                            return true;
-                        }
-                    }
-
-                    var sheetName = lookupTable[..rangesStart];
-                    var ranges = lookupTable[(rangesStart + 1)..(lookupTable.Length - 1)];
-                    if (ranges.Length == 0)
-                    {
-                        context.Builder.AppendIcon(55);
-                        return true;
-                    }
-
-                    var isNoun = false;
-                    var col = 0;
-
-                    if (ranges.StartsWith("noun"))
-                    {
-                        isNoun = true;
-                    }
-                    else if (ranges.StartsWith("col"))
-                    {
-                        var colRangeEnd = ranges.IndexOf(',');
-                        if (colRangeEnd == -1)
-                            colRangeEnd = ranges.Length;
-
-                        col = int.Parse(ranges[4..colRangeEnd]);
-                    }
-                    else if (ranges.StartsWith("tail"))
-                    {
-                        // couldn't find any, so we don't handle them :p
-                        context.Builder.Append(payload);
-                        return false;
-                    }
-
-                    if (_excelService.GetSheet<RawRow>(sheetName, context.Language).TryGetRow(rowId, out row))
-                    {
-                        if (isNoun && sheetName == "Companion" && context.Language == ClientLanguage.German)
-                        {
-                            context.Builder.Append(_nounProcessor.ProcessRow(sheetName, rowId, Lumina.Data.Language.German, 1, 5));
-                        }
-                        else
-                        {
-                            context.Builder.Append(row.ReadStringColumn(col));
-                        }
-                    }
-
-                    context.Builder.AppendIcon(55);
-                    return true;
-                }
+            case MacroCode.FrNoun:
+                return TryResolveNoun(ClientLanguage.French, ref context, payload);
 
             default:
                 context.Builder.Append(payload);
@@ -1248,7 +284,1027 @@ invalidLevelPos:
         }
     }
 
-    public unsafe bool TryResolveUInt(ref SeStringContext context, ReadOnlySeExpressionSpan expression, out uint value)
+    private unsafe bool TryResolveSetResetTime(ref SeStringContext context, in ReadOnlySePayloadSpan payload)
+    {
+        DateTime date;
+
+        if (payload.TryGetExpression(out var eHour, out var eWeekday)
+            && TryResolveInt(ref context, eHour, out var eHourVal)
+            && TryResolveInt(ref context, eWeekday, out var eWeekdayVal))
+        {
+            var t = DateTime.UtcNow.AddDays((eWeekdayVal - (int)DateTime.UtcNow.DayOfWeek + 7) % 7);
+            date = new DateTime(t.Year, t.Month, t.Day, eHourVal, 0, 0, DateTimeKind.Utc).ToLocalTime();
+        }
+        else if (payload.TryGetExpression(out eHour)
+                 && TryResolveInt(ref context, eHour, out eHourVal))
+        {
+            var t = DateTime.UtcNow;
+            date = new DateTime(t.Year, t.Month, t.Day, eHourVal, 0, 0, DateTimeKind.Utc).ToLocalTime();
+        }
+        else
+        {
+            return false;
+        }
+
+        MacroDecoder.GetMacroTime()->SetTime(date);
+
+        return true;
+    }
+
+    private unsafe bool TryResolveSetTime(ref SeStringContext context, in ReadOnlySePayloadSpan payload)
+    {
+        if (!payload.TryGetExpression(out var eTime) || !TryResolveUInt(ref context, eTime, out var eTimeVal))
+            return false;
+
+        var date = DateTimeOffset.FromUnixTimeSeconds(eTimeVal).LocalDateTime;
+        MacroDecoder.GetMacroTime()->SetTime(date);
+
+        return true;
+    }
+
+    private bool TryResolveIf(ref SeStringContext context, in ReadOnlySePayloadSpan payload)
+    {
+        return
+            payload.TryGetExpression(out var eCond, out var eTrue, out var eFalse)
+            && ResolveStringExpression(
+                ref context,
+                TryResolveBool(ref context, eCond, out var eCondVal) && eCondVal
+                    ? eTrue
+                    : eFalse);
+    }
+
+    private bool TryResolveSwitch(ref SeStringContext context, in ReadOnlySePayloadSpan payload)
+    {
+        var cond = -1;
+        foreach (var e in payload)
+        {
+            switch (cond)
+            {
+                case -1:
+                    cond = TryResolveUInt(ref context, e, out var eVal) ? (int)eVal : 0;
+                    break;
+                case > 1:
+                    cond--;
+                    break;
+                default:
+                    return ResolveStringExpression(ref context, e);
+            }
+        }
+
+        return false;
+    }
+
+    private bool TryResolveIcon(ref SeStringContext context, in ReadOnlySePayloadSpan payload)
+    {
+        if (!payload.TryGetExpression(out var eIcon) || !TryResolveUInt(ref context, eIcon, out var eIconValue))
+            return false;
+
+        context.Builder.AppendIcon(eIconValue);
+
+        return true;
+    }
+
+    private bool TryResolveColor(ref SeStringContext context, in ReadOnlySePayloadSpan payload)
+    {
+        if (!payload.TryGetExpression(out var eColor))
+            return false;
+
+        if (eColor.TryGetPlaceholderExpression(out var ph) && ph == (int)ExpressionType.StackColor)
+            context.Builder.PopColor();
+        else if (TryResolveUInt(ref context, eColor, out var eColorVal))
+            context.Builder.PushColorBgra(eColorVal);
+
+        return true;
+    }
+
+    private bool TryResolveEdgeColor(ref SeStringContext context, in ReadOnlySePayloadSpan payload)
+    {
+        if (!payload.TryGetExpression(out var eColor))
+            return false;
+
+        if (eColor.TryGetPlaceholderExpression(out var ph) && ph == (int)ExpressionType.StackColor)
+            context.Builder.PopEdgeColor();
+        else if (TryResolveUInt(ref context, eColor, out var eColorVal))
+            context.Builder.PushEdgeColorBgra(eColorVal);
+
+        return true;
+    }
+
+    private bool TryResolveBold(ref SeStringContext context, in ReadOnlySePayloadSpan payload)
+    {
+        if (!payload.TryGetExpression(out var eEnable) || !TryResolveBool(ref context, eEnable, out var eEnableVal))
+            return false;
+
+        context.Builder.AppendSetBold(eEnableVal);
+
+        return true;
+    }
+
+    private bool TryResolveItalic(ref SeStringContext context, in ReadOnlySePayloadSpan payload)
+    {
+        if (!payload.TryGetExpression(out var eEnable) || !TryResolveBool(ref context, eEnable, out var eEnableVal))
+            return false;
+
+        context.Builder.AppendSetItalic(eEnableVal);
+
+        return true;
+    }
+
+    private bool TryResolveNum(ref SeStringContext context, in ReadOnlySePayloadSpan payload)
+    {
+        if (!payload.TryGetExpression(out var eInt) || !TryResolveInt(ref context, eInt, out var eIntVal))
+        {
+            context.Builder.Append('0');
+            return true;
+        }
+
+        context.Builder.Append(eIntVal.ToString());
+
+        return true;
+    }
+
+    private bool TryResolveHex(ref SeStringContext context, in ReadOnlySePayloadSpan payload)
+    {
+        if (!payload.TryGetExpression(out var eUInt) || !TryResolveUInt(ref context, eUInt, out var eUIntVal))
+        {
+            context.Builder.Append("0x00000000"u8);
+            return true;
+        }
+
+        context.Builder.Append("0x{0:X08}".Format(eUIntVal));
+
+        return true;
+    }
+
+    private bool TryResolveKilo(ref SeStringContext context, in ReadOnlySePayloadSpan payload)
+    {
+        if (!payload.TryGetExpression(out var eInt, out var eSep) || !TryResolveInt(ref context, eInt, out var eIntVal))
+        {
+            context.Builder.Append('0');
+            return true;
+        }
+
+        if (eIntVal == int.MinValue)
+        {
+            // -2147483648
+            context.Builder.Append("-2"u8);
+            ResolveStringExpression(ref context, eSep);
+            context.Builder.Append("147"u8);
+            ResolveStringExpression(ref context, eSep);
+            context.Builder.Append("483"u8);
+            ResolveStringExpression(ref context, eSep);
+            context.Builder.Append("648"u8);
+            return true;
+        }
+
+        if (eIntVal < 0)
+        {
+            context.Builder.Append('-');
+            eIntVal = -eIntVal;
+        }
+
+        if (eIntVal == 0)
+        {
+            context.Builder.Append('0');
+            return true;
+        }
+
+        var anyDigitPrinted = false;
+        for (var i = 1_000_000_000; i > 0; i /= 10)
+        {
+            var digit = eIntVal / i % 10;
+            switch (anyDigitPrinted)
+            {
+                case false when digit == 0:
+                    continue;
+                case true when i % 3 == 0:
+                    ResolveStringExpression(ref context, eSep);
+                    break;
+            }
+
+            anyDigitPrinted = true;
+            context.Builder.Append((char)('0' + digit));
+        }
+
+        return true;
+    }
+
+    private bool TryResolveDigit(ref SeStringContext context, in ReadOnlySePayloadSpan payload)
+    {
+        if (!payload.TryGetExpression(out var eValue, out var eTargetLength))
+            return false;
+
+        if (!TryResolveInt(ref context, eValue, out var eValueVal))
+            return false;
+
+        if (!TryResolveInt(ref context, eTargetLength, out var eTargetLengthVal))
+            return false;
+
+        context.Builder.Append(eValueVal.ToString(new string('0', eTargetLengthVal)));
+
+        return true;
+    }
+
+    private bool TryResolveSec(ref SeStringContext context, in ReadOnlySePayloadSpan payload)
+    {
+        if (payload.TryGetExpression(out var eInt) && TryResolveUInt(ref context, eInt, out var eIntVal))
+        {
+            context.Builder.Append("{0:00}".Format(eIntVal));
+            return true;
+        }
+
+        context.Builder.Append("00"u8);
+
+        return true;
+    }
+
+    private bool TryResolveFloat(ref SeStringContext context, in ReadOnlySePayloadSpan payload)
+    {
+        if (!payload.TryGetExpression(out var eValue, out var eRadix, out var eSeparator)
+            || !TryResolveInt(ref context, eValue, out var eValueVal)
+            || !TryResolveInt(ref context, eRadix, out var eRadixVal))
+        {
+            return false;
+        }
+
+        var (integerPart, fractionalPart) = int.DivRem(eValueVal, eRadixVal);
+        if (fractionalPart < 0)
+        {
+            integerPart--;
+            fractionalPart += eRadixVal;
+        }
+
+        context.Builder.Append(integerPart.ToString());
+        ResolveStringExpression(ref context, eSeparator);
+
+        // brain fried code
+        Span<byte> fractionalDigits = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+        var pos = fractionalDigits.Length - 1;
+        for (var r = eRadixVal; r > 1; r /= 10)
+        {
+            fractionalDigits[pos--] = (byte)('0' + fractionalPart % 10);
+            fractionalPart /= 10;
+        }
+
+        context.Builder.Append(fractionalDigits[(pos + 1)..]);
+
+        return true;
+    }
+
+    private bool TryResolveSheet(ref SeStringContext context, in ReadOnlySePayloadSpan payload)
+    {
+        var eColParamValue = 0u;
+
+        var enu = payload.GetEnumerator();
+        if (!enu.MoveNext())
+            return false;
+
+        var eSheetName = enu.Current;
+        if (!eSheetName.TryGetString(out var eSheetNameStr))
+            return false;
+
+        if (!enu.MoveNext())
+            return false;
+
+        var eRowId = enu.Current;
+        if (!TryResolveUInt(ref context, eRowId, out var eRowIdValue))
+            return false;
+
+        if (!enu.MoveNext())
+            return false;
+
+        var eColIndex = enu.Current;
+        if (!TryResolveUInt(ref context, eColIndex, out var eColIndexValue))
+            return false;
+
+        if (!enu.MoveNext())
+            goto processSheet;
+
+        if (!TryResolveUInt(ref context, enu.Current, out eColParamValue))
+            return false;
+
+processSheet:
+        var resolvedSheetName = Evaluate(eSheetNameStr, context with { Builder = new() }).ExtractText();
+
+        ResolveSheetRedirect(ref resolvedSheetName, ref eRowIdValue);
+        if (string.IsNullOrEmpty(resolvedSheetName))
+            return false;
+
+        if (!_excelService.HasSheet(resolvedSheetName))
+            return false;
+
+        if (!_excelService.TryGetRawRow(resolvedSheetName, eRowIdValue, context.Language ?? _languageProvider.ClientLanguage, out var row))
+            return false;
+
+        var column = row.ReadColumn((int)eColIndexValue);
+        if (column == null)
+            return false;
+
+        // TODO: why was this here?
+        // var expressions = payload.Body[(eSheetName.Body.Length + eRowId.Body.Length + eColIndex.Body.Length)..];
+
+        switch (column)
+        {
+            case ReadOnlySeString val:
+                context.Builder.Append(Evaluate(val, context with { Builder = new(), LocalParameters = [eColParamValue] }));
+                return true;
+
+            case bool val:
+                context.Builder.Append((val ? 1u : 0).ToString("D", CultureInfo.InvariantCulture));
+                return true;
+
+            case sbyte val:
+                context.Builder.Append(val.ToString("D", CultureInfo.InvariantCulture));
+                return true;
+
+            case byte val:
+                context.Builder.Append(val.ToString("D", CultureInfo.InvariantCulture));
+                return true;
+
+            case short val:
+                context.Builder.Append(val.ToString("D", CultureInfo.InvariantCulture));
+                return true;
+
+            case ushort val:
+                context.Builder.Append(val.ToString("D", CultureInfo.InvariantCulture));
+                return true;
+
+            case int val:
+                context.Builder.Append(val.ToString("D", CultureInfo.InvariantCulture));
+                return true;
+
+            case uint val:
+                context.Builder.Append(val.ToString("D", CultureInfo.InvariantCulture));
+                return true;
+
+            case { } val:
+                context.Builder.Append(val.ToString());
+                return true;
+        }
+
+        return false;
+    }
+
+    private bool TryResolveHead(ref SeStringContext context, in ReadOnlySePayloadSpan payload)
+    {
+        if (!payload.TryGetExpression(out var eStr))
+            return false;
+
+        var headContext = context with { Builder = new() };
+
+        if (!ResolveStringExpression(ref headContext, eStr))
+            return false;
+
+        var str = headContext.Builder.ToReadOnlySeString();
+        var pIdx = 0;
+
+        foreach (var p in str)
+        {
+            pIdx++;
+
+            if (p.Type == ReadOnlySePayloadType.Invalid)
+                continue;
+
+            if (pIdx == 1 && p.Type == ReadOnlySePayloadType.Text)
+            {
+                context.Builder.Append(Encoding.UTF8.GetString(p.Body.ToArray()).FirstCharToUpper());
+                continue;
+            }
+
+            context.Builder.Append(p);
+        }
+
+        return true;
+    }
+
+    private bool TryResolveHeadAll(ref SeStringContext context, in ReadOnlySePayloadSpan payload)
+    {
+        if (!payload.TryGetExpression(out var eStr))
+            return false;
+
+        var headContext = context with { Builder = new() };
+
+        if (!ResolveStringExpression(ref headContext, eStr))
+            return false;
+
+        var str = headContext.Builder.ToReadOnlySeString();
+
+        foreach (var p in str)
+        {
+            if (p.Type == ReadOnlySePayloadType.Invalid)
+                continue;
+
+            if (p.Type == ReadOnlySePayloadType.Text)
+            {
+                var cultureInfo = _languageProvider.ClientLanguage == context.Language
+                    ? _languageProvider.CultureInfo
+                    : LanguageProvider.GetCultureInfoFromLangCode((context.Language ?? ClientLanguage.English).ToCode());
+                context.Builder.Append(cultureInfo.TextInfo.ToTitleCase(Encoding.UTF8.GetString(p.Body.ToArray())));
+                continue;
+            }
+
+            context.Builder.Append(p);
+        }
+
+        return true;
+    }
+
+    private bool TryResolveColorType(ref SeStringContext context, in ReadOnlySePayloadSpan payload)
+    {
+        if (!payload.TryGetExpression(out var eColorType) || !TryResolveUInt(ref context, eColorType, out var eColorTypeVal))
+            return false;
+
+        if (eColorTypeVal == 0)
+            context.Builder.PopColor();
+        else if (_excelService.TryGetRow<UIColor>(eColorTypeVal, out var row))
+            context.Builder.PushColorBgra((row.UIForeground >> 8) | (row.UIForeground << 24));
+
+        return true;
+    }
+
+    private bool TryResolveEdgeColorType(ref SeStringContext context, in ReadOnlySePayloadSpan payload)
+    {
+        if (!payload.TryGetExpression(out var eColorType) || !TryResolveUInt(ref context, eColorType, out var eColorTypeVal))
+            return false;
+
+        if (eColorTypeVal == 0)
+            context.Builder.PopEdgeColor();
+        else if (_excelService.TryGetRow<UIColor>(eColorTypeVal, out var row))
+            context.Builder.PushEdgeColorBgra((row.UIForeground >> 8) | (row.UIForeground << 24));
+
+        return true;
+    }
+
+    private bool TryResolveLevelPos(ref SeStringContext context, in ReadOnlySePayloadSpan payload)
+    {
+        if (!payload.TryGetExpression(out var eLevel) || !TryResolveUInt(ref context, eLevel, out var eLevelVal))
+            goto invalidLevelPos;
+
+        if (!_excelService.TryGetRow<Level>(eLevelVal, context.Language, out var level) || !level.Map.IsValid)
+            goto invalidLevelPos;
+
+        if (!_excelService.TryGetRow<PlaceName>(level.Map.Value.PlaceName.RowId, context.Language, out var placeName))
+            goto invalidLevelPos;
+
+        if (!_excelService.TryGetRow<Addon>(1637, context.Language, out var levelFormatRow))
+            goto invalidLevelPos;
+
+        var mapPosX = ConvertRawToMapPosX(level.Map.Value, level.X);
+        var mapPosY = ConvertRawToMapPosY(level.Map.Value, level.Z); // Z is [sic]
+
+        context.Builder.Append(
+            Evaluate(
+                levelFormatRow.Text,
+                new SeStringContext() { LocalParameters = [placeName.Name, mapPosX, mapPosY] }));
+
+        return true;
+
+invalidLevelPos:
+        context.Builder.Append("??? ( ???  , ??? )"); // TODO: missing new line?
+        return false;
+    }
+
+    private bool TryResolveFixed(ref SeStringContext context, in ReadOnlySePayloadSpan payload)
+    {
+        var enu = payload.GetEnumerator();
+
+        if (!enu.MoveNext() || !TryResolveInt(ref context, enu.Current, out var e0Val))
+            return false;
+
+        if (!enu.MoveNext() || !TryResolveInt(ref context, enu.Current, out var e1Val))
+            return false;
+
+        return e0Val switch
+        {
+            100 or 200 => e1Val switch
+            {
+                1 => TryResolveFixedPlayerLink(ref context, enu),
+                2 => TryResolveFixedClassJobLevel(ref context, enu),
+                3 => TryResolveFixedMapLink(ref context, enu),
+                4 => TryResolveFixedItemLink(ref context, enu),
+                5 => TryResolveFixedChatSoundEffect(ref context, enu),
+                6 => TryResolveFixedObjStr(ref context, enu),
+                7 => TryResolveFixedString(ref context, enu),
+                8 => TryResolveFixedTimeRemaining(ref context, enu),
+                // Reads a uint and saves it to PronounModule+0x3AC
+                // TODO: handle this? looks like it's for the mentor/beginner icon of the player link in novice network
+                // see "FF 50 50 8B B0"
+                9 => true,
+                10 => TryResolveFixedStatusLink(ref context, enu),
+                11 => TryResolveFixedPartyFinderLink(ref context, enu),
+                12 => TryResolveFixedQuestLink(ref context, enu),
+                _ => false,
+            },
+            _ => TryResolveFixedAutoTranslation(ref context, payload, e0Val, e1Val),
+        };
+    }
+
+    private unsafe bool TryResolveFixedPlayerLink(ref SeStringContext context, in ReadOnlySePayloadSpan.Enumerator enu)
+    {
+        if (!enu.MoveNext() || !TryResolveUInt(ref context, enu.Current, out var worldId))
+            return false;
+
+        if (!enu.MoveNext() || !enu.Current.TryGetString(out var playerName))
+            return false;
+
+        if (UIGlobals.IsValidPlayerCharacterName(playerName.ExtractText()))
+        {
+            var flags = 0u;
+            if (InfoModule.Instance()->IsInCrossWorldDuty())
+                flags |= 0x10;
+
+            context.Builder.PushLink(LinkMacroPayloadType.Character, flags, worldId, 0u, playerName);
+            context.Builder.Append(playerName);
+            context.Builder.PopLink();
+        }
+        else
+        {
+            context.Builder.Append(playerName);
+        }
+
+        if (worldId == AgentLobby.Instance()->LobbyData.HomeWorldId)
+            return true;
+
+        if (!_excelService.TryGetRow<World>(worldId, context.Language, out var worldRow))
+            return false;
+
+        context.Builder.AppendIcon(88);
+        context.Builder.Append(worldRow.Name);
+
+        return true;
+    }
+
+    private bool TryResolveFixedClassJobLevel(ref SeStringContext context, in ReadOnlySePayloadSpan.Enumerator enu)
+    {
+        if (!enu.MoveNext() || !TryResolveInt(ref context, enu.Current, out var classJobId) || classJobId <= 0)
+            return false;
+
+        if (!enu.MoveNext() || !TryResolveInt(ref context, enu.Current, out var level))
+            return false;
+
+        if (!_excelService.TryGetRow<ClassJob>((uint)classJobId, context.Language, out var classJobRow))
+            return false;
+
+        context.Builder.Append(classJobRow.Name);
+
+        if (level != 0)
+        {
+            context.Builder.Append('(');
+            context.Builder.Append(level.ToString("D", CultureInfo.InvariantCulture));
+            context.Builder.Append(')');
+        }
+
+        return true;
+    }
+
+    private bool TryResolveFixedMapLink(ref SeStringContext context, in ReadOnlySePayloadSpan.Enumerator enu)
+    {
+        if (!enu.MoveNext() || !TryResolveUInt(ref context, enu.Current, out var territoryTypeId))
+            return false;
+
+        if (!enu.MoveNext() || !TryResolveUInt(ref context, enu.Current, out var packedIds))
+            return false;
+
+        if (!enu.MoveNext() || !TryResolveInt(ref context, enu.Current, out var rawX))
+            return false;
+
+        if (!enu.MoveNext() || !TryResolveInt(ref context, enu.Current, out var rawY))
+            return false;
+
+        if (!enu.MoveNext() || !TryResolveInt(ref context, enu.Current, out var rawZ))
+            return false;
+
+        if (!enu.MoveNext() || !TryResolveUInt(ref context, enu.Current, out var placeNameIdInt))
+            return false;
+
+        var instance = packedIds >> 0x10;
+        var mapId = packedIds & 0xFF;
+
+        if (_excelService.TryGetRow<TerritoryType>(territoryTypeId, context.Language, out var territoryTypeRow))
+        {
+            if (!_excelService.TryGetRow<PlaceName>(placeNameIdInt == 0 ? territoryTypeRow.PlaceName.RowId : placeNameIdInt, context.Language, out var placeNameRow))
+                return false;
+
+            if (!_excelService.TryGetRow<Map>(mapId, out var mapRow))
+                return false;
+
+            var sb = SeStringBuilder.SharedPool.Get();
+
+            sb.Append(placeNameRow.Name);
+            if (instance > 0 && instance <= 9)
+                sb.Append((char)((char)0xE0B0 + (char)instance));
+
+            var placeNameWithInstance = sb.ToReadOnlySeString();
+            SeStringBuilder.SharedPool.Return(sb);
+
+            var mapPosX = ConvertRawToMapPosX(mapRow, rawX / 1000f);
+            var mapPosY = ConvertRawToMapPosY(mapRow, rawY / 1000f);
+
+            ReadOnlySeString linkText;
+            if (rawZ == -30000)
+            {
+                linkText = EvaluateFromAddon(1635, new SeStringContext()
+                {
+                    Language = context.Language,
+                    LocalParameters = [placeNameWithInstance, mapPosX, mapPosY]
+                });
+            }
+            else
+            {
+                linkText = EvaluateFromAddon(1636, new SeStringContext()
+                {
+                    Language = context.Language,
+                    LocalParameters = [placeNameWithInstance, mapPosX, mapPosY, rawZ / (rawZ >= 0 ? 10 : -10), rawZ]
+                });
+            }
+
+            context.Builder.PushLinkMapPosition(territoryTypeId, mapId, rawX, rawY);
+            context.Builder.Append(EvaluateFromAddon(371, new SeStringContext()
+            {
+                Language = context.Language,
+                LocalParameters = [linkText]
+            }));
+            context.Builder.PopLink();
+
+            return true;
+        }
+        else if (mapId == 0)
+        {
+            if (_excelService.TryGetRow<Addon>(875, out var addonRow)) // "(No location set for map link)"
+                context.Builder.Append(addonRow.Text);
+
+            return true;
+        }
+        else if (mapId == 1)
+        {
+            if (_excelService.TryGetRow<Addon>(874, out var addonRow)) // "(Map link unavailable in this area)"
+                context.Builder.Append(addonRow.Text);
+
+            return true;
+        }
+        else if (mapId == 2)
+        {
+            if (_excelService.TryGetRow<Addon>(13743, out var addonRow)) // "(Unable to set map link)"
+                context.Builder.Append(addonRow.Text);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    private bool TryResolveFixedItemLink(ref SeStringContext context, in ReadOnlySePayloadSpan.Enumerator enu)
+    {
+        if (!enu.MoveNext() || !TryResolveUInt(ref context, enu.Current, out var itemId))
+            return false;
+
+        if (!enu.MoveNext() || !TryResolveUInt(ref context, enu.Current, out var rarity))
+            return false;
+
+        if (!enu.MoveNext() || !TryResolveInt(ref context, enu.Current, out var unk2))
+            return false;
+
+        if (!enu.MoveNext() || !TryResolveInt(ref context, enu.Current, out var unk3))
+            return false;
+
+        if (!enu.MoveNext() || !enu.Current.TryGetString(out var itemName)) // TODO: unescape??
+            return false;
+
+        // rarity color start
+        context.Builder.Append(EvaluateFromAddon(6, new SeStringContext()
+        {
+            Language = context.Language,
+            LocalParameters = [rarity]
+        }));
+
+        var v2 = (ushort)((unk2 & 0xFF) + (unk3 << 0x10)); // TODO: find out what this does
+
+        context.Builder.PushLink(LinkMacroPayloadType.Item, itemId, rarity, v2);
+
+        // arrow and item name
+        context.Builder.Append(EvaluateFromAddon(371, new SeStringContext()
+        {
+            Language = context.Language,
+            LocalParameters = [itemName]
+        }));
+
+        context.Builder.PopLink();
+        context.Builder.PopColor();
+
+        return true;
+    }
+
+    private bool TryResolveFixedChatSoundEffect(ref SeStringContext context, in ReadOnlySePayloadSpan.Enumerator enu)
+    {
+        if (!enu.MoveNext() || !TryResolveUInt(ref context, enu.Current, out var soundEffectId))
+            return false;
+
+        context.Builder.Append($"<se.{soundEffectId + 1}>");
+
+        // the game would play it here
+
+        return true;
+    }
+
+    private bool TryResolveFixedObjStr(ref SeStringContext context, in ReadOnlySePayloadSpan.Enumerator enu)
+    {
+        if (!enu.MoveNext() || !TryResolveUInt(ref context, enu.Current, out var objStrId))
+            return false;
+
+        var name = EvaluateFromAddon(2025, new SeStringContext() // "<head(<denoun(ObjStr,5,lnum1,1,1,1)>)>"
+        {
+            Language = context.Language,
+            LocalParameters = [objStrId]
+        });
+
+        // TODO: for some reason the game doesn't do that
+        // i think it checks if it could get row 2025 instead of that the text is empty
+        if (name.IsEmpty)
+        {
+            if (_excelService.TryGetRow<Addon>(3619, out var addonRow)) // "???"
+                context.Builder.Append(addonRow.Text);
+        }
+        else
+        {
+            context.Builder.Append(name);
+        }
+
+        return true;
+    }
+
+    private bool TryResolveFixedString(ref SeStringContext context, in ReadOnlySePayloadSpan.Enumerator enu)
+    {
+        if (!enu.MoveNext() || !enu.Current.TryGetString(out var text))
+            return false;
+
+        // formats it through vsprintf using "%s"??
+        context.Builder.Append(text.ExtractText());
+
+        return true;
+    }
+
+    private bool TryResolveFixedTimeRemaining(ref SeStringContext context, in ReadOnlySePayloadSpan.Enumerator enu)
+    {
+        if (!enu.MoveNext() || !TryResolveUInt(ref context, enu.Current, out var seconds))
+            return false;
+
+        if (seconds != 0)
+        {
+            context.Builder.Append(EvaluateFromAddon(33, new SeStringContext() // "<num(lnum1)>:<sec(lnum2)>"
+            {
+                Language = context.Language,
+                LocalParameters = [seconds / 60, seconds % 60]
+            }));
+        }
+        else
+        {
+            if (_excelService.TryGetRow<Addon>(48, out var addonRow)) // "--:--"
+                context.Builder.Append(addonRow.Text);
+        }
+
+        return true;
+    }
+
+    private bool TryResolveFixedStatusLink(ref SeStringContext context, in ReadOnlySePayloadSpan.Enumerator enu)
+    {
+        if (!enu.MoveNext() || !TryResolveUInt(ref context, enu.Current, out var statusId))
+            return false;
+
+        if (!enu.MoveNext() || !TryResolveBool(ref context, enu.Current, out var hasOverride))
+            return false;
+
+        if (!_excelService.TryGetRow<Status>(statusId, out var statusRow))
+            return false;
+
+        ReadOnlySeStringSpan statusName;
+        ReadOnlySeStringSpan statusDescription;
+
+        if (hasOverride)
+        {
+            if (!enu.MoveNext() || !enu.Current.TryGetString(out statusName))
+                return false;
+
+            if (!enu.MoveNext() || !enu.Current.TryGetString(out statusDescription))
+                return false;
+        }
+        else
+        {
+            statusName = statusRow.Name.AsSpan();
+            statusDescription = statusRow.Description.AsSpan();
+        }
+
+        var sb = SeStringBuilder.SharedPool.Get();
+
+        if (statusRow.StatusCategory == 1)
+        {
+            sb.Append(EvaluateFromAddon(376, new SeStringContext() // buff icon
+            {
+                Language = context.Language,
+            }));
+        }
+        else if (statusRow.StatusCategory == 2)
+        {
+            sb.Append(EvaluateFromAddon(377, new SeStringContext() // debuff icon
+            {
+                Language = context.Language,
+            }));
+        }
+
+        sb.Append(statusName);
+
+        var linkText = sb.ToReadOnlySeString();
+        SeStringBuilder.SharedPool.Return(sb);
+
+        context.Builder
+           .BeginMacro(MacroCode.Link)
+            .AppendUIntExpression((uint)LinkMacroPayloadType.Status)
+            .AppendUIntExpression(statusId)
+            .AppendUIntExpression(0)
+            .AppendUIntExpression(0)
+            .AppendStringExpression(statusName)
+            .AppendStringExpression(statusDescription)
+            .EndMacro();
+
+        context.Builder.Append(EvaluateFromAddon(371, new SeStringContext()
+        {
+            Language = context.Language,
+            LocalParameters = [linkText]
+        }));
+
+        context.Builder.PopLink();
+
+        return true;
+    }
+
+    private bool TryResolveFixedPartyFinderLink(ref SeStringContext context, in ReadOnlySePayloadSpan.Enumerator enu)
+    {
+        if (!enu.MoveNext() || !TryResolveUInt(ref context, enu.Current, out var listingId))
+            return false;
+
+        if (!enu.MoveNext() || !TryResolveUInt(ref context, enu.Current, out var unk1))
+            return false;
+
+        if (!enu.MoveNext() || !TryResolveUInt(ref context, enu.Current, out var worldId))
+            return false;
+
+        if (!enu.MoveNext() || !TryResolveInt(ref context, enu.Current, out var crossWorldFlag)) // 0 = cross world, 1 = not cross world
+            return false;
+
+        if (!enu.MoveNext() || !enu.Current.TryGetString(out var playerName))
+            return false;
+
+        context.Builder
+           .BeginMacro(MacroCode.Link)
+            .AppendUIntExpression((uint)LinkMacroPayloadType.PartyFinder)
+            .AppendUIntExpression(listingId)
+            .AppendUIntExpression(unk1)
+            .AppendUIntExpression((uint)(crossWorldFlag << 0x10) + worldId)
+            .EndMacro();
+
+        context.Builder.Append(EvaluateFromAddon(371, new SeStringContext()
+        {
+            Language = context.Language,
+            LocalParameters = [
+                EvaluateFromAddon(2265, new SeStringContext()
+                {
+                    Language = context.Language,
+                    LocalParameters = [playerName, crossWorldFlag]
+                })
+            ]
+        }));
+
+        context.Builder.PopLink();
+
+        return true;
+    }
+
+    private bool TryResolveFixedQuestLink(ref SeStringContext context, in ReadOnlySePayloadSpan.Enumerator enu)
+    {
+        if (!enu.MoveNext() || !TryResolveUInt(ref context, enu.Current, out var questId))
+            return false;
+
+        if (!enu.MoveNext() || !enu.MoveNext() || !enu.MoveNext()) // unused
+            return false;
+
+        if (!enu.MoveNext() || !enu.Current.TryGetString(out var questName))
+            return false;
+
+        /* TODO some day
+        if (!QuestManager.IsQuestComplete(questId) && !QuestManager.Instance()->IsQuestAccepted(questId))
+        {
+            var questRecompleteManager = QuestRecompleteManager.Instance();
+            if (questRecompleteManager == null || !questRecompleteManager->"E8 ?? ?? ?? ?? 0F B6 57 FF"(questId)) {
+                if (_excelService.TryGetRow<Addon>(5497, out var addonRow))
+                    questName = addonRow.Text.AsSpan();
+            }
+        }
+        */
+
+        context.Builder
+           .BeginMacro(MacroCode.Link)
+            .AppendUIntExpression((uint)LinkMacroPayloadType.Quest)
+            .AppendUIntExpression(questId)
+            .AppendUIntExpression(0)
+            .AppendUIntExpression(0)
+            .EndMacro();
+
+        context.Builder.Append(EvaluateFromAddon(371, new SeStringContext()
+        {
+            Language = context.Language,
+            LocalParameters = [questName]
+        }));
+
+        context.Builder.PopLink();
+
+        return true;
+    }
+
+    private bool TryResolveFixedAutoTranslation(ref SeStringContext context, in ReadOnlySePayloadSpan payload, int e0Val, int e1Val)
+    {
+        // Auto-Translation / Completion
+        var group = (uint)(e0Val + 1);
+        var rowId = (uint)e1Val;
+
+        using var icons = new IconWrap(ref context, 54, 55);
+
+        if (!_excelService.TryFindRow<Completion>(row => row.Group == group && !row.LookupTable.IsEmpty, context.Language, out var groupRow))
+            return false;
+
+        var lookupTable = (
+            groupRow.LookupTable.IsTextOnly()
+                ? groupRow.LookupTable
+                : Evaluate(groupRow.LookupTable.AsSpan(), context with { Builder = new() })
+            ).ExtractText();
+
+        // Completion sheet
+        if (lookupTable.Equals('@'))
+        {
+            if (_excelService.TryGetRow<Completion>(rowId, context.Language, out var completionRow))
+            {
+                context.Builder.Append(completionRow.Text);
+            }
+            return true;
+        }
+        // CategoryDataCache
+        else if (lookupTable.Equals('#'))
+        {
+            // couldn't find any, so we don't handle them :p
+            context.Builder.Append(payload);
+            return false;
+        }
+
+        // All other sheets
+        var rangesStart = lookupTable.IndexOf('[');
+        RawRow row = default;
+        if (rangesStart == -1) // Sheet without ranges
+        {
+            if (_excelService.GetSheet<RawRow>(lookupTable, context.Language).TryGetRow(rowId, out row))
+            {
+                context.Builder.Append(row.ReadStringColumn(0));
+                return true;
+            }
+        }
+
+        var sheetName = lookupTable[..rangesStart];
+        var ranges = lookupTable[(rangesStart + 1)..(lookupTable.Length - 1)];
+        if (ranges.Length == 0)
+            return true;
+
+        var isNoun = false;
+        var col = 0;
+
+        if (ranges.StartsWith("noun"))
+        {
+            isNoun = true;
+        }
+        else if (ranges.StartsWith("col"))
+        {
+            var colRangeEnd = ranges.IndexOf(',');
+            if (colRangeEnd == -1)
+                colRangeEnd = ranges.Length;
+
+            col = int.Parse(ranges[4..colRangeEnd]);
+        }
+        else if (ranges.StartsWith("tail"))
+        {
+            // couldn't find any, so we don't handle them :p
+            context.Builder.Append(payload);
+            return false;
+        }
+
+        if (isNoun && context.Language == ClientLanguage.German && sheetName == "Companion")
+        {
+            context.Builder.Append(_nounProcessor.ProcessRow(sheetName, rowId, Lumina.Data.Language.German, 1, 5));
+        }
+        else if (_excelService.GetSheet<RawRow>(sheetName, context.Language).TryGetRow(rowId, out row))
+        {
+            context.Builder.Append(row.ReadStringColumn(col));
+        }
+
+        return true;
+    }
+
+    public unsafe bool TryResolveUInt(ref SeStringContext context, in ReadOnlySeExpressionSpan expression, out uint value)
     {
         if (expression.TryGetUInt(out value))
             return true;
@@ -1380,7 +1436,7 @@ invalidLevelPos:
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool TryResolveInt(ref SeStringContext ctx, ReadOnlySeExpressionSpan expression, out int value)
+    public bool TryResolveInt(ref SeStringContext ctx, in ReadOnlySeExpressionSpan expression, out int value)
     {
         if (TryResolveUInt(ref ctx, expression, out var u32))
         {
@@ -1393,7 +1449,7 @@ invalidLevelPos:
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool TryResolveBool(ref SeStringContext ctx, ReadOnlySeExpressionSpan expression, out bool value)
+    public bool TryResolveBool(ref SeStringContext ctx, in ReadOnlySeExpressionSpan expression, out bool value)
     {
         if (TryResolveUInt(ref ctx, expression, out var u32))
         {
@@ -1405,7 +1461,7 @@ invalidLevelPos:
         return false;
     }
 
-    public bool ResolveStringExpression(ref SeStringContext ctx, ReadOnlySeExpressionSpan expression)
+    public bool ResolveStringExpression(ref SeStringContext ctx, in ReadOnlySeExpressionSpan expression)
     {
         uint u32;
 
@@ -1469,7 +1525,7 @@ invalidLevelPos:
         return true;
     }
 
-    private bool TryResolveNoun(ClientLanguage language, ref SeStringContext context, ref ReadOnlySePayloadSpan payload)
+    private bool TryResolveNoun(ClientLanguage language, ref SeStringContext context, in ReadOnlySePayloadSpan payload)
     {
         var eAmountVal = 1;
         var eCaseVal = 1;
@@ -1686,6 +1742,24 @@ decode:
 
             if (_excelService.GetSubrowSheet<AkatsukiNote>().TryGetRow(rowId, out var row))
                 rowId = (uint)row[0].Unknown2;
+        }
+    }
+
+    private ref struct IconWrap : IDisposable
+    {
+        private ref SeStringContext _context;
+        private readonly uint _iconClose;
+
+        public IconWrap(ref SeStringContext context, uint iconOpen, uint iconClose)
+        {
+            _context = ref context;
+            _iconClose = iconClose;
+            _context.Builder.AppendIcon(iconOpen);
+        }
+
+        public void Dispose()
+        {
+            _context.Builder.AppendIcon(_iconClose);
         }
     }
 }
