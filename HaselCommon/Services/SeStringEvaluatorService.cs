@@ -1017,17 +1017,7 @@ invalidLevelPos:
             LocalParameters = [objStrId]
         });
 
-        // TODO: for some reason the game doesn't do that
-        // i think it checks if it could get row 2025 instead of that the text is empty
-        if (name.IsEmpty)
-        {
-            if (_excelService.TryGetRow<Addon>(3619, out var addonRow)) // "???"
-                context.Builder.Append(addonRow.Text);
-        }
-        else
-        {
-            context.Builder.Append(name);
-        }
+        context.Builder.Append(name);
 
         return true;
     }
