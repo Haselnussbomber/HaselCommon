@@ -427,8 +427,9 @@ public partial class SeStringEvaluatorService(
     {
         if (!payload.TryGetExpression(out var eUInt) || !TryResolveUInt(ref context, eUInt, out var eUIntVal))
         {
-            context.Builder.Append("0x00000000"u8);
-            return true;
+            // TODO: throw?
+            // ERROR: mismatch parameter type ('' is not numeric)
+            return false;
         }
 
         context.Builder.Append("0x{0:X08}".Format(eUIntVal));
@@ -507,14 +508,14 @@ public partial class SeStringEvaluatorService(
 
     private bool TryResolveSec(ref SeStringContext context, in ReadOnlySePayloadSpan payload)
     {
-        if (payload.TryGetExpression(out var eInt) && TryResolveUInt(ref context, eInt, out var eIntVal))
+        if (!payload.TryGetExpression(out var eInt) || !TryResolveUInt(ref context, eInt, out var eIntVal))
         {
-            context.Builder.Append("{0:00}".Format(eIntVal));
-            return true;
+            // TODO: throw?
+            // ERROR: mismatch parameter type ('' is not numeric)
+            return false;
         }
 
-        context.Builder.Append("00"u8);
-
+        context.Builder.Append("{0:00}".Format(eIntVal));
         return true;
     }
 
@@ -553,37 +554,21 @@ public partial class SeStringEvaluatorService(
 
     private bool TryResolveSheet(ref SeStringContext context, in ReadOnlySePayloadSpan payload)
     {
-        var eColParamValue = 0u;
-
         var enu = payload.GetEnumerator();
-        if (!enu.MoveNext())
+
+        if (!enu.MoveNext() || !enu.Current.TryGetString(out var eSheetNameStr))
             return false;
 
-        var eSheetName = enu.Current;
-        if (!eSheetName.TryGetString(out var eSheetNameStr))
+        if (!enu.MoveNext() || !TryResolveUInt(ref context, enu.Current, out var eRowIdValue))
             return false;
 
-        if (!enu.MoveNext())
+        if (!enu.MoveNext() || !TryResolveUInt(ref context, enu.Current, out var eColIndexValue))
             return false;
 
-        var eRowId = enu.Current;
-        if (!TryResolveUInt(ref context, eRowId, out var eRowIdValue))
-            return false;
+        var eColParamValue = 0u;
+        if (enu.MoveNext())
+            TryResolveUInt(ref context, enu.Current, out eColParamValue);
 
-        if (!enu.MoveNext())
-            return false;
-
-        var eColIndex = enu.Current;
-        if (!TryResolveUInt(ref context, eColIndex, out var eColIndexValue))
-            return false;
-
-        if (!enu.MoveNext())
-            goto processSheet;
-
-        if (!TryResolveUInt(ref context, enu.Current, out eColParamValue))
-            return false;
-
-processSheet:
         var resolvedSheetName = Evaluate(eSheetNameStr, context with { Builder = new() }).ExtractText();
 
         ResolveSheetRedirect(ref resolvedSheetName, ref eRowIdValue);
@@ -599,9 +584,6 @@ processSheet:
         var column = row.ReadColumn((int)eColIndexValue);
         if (column == null)
             return false;
-
-        // TODO: why was this here?
-        // var expressions = payload.Body[(eSheetName.Body.Length + eRowId.Body.Length + eColIndex.Body.Length)..];
 
         switch (column)
         {
