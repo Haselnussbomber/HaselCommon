@@ -6,6 +6,7 @@
     <RestorePackagesWithLockFile>false</RestorePackagesWithLockFile>
     <DisableRuntimeMarshalling>true</DisableRuntimeMarshalling>
     <Use_DalamudPackager>false</Use_DalamudPackager>
+    <LangVersion>preview</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
