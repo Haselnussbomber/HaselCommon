@@ -6,7 +6,7 @@ using HaselCommon.Graphics;
 using ImGuiNET;
 using YogaSharp;
 
-namespace HaselCommon.Gui.Yoga.Components;
+namespace HaselCommon.Yoga.Components;
 
 public class IconNode : Node
 {

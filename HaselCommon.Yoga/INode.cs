@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using System.Numerics;
-using HaselCommon.Gui.Yoga.Events;
+using HaselCommon.Yoga.Events;
 using YogaSharp;
 
-namespace HaselCommon.Gui.Yoga;
+namespace HaselCommon.Yoga;
 
 public interface INode : IList<Node>, IDisposable
 {

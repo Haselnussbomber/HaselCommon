@@ -1,8 +1,8 @@
 using System.Numerics;
-using HaselCommon.Gui.Yoga.Events;
+using HaselCommon.Yoga.Events;
 using ImGuiNET;
 
-namespace HaselCommon.Gui.Yoga;
+namespace HaselCommon.Yoga;
 
 public partial class Node
 {

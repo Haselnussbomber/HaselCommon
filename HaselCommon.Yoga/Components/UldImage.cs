@@ -3,7 +3,7 @@ using Dalamud.Interface.Utility;
 using HaselCommon.Services;
 using YogaSharp;
 
-namespace HaselCommon.Gui.Yoga.Components;
+namespace HaselCommon.Yoga.Components;
 
 public class UldImage : Node
 {

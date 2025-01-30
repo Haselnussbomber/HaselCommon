@@ -5,13 +5,14 @@ using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Interface.Utility;
 using HaselCommon.Extensions.Strings;
 using HaselCommon.Graphics;
-using HaselCommon.Gui.Yoga.Attributes;
-using HaselCommon.Gui.Yoga.Events;
+using HaselCommon.Gui;
+using HaselCommon.Yoga.Attributes;
+using HaselCommon.Yoga.Events;
 using ImGuiNET;
 using Lumina.Text.ReadOnly;
 using YogaSharp;
 
-namespace HaselCommon.Gui.Yoga;
+namespace HaselCommon.Yoga;
 
 [DebuggerDisplay("Guid: {Guid.ToString()} | Text: {_text.ExtractText()}")]
 public partial class TextNode : Node

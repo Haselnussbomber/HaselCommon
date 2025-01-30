@@ -1,11 +1,11 @@
 using System.Numerics;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Plugin.Services;
-using HaselCommon.Gui.Yoga.Attributes;
+using HaselCommon.Yoga.Attributes;
 using ImGuiNET;
 using YogaSharp;
 
-namespace HaselCommon.Gui.Yoga;
+namespace HaselCommon.Yoga;
 
 public partial class Node : INode
 {

@@ -1,9 +1,9 @@
 using System.Collections.Concurrent;
 using System.Numerics;
-using HaselCommon.Gui.Yoga.Attributes;
+using HaselCommon.Yoga.Attributes;
 using YogaSharp;
 
-namespace HaselCommon.Gui.Yoga;
+namespace HaselCommon.Yoga;
 
 public unsafe partial class Node
 {

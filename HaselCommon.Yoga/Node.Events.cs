@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using HaselCommon.Gui.Yoga.Events;
+using HaselCommon.Yoga.Events;
 
-namespace HaselCommon.Gui.Yoga;
+namespace HaselCommon.Yoga;
 
 public partial class Node
 {

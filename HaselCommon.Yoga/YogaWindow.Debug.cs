@@ -9,13 +9,14 @@ using System.Text;
 using Dalamud.Interface.Utility.Raii;
 using HaselCommon.Extensions.Collections;
 using HaselCommon.Graphics;
-using HaselCommon.Gui.Yoga.Attributes;
+using HaselCommon.Yoga.Attributes;
 using HaselCommon.Services;
 using ImGuiNET;
 using Lumina.Text.ReadOnly;
 using YogaSharp;
+using HaselCommon.Gui;
 
-namespace HaselCommon.Gui.Yoga;
+namespace HaselCommon.Yoga;
 
 public partial class YogaWindow
 {

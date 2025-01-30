@@ -2,7 +2,7 @@ using System.Numerics;
 using HaselCommon.Graphics;
 using ImGuiNET;
 
-namespace HaselCommon.Gui.Yoga.Components;
+namespace HaselCommon.Yoga.Components;
 
 public class Panel : Node
 {

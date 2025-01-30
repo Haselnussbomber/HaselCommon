@@ -4,7 +4,7 @@ using HaselCommon.Extensions.Graphics;
 using HaselCommon.Graphics;
 using ImGuiNET;
 
-namespace HaselCommon.Gui.Yoga;
+namespace HaselCommon.Yoga;
 
 [DebuggerDisplay("Guid: {Guid.ToString()} | Children: {Count}")]
 public partial class Node

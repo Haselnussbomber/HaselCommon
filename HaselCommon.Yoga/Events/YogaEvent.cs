@@ -1,4 +1,4 @@
-namespace HaselCommon.Gui.Yoga.Events;
+namespace HaselCommon.Yoga.Events;
 
 public class YogaEvent : EventArgs
 {

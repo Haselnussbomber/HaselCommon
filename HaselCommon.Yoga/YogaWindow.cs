@@ -2,11 +2,12 @@ using System.Numerics;
 using Dalamud.Interface;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
+using HaselCommon.Gui;
 using HaselCommon.Services;
 using ImGuiNET;
 using YogaSharp;
 
-namespace HaselCommon.Gui.Yoga;
+namespace HaselCommon.Yoga;
 
 public partial class YogaWindow : SimpleWindow, IDisposable
 {

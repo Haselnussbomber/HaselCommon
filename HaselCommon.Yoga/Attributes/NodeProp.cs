@@ -1,4 +1,4 @@
-namespace HaselCommon.Gui.Yoga.Attributes;
+namespace HaselCommon.Yoga.Attributes;
 
 [AttributeUsage(AttributeTargets.Property)]
 public class NodeProp(string category, bool editable = false) : Attribute

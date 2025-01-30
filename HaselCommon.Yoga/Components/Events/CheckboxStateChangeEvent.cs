@@ -1,6 +1,6 @@
-using HaselCommon.Gui.Yoga.Events;
+using HaselCommon.Yoga.Events;
 
-namespace HaselCommon.Gui.Yoga.Components.Events;
+namespace HaselCommon.Yoga.Components.Events;
 
 public class CheckboxStateChangeEvent : YogaEvent
 {
