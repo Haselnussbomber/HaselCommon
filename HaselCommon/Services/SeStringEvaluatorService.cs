@@ -195,7 +195,7 @@ public partial class SeStringEvaluatorService(
                 return true;
 
             case MacroCode.Icon:
-            case MacroCode.Icon2: // TODO: Icon2 handles controller icons based on button mapping - https://discord.com/channels/581875019861328007/653504487352303619/1235201758012112977
+            case MacroCode.Icon2:
                 return TryResolveIcon(ref context, payload);
 
             case MacroCode.Color:
@@ -356,10 +356,13 @@ public partial class SeStringEvaluatorService(
 
     private bool TryResolveIcon(ref SeStringContext context, in ReadOnlySePayloadSpan payload)
     {
+        // Just evaluate the expression, pass through otherwise. The renderer has to remap the id from icon2.
+        // If we would evaluate it here and return an icon macro, then it wouldn't update automatically afterwards.
+
         if (!payload.TryGetExpression(out var eIcon) || !TryResolveUInt(ref context, eIcon, out var eIconValue))
             return false;
 
-        context.Builder.AppendIcon(eIconValue);
+        context.Builder.BeginMacro(payload.MacroCode).AppendUIntExpression(eIconValue).EndMacro();
 
         return true;
     }
