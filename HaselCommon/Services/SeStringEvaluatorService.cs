@@ -9,6 +9,7 @@ using FFXIVClientStructs.FFXIV.Client.UI.Info;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using FFXIVClientStructs.FFXIV.Component.Text;
 using HaselCommon.Extensions.Dalamud;
+using HaselCommon.Extensions.Sheets;
 using HaselCommon.Extensions.Strings;
 using HaselCommon.Services.SeStringEvaluation;
 using Lumina.Excel;
@@ -21,7 +22,7 @@ using Microsoft.Extensions.Logging;
 
 namespace HaselCommon.Services;
 
-/// <summary>Evaluator for SeStrings.</summary>
+/// <summary> Evaluator for SeStrings. </summary>
 [RegisterSingleton]
 public partial class SeStringEvaluatorService(
     ILogger<SeStringEvaluatorService> logger,
@@ -53,7 +54,7 @@ public partial class SeStringEvaluatorService(
         context.Language ??= _languageProvider.ClientLanguage;
 
         foreach (var payload in str)
-            ResolveStringPayload(ref context, payload);
+            ResolvePayload(ref context, payload);
 
         return context.Builder.ToReadOnlySeString();
     }
@@ -78,90 +79,7 @@ public partial class SeStringEvaluatorService(
         return Evaluate(lobbyRow.Text, context);
     }
 
-    public unsafe bool TryGetGNumDefault(uint parameterIndex, out uint value)
-    {
-        value = 0u;
-
-        var rtm = RaptureTextModule.Instance();
-        if (rtm is null)
-            return false;
-
-        if (!ThreadSafety.IsMainThread)
-        {
-            logger.LogError("Global parameters may only be used from the main thread.");
-            return false;
-        }
-
-        ref var gp = ref rtm->TextModule.MacroDecoder.GlobalParameters;
-        if (parameterIndex >= gp.MySize)
-            return false;
-
-        var p = rtm->TextModule.MacroDecoder.GlobalParameters[parameterIndex];
-        switch (p.Type)
-        {
-            case TextParameterType.Integer:
-                value = (uint)p.IntValue;
-                return true;
-
-            case TextParameterType.ReferencedUtf8String:
-                logger.LogError("Requested a number; Utf8String global parameter at {parameterIndex}.", parameterIndex);
-                return false;
-
-            case TextParameterType.String:
-                logger.LogError("Requested a number; string global parameter at {parameterIndex}.", parameterIndex);
-                return false;
-
-            case TextParameterType.Uninitialized:
-                logger.LogError("Requested a number; uninitialized global parameter at {parameterIndex}.", parameterIndex);
-                return false;
-
-            default:
-                return false;
-        }
-    }
-
-    /// <inheritdoc/>
-    public unsafe bool TryProduceGStrDefault(ref SeStringContext ctx, uint parameterIndex)
-    {
-        var rtm = RaptureTextModule.Instance();
-        if (rtm is null)
-            return false;
-
-        ref var gp = ref rtm->TextModule.MacroDecoder.GlobalParameters;
-        if (parameterIndex >= gp.MySize)
-            return false;
-
-        if (!ThreadSafety.IsMainThread)
-        {
-            logger.LogError("Global parameters may only be used from the main thread.");
-            return false;
-        }
-
-        var p = rtm->TextModule.MacroDecoder.GlobalParameters[parameterIndex];
-        switch (p.Type)
-        {
-            case TextParameterType.Integer:
-                ctx.Builder.Append(p.IntValue.ToString());
-                return true;
-
-            case TextParameterType.ReferencedUtf8String:
-                var str = new ReadOnlySeStringSpan(p.ReferencedUtf8StringValue->Utf8String.AsSpan());
-                foreach (var payload in str)
-                    return ResolveStringPayload(ref ctx, payload);
-                return false;
-
-            case TextParameterType.String:
-                str = new ReadOnlySeStringSpan(p.StringValue);
-                foreach (var payload in str)
-                    return ResolveStringPayload(ref ctx, payload);
-                return false;
-            case TextParameterType.Uninitialized:
-            default:
-                return false;
-        }
-    }
-
-    public unsafe bool ResolveStringPayload(ref SeStringContext context, ReadOnlySePayloadSpan payload)
+    private bool ResolvePayload(ref SeStringContext context, ReadOnlySePayloadSpan payload)
     {
         if (payload.Type == ReadOnlySePayloadType.Invalid)
             return false;
@@ -190,10 +108,6 @@ public partial class SeStringEvaluatorService(
             case MacroCode.Switch:
                 return TryResolveSwitch(ref context, payload);
 
-            case MacroCode.NewLine:
-                context.Builder.AppendNewLine();
-                return true;
-
             case MacroCode.Icon:
             case MacroCode.Icon2:
                 return TryResolveIcon(ref context, payload);
@@ -204,24 +118,11 @@ public partial class SeStringEvaluatorService(
             case MacroCode.EdgeColor:
                 return TryResolveEdgeColor(ref context, payload);
 
-            //case MacroCode.SoftHyphen:
-            //    if (!context.StripSoftHypen)
-            //        context.Builder.Append("\u00AD"u8);
-            //    return true;
-
             case MacroCode.Bold:
                 return TryResolveBold(ref context, payload);
 
             case MacroCode.Italic:
                 return TryResolveItalic(ref context, payload);
-
-            //case MacroCode.NonBreakingSpace:
-            //    context.Builder.Append("\u00A0"u8);
-            //    return true;
-
-            //case MacroCode.Hyphen:
-            //    context.Builder.Append('-');
-            //    return true;
 
             case MacroCode.Num:
                 return TryResolveNum(ref context, payload);
@@ -263,7 +164,6 @@ public partial class SeStringEvaluatorService(
                 return TryResolveLevelPos(ref context, payload);
 
             case MacroCode.Fixed:
-                // second function in Client::UI::Misc::PronounModule_ProcessString
                 return TryResolveFixed(ref context, payload);
 
             case MacroCode.JaNoun:
@@ -278,6 +178,36 @@ public partial class SeStringEvaluatorService(
             case MacroCode.FrNoun:
                 return TryResolveNoun(ClientLanguage.French, ref context, payload);
 
+            // TODO
+            case MacroCode.PcName:
+            case MacroCode.IfPcGender:
+            case MacroCode.IfPcName:
+            case MacroCode.Josa:
+            case MacroCode.Josaro:
+            case MacroCode.IfSelf:
+            case MacroCode.Key:
+            case MacroCode.Scale:
+            case MacroCode.Byte:
+            case MacroCode.Time:
+            case MacroCode.Caps:
+            case MacroCode.Split:
+            case MacroCode.Lower:
+            case MacroCode.LowerHead:
+            case MacroCode.Ordinal:
+            case MacroCode.Ruby:
+            case MacroCode.Wait:
+            case MacroCode.ShadowColor:
+            case MacroCode.Edge:
+            case MacroCode.Shadow:
+            case MacroCode.Link:
+
+            // pass through
+            case MacroCode.NewLine:
+            case MacroCode.SoftHyphen:
+            case MacroCode.NonBreakingSpace:
+            case MacroCode.Hyphen:
+            case MacroCode.Sound:
+            case MacroCode.ChNoun: // not implemented, because this targets the global client
             default:
                 context.Builder.Append(payload);
                 return false;
@@ -734,8 +664,8 @@ public partial class SeStringEvaluatorService(
         if (!_excelService.TryGetRow<Addon>(1637, context.Language, out var levelFormatRow))
             return false;
 
-        var mapPosX = ConvertRawToMapPosX(level.Map.Value, level.X);
-        var mapPosY = ConvertRawToMapPosY(level.Map.Value, level.Z); // Z is [sic]
+        var mapPosX = level.Map.Value.ConvertRawToMapPosX(level.X);
+        var mapPosY = level.Map.Value.ConvertRawToMapPosY(level.Z); // Z is [sic]
 
         context.Builder.Append(
             Evaluate(
@@ -747,6 +677,8 @@ public partial class SeStringEvaluatorService(
 
     private bool TryResolveFixed(ref SeStringContext context, in ReadOnlySePayloadSpan payload)
     {
+        // This is handled by the second function in Client::UI::Misc::PronounModule_ProcessString
+
         var enu = payload.GetEnumerator();
 
         if (!enu.MoveNext() || !TryResolveInt(ref context, enu.Current, out var e0Val))
@@ -878,8 +810,8 @@ public partial class SeStringEvaluatorService(
             var placeNameWithInstance = sb.ToReadOnlySeString();
             SeStringBuilder.SharedPool.Return(sb);
 
-            var mapPosX = ConvertRawToMapPosX(mapRow, rawX / 1000f);
-            var mapPosY = ConvertRawToMapPosY(mapRow, rawY / 1000f);
+            var mapPosX = mapRow.ConvertRawToMapPosX(rawX / 1000f);
+            var mapPosY = mapRow.ConvertRawToMapPosY(rawY / 1000f);
 
             ReadOnlySeString linkText;
             if (rawZ == -30000)
@@ -1275,7 +1207,137 @@ public partial class SeStringEvaluatorService(
         return true;
     }
 
-    public unsafe bool TryResolveUInt(ref SeStringContext context, in ReadOnlySeExpressionSpan expression, out uint value)
+    private bool TryResolveNoun(ClientLanguage language, ref SeStringContext context, in ReadOnlySePayloadSpan payload)
+    {
+        var eAmountVal = 1;
+        var eCaseVal = 1;
+
+        var enu = payload.GetEnumerator();
+        if (!enu.MoveNext() || !enu.Current.TryGetString(out var eSheetNameStr))
+            return false;
+
+        var sheetName = Evaluate(eSheetNameStr, context with { Builder = new() }).ExtractText();
+
+        if (!enu.MoveNext() || !TryResolveInt(ref context, enu.Current, out var eArticleTypeVal))
+            return false;
+
+        if (!enu.MoveNext() || !TryResolveUInt(ref context, enu.Current, out var eRowIdVal))
+            return false;
+
+        ResolveSheetRedirect(ref sheetName, ref eRowIdVal);
+        if (string.IsNullOrEmpty(sheetName))
+            return false;
+
+        if (!enu.MoveNext())
+            goto decode;
+
+        if (!TryResolveInt(ref context, enu.Current, out eAmountVal))
+            return false;
+
+        if (!enu.MoveNext())
+            goto decode;
+
+        if (!TryResolveInt(ref context, enu.Current, out eCaseVal))
+            return false;
+
+/* For Chinese texts?
+if (!enu.MoveNext())
+    goto decode;
+
+var eUnkInt5 = enu.Current;
+if (!TryResolveInt(ref context, eUnkInt5, out eUnkInt5Val))
+    return false;
+*/
+
+decode:
+        context.Builder.Append(_nounProcessor.ProcessRow(sheetName, eRowIdVal, language.ToLumina(), eAmountVal, eArticleTypeVal, eCaseVal - 1));
+
+        return true;
+    }
+
+    private unsafe bool TryGetGNumDefault(uint parameterIndex, out uint value)
+    {
+        value = 0u;
+
+        var rtm = RaptureTextModule.Instance();
+        if (rtm is null)
+            return false;
+
+        if (!ThreadSafety.IsMainThread)
+        {
+            logger.LogError("Global parameters may only be used from the main thread.");
+            return false;
+        }
+
+        ref var gp = ref rtm->TextModule.MacroDecoder.GlobalParameters;
+        if (parameterIndex >= gp.MySize)
+            return false;
+
+        var p = rtm->TextModule.MacroDecoder.GlobalParameters[parameterIndex];
+        switch (p.Type)
+        {
+            case TextParameterType.Integer:
+                value = (uint)p.IntValue;
+                return true;
+
+            case TextParameterType.ReferencedUtf8String:
+                logger.LogError("Requested a number; Utf8String global parameter at {parameterIndex}.", parameterIndex);
+                return false;
+
+            case TextParameterType.String:
+                logger.LogError("Requested a number; string global parameter at {parameterIndex}.", parameterIndex);
+                return false;
+
+            case TextParameterType.Uninitialized:
+                logger.LogError("Requested a number; uninitialized global parameter at {parameterIndex}.", parameterIndex);
+                return false;
+
+            default:
+                return false;
+        }
+    }
+
+    private unsafe bool TryProduceGStrDefault(ref SeStringContext ctx, uint parameterIndex)
+    {
+        var rtm = RaptureTextModule.Instance();
+        if (rtm is null)
+            return false;
+
+        ref var gp = ref rtm->TextModule.MacroDecoder.GlobalParameters;
+        if (parameterIndex >= gp.MySize)
+            return false;
+
+        if (!ThreadSafety.IsMainThread)
+        {
+            logger.LogError("Global parameters may only be used from the main thread.");
+            return false;
+        }
+
+        var p = rtm->TextModule.MacroDecoder.GlobalParameters[parameterIndex];
+        switch (p.Type)
+        {
+            case TextParameterType.Integer:
+                ctx.Builder.Append(p.IntValue.ToString());
+                return true;
+
+            case TextParameterType.ReferencedUtf8String:
+                var str = new ReadOnlySeStringSpan(p.ReferencedUtf8StringValue->Utf8String.AsSpan());
+                foreach (var payload in str)
+                    return ResolvePayload(ref ctx, payload);
+                return false;
+
+            case TextParameterType.String:
+                str = new ReadOnlySeStringSpan(p.StringValue);
+                foreach (var payload in str)
+                    return ResolvePayload(ref ctx, payload);
+                return false;
+            case TextParameterType.Uninitialized:
+            default:
+                return false;
+        }
+    }
+
+    private unsafe bool TryResolveUInt(ref SeStringContext context, in ReadOnlySeExpressionSpan expression, out uint value)
     {
         if (expression.TryGetUInt(out value))
             return true;
@@ -1407,7 +1469,7 @@ public partial class SeStringEvaluatorService(
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool TryResolveInt(ref SeStringContext ctx, in ReadOnlySeExpressionSpan expression, out int value)
+    private bool TryResolveInt(ref SeStringContext ctx, in ReadOnlySeExpressionSpan expression, out int value)
     {
         if (TryResolveUInt(ref ctx, expression, out var u32))
         {
@@ -1420,7 +1482,7 @@ public partial class SeStringEvaluatorService(
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool TryResolveBool(ref SeStringContext ctx, in ReadOnlySeExpressionSpan expression, out bool value)
+    private bool TryResolveBool(ref SeStringContext ctx, in ReadOnlySeExpressionSpan expression, out bool value)
     {
         if (TryResolveUInt(ref ctx, expression, out var u32))
         {
@@ -1432,7 +1494,7 @@ public partial class SeStringEvaluatorService(
         return false;
     }
 
-    public bool ResolveStringExpression(ref SeStringContext ctx, in ReadOnlySeExpressionSpan expression)
+    private bool ResolveStringExpression(ref SeStringContext ctx, in ReadOnlySeExpressionSpan expression)
     {
         uint u32;
 
@@ -1495,76 +1557,6 @@ public partial class SeStringEvaluatorService(
         ctx.Builder.Append(((int)u32).ToString());
         return true;
     }
-
-    private bool TryResolveNoun(ClientLanguage language, ref SeStringContext context, in ReadOnlySePayloadSpan payload)
-    {
-        var eAmountVal = 1;
-        var eCaseVal = 1;
-
-        var enu = payload.GetEnumerator();
-        if (!enu.MoveNext())
-            return false;
-
-        if (!enu.Current.TryGetString(out var eSheetNameStr))
-            return false;
-
-        var sheetName = Evaluate(eSheetNameStr, context with { Builder = new() }).ExtractText();
-
-        if (!enu.MoveNext())
-            return false;
-
-        if (!TryResolveInt(ref context, enu.Current, out var eArticleTypeVal))
-            return false;
-
-        if (!enu.MoveNext())
-            return false;
-
-        if (!TryResolveUInt(ref context, enu.Current, out var eRowIdVal))
-            return false;
-
-        ResolveSheetRedirect(ref sheetName, ref eRowIdVal);
-        if (string.IsNullOrEmpty(sheetName))
-            return false;
-
-        if (!enu.MoveNext())
-            goto decode;
-
-        if (!TryResolveInt(ref context, enu.Current, out eAmountVal))
-            return false;
-
-        if (!enu.MoveNext())
-            goto decode;
-
-        if (!TryResolveInt(ref context, enu.Current, out eCaseVal))
-            return false;
-
-        if (!enu.MoveNext())
-            goto decode;
-
-/* For Chinese texts?
-var eUnkInt5 = enu.Current;
-if (!TryResolveInt(ref context, eUnkInt5, out eUnkInt5Val))
-    return false;
-*/
-
-decode:
-        context.Builder.Append(_nounProcessor.ProcessRow(sheetName, eRowIdVal, language.ToLumina(), eAmountVal, eArticleTypeVal, eCaseVal - 1));
-
-        return true;
-    }
-
-    // "41 0F BF C0 66 0F 6E D0 B8"
-    private static uint ConvertRawToMapPos(Map map, short offset, float value)
-    {
-        var scale = map.SizeFactor / 100.0f;
-        return (uint)(10 - (int)(((value + offset) * scale + 1024f) * -0.2f / scale));
-    }
-
-    private static uint ConvertRawToMapPosX(Map map, float x)
-        => ConvertRawToMapPos(map, map.OffsetX, x);
-
-    private static uint ConvertRawToMapPosY(Map map, float y)
-        => ConvertRawToMapPos(map, map.OffsetY, y);
 
     private static readonly string[] ActStrSheetNames = [
         "Trait",

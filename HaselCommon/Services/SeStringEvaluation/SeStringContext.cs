@@ -9,7 +9,6 @@ public struct SeStringContext
     public SeStringParameter[] LocalParameters;
     public SeStringBuilder Builder;
     public ClientLanguage? Language;
-    public bool StripSoftHypen;
 
     public SeStringContext()
     {
@@ -40,41 +39,4 @@ public struct SeStringContext
         value = new();
         return false;
     }
-
-    /*
-    public static implicit operator SeStringContext(SeStringParameter[] localParameters)
-        => new() { LocalParameters = localParameters };
-
-    public static implicit operator SeStringContext(uint[] uintParameters)
-    {
-        var parameters = new SeStringParameter[uintParameters.Length];
-        for (var i = 0; i < uintParameters.Length; i++)
-            parameters[i] = uintParameters[i];
-        return parameters;
-    }
-
-    public static implicit operator SeStringContext(string[] stringParameters)
-    {
-        var parameters = new SeStringParameter[stringParameters.Length];
-        for (var i = 0; i < stringParameters.Length; i++)
-            parameters[i] = stringParameters[i];
-        return parameters;
-    }
-
-    public static implicit operator SeStringContext(ReadOnlySeString[] stringParameters)
-    {
-        var parameters = new SeStringParameter[stringParameters.Length];
-        for (var i = 0; i < stringParameters.Length; i++)
-            parameters[i] = stringParameters[i];
-        return parameters;
-    }
-
-    public static implicit operator SeStringContext(SeString[] stringParameters)
-    {
-        var parameters = new SeStringParameter[stringParameters.Length];
-        for (var i = 0; i < stringParameters.Length; i++)
-            parameters[i] = stringParameters[i];
-        return parameters;
-    }
-    */
 }
