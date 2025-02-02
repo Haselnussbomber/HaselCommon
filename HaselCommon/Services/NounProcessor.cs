@@ -87,32 +87,32 @@ public enum EnglishArticleType
 public enum GermanArticleType
 {
     /// <summary>
-    /// Indefinite article (ein, eine, etc.).
+    /// Unbestimmter Artikel (ein, eine, etc.).
     /// </summary>
     Indefinite = 1,
 
     /// <summary>
-    /// Definite article (der, die, das, etc.).
+    /// Bestimmter Artikel (der, die, das, etc.).
     /// </summary>
     Definite = 2,
 
     /// <summary>
-    /// Possessive article (dein, deine, etc.).
+    /// Possessivartikel "dein" (dein, deine, etc.).
     /// </summary>
     Possessive = 3,
 
     /// <summary>
-    /// Quantitative article (kein, keine, etc.).
+    /// Negativartikel "kein" (kein, keine, etc.).
     /// </summary>
-    Quantitative = 4,
+    Negative = 4,
 
     /// <summary>
-    /// No article.
+    /// Nullartikel.
     /// </summary>
-    NoArticle = 5,
+    ZeroArticle = 5,
 
     /// <summary>
-    /// Demonstrative article (dieser, diese, etc.).
+    /// Demonstrativpronomen "dieser" (dieser, diese, etc.).
     /// </summary>
     Demonstrative = 6,
 }
@@ -476,7 +476,7 @@ public class NounProcessor(ILogger<NounProcessor> logger, IDataManager dataManag
 
         if (articleType is GermanArticleType.Possessive or GermanArticleType.Demonstrative || has_t)
             declensionRow = attributiveSheet.GetRow(25); // Schwache Flexion eines Adjektivs?!
-        else if (articleType == GermanArticleType.NoArticle)
+        else if (articleType == GermanArticleType.ZeroArticle)
             declensionRow = attributiveSheet.GetRow(38); // Starke Deklination
         else if (articleType == GermanArticleType.Definite)
             declensionRow = attributiveSheet.GetRow(37); // Gemischte Deklination
