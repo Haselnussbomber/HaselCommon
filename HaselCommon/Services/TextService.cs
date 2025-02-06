@@ -308,7 +308,7 @@ public class TextService
         if (_rowNameCache.TryGetValue(key, out var text))
             return text;
 
-        if (!_excelService.TryGetRow<T>(rowId, out var row))
+        if (!_excelService.TryGetRow<T>(rowId, lang, out var row))
         {
             _rowNameCache.Add(key, text = $"{typeof(T).Name}#{rowId}");
             return text;
