@@ -1,26 +1,27 @@
+using HaselCommon.Services;
 using ImGuiNET;
 
 namespace HaselCommon.Gui.ImGuiTable;
 
 public class Column<T>
 {
-    private ImGuiTableColumnFlags _flags = ImGuiTableColumnFlags.NoResize | ImGuiTableColumnFlags.WidthStretch;
-
     public string Label { get; set; } = string.Empty;
+    public string LabelKey { get; set; } = string.Empty;
+    public bool AutoLabel { get; set; } = true;
     public float Width { get; set; } = -1;
     public ImGuiTableColumnFlags Flags
     {
-        get => _flags;
+        get;
         set
         {
-            if (value.HasFlag(ImGuiTableColumnFlags.WidthFixed) && _flags.HasFlag(ImGuiTableColumnFlags.WidthStretch))
-                _flags &= ~ImGuiTableColumnFlags.WidthStretch;
-            else if (value.HasFlag(ImGuiTableColumnFlags.WidthStretch) && _flags.HasFlag(ImGuiTableColumnFlags.WidthFixed))
-                _flags &= ~ImGuiTableColumnFlags.WidthFixed;
+            if (value.HasFlag(ImGuiTableColumnFlags.WidthFixed) && field.HasFlag(ImGuiTableColumnFlags.WidthStretch))
+                field &= ~ImGuiTableColumnFlags.WidthStretch;
+            else if (value.HasFlag(ImGuiTableColumnFlags.WidthStretch) && field.HasFlag(ImGuiTableColumnFlags.WidthFixed))
+                field &= ~ImGuiTableColumnFlags.WidthFixed;
 
-            _flags |= value;
+            field |= value;
         }
-    }
+    } = ImGuiTableColumnFlags.NoResize | ImGuiTableColumnFlags.WidthStretch;
 
     public virtual bool DrawFilter()
     {
@@ -41,5 +42,10 @@ public class Column<T>
 
     public virtual void OnLanguageChanged(string langCode)
     {
+    }
+
+    internal void UpdateLabel()
+    {
+        Label = Service.Get<TextService>().Translate(LabelKey);
     }
 }

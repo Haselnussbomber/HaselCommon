@@ -19,6 +19,7 @@ public class Table<T> : IDisposable
     protected bool _rowsLoaded;
     protected List<T> _rows = [];
     protected List<T>? _filteredRows;
+    protected bool _closePopupNextFrame;
 
     public string Id { get; set; }
     public List<T> Rows
@@ -36,6 +37,7 @@ public class Table<T> : IDisposable
         get => Flags.HasFlag(ImGuiTableFlags.Sortable);
         set => Flags = value ? Flags | ImGuiTableFlags.Sortable : Flags & ~ImGuiTableFlags.Sortable;
     }
+    public bool ClosePopup { get; set; }
 
     public ImGuiTableFlags Flags = ImGuiTableFlags.RowBg
       | ImGuiTableFlags.Sortable
@@ -65,7 +67,10 @@ public class Table<T> : IDisposable
             LoadRows();
 
             foreach (var column in Columns)
+            {
                 column.OnLanguageChanged(langCode);
+                column.UpdateLabel();
+            }
         }
 
         IsSortDirty |= true;
@@ -137,6 +142,18 @@ public class Table<T> : IDisposable
 
         ImGui.TableNextRow(ImGuiTableRowFlags.Headers);
 
+        if (_closePopupNextFrame)
+        {
+            ImGuiNativeAdditions.igClosePopupsExceptModals();
+            _closePopupNextFrame = false;
+        }
+
+        if (ClosePopup && ImGui.IsMouseReleased(ImGuiMouseButton.Right))
+        {
+            ClosePopup = false;
+            _closePopupNextFrame = true;
+        }
+
         for (var columnIndex = 0; columnIndex < Columns.Length; columnIndex++)
         {
             var column = Columns[columnIndex];
@@ -151,6 +168,9 @@ public class Table<T> : IDisposable
                 ImGui.TableHeader(string.Empty);
                 ImGui.SameLine();
             }
+
+            if (column.AutoLabel && string.IsNullOrEmpty(column.Label))
+                column.UpdateLabel();
 
             IsFilterDirty |= column.DrawFilter();
         }
@@ -187,4 +207,10 @@ public class Table<T> : IDisposable
             id.Pop();
         }
     }
+}
+
+internal static class ImGuiNativeAdditions
+{
+    [DllImport("cimgui", CallingConvention = CallingConvention.Cdecl)]
+    internal static extern void igClosePopupsExceptModals();
 }
