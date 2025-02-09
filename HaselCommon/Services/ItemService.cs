@@ -173,7 +173,7 @@ public class ItemService(IClientState clientState, ExcelService excelService, Se
 
     public bool IsCrystal(ExcelRowId<Item> itemId)
     {
-        return itemId.TryGetRow(out var item) && IsCrystal(item);
+        return itemId.TryGetRow(out var item) && item.ItemUICategory.RowId == 59;
     }
 
     public bool IsGatherable(ExcelRowId<Item> itemId)
