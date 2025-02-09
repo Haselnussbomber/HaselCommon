@@ -83,7 +83,7 @@ public class TextService
         if (!TryGetTranslation(key, out var format))
             return ReadOnlySeString.FromText(key);
 
-        var sb = new SeStringBuilder();
+        var sb = SeStringBuilder.SharedPool.Get();
         var placeholders = format.Split(['{', '}']);
 
         for (var i = 0; i < placeholders.Length; i++)
@@ -121,36 +121,44 @@ public class TextService
         return ross;
     }
 
+    [Obsolete]
     public void Draw(string key)
         => ImGui.TextUnformatted(Translate(key));
 
+    [Obsolete]
     public void Draw(string key, params object?[] args)
         => ImGui.TextUnformatted(Translate(key, args));
 
+    [Obsolete]
     public void Draw(Color color, string key)
     {
         using (ImRaii.PushColor(ImGuiCol.Text, (uint)color))
             ImGui.TextUnformatted(Translate(key));
     }
 
+    [Obsolete]
     public void Draw(Color color, string key, params object?[] args)
     {
         using (ImRaii.PushColor(ImGuiCol.Text, (uint)color))
             ImGui.TextUnformatted(Translate(key, args));
     }
 
+    [Obsolete]
     public void DrawWrapped(string key)
         => ImGuiHelpers.SafeTextWrapped(Translate(key));
 
+    [Obsolete]
     public void DrawWrapped(string key, params object?[] args)
         => ImGuiHelpers.SafeTextWrapped(Translate(key, args));
 
+    [Obsolete]
     public void DrawWrapped(Color color, string key)
     {
         using (ImRaii.PushColor(ImGuiCol.Text, (uint)color))
             ImGuiHelpers.SafeTextWrapped(Translate(key));
     }
 
+    [Obsolete]
     public void DrawWrapped(Color color, string key, params object?[] args)
     {
         using (ImRaii.PushColor(ImGuiCol.Text, (uint)color))
