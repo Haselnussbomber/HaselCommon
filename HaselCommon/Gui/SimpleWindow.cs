@@ -6,19 +6,58 @@ namespace HaselCommon.Gui;
 
 public abstract class SimpleWindow : Window, IDisposable
 {
-    protected readonly WindowManager WindowManager;
+    private readonly WindowManager _windowManager;
+    private readonly TextService _textService;
+    private readonly LanguageProvider _languageProvider;
     private readonly Lazy<AddonObserver> _addonObserver = new(Service.Get<AddonObserver>);
 
-    protected SimpleWindow(WindowManager windowManager, string windowName, ImGuiWindowFlags flags = ImGuiWindowFlags.None, bool forceMainWindow = false)
-        : base(windowName, flags, forceMainWindow)
+    private string _windowNameKey = string.Empty;
+
+    public string WindowNameKey
     {
-        WindowManager = windowManager;
-        Namespace = GetType().Name;
+        get { return _windowNameKey; }
+        set
+        {
+            _windowNameKey = value;
+            UpdateWindowName();
+        }
+    }
+
+    protected SimpleWindow(WindowManager windowManager, TextService textService, LanguageProvider languageProvider) : base("SimpleWindow", ImGuiWindowFlags.None, false)
+    {
+        _windowManager = windowManager;
+        _textService = textService;
+        _languageProvider = languageProvider;
+
+        var type = GetType();
+        Namespace = type.Namespace;
+        WindowNameKey = $"{type.Name}.Title";
+
+        languageProvider.LanguageChanged += OnLanguageChanged;
+    }
+
+    public virtual void Dispose()
+    {
+        _languageProvider.LanguageChanged -= OnLanguageChanged;
+        GC.SuppressFinalize(this);
+    }
+
+    private void OnLanguageChanged(string langCode)
+    {
+        UpdateWindowName();
+    }
+
+    private void UpdateWindowName()
+    {
+        if (!string.IsNullOrEmpty(_windowNameKey))
+        {
+            WindowName = $"{_textService.Translate(_windowNameKey)}###{GetType().FullName}_{_windowNameKey.GetHashCode():X}";
+        }
     }
 
     public void Open()
     {
-        WindowManager.AddWindow(this);
+        _windowManager.AddWindow(this);
         IsOpen = true;
         Collapsed = false;
         BringToFront();
@@ -39,7 +78,7 @@ public abstract class SimpleWindow : Window, IDisposable
 
     public override void OnClose()
     {
-        WindowManager.RemoveWindow(this);
+        _windowManager.RemoveWindow(this);
     }
 
     public override bool DrawConditions()
@@ -55,9 +94,4 @@ public abstract class SimpleWindow : Window, IDisposable
     }
 
     public virtual void OnScaleChange(float scale) { }
-
-    public virtual void Dispose()
-    {
-        GC.SuppressFinalize(this);
-    }
 }
