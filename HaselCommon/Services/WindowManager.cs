@@ -54,7 +54,7 @@ public class WindowManager : IDisposable
         }
     }
 
-    public bool TryGetWindow<T>(string windowName, [NotNullWhen(returnValue: true)] out T? outWindow) where T : Window
+    public bool TryGetWindow<T>([NotNullWhen(returnValue: true)] out T? outWindow) where T : Window
     {
         outWindow = null;
 
@@ -63,7 +63,23 @@ public class WindowManager : IDisposable
             if (window is not T typedWindow)
                 continue;
 
-            if (window.WindowName != windowName)
+            outWindow = typedWindow;
+            return true;
+        }
+
+        return false;
+    }
+
+    public bool TryFindWindow<T>(Predicate<Window> predicate, [NotNullWhen(returnValue: true)] out T? outWindow) where T : Window
+    {
+        outWindow = null;
+
+        foreach (var window in _windowSystem.Windows)
+        {
+            if (window is not T typedWindow)
+                continue;
+
+            if (!predicate(window))
                 continue;
 
             outWindow = typedWindow;
@@ -71,6 +87,20 @@ public class WindowManager : IDisposable
         }
 
         return false;
+    }
+
+    public bool TryGetWindow<T>(string windowName, [NotNullWhen(returnValue: true)] out T? outWindow) where T : Window
+    {
+        return TryFindWindow<T>(win => win.WindowName == windowName, out outWindow);
+    }
+
+    public T CreateOrOpen<T>(Func<T> factory) where T : SimpleWindow
+    {
+        if (!TryGetWindow<T>(out var window))
+            _windowSystem.AddWindow(window = factory());
+
+        window.Open();
+        return window;
     }
 
     public T CreateOrOpen<T>(string windowName, Func<T> factory) where T : SimpleWindow
@@ -98,14 +128,9 @@ public class WindowManager : IDisposable
         return true;
     }
 
-    public bool Contains(string windowName)
+    public bool Contains(Predicate<Window> predicate)
     {
-        return _windowSystem.Windows.Any(win => win.WindowName == windowName);
-    }
-
-    public bool Contains(Window window)
-    {
-        return _windowSystem.Windows.Contains(window);
+        return _windowSystem.Windows.Any(win => predicate(win));
     }
 
     public void RemoveWindow(string windowName)
