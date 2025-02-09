@@ -40,6 +40,20 @@ public class CommandService(
             autoEnable);
     }
 
+    public CommandHandler Register(string command, string helpMessageKey, IReadOnlyCommandInfo.HandlerDelegate handler, bool showInHelp = true, bool autoEnable = false)
+    {
+        return new CommandHandler(
+            this,
+            commandManager,
+            languageProvider,
+            textService,
+            command,
+            helpMessageKey,
+            showInHelp,
+            handler,
+            autoEnable);
+    }
+
     public CommandHandler Register(CommandHandler commandHandler)
     {
         logger.LogDebug("Registering {command}", commandHandler.Command);
