@@ -20,7 +20,7 @@ public class Table<T> : IDisposable
     protected List<T>? _filteredRows;
     protected bool _closePopupNextFrame;
 
-    public string Id { get; set; }
+    public string? Id { get; set; }
     public List<T> Rows
     {
         get => _rows;
@@ -45,9 +45,8 @@ public class Table<T> : IDisposable
       | ImGuiTableFlags.BordersInnerV
       | ImGuiTableFlags.NoBordersInBodyUntilResize;
 
-    public Table(string id, LanguageProvider languageProvider)
+    public Table(LanguageProvider languageProvider)
     {
-        Id = id;
         _languageProvider = languageProvider;
         _languageProvider.LanguageChanged += OnLanguageChanged;
     }
@@ -77,7 +76,7 @@ public class Table<T> : IDisposable
 
     public void Draw()
     {
-        using var id = ImRaii.PushId(Id);
+        using var id = ImRaii.PushId(Id!, !string.IsNullOrEmpty(Id));
         DrawTableInternal();
     }
 
