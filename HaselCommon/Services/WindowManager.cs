@@ -112,6 +112,21 @@ public class WindowManager : IDisposable
         return window;
     }
 
+    public T CreateOrToggle<T>(Func<T> factory) where T : SimpleWindow
+    {
+        if (!TryGetWindow<T>(out var window))
+        {
+            _windowSystem.AddWindow(window = factory());
+            window.Open();
+        }
+        else
+        {
+            window.Toggle();
+        }
+
+        return window;
+    }
+
     public T Open<T>(T window) where T : SimpleWindow
     {
         _windowSystem.AddWindow(window);
