@@ -5,23 +5,25 @@ namespace HaselCommon.Gui.ImGuiTable;
 
 public class Column<T>
 {
+    private ImGuiTableColumnFlags _flags = ImGuiTableColumnFlags.NoResize | ImGuiTableColumnFlags.WidthStretch;
+
     public string Label { get; set; } = string.Empty;
     public string LabelKey { get; set; } = string.Empty;
     public bool AutoLabel { get; set; } = true;
     public float Width { get; set; } = -1;
     public ImGuiTableColumnFlags Flags
     {
-        get;
+        get => _flags;
         set
         {
-            if (value.HasFlag(ImGuiTableColumnFlags.WidthFixed) && field.HasFlag(ImGuiTableColumnFlags.WidthStretch))
-                field &= ~ImGuiTableColumnFlags.WidthStretch;
-            else if (value.HasFlag(ImGuiTableColumnFlags.WidthStretch) && field.HasFlag(ImGuiTableColumnFlags.WidthFixed))
-                field &= ~ImGuiTableColumnFlags.WidthFixed;
+            if (value.HasFlag(ImGuiTableColumnFlags.WidthFixed) && _flags.HasFlag(ImGuiTableColumnFlags.WidthStretch))
+                _flags &= ~ImGuiTableColumnFlags.WidthStretch;
+            else if (value.HasFlag(ImGuiTableColumnFlags.WidthStretch) && _flags.HasFlag(ImGuiTableColumnFlags.WidthFixed))
+                _flags &= ~ImGuiTableColumnFlags.WidthFixed;
 
-            field |= value;
+            _flags |= value;
         }
-    } = ImGuiTableColumnFlags.NoResize | ImGuiTableColumnFlags.WidthStretch;
+    }
 
     public virtual bool DrawFilter()
     {
