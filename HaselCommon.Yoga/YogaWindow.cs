@@ -23,7 +23,7 @@ public partial class YogaWindow : SimpleWindow, IDisposable
         set => _showNodeInspector = value;
     }
 
-    public YogaWindow(WindowManager wm, string name, ImGuiWindowFlags flags = ImGuiWindowFlags.None, bool forceMainWindow = false) : base(wm, name, flags, forceMainWindow)
+    public YogaWindow(WindowManager wm, TextService textService, LanguageProvider languageProvider) : base(wm, textService, languageProvider)
     {
         Flags |= ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse;
 
