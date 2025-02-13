@@ -16,7 +16,7 @@ public readonly struct SeStringParameter
     {
         get
         {
-            if (!IsString)
+            if (IsString)
                 return uint.TryParse(_str.ExtractText(), out var value) ? value : 0;
 
             return _num;
@@ -27,7 +27,7 @@ public readonly struct SeStringParameter
     {
         get
         {
-            if (IsString)
+            if (!IsString)
                 return new ReadOnlySeString(_num.ToString());
 
             return _str;
@@ -36,18 +36,19 @@ public readonly struct SeStringParameter
 
     public SeStringParameter(uint value)
     {
-        IsString = true;
         _num = value;
     }
 
     public SeStringParameter(ReadOnlySeString value)
     {
         _str = value;
+        IsString = true;
     }
 
     public SeStringParameter(string value)
     {
         _str = new ReadOnlySeString(value);
+        IsString = true;
     }
 
     public static implicit operator SeStringParameter(int value) => new((uint)value);
