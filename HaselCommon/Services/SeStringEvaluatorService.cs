@@ -1255,7 +1255,7 @@ decode:
         return true;
     }
 
-    private unsafe bool TryGetGNumDefault(uint parameterIndex, out uint value)
+    public unsafe bool TryGetGNumDefault(uint parameterIndex, out uint value)
     {
         value = 0u;
 
@@ -1297,7 +1297,7 @@ decode:
         }
     }
 
-    private unsafe bool TryProduceGStrDefault(ref SeStringContext ctx, uint parameterIndex)
+    public unsafe bool TryProduceGStrDefault(ref SeStringContext ctx, uint parameterIndex)
     {
         var rtm = RaptureTextModule.Instance();
         if (rtm is null)
