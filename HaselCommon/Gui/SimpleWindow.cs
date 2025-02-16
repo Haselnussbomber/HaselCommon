@@ -1,6 +1,7 @@
 using Dalamud.Interface.Windowing;
 using HaselCommon.Services;
 using ImGuiNET;
+using Lumina.Misc;
 
 namespace HaselCommon.Gui;
 
@@ -51,7 +52,7 @@ public abstract class SimpleWindow : Window, IDisposable
     {
         if (!string.IsNullOrEmpty(_windowNameKey))
         {
-            WindowName = $"{_textService.Translate(_windowNameKey)}###{GetType().FullName}_{_windowNameKey.GetHashCode():X}";
+            WindowName = $"{_textService.Translate(_windowNameKey)}###{GetType().FullName}_{Crc32.Get(_windowNameKey):X}";
         }
     }
 
