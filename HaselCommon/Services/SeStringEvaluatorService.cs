@@ -2,7 +2,10 @@ using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text;
 using Dalamud.Game;
+using Dalamud.Plugin.Services;
 using Dalamud.Utility;
+using FFXIVClientStructs.FFXIV.Client.Game;
+using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Client.UI.Info;
@@ -28,11 +31,13 @@ public partial class SeStringEvaluatorService(
     ILogger<SeStringEvaluatorService> logger,
     LanguageProvider languageProvider,
     ExcelService excelService,
-    NounProcessor nounProcessor)
+    NounProcessor nounProcessor,
+    IGameConfig gameConfig)
 {
     private readonly ExcelService _excelService = excelService;
     private readonly LanguageProvider _languageProvider = languageProvider;
     private readonly NounProcessor _nounProcessor = nounProcessor;
+    private readonly IGameConfig _gameConfig = gameConfig;
 
     public ReadOnlySeString Evaluate(byte[] str, Span<SeStringParameter> localParameters = default, ClientLanguage? language = null)
         => Evaluate((ReadOnlySeStringSpan)str, localParameters, language);
@@ -42,6 +47,9 @@ public partial class SeStringEvaluatorService(
 
     public ReadOnlySeString Evaluate(ReadOnlySeStringSpan str, Span<SeStringParameter> localParameters = default, ClientLanguage? language = null)
     {
+        if (str.IsTextOnly())
+            return new(str);
+
         var builder = SeStringBuilder.SharedPool.Get();
 
         try
@@ -158,6 +166,12 @@ public partial class SeStringEvaluatorService(
             case MacroCode.HeadAll:
                 return TryResolveHeadAll(ref context, payload);
 
+            case MacroCode.LowerHead:
+                return TryResolveLowerHead(ref context, payload);
+
+            case MacroCode.Lower:
+                return TryResolveLower(ref context, payload);
+
             case MacroCode.ColorType:
                 return TryResolveColorType(ref context, payload);
 
@@ -182,24 +196,29 @@ public partial class SeStringEvaluatorService(
             case MacroCode.FrNoun:
                 return TryResolveNoun(ClientLanguage.French, ref context, payload);
 
-            // TODO
             case MacroCode.PcName:
+                return TryResolvePcName(ref context, payload);
+
             case MacroCode.IfPcGender:
+                return TryResolveIfPcGender(ref context, payload);
+
             case MacroCode.IfPcName:
+                return TryResolveIfPcName(ref context, payload);
+
+            case MacroCode.IfSelf:
+                return TryResolveIfSelf(ref context, payload);
+
+            // TODO
             case MacroCode.Josa:
             case MacroCode.Josaro:
-            case MacroCode.IfSelf:
             case MacroCode.Key:
             case MacroCode.Scale:
             case MacroCode.Byte:
             case MacroCode.Time:
             case MacroCode.Caps:
             case MacroCode.Split:
-            case MacroCode.Lower:
-            case MacroCode.LowerHead:
             case MacroCode.Ordinal:
             case MacroCode.Ruby:
-            case MacroCode.Wait:
             case MacroCode.ShadowColor:
             case MacroCode.Edge:
             case MacroCode.Shadow:
@@ -211,7 +230,8 @@ public partial class SeStringEvaluatorService(
             case MacroCode.NonBreakingSpace:
             case MacroCode.Hyphen:
             case MacroCode.Sound:
-            case MacroCode.ChNoun: // not implemented, because this targets the global client
+            case MacroCode.Wait:
+            case MacroCode.ChNoun: // unsupported here
             default:
                 context.Builder.Append(payload);
                 return false;
@@ -618,7 +638,75 @@ public partial class SeStringEvaluatorService(
                 var cultureInfo = _languageProvider.ClientLanguage == context.Language
                     ? _languageProvider.CultureInfo
                     : LanguageProvider.GetCultureInfoFromLangCode(context.Language.ToCode());
+
                 context.Builder.Append(cultureInfo.TextInfo.ToTitleCase(Encoding.UTF8.GetString(p.Body.ToArray())));
+
+                continue;
+            }
+
+            context.Builder.Append(p);
+        }
+
+        return true;
+    }
+
+    private bool TryResolveLowerHead(ref SeStringContext context, in ReadOnlySePayloadSpan payload)
+    {
+        if (!payload.TryGetExpression(out var eStr))
+            return false;
+
+        var headContext = context with { Builder = new() };
+
+        if (!ResolveStringExpression(ref headContext, eStr))
+            return false;
+
+        var str = headContext.Builder.ToReadOnlySeString();
+        var pIdx = 0;
+
+        foreach (var p in str)
+        {
+            pIdx++;
+
+            if (p.Type == ReadOnlySePayloadType.Invalid)
+                continue;
+
+            if (pIdx == 1 && p.Type == ReadOnlySePayloadType.Text)
+            {
+                context.Builder.Append(Encoding.UTF8.GetString(p.Body.ToArray()).FirstCharToLower());
+                continue;
+            }
+
+            context.Builder.Append(p);
+        }
+
+        return true;
+    }
+
+    private bool TryResolveLower(ref SeStringContext context, in ReadOnlySePayloadSpan payload)
+    {
+        if (!payload.TryGetExpression(out var eStr))
+            return false;
+
+        var headContext = context with { Builder = new() };
+
+        if (!ResolveStringExpression(ref headContext, eStr))
+            return false;
+
+        var str = headContext.Builder.ToReadOnlySeString();
+
+        foreach (var p in str)
+        {
+            if (p.Type == ReadOnlySePayloadType.Invalid)
+                continue;
+
+            if (p.Type == ReadOnlySePayloadType.Text)
+            {
+                var cultureInfo = _languageProvider.ClientLanguage == context.Language
+                    ? _languageProvider.CultureInfo
+                    : LanguageProvider.GetCultureInfoFromLangCode(context.Language.ToCode());
+
+                context.Builder.Append(Encoding.UTF8.GetString(p.Body.ToArray()).ToLower(cultureInfo));
+
                 continue;
             }
 
@@ -803,7 +891,7 @@ public partial class SeStringEvaluatorService(
             if (!_excelService.TryGetRow<PlaceName>(placeNameIdInt == 0 ? territoryTypeRow.PlaceName.RowId : placeNameIdInt, context.Language, out var placeNameRow))
                 return false;
 
-            if (!_excelService.TryGetRow<Map>(mapId, out var mapRow))
+            if (!_excelService.TryGetRow<Lumina.Excel.Sheets.Map>(mapId, out var mapRow))
                 return false;
 
             var sb = SeStringBuilder.SharedPool.Get();
@@ -951,7 +1039,7 @@ public partial class SeStringEvaluatorService(
         if (!enu.MoveNext() || !TryResolveBool(ref context, enu.Current, out var hasOverride))
             return false;
 
-        if (!_excelService.TryGetRow<Status>(statusId, out var statusRow))
+        if (!_excelService.TryGetRow<Lumina.Excel.Sheets.Status>(statusId, out var statusRow))
             return false;
 
         ReadOnlySeStringSpan statusName;
@@ -1047,7 +1135,7 @@ public partial class SeStringEvaluatorService(
         if (!enu.MoveNext() || !enu.Current.TryGetString(out var questName))
             return false;
 
-        /* TODO: reverse this?
+        /* TODO: hide incomplete, repeatable special event quest names
         if (!QuestManager.IsQuestComplete(questId) && !QuestManager.Instance()->IsQuestAccepted(questId))
         {
             var questRecompleteManager = QuestRecompleteManager.Instance();
@@ -1207,6 +1295,85 @@ public partial class SeStringEvaluatorService(
         context.Builder.Append(_nounProcessor.ProcessRow(sheetName, eRowIdVal, language.ToLumina(), eAmountVal, eArticleTypeVal, eCaseVal - 1));
 
         return true;
+    }
+
+    private unsafe bool TryResolvePcName(ref SeStringContext context, ReadOnlySePayloadSpan payload)
+    {
+        if (!payload.TryGetExpression(out var eEntityId))
+            return false;
+
+        if (!TryResolveUInt(ref context, eEntityId, out var entityId))
+            return false;
+
+        // TODO: handle LogNameType
+
+        var characterInfo = new NameCache.CharacterInfo();
+        if (NameCache.Instance()->TryGetCharacterInfoByEntityId(entityId, &characterInfo))
+        {
+            context.Builder.Append((ReadOnlySeStringSpan)characterInfo.Name.AsSpan());
+
+            if (characterInfo.HomeWorldId != AgentLobby.Instance()->LobbyData.HomeWorldId &&
+                WorldHelper.Instance()->AllWorlds.TryGetValue((ushort)characterInfo.HomeWorldId, out var world, false))
+            {
+                context.Builder.AppendIcon(88);
+
+                if (_gameConfig.UiConfig.TryGetUInt("LogCrossWorldName", out var logCrossWorldName) && logCrossWorldName == 1)
+                    context.Builder.Append((ReadOnlySeStringSpan)world.Name);
+            }
+
+            return true;
+        }
+
+        // TODO: lookup via InstanceContentCrystallineConflictDirector
+        // TODO: lookup via MJIManager
+
+        return false;
+    }
+
+    private unsafe bool TryResolveIfPcGender(ref SeStringContext context, ReadOnlySePayloadSpan payload)
+    {
+        if (!payload.TryGetExpression(out var eEntityId, out var eMale, out var eFemale))
+            return false;
+
+        if (!TryResolveUInt(ref context, eEntityId, out var entityId))
+            return false;
+
+        var characterInfo = new NameCache.CharacterInfo();
+        if (NameCache.Instance()->TryGetCharacterInfoByEntityId(entityId, &characterInfo))
+            return ResolveStringExpression(ref context, characterInfo.Sex == 0 ? eMale : eFemale);
+
+        // TODO: lookup via InstanceContentCrystallineConflictDirector
+
+        return false;
+    }
+
+    private unsafe bool TryResolveIfPcName(ref SeStringContext context, ReadOnlySePayloadSpan payload)
+    {
+        if (!payload.TryGetExpression(out var eEntityId, out var eName, out var eTrue, out var eFalse))
+            return false;
+
+        if (!TryResolveUInt(ref context, eEntityId, out var entityId) || !eName.TryGetString(out var name))
+            return false;
+
+        name = Evaluate(name, context.LocalParameters, context.Language).AsSpan();
+
+        var characterInfo = new NameCache.CharacterInfo();
+        return NameCache.Instance()->TryGetCharacterInfoByEntityId(entityId, &characterInfo) &&
+            ResolveStringExpression(ref context, name.Equals((ReadOnlySeStringSpan)characterInfo.Name.AsSpan())
+                ? eTrue
+                : eFalse);
+    }
+
+    private unsafe bool TryResolveIfSelf(ref SeStringContext context, ReadOnlySePayloadSpan payload)
+    {
+        if (!payload.TryGetExpression(out var eEntityId, out var eTrue, out var eFalse))
+            return false;
+
+        if (!TryResolveUInt(ref context, eEntityId, out var entityId))
+            return false;
+
+        // the game uses LocalPlayer here, but using PlayerState seems more safe..
+        return ResolveStringExpression(ref context, PlayerState.Instance()->EntityId == entityId ? eTrue : eFalse);
     }
 
     private unsafe bool TryGetGNumDefault(uint parameterIndex, out uint value)
@@ -1451,7 +1618,7 @@ public partial class SeStringEvaluatorService(
 
         if (expression.TryGetString(out var innerString))
         {
-            Evaluate(innerString, context.LocalParameters, context.Language);
+            context.Builder.Append(Evaluate(innerString, context.LocalParameters, context.Language));
             return true;
         }
 
@@ -1633,7 +1800,7 @@ public partial class SeStringEvaluatorService(
         {
             sheetName = "ContentFinderCondition";
 
-            if (_excelService.TryGetRow<InstanceContent>(rowId, out var row))
+            if (_excelService.TryGetRow<Lumina.Excel.Sheets.InstanceContent>(rowId, out var row))
                 rowId = row.Order;
         }
         else if (sheetName == "PartyContent" && flags == 2)
