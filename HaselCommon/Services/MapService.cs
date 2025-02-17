@@ -128,19 +128,11 @@ public class MapService(IClientState clientState, IGameGui gameGui, TextService 
                 z -= 10;
             z /= 10;
 
-            linkText = seStringEvaluatorService.EvaluateFromAddon(1636, new SeStringContext()
-            {
-                Language = language,
-                LocalParameters = [placeNameWithInstance, mapPosX, mapPosY, z]
-            });
+            linkText = seStringEvaluatorService.EvaluateFromAddon(1636, [placeNameWithInstance, mapPosX, mapPosY, z], language);
         }
         else
         {
-            linkText = seStringEvaluatorService.EvaluateFromAddon(1635, new SeStringContext()
-            {
-                Language = language,
-                LocalParameters = [placeNameWithInstance, mapPosX, mapPosY]
-            });
+            linkText = seStringEvaluatorService.EvaluateFromAddon(1635, [placeNameWithInstance, mapPosX, mapPosY], language);
         }
 
         var sb = SeStringBuilder.SharedPool.Get();
@@ -152,11 +144,7 @@ public class MapService(IClientState clientState, IGameGui gameGui, TextService 
         SeStringBuilder.SharedPool.Return(sb);
 
         // Link Marker
-        return seStringEvaluatorService.EvaluateFromAddon(371, new SeStringContext()
-        {
-            Language = language,
-            LocalParameters = [mapLink]
-        });
+        return seStringEvaluatorService.EvaluateFromAddon(371, [mapLink], language);
     }
 
     public void OpenMap(Level level)

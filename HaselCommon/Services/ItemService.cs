@@ -518,11 +518,7 @@ public class ItemService(IClientState clientState, ExcelService excelService, Se
             .ToReadOnlySeString();
         SeStringBuilder.SharedPool.Return(sb);
 
-        return seStringEvaluatorService.EvaluateFromAddon(371, new SeStringContext()
-        {
-            Language = language,
-            LocalParameters = [itemLink]
-        });
+        return seStringEvaluatorService.EvaluateFromAddon(371, [itemLink], language);
     }
 
     public unsafe uint GetHairstyleIconId(uint id, byte? tribeId = null, byte? sexId = null)

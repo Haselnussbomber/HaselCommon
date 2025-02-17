@@ -34,49 +34,53 @@ public partial class SeStringEvaluatorService(
     private readonly LanguageProvider _languageProvider = languageProvider;
     private readonly NounProcessor _nounProcessor = nounProcessor;
 
-    public ReadOnlySeString Evaluate(byte[] str)
-        => Evaluate(str, new());
+    public ReadOnlySeString Evaluate(byte[] str, Span<SeStringParameter> localParameters = default, ClientLanguage? language = null)
+        => Evaluate((ReadOnlySeStringSpan)str, localParameters, language);
 
-    public ReadOnlySeString Evaluate(ReadOnlySeString str)
-        => Evaluate(str, new());
+    public ReadOnlySeString Evaluate(ReadOnlySeString str, Span<SeStringParameter> localParameters = default, ClientLanguage? language = null)
+        => Evaluate(str.AsSpan(), localParameters, language);
 
-    public ReadOnlySeString Evaluate(ReadOnlySeStringSpan str)
-        => Evaluate(str, new());
-
-    public ReadOnlySeString Evaluate(byte[] str, SeStringContext context)
-        => Evaluate((ReadOnlySeStringSpan)str, context);
-
-    public ReadOnlySeString Evaluate(ReadOnlySeString str, SeStringContext context)
-        => Evaluate(str.AsSpan(), context);
-
-    public ReadOnlySeString Evaluate(ReadOnlySeStringSpan str, SeStringContext context)
+    public ReadOnlySeString Evaluate(ReadOnlySeStringSpan str, Span<SeStringParameter> localParameters = default, ClientLanguage? language = null)
     {
-        context.Language ??= _languageProvider.ClientLanguage;
+        var builder = SeStringBuilder.SharedPool.Get();
 
-        foreach (var payload in str)
-            ResolvePayload(ref context, payload);
+        try
+        {
+            var context = new SeStringContext(ref builder, localParameters, language ?? _languageProvider.ClientLanguage);
 
-        return context.Builder.ToReadOnlySeString();
+            foreach (var payload in str)
+                ResolvePayload(ref context, payload);
+
+            return builder.ToReadOnlySeString();
+        }
+        finally
+        {
+            SeStringBuilder.SharedPool.Return(builder);
+        }
     }
 
-    public ReadOnlySeString EvaluateFromAddon(uint addonId, SeStringContext context)
+    public ReadOnlySeString EvaluateFromAddon(uint addonId, SeStringParameter[]? localParameters = null, ClientLanguage? language = null)
     {
-        context.Language ??= _languageProvider.ClientLanguage;
-
-        if (!_excelService.TryGetRow<Addon>(addonId, context.Language, out var addonRow))
+        if (!_excelService.TryGetRow<Addon>(addonId, language, out var addonRow))
             return new();
 
-        return Evaluate(addonRow.Text, context);
+        return Evaluate(addonRow.Text.AsSpan(), localParameters, language);
     }
 
-    public ReadOnlySeString EvaluateFromLobby(uint lobbyId, SeStringContext context)
+    public ReadOnlySeString EvaluateFromLobby(uint lobbyId, SeStringParameter[]? localParameters = null, ClientLanguage? language = null)
     {
-        context.Language ??= _languageProvider.ClientLanguage;
-
-        if (!_excelService.TryGetRow<Lobby>(lobbyId, context.Language, out var lobbyRow))
+        if (!_excelService.TryGetRow<Lobby>(lobbyId, language, out var lobbyRow))
             return new();
 
-        return Evaluate(lobbyRow.Text, context);
+        return Evaluate(lobbyRow.Text.AsSpan(), localParameters, language);
+    }
+
+    public ReadOnlySeString EvaluateFromLogMessage(uint logMessageId, SeStringParameter[]? localParameters = null, ClientLanguage? language = null)
+    {
+        if (!_excelService.TryGetRow<LogMessage>(logMessageId, language, out var logMessageRow))
+            return new();
+
+        return Evaluate(logMessageRow.Text.AsSpan(), localParameters, language);
     }
 
     private bool ResolvePayload(ref SeStringContext context, ReadOnlySePayloadSpan payload)
@@ -502,7 +506,7 @@ public partial class SeStringEvaluatorService(
         if (enu.MoveNext())
             TryResolveUInt(ref context, enu.Current, out eColParamValue);
 
-        var resolvedSheetName = Evaluate(eSheetNameStr, context with { Builder = new() }).ExtractText();
+        var resolvedSheetName = Evaluate(eSheetNameStr, context.LocalParameters, context.Language).ExtractText();
 
         ResolveSheetRedirect(ref resolvedSheetName, ref eRowIdValue);
         if (string.IsNullOrEmpty(resolvedSheetName))
@@ -511,7 +515,7 @@ public partial class SeStringEvaluatorService(
         if (!_excelService.HasSheet(resolvedSheetName))
             return false;
 
-        if (!_excelService.TryGetRawRow(resolvedSheetName, eRowIdValue, context.Language ?? _languageProvider.ClientLanguage, out var row))
+        if (!_excelService.TryGetRawRow(resolvedSheetName, eRowIdValue, context.Language, out var row))
             return false;
 
         var column = row.ReadColumn((int)eColIndexValue);
@@ -521,7 +525,7 @@ public partial class SeStringEvaluatorService(
         switch (column)
         {
             case ReadOnlySeString val:
-                context.Builder.Append(Evaluate(val, context with { Builder = new(), LocalParameters = [eColParamValue] }));
+                context.Builder.Append(Evaluate(val, [eColParamValue], context.Language));
                 return true;
 
             case bool val:
@@ -613,7 +617,7 @@ public partial class SeStringEvaluatorService(
             {
                 var cultureInfo = _languageProvider.ClientLanguage == context.Language
                     ? _languageProvider.CultureInfo
-                    : LanguageProvider.GetCultureInfoFromLangCode((context.Language ?? ClientLanguage.English).ToCode());
+                    : LanguageProvider.GetCultureInfoFromLangCode(context.Language.ToCode());
                 context.Builder.Append(cultureInfo.TextInfo.ToTitleCase(Encoding.UTF8.GetString(p.Body.ToArray())));
                 continue;
             }
@@ -670,7 +674,8 @@ public partial class SeStringEvaluatorService(
         context.Builder.Append(
             Evaluate(
                 levelFormatRow.Text,
-                new SeStringContext() { LocalParameters = [placeName.Name, mapPosX, mapPosY] }));
+                [placeName.Name, mapPosX, mapPosY],
+                context.Language));
 
         return true;
     }
@@ -816,48 +821,36 @@ public partial class SeStringEvaluatorService(
             ReadOnlySeString linkText;
             if (rawZ == -30000)
             {
-                linkText = EvaluateFromAddon(1635, new SeStringContext()
-                {
-                    Language = context.Language,
-                    LocalParameters = [placeNameWithInstance, mapPosX, mapPosY]
-                });
+                linkText = EvaluateFromAddon(1635, [placeNameWithInstance, mapPosX, mapPosY], context.Language);
             }
             else
             {
-                linkText = EvaluateFromAddon(1636, new SeStringContext()
-                {
-                    Language = context.Language,
-                    LocalParameters = [placeNameWithInstance, mapPosX, mapPosY, rawZ / (rawZ >= 0 ? 10 : -10), rawZ]
-                });
+                linkText = EvaluateFromAddon(1636, [placeNameWithInstance, mapPosX, mapPosY, rawZ / (rawZ >= 0 ? 10 : -10), rawZ], context.Language);
             }
 
             context.Builder.PushLinkMapPosition(territoryTypeId, mapId, rawX, rawY);
-            context.Builder.Append(EvaluateFromAddon(371, new SeStringContext()
-            {
-                Language = context.Language,
-                LocalParameters = [linkText]
-            }));
+            context.Builder.Append(EvaluateFromAddon(371, [linkText], context.Language));
             context.Builder.PopLink();
 
             return true;
         }
         else if (mapId == 0)
         {
-            if (_excelService.TryGetRow<Addon>(875, out var addonRow)) // "(No location set for map link)"
+            if (_excelService.TryGetRow<Addon>(875, context.Language, out var addonRow)) // "(No location set for map link)"
                 context.Builder.Append(addonRow.Text);
 
             return true;
         }
         else if (mapId == 1)
         {
-            if (_excelService.TryGetRow<Addon>(874, out var addonRow)) // "(Map link unavailable in this area)"
+            if (_excelService.TryGetRow<Addon>(874, context.Language, out var addonRow)) // "(Map link unavailable in this area)"
                 context.Builder.Append(addonRow.Text);
 
             return true;
         }
         else if (mapId == 2)
         {
-            if (_excelService.TryGetRow<Addon>(13743, out var addonRow)) // "(Unable to set map link)"
+            if (_excelService.TryGetRow<Addon>(13743, context.Language, out var addonRow)) // "(Unable to set map link)"
                 context.Builder.Append(addonRow.Text);
 
             return true;
@@ -884,22 +877,14 @@ public partial class SeStringEvaluatorService(
             return false;
 
         // rarity color start
-        context.Builder.Append(EvaluateFromAddon(6, new SeStringContext()
-        {
-            Language = context.Language,
-            LocalParameters = [rarity]
-        }));
+        context.Builder.Append(EvaluateFromAddon(6, [rarity], context.Language));
 
         var v2 = (ushort)((unk2 & 0xFF) + (unk3 << 0x10)); // TODO: find out what this does
 
         context.Builder.PushLink(LinkMacroPayloadType.Item, itemId, rarity, v2);
 
         // arrow and item name
-        context.Builder.Append(EvaluateFromAddon(371, new SeStringContext()
-        {
-            Language = context.Language,
-            LocalParameters = [itemName]
-        }));
+        context.Builder.Append(EvaluateFromAddon(371, [itemName], context.Language));
 
         context.Builder.PopLink();
         context.Builder.PopColor();
@@ -924,13 +909,7 @@ public partial class SeStringEvaluatorService(
         if (!enu.MoveNext() || !TryResolveUInt(ref context, enu.Current, out var objStrId))
             return false;
 
-        var name = EvaluateFromAddon(2025, new SeStringContext() // "<head(<denoun(ObjStr,5,lnum1,1,1,1)>)>"
-        {
-            Language = context.Language,
-            LocalParameters = [objStrId]
-        });
-
-        context.Builder.Append(name);
+        context.Builder.Append(EvaluateFromAddon(2025, [objStrId], context.Language));
 
         return true;
     }
@@ -953,15 +932,11 @@ public partial class SeStringEvaluatorService(
 
         if (seconds != 0)
         {
-            context.Builder.Append(EvaluateFromAddon(33, new SeStringContext() // "<num(lnum1)>:<sec(lnum2)>"
-            {
-                Language = context.Language,
-                LocalParameters = [seconds / 60, seconds % 60]
-            }));
+            context.Builder.Append(EvaluateFromAddon(33, [seconds / 60, seconds % 60], context.Language));
         }
         else
         {
-            if (_excelService.TryGetRow<Addon>(48, out var addonRow)) // "--:--"
+            if (_excelService.TryGetRow<Addon>(48, context.Language, out var addonRow))
                 context.Builder.Append(addonRow.Text);
         }
 
@@ -1000,17 +975,11 @@ public partial class SeStringEvaluatorService(
 
         if (statusRow.StatusCategory == 1)
         {
-            sb.Append(EvaluateFromAddon(376, new SeStringContext() // buff icon
-            {
-                Language = context.Language,
-            }));
+            sb.Append(EvaluateFromAddon(376, null, context.Language));
         }
         else if (statusRow.StatusCategory == 2)
         {
-            sb.Append(EvaluateFromAddon(377, new SeStringContext() // debuff icon
-            {
-                Language = context.Language,
-            }));
+            sb.Append(EvaluateFromAddon(377, null, context.Language));
         }
 
         sb.Append(statusName);
@@ -1028,11 +997,7 @@ public partial class SeStringEvaluatorService(
             .AppendStringExpression(statusDescription)
             .EndMacro();
 
-        context.Builder.Append(EvaluateFromAddon(371, new SeStringContext()
-        {
-            Language = context.Language,
-            LocalParameters = [linkText]
-        }));
+        context.Builder.Append(EvaluateFromAddon(371, [linkText], context.Language));
 
         context.Builder.PopLink();
 
@@ -1064,17 +1029,7 @@ public partial class SeStringEvaluatorService(
             .AppendUIntExpression((uint)(crossWorldFlag << 0x10) + worldId)
             .EndMacro();
 
-        context.Builder.Append(EvaluateFromAddon(371, new SeStringContext()
-        {
-            Language = context.Language,
-            LocalParameters = [
-                EvaluateFromAddon(2265, new SeStringContext()
-                {
-                    Language = context.Language,
-                    LocalParameters = [playerName, crossWorldFlag]
-                })
-            ]
-        }));
+        context.Builder.Append(EvaluateFromAddon(371, [EvaluateFromAddon(2265, [playerName, crossWorldFlag], context.Language)], context.Language));
 
         context.Builder.PopLink();
 
@@ -1092,12 +1047,12 @@ public partial class SeStringEvaluatorService(
         if (!enu.MoveNext() || !enu.Current.TryGetString(out var questName))
             return false;
 
-        /* TODO some day
+        /* TODO: reverse this?
         if (!QuestManager.IsQuestComplete(questId) && !QuestManager.Instance()->IsQuestAccepted(questId))
         {
             var questRecompleteManager = QuestRecompleteManager.Instance();
             if (questRecompleteManager == null || !questRecompleteManager->"E8 ?? ?? ?? ?? 0F B6 57 FF"(questId)) {
-                if (_excelService.TryGetRow<Addon>(5497, out var addonRow))
+                if (_excelService.TryGetRow<Addon>(5497, context.Language, out var addonRow))
                     questName = addonRow.Text.AsSpan();
             }
         }
@@ -1111,11 +1066,7 @@ public partial class SeStringEvaluatorService(
             .AppendUIntExpression(0)
             .EndMacro();
 
-        context.Builder.Append(EvaluateFromAddon(371, new SeStringContext()
-        {
-            Language = context.Language,
-            LocalParameters = [questName]
-        }));
+        context.Builder.Append(EvaluateFromAddon(371, [questName], context.Language));
 
         context.Builder.PopLink();
 
@@ -1128,7 +1079,7 @@ public partial class SeStringEvaluatorService(
         var group = (uint)(e0Val + 1);
         var rowId = (uint)e1Val;
 
-        using var icons = new IconWrap(ref context, 54, 55);
+        using var icons = new IconWrap(ref context.Builder, 54, 55);
 
         if (!_excelService.TryFindRow<Completion>(row => row.Group == group && !row.LookupTable.IsEmpty, context.Language, out var groupRow))
             return false;
@@ -1136,7 +1087,7 @@ public partial class SeStringEvaluatorService(
         var lookupTable = (
             groupRow.LookupTable.IsTextOnly()
                 ? groupRow.LookupTable
-                : Evaluate(groupRow.LookupTable.AsSpan(), context with { Builder = new() })
+                : Evaluate(groupRow.LookupTable.AsSpan(), context.LocalParameters, context.Language)
             ).ExtractText();
 
         // Completion sheet
@@ -1213,10 +1164,11 @@ public partial class SeStringEvaluatorService(
         var eCaseVal = 1;
 
         var enu = payload.GetEnumerator();
+
         if (!enu.MoveNext() || !enu.Current.TryGetString(out var eSheetNameStr))
             return false;
 
-        var sheetName = Evaluate(eSheetNameStr, context with { Builder = new() }).ExtractText();
+        var sheetName = Evaluate(eSheetNameStr, context.LocalParameters, context.Language).ExtractText();
 
         if (!enu.MoveNext() || !TryResolveInt(ref context, enu.Current, out var eArticleTypeVal))
             return false;
@@ -1225,37 +1177,39 @@ public partial class SeStringEvaluatorService(
             return false;
 
         ResolveSheetRedirect(ref sheetName, ref eRowIdVal);
+
         if (string.IsNullOrEmpty(sheetName))
             return false;
 
-        if (!enu.MoveNext())
-            goto decode;
+        // optional arguments
+        if (enu.MoveNext())
+        {
+            if (!TryResolveInt(ref context, enu.Current, out eAmountVal))
+                return false;
 
-        if (!TryResolveInt(ref context, enu.Current, out eAmountVal))
-            return false;
+            if (enu.MoveNext())
+            {
+                if (!TryResolveInt(ref context, enu.Current, out eCaseVal))
+                    return false;
 
-        if (!enu.MoveNext())
-            goto decode;
+                // For Chinese texts?
+                /*
+                if (enu.MoveNext())
+                {
+                    var eUnkInt5 = enu.Current;
+                    if (!TryResolveInt(ref context, eUnkInt5, out eUnkInt5Val))
+                        return false;
+                }
+                */
+            }
+        }
 
-        if (!TryResolveInt(ref context, enu.Current, out eCaseVal))
-            return false;
-
-/* For Chinese texts?
-if (!enu.MoveNext())
-    goto decode;
-
-var eUnkInt5 = enu.Current;
-if (!TryResolveInt(ref context, eUnkInt5, out eUnkInt5Val))
-    return false;
-*/
-
-decode:
         context.Builder.Append(_nounProcessor.ProcessRow(sheetName, eRowIdVal, language.ToLumina(), eAmountVal, eArticleTypeVal, eCaseVal - 1));
 
         return true;
     }
 
-    public unsafe bool TryGetGNumDefault(uint parameterIndex, out uint value)
+    private unsafe bool TryGetGNumDefault(uint parameterIndex, out uint value)
     {
         value = 0u;
 
@@ -1297,7 +1251,7 @@ decode:
         }
     }
 
-    public unsafe bool TryProduceGStrDefault(ref SeStringContext ctx, uint parameterIndex)
+    private unsafe bool TryProduceGStrDefault(ref SeStringBuilder builder, ClientLanguage language, uint parameterIndex)
     {
         var rtm = RaptureTextModule.Instance();
         if (rtm is null)
@@ -1317,20 +1271,17 @@ decode:
         switch (p.Type)
         {
             case TextParameterType.Integer:
-                ctx.Builder.Append(p.IntValue.ToString());
+                builder.Append(p.IntValue.ToString());
                 return true;
 
             case TextParameterType.ReferencedUtf8String:
-                var str = new ReadOnlySeStringSpan(p.ReferencedUtf8StringValue->Utf8String.AsSpan());
-                foreach (var payload in str)
-                    return ResolvePayload(ref ctx, payload);
+                builder.Append(Evaluate(new ReadOnlySeStringSpan(p.ReferencedUtf8StringValue->Utf8String.AsSpan()), null, language));
                 return false;
 
             case TextParameterType.String:
-                str = new ReadOnlySeStringSpan(p.StringValue);
-                foreach (var payload in str)
-                    return ResolvePayload(ref ctx, payload);
+                builder.Append(Evaluate(new ReadOnlySeStringSpan(p.StringValue), null, language));
                 return false;
+
             case TextParameterType.Uninitialized:
             default:
                 return false;
@@ -1344,7 +1295,7 @@ decode:
 
         if (expression.TryGetPlaceholderExpression(out var exprType))
         {
-            // if (ctx.TryGetPlaceholderNum(exprType, out value))
+            // if (context.TryGetPlaceholderNum(exprType, out value))
             //     return true;
 
             switch ((ExpressionType)exprType)
@@ -1430,8 +1381,8 @@ decode:
 
                     if (operand1.TryGetString(out var strval1) && operand2.TryGetString(out var strval2))
                     {
-                        var resolvedStr1 = Evaluate(strval1, context);
-                        var resolvedStr2 = Evaluate(strval2, context);
+                        var resolvedStr1 = Evaluate(strval1, context.LocalParameters, context.Language);
+                        var resolvedStr2 = Evaluate(strval2, context.LocalParameters, context.Language);
                         var equals = resolvedStr1.Equals(resolvedStr2);
 
                         if ((ExpressionType)exprType == ExpressionType.Equal)
@@ -1452,7 +1403,7 @@ decode:
 
         if (expression.TryGetString(out var str))
         {
-            var evaluatedStr = Evaluate(str, context with { Builder = new() });
+            var evaluatedStr = Evaluate(str, context.LocalParameters, context.Language);
 
             foreach (var payload in evaluatedStr)
             {
@@ -1469,9 +1420,9 @@ decode:
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private bool TryResolveInt(ref SeStringContext ctx, in ReadOnlySeExpressionSpan expression, out int value)
+    private bool TryResolveInt(ref SeStringContext context, in ReadOnlySeExpressionSpan expression, out int value)
     {
-        if (TryResolveUInt(ref ctx, expression, out var u32))
+        if (TryResolveUInt(ref context, expression, out var u32))
         {
             value = (int)u32;
             return true;
@@ -1482,9 +1433,9 @@ decode:
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private bool TryResolveBool(ref SeStringContext ctx, in ReadOnlySeExpressionSpan expression, out bool value)
+    private bool TryResolveBool(ref SeStringContext context, in ReadOnlySeExpressionSpan expression, out bool value)
     {
-        if (TryResolveUInt(ref ctx, expression, out var u32))
+        if (TryResolveUInt(ref context, expression, out var u32))
         {
             value = u32 != 0;
             return true;
@@ -1494,27 +1445,27 @@ decode:
         return false;
     }
 
-    private bool ResolveStringExpression(ref SeStringContext ctx, in ReadOnlySeExpressionSpan expression)
+    private bool ResolveStringExpression(ref SeStringContext context, in ReadOnlySeExpressionSpan expression)
     {
         uint u32;
 
         if (expression.TryGetString(out var innerString))
         {
-            Evaluate(innerString, ctx);
+            Evaluate(innerString, context.LocalParameters, context.Language);
             return true;
         }
 
         /*
         if (expression.TryGetPlaceholderExpression(out var exprType))
         {
-            if (ctx.TryProducePlaceholder(ref ctx, exprType))
+            if (context.TryProducePlaceholder(ref context, exprType))
                 return true;
         }
         */
 
         if (expression.TryGetParameterExpression(out var exprType, out var operand1))
         {
-            if (!TryResolveUInt(ref ctx, operand1, out var paramIndex))
+            if (!TryResolveUInt(ref context, operand1, out var paramIndex))
                 return false;
             if (paramIndex == 0)
                 return false;
@@ -1522,28 +1473,28 @@ decode:
             switch ((ExpressionType)exprType)
             {
                 case ExpressionType.LocalNumber: // lnum
-                    if (!ctx.TryGetLNum((int)paramIndex, out u32))
+                    if (!context.TryGetLNum((int)paramIndex, out u32))
                         return false;
 
-                    ctx.Builder.Append(unchecked((int)u32).ToString());
+                    context.Builder.Append(unchecked((int)u32).ToString());
                     return true;
 
                 case ExpressionType.LocalString: // lstr
-                    if (!ctx.TryGetLStr((int)paramIndex, out var str))
+                    if (!context.TryGetLStr((int)paramIndex, out var str))
                         return false;
 
-                    ctx.Builder.Append(str);
+                    context.Builder.Append(str);
                     return true;
 
                 case ExpressionType.GlobalNumber: // gnum
                     if (!TryGetGNumDefault(paramIndex, out u32))
                         return false;
 
-                    ctx.Builder.Append(unchecked((int)u32).ToString());
+                    context.Builder.Append(unchecked((int)u32).ToString());
                     return true;
 
                 case ExpressionType.GlobalString: // gstr
-                    return TryProduceGStrDefault(ref ctx, paramIndex);
+                    return TryProduceGStrDefault(ref context.Builder, context.Language, paramIndex);
 
                 default:
                     return false;
@@ -1551,10 +1502,10 @@ decode:
         }
 
         // Handles UInt and Binary expressions
-        if (!TryResolveUInt(ref ctx, expression, out u32))
+        if (!TryResolveUInt(ref context, expression, out u32))
             return false;
 
-        ctx.Builder.Append(((int)u32).ToString());
+        context.Builder.Append(((int)u32).ToString());
         return true;
     }
 
@@ -1710,19 +1661,57 @@ decode:
 
     private ref struct IconWrap : IDisposable
     {
-        private ref SeStringContext _context;
+        private readonly ref SeStringBuilder _builder;
         private readonly uint _iconClose;
 
-        public IconWrap(ref SeStringContext context, uint iconOpen, uint iconClose)
+        public IconWrap(ref SeStringBuilder builder, uint iconOpen, uint iconClose)
         {
-            _context = ref context;
+            _builder = ref builder;
             _iconClose = iconClose;
-            _context.Builder.AppendIcon(iconOpen);
+            _builder.AppendIcon(iconOpen);
         }
 
         public void Dispose()
         {
-            _context.Builder.AppendIcon(_iconClose);
+            _builder.AppendIcon(_iconClose);
+        }
+    }
+
+    private ref struct SeStringContext
+    {
+        internal ref SeStringBuilder Builder;
+        internal Span<SeStringParameter> LocalParameters;
+        internal ClientLanguage Language;
+
+        internal SeStringContext(ref SeStringBuilder builder, Span<SeStringParameter> localParameters, ClientLanguage language)
+        {
+            Builder = ref builder;
+            LocalParameters = localParameters;
+            Language = language;
+        }
+
+        internal bool TryGetLNum(int index, out uint value)
+        {
+            if (LocalParameters.Length > index && LocalParameters[index] is SeStringParameter { } val)
+            {
+                value = val.UIntValue;
+                return true;
+            }
+
+            value = 0;
+            return false;
+        }
+
+        internal bool TryGetLStr(int index, out ReadOnlySeString value)
+        {
+            if (LocalParameters.Length > index && LocalParameters[index] is SeStringParameter { } val)
+            {
+                value = val.StringValue;
+                return true;
+            }
+
+            value = new();
+            return false;
         }
     }
 }

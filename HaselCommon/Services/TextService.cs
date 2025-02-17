@@ -261,34 +261,26 @@ public class TextService
     public string GetFateName(uint id, ClientLanguage? language = null)
         => GetOrCreateCachedText<Fate>(id, language, (row) => _seStringEvaluator.Evaluate(row.Name));
 
-    public string GetBNpcName(uint id)
-        => FromObjStr(ObjectKind.BattleNpc, id);
+    public string GetBNpcName(uint id, ClientLanguage? language = null)
+        => FromObjStr(ObjectKind.BattleNpc, id, language);
 
-    public string GetENpcResidentName(uint id)
-        => FromObjStr(ObjectKind.EventNpc, id);
+    public string GetENpcResidentName(uint id, ClientLanguage? language = null)
+        => FromObjStr(ObjectKind.EventNpc, id, language);
 
-    public string GetTreasureName(uint id)
-        => FromObjStr(ObjectKind.Treasure, id);
+    public string GetTreasureName(uint id, ClientLanguage? language = null)
+        => FromObjStr(ObjectKind.Treasure, id, language);
 
-    public string GetGatheringPointName(uint id)
-        => FromObjStr(ObjectKind.GatheringPoint, id);
+    public string GetGatheringPointName(uint id, ClientLanguage? language = null)
+        => FromObjStr(ObjectKind.GatheringPoint, id, language);
 
-    public string GetEObjName(uint id)
-        => FromObjStr(ObjectKind.EventObj, id);
+    public string GetEObjName(uint id, ClientLanguage? language = null)
+        => FromObjStr(ObjectKind.EventObj, id, language);
 
-    public string GetCompanionName(uint id)
-        => FromObjStr(ObjectKind.Companion, id);
+    public string GetCompanionName(uint id, ClientLanguage? language = null)
+        => FromObjStr(ObjectKind.Companion, id, language);
 
-    private string FromObjStr(ObjectKind objectKind, uint id)
-    {
-        var objStrId = GetObjStrId(objectKind, id);
-
-        return _seStringEvaluator.EvaluateFromAddon(2025, new SeStringContext()
-        {
-            Language = _languageProvider.ClientLanguage,
-            LocalParameters = [objStrId]
-        }).ExtractText().StripSoftHypen();
-    }
+    private string FromObjStr(ObjectKind objectKind, uint id, ClientLanguage? language = null)
+        => _seStringEvaluator.EvaluateFromAddon(2025, [GetObjStrId(objectKind, id)], language).ExtractText().StripSoftHypen();
 
     // "8D 41 FE 83 F8 0C 77 4D"
     private static uint GetObjStrId(ObjectKind objectKind, uint id)
