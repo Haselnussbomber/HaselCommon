@@ -589,31 +589,40 @@ public partial class SeStringEvaluatorService(
         if (!payload.TryGetExpression(out var eStr))
             return false;
 
-        var headContext = context with { Builder = new() };
+        var builder = SeStringBuilder.SharedPool.Get();
 
-        if (!ResolveStringExpression(ref headContext, eStr))
-            return false;
-
-        var str = headContext.Builder.ToReadOnlySeString();
-        var pIdx = 0;
-
-        foreach (var p in str)
+        try
         {
-            pIdx++;
+            var headContext = new SeStringContext(ref builder, context.LocalParameters, context.Language);
 
-            if (p.Type == ReadOnlySePayloadType.Invalid)
-                continue;
+            if (!ResolveStringExpression(ref headContext, eStr))
+                return false;
 
-            if (pIdx == 1 && p.Type == ReadOnlySePayloadType.Text)
+            var str = builder.ToReadOnlySeString();
+            var pIdx = 0;
+
+            foreach (var p in str)
             {
-                context.Builder.Append(Encoding.UTF8.GetString(p.Body.ToArray()).FirstCharToUpper());
-                continue;
+                pIdx++;
+
+                if (p.Type == ReadOnlySePayloadType.Invalid)
+                    continue;
+
+                if (pIdx == 1 && p.Type == ReadOnlySePayloadType.Text)
+                {
+                    context.Builder.Append(Encoding.UTF8.GetString(p.Body.ToArray()).FirstCharToUpper());
+                    continue;
+                }
+
+                context.Builder.Append(p);
             }
 
-            context.Builder.Append(p);
+            return true;
         }
-
-        return true;
+        finally
+        {
+            SeStringBuilder.SharedPool.Return(builder);
+        }
     }
 
     private bool TryResolveHeadAll(ref SeStringContext context, in ReadOnlySePayloadSpan payload)
@@ -621,33 +630,42 @@ public partial class SeStringEvaluatorService(
         if (!payload.TryGetExpression(out var eStr))
             return false;
 
-        var headContext = context with { Builder = new() };
+        var builder = SeStringBuilder.SharedPool.Get();
 
-        if (!ResolveStringExpression(ref headContext, eStr))
-            return false;
-
-        var str = headContext.Builder.ToReadOnlySeString();
-
-        foreach (var p in str)
+        try
         {
-            if (p.Type == ReadOnlySePayloadType.Invalid)
-                continue;
+            var headContext = new SeStringContext(ref builder, context.LocalParameters, context.Language);
 
-            if (p.Type == ReadOnlySePayloadType.Text)
+            if (!ResolveStringExpression(ref headContext, eStr))
+                return false;
+
+            var str = builder.ToReadOnlySeString();
+
+            foreach (var p in str)
             {
-                var cultureInfo = _languageProvider.ClientLanguage == context.Language
-                    ? _languageProvider.CultureInfo
-                    : LanguageProvider.GetCultureInfoFromLangCode(context.Language.ToCode());
+                if (p.Type == ReadOnlySePayloadType.Invalid)
+                    continue;
 
-                context.Builder.Append(cultureInfo.TextInfo.ToTitleCase(Encoding.UTF8.GetString(p.Body.ToArray())));
+                if (p.Type == ReadOnlySePayloadType.Text)
+                {
+                    var cultureInfo = _languageProvider.ClientLanguage == context.Language
+                        ? _languageProvider.CultureInfo
+                        : LanguageProvider.GetCultureInfoFromLangCode(context.Language.ToCode());
 
-                continue;
+                    context.Builder.Append(cultureInfo.TextInfo.ToTitleCase(Encoding.UTF8.GetString(p.Body.ToArray())));
+
+                    continue;
+                }
+
+                context.Builder.Append(p);
             }
 
-            context.Builder.Append(p);
+            return true;
         }
-
-        return true;
+        finally
+        {
+            SeStringBuilder.SharedPool.Return(builder);
+        }
     }
 
     private bool TryResolveLowerHead(ref SeStringContext context, in ReadOnlySePayloadSpan payload)
@@ -655,31 +673,40 @@ public partial class SeStringEvaluatorService(
         if (!payload.TryGetExpression(out var eStr))
             return false;
 
-        var headContext = context with { Builder = new() };
+        var builder = SeStringBuilder.SharedPool.Get();
 
-        if (!ResolveStringExpression(ref headContext, eStr))
-            return false;
-
-        var str = headContext.Builder.ToReadOnlySeString();
-        var pIdx = 0;
-
-        foreach (var p in str)
+        try
         {
-            pIdx++;
+            var headContext = new SeStringContext(ref builder, context.LocalParameters, context.Language);
 
-            if (p.Type == ReadOnlySePayloadType.Invalid)
-                continue;
+            if (!ResolveStringExpression(ref headContext, eStr))
+                return false;
 
-            if (pIdx == 1 && p.Type == ReadOnlySePayloadType.Text)
+            var str = builder.ToReadOnlySeString();
+            var pIdx = 0;
+
+            foreach (var p in str)
             {
-                context.Builder.Append(Encoding.UTF8.GetString(p.Body.ToArray()).FirstCharToLower());
-                continue;
+                pIdx++;
+
+                if (p.Type == ReadOnlySePayloadType.Invalid)
+                    continue;
+
+                if (pIdx == 1 && p.Type == ReadOnlySePayloadType.Text)
+                {
+                    context.Builder.Append(Encoding.UTF8.GetString(p.Body.ToArray()).FirstCharToLower());
+                    continue;
+                }
+
+                context.Builder.Append(p);
             }
 
-            context.Builder.Append(p);
+            return true;
         }
-
-        return true;
+        finally
+        {
+            SeStringBuilder.SharedPool.Return(builder);
+        }
     }
 
     private bool TryResolveLower(ref SeStringContext context, in ReadOnlySePayloadSpan payload)
@@ -687,33 +714,42 @@ public partial class SeStringEvaluatorService(
         if (!payload.TryGetExpression(out var eStr))
             return false;
 
-        var headContext = context with { Builder = new() };
+        var builder = SeStringBuilder.SharedPool.Get();
 
-        if (!ResolveStringExpression(ref headContext, eStr))
-            return false;
-
-        var str = headContext.Builder.ToReadOnlySeString();
-
-        foreach (var p in str)
+        try
         {
-            if (p.Type == ReadOnlySePayloadType.Invalid)
-                continue;
+            var headContext = new SeStringContext(ref builder, context.LocalParameters, context.Language);
 
-            if (p.Type == ReadOnlySePayloadType.Text)
+            if (!ResolveStringExpression(ref headContext, eStr))
+                return false;
+
+            var str = builder.ToReadOnlySeString();
+
+            foreach (var p in str)
             {
-                var cultureInfo = _languageProvider.ClientLanguage == context.Language
-                    ? _languageProvider.CultureInfo
-                    : LanguageProvider.GetCultureInfoFromLangCode(context.Language.ToCode());
+                if (p.Type == ReadOnlySePayloadType.Invalid)
+                    continue;
 
-                context.Builder.Append(Encoding.UTF8.GetString(p.Body.ToArray()).ToLower(cultureInfo));
+                if (p.Type == ReadOnlySePayloadType.Text)
+                {
+                    var cultureInfo = _languageProvider.ClientLanguage == context.Language
+                        ? _languageProvider.CultureInfo
+                        : LanguageProvider.GetCultureInfoFromLangCode(context.Language.ToCode());
 
-                continue;
+                    context.Builder.Append(Encoding.UTF8.GetString(p.Body.ToArray()).ToLower(cultureInfo));
+
+                    continue;
+                }
+
+                context.Builder.Append(p);
             }
 
-            context.Builder.Append(p);
+            return true;
         }
-
-        return true;
+        finally
+        {
+            SeStringBuilder.SharedPool.Return(builder);
+        }
     }
 
     private bool TryResolveColorType(ref SeStringContext context, in ReadOnlySePayloadSpan payload)
