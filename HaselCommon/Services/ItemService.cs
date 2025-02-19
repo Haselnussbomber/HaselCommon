@@ -214,7 +214,10 @@ public class ItemService(IClientState clientState, ExcelService excelService, Se
         if (!itemId.TryGetRow(out var item))
             return false;
 
-        return (ItemActionType)item.ItemAction.RowId is
+        if (item.ItemAction.RowId == 0)
+            return false;
+
+        return (ItemActionType)item.ItemAction.Value.Type is
             ItemActionType.Companion or
             ItemActionType.BuddyEquip or
             ItemActionType.Mount or
