@@ -11,6 +11,12 @@ public class Column<T>
     public float Width { get; set; } = -1;
     public ImGuiTableColumnFlags Flags { get; set; } = ImGuiTableColumnFlags.NoResize | ImGuiTableColumnFlags.WidthStretch;
 
+    public Column()
+    {
+        var type = GetType();
+        LabelKey = $"{type.Namespace}.{type.Name}.Label";
+    }
+
     public void SetStretchWidth(float width = 1)
     {
         if (Flags.HasFlag(ImGuiTableColumnFlags.WidthFixed))
