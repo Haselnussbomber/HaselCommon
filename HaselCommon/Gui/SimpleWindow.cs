@@ -40,6 +40,7 @@ public abstract class SimpleWindow : Window, IDisposable
     public virtual void Dispose()
     {
         _languageProvider.LanguageChanged -= OnLanguageChanged;
+        Close();
         GC.SuppressFinalize(this);
     }
 
