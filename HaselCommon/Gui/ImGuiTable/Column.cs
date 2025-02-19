@@ -58,6 +58,7 @@ public class Column<T>
 
     internal void UpdateLabel()
     {
-        Label = Service.Get<TextService>().Translate(LabelKey);
+        if (AutoLabel)
+            Label = Service.Get<TextService>().Translate(LabelKey);
     }
 }
