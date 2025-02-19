@@ -1,7 +1,7 @@
 using FFXIVClientStructs.FFXIV.Client.System.Framework;
 using HaselCommon.Extensions.Math;
 
-namespace HaselCommon.Math;
+namespace HaselCommon.Utils;
 
 public static class MathUtils
 {

@@ -148,6 +148,7 @@ public class LeveService(ExcelService excelService, LanguageProvider languagePro
         return requiredItems;
     }
 
+    [Obsolete("Use TextService.GetLeveName")]
     public string GetLeveName(ExcelRowId<Leve> leveId)
     {
         var key = (leveId.RowId, languageProvider.ClientLanguage);

@@ -415,7 +415,7 @@ public class ItemService(IClientState clientState, ExcelService excelService, Se
         if (expArrayIndex == -1)
             return Color.White;
 
-        var level = PlayerState.Instance()->ClassJobLevels[(short)expArrayIndex];
+        var level = PlayerState.Instance()->ClassJobLevels[expArrayIndex];
         if (level < 1 || !GetMaxLevelRanges().TryGetValue(level, out var range))
             return Color.White;
 

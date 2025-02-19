@@ -64,7 +64,7 @@ public unsafe struct ImGuiContextMenuBuilder(string id, TextService textService,
         return this;
     }
 
-    public ImGuiContextMenuBuilder AddTryOn(ExcelRowId<Item> itemId, uint glamourItemId = 0, byte stain1Id = 0, byte stain2Id = 0)
+    public ImGuiContextMenuBuilder AddTryOn(ExcelRowId<Item> itemId, uint glamourItemId = 0, byte stain0Id = 0, byte stain1Id = 0)
     {
         _entries.Add(new ImGuiContextMenuEntry()
         {
@@ -74,9 +74,9 @@ public unsafe struct ImGuiContextMenuBuilder(string id, TextService textService,
             ClickCallback = () =>
             {
                 if (ImGui.IsKeyDown(ImGuiKey.LeftShift) || ImGui.IsKeyDown(ImGuiKey.RightShift))
-                    AgentTryon.TryOn(0, itemId, stain1Id, stain2Id);
+                    AgentTryon.TryOn(0, itemId, stain0Id, stain1Id);
                 else
-                    AgentTryon.TryOn(0, itemId, stain1Id, stain2Id, glamourItemId);
+                    AgentTryon.TryOn(0, itemId, stain0Id, stain1Id, glamourItemId);
             }
         });
 

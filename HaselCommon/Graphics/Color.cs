@@ -2,7 +2,6 @@ using System.Buffers.Binary;
 using System.Numerics;
 using Dalamud.Interface.Utility.Raii;
 using HaselCommon.Extensions.Math;
-using HaselCommon.Math;
 using ImGuiNET;
 
 namespace HaselCommon.Graphics;
@@ -74,6 +73,18 @@ public struct Color
         );
     }
 
+    private struct Matrix3x3(
+        float m11, float m12, float m13,
+        float m21, float m22, float m23,
+        float m31, float m32, float m33)
+    {
+        public Vector3 Multiply(Vector3 vec)
+            => new(
+                m11 * vec.X + m12 * vec.Y + m13 * vec.Z,
+                m21 * vec.X + m22 * vec.Y + m23 * vec.Z,
+                m31 * vec.X + m32 * vec.Y + m33 * vec.Z);
+    }
+
     //! https://github.com/color-js/color.js/blob/6332f3a/src/spaces/oklab.js
     private static readonly Matrix3x3 LABtoLMS = new(
         1f, 0.3963377773761749f, 0.2158037573099136f,
@@ -103,10 +114,10 @@ public struct Color
             float.IsNaN(hue) ? 0 : chroma * MathF.Cos(hue * MathF.PI / 180),
             float.IsNaN(hue) ? 0 : chroma * MathF.Sin(hue * MathF.PI / 180));
 
-        var lmsg = LABtoLMS * lab;
+        var lmsg = LABtoLMS.Multiply(lab);
         var lms = lmsg.Pow(3);
-        var xyz = LMStoXYZ * lms;
-        var srgbLinear = SRGBLinearfromXYZ * xyz;
+        var xyz = LMStoXYZ.Multiply(lms);
+        var srgbLinear = SRGBLinearfromXYZ.Multiply(xyz);
 
         static float srgbLinear2rgb(float c)
             => MathF.Abs(c) > 0.0031308f

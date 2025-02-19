@@ -3,15 +3,11 @@ using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Text.Json;
 using Dalamud.Game;
-using Dalamud.Interface.Utility;
-using Dalamud.Interface.Utility.Raii;
 using Dalamud.Plugin;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using HaselCommon.Extensions.Strings;
-using HaselCommon.Graphics;
 using HaselCommon.Services.SeStringEvaluation;
 using HaselCommon.Utils;
-using ImGuiNET;
 using Lumina.Excel;
 using Lumina.Excel.Sheets;
 using Lumina.Text;
@@ -121,50 +117,6 @@ public class TextService
         return ross;
     }
 
-    [Obsolete]
-    public void Draw(string key)
-        => ImGui.TextUnformatted(Translate(key));
-
-    [Obsolete]
-    public void Draw(string key, params object?[] args)
-        => ImGui.TextUnformatted(Translate(key, args));
-
-    [Obsolete]
-    public void Draw(Color color, string key)
-    {
-        using (ImRaii.PushColor(ImGuiCol.Text, (uint)color))
-            ImGui.TextUnformatted(Translate(key));
-    }
-
-    [Obsolete]
-    public void Draw(Color color, string key, params object?[] args)
-    {
-        using (ImRaii.PushColor(ImGuiCol.Text, (uint)color))
-            ImGui.TextUnformatted(Translate(key, args));
-    }
-
-    [Obsolete]
-    public void DrawWrapped(string key)
-        => ImGuiHelpers.SafeTextWrapped(Translate(key));
-
-    [Obsolete]
-    public void DrawWrapped(string key, params object?[] args)
-        => ImGuiHelpers.SafeTextWrapped(Translate(key, args));
-
-    [Obsolete]
-    public void DrawWrapped(Color color, string key)
-    {
-        using (ImRaii.PushColor(ImGuiCol.Text, (uint)color))
-            ImGuiHelpers.SafeTextWrapped(Translate(key));
-    }
-
-    [Obsolete]
-    public void DrawWrapped(Color color, string key, params object?[] args)
-    {
-        using (ImRaii.PushColor(ImGuiCol.Text, (uint)color))
-            ImGuiHelpers.SafeTextWrapped(Translate(key, args));
-    }
-
     public string GetAddonText(uint id, ClientLanguage? language = null)
         => GetOrCreateCachedText<Addon>(id, language, (row) => row.Text);
 
@@ -178,6 +130,9 @@ public class TextService
 
     public string GetQuestName(uint id, ClientLanguage? language = null)
         => GetOrCreateCachedText<Quest>(id, language, (row) => row.Name);
+
+    public string GetLeveName(uint id, ClientLanguage? language = null)
+        => GetOrCreateCachedText<Leve>(id, language, (row) => row.Name);
 
     public string GetTraitName(uint id, ClientLanguage? language = null)
         => GetOrCreateCachedText<Trait>(id, language, (row) => row.Name);
