@@ -554,7 +554,7 @@ public class ItemService(IClientState clientState, ExcelService excelService, Se
         if (!hairMakeType.CharaMakeStruct[0].SubMenuParam
             .Select(rowId => excelService.CreateRef<CharaMakeCustomize>(rowId))
             .Where(rowRef => rowRef.RowId != 0 && rowRef.IsValid)
-            .TryGetFirst(h => h.Value.HintItem.RowId == id, out var item) || item.IsValid)
+            .TryGetFirst(h => h.Value.HintItem.RowId == id, out var item) || !item.IsValid)
         {
             _hairStyleIconsCache.Add(key, 0);
             return 0;
