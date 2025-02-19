@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using Dalamud.Game;
 using Dalamud.Game.ClientState.Objects;
@@ -24,6 +25,26 @@ public static class Service
 
     public static T Get<T>() where T : notnull
         => Provider!.GetRequiredService<T>();
+
+    public static bool TryGet<T>([NotNullWhen(returnValue: true)] out T? service)
+    {
+        if (Provider == null)
+        {
+            service = default;
+            return false;
+        }
+
+        try
+        {
+            service = Provider.GetService<T>();
+            return service != null;
+        }
+        catch // might catch ObjectDisposedException here
+        {
+            service = default;
+            return false;
+        }
+    }
 
     public static IServiceCollection AddDalamud(this IServiceCollection collection, IDalamudPluginInterface pluginInterface)
     {

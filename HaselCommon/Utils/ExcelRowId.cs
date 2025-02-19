@@ -2,7 +2,6 @@ using System.Diagnostics.CodeAnalysis;
 using HaselCommon.Services;
 using Lumina.Excel;
 using Lumina.Excel.Sheets;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace HaselCommon.Utils;
 
@@ -12,8 +11,7 @@ public readonly struct ExcelRowId<T>(uint rowId) where T : struct, IExcelRow<T>
 
     public bool TryGetRow(out T row)
     {
-        var excelService = Service.Provider?.GetService<ExcelService>();
-        if (excelService == null)
+        if (!Service.TryGet<ExcelService>(out var excelService))
         {
             row = default;
             return false;
@@ -24,8 +22,7 @@ public readonly struct ExcelRowId<T>(uint rowId) where T : struct, IExcelRow<T>
 
     public bool TryGetRow<TRow>(out TRow row) where TRow : struct, IExcelRow<TRow>
     {
-        var excelService = Service.Provider?.GetService<ExcelService>();
-        if (excelService == null)
+        if (!Service.TryGet<ExcelService>(out var excelService))
         {
             row = default;
             return false;
