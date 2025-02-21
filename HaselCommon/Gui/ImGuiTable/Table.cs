@@ -99,7 +99,7 @@ public class Table<T> : IDisposable
             if (Flags.HasFlag(ImGuiTableFlags.SortTristate))
                 SortTristate();
         }
-        else
+        else if (Columns.Length > 0)
         {
             var column = Columns[Columns.Length <= sortSpecs.Specs.ColumnIndex ? 0 : sortSpecs.Specs.ColumnIndex];
             _rows.Sort((a, b) => (sortSpecs.Specs.SortDirection == ImGuiSortDirection.Descending ? -1 : 1) * column.Compare(a, b));
@@ -128,6 +128,9 @@ public class Table<T> : IDisposable
 
     private void DrawTableInternal()
     {
+        if (Columns.Length == 0)
+            return;
+
         using var table = ImRaii.Table("Table", Columns.Length, Flags, ImGui.GetContentRegionAvail());
         if (!table)
             return;
