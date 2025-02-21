@@ -15,6 +15,5 @@ public class DalamudLoggerProvider(IPluginLog pluginLog) : ILoggerProvider
     public void Dispose()
     {
         _loggers.Clear();
-        GC.SuppressFinalize(this);
     }
 }

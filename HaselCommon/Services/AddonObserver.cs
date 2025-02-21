@@ -27,7 +27,6 @@ public unsafe class AddonObserver : IDisposable
     public void Dispose()
     {
         _framework.Update -= OnFrameworkUpdate;
-        GC.SuppressFinalize(this);
     }
 
     public bool IsAddonVisible(string name)

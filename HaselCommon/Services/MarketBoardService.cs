@@ -46,8 +46,6 @@ public unsafe class MarketBoardService : IDisposable
         _marketBoard.OfferingsReceived -= OnOfferingsReceived;
         _processRequestResultHook.Dispose();
         _endRequestHook.Dispose();
-
-        GC.SuppressFinalize(this);
     }
 
     private nint ProcessRequestResultDetour(InfoProxyItemSearch* infoProxy, byte a2, int a3)

@@ -36,7 +36,6 @@ public unsafe class UnlocksObserver : IDisposable
     public void Dispose()
     {
         _hook.Dispose();
-        GC.SuppressFinalize(this);
     }
 
     private void RaptureHotbarModulePerformMateriaActionMigrationDetour(RaptureHotbarModule* thisPtr)

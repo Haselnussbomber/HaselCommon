@@ -57,8 +57,6 @@ public class CommandHandler : IDisposable
         SetEnabled(false);
         _commandService.Unregister(this);
         _isDisposed = true;
-
-        GC.SuppressFinalize(this);
     }
 
     private void OnLanguageChanged(string langCode)

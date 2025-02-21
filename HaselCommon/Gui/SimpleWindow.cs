@@ -41,7 +41,6 @@ public abstract class SimpleWindow : Window, IDisposable
     {
         _languageProvider.LanguageChanged -= OnLanguageChanged;
         Close();
-        GC.SuppressFinalize(this);
     }
 
     private void OnLanguageChanged(string langCode)

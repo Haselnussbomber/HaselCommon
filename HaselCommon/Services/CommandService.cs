@@ -20,7 +20,6 @@ public class CommandService(
     public void Dispose()
     {
         _commandHandlers.Dispose();
-        GC.SuppressFinalize(this);
     }
 
     public CommandHandler? Register(IReadOnlyCommandInfo.HandlerDelegate handler, bool autoEnable = false)

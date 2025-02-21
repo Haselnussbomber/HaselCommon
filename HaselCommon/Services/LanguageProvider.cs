@@ -30,7 +30,6 @@ public class LanguageProvider : IDisposable
     public void Dispose()
     {
         _pluginInterface.LanguageChanged -= PluginInterface_LanguageChanged;
-        GC.SuppressFinalize(this);
     }
 
     private void PluginInterface_LanguageChanged(string langCode)

@@ -54,7 +54,6 @@ public class Table<T> : IDisposable
     public virtual void Dispose()
     {
         _languageProvider.LanguageChanged -= OnLanguageChanged;
-        GC.SuppressFinalize(this);
     }
 
     public virtual void OnLanguageChanged(string langCode)

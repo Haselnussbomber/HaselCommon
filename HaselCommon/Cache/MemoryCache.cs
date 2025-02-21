@@ -13,7 +13,6 @@ public abstract class MemoryCache<TKey, TValue> : ICache<TKey, TValue>
     public virtual void Dispose()
     {
         Clear();
-        GC.SuppressFinalize(this);
     }
 
     public abstract TValue? CreateEntry(TKey key);

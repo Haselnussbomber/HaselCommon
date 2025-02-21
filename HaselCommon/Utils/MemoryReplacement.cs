@@ -26,7 +26,6 @@ public class MemoryReplacement(nint address, byte[] replacementBytes) : IDisposa
     public void Dispose()
     {
         Disable();
-        GC.SuppressFinalize(this);
     }
 
     public static byte[] ReplaceRaw(nint address, byte[] data)

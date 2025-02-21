@@ -35,8 +35,6 @@ public class WindowManager : IDisposable
 
         _windowSystem.Windows.OfType<IDisposable>().ForEach(window => window.Dispose());
         _windowSystem.RemoveAllWindows();
-
-        GC.SuppressFinalize(this);
     }
 
     private void OnScaleChange(float scale)

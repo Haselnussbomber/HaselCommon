@@ -21,7 +21,6 @@ public class GlobalScaleObserver : IDisposable
     public void Dispose()
     {
         _pluginInterface.UiBuilder.FontAtlas.BuildStepChange -= OnBuildStepChange;
-        GC.SuppressFinalize(this);
     }
 
     private void OnBuildStepChange(IFontAtlasBuildToolkit toolkit)
