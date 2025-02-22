@@ -230,7 +230,9 @@ public partial class SeStringEvaluatorService
             case MacroCode.Digit:
                 return TryResolveDigit(ref context, payload);
 
-            // case MacroCode.Ordinal:
+            case MacroCode.Ordinal:
+                return TryResolveOrdinal(ref context, payload);
+
             // case MacroCode.Sound: // pass through
 
             case MacroCode.LevelPos:
@@ -1432,6 +1434,27 @@ public partial class SeStringEvaluatorService
 
         context.Builder.Append(eValueVal.ToString(new string('0', eTargetLengthVal)));
 
+        return true;
+    }
+
+    private bool TryResolveOrdinal(ref SeStringContext context, in ReadOnlySePayloadSpan payload)
+    {
+        if (!payload.TryGetExpression(out var eValue) || !TryResolveUInt(ref context, eValue, out var eValueVal))
+            return false;
+
+        if (MathF.Floor(eValueVal / 10f) % 10 == 1)
+        {
+            context.Builder.Append($"{eValueVal}th");
+            return true;
+        }
+
+        context.Builder.Append($"{eValueVal}{(eValueVal % 10) switch
+        {
+            1 => "st",
+            2 => "nd",
+            3 => "rd",
+            _ => "th",
+        }}");
         return true;
     }
 
