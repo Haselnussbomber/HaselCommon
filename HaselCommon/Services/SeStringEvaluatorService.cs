@@ -26,18 +26,14 @@ using Microsoft.Extensions.Logging;
 namespace HaselCommon.Services;
 
 /// <summary> Evaluator for SeStrings. </summary>
-[RegisterSingleton]
-public partial class SeStringEvaluatorService(
-    ILogger<SeStringEvaluatorService> logger,
-    LanguageProvider languageProvider,
-    ExcelService excelService,
-    NounProcessor nounProcessor,
-    IGameConfig gameConfig)
+[RegisterSingleton, AutoConstruct]
+public partial class SeStringEvaluatorService
 {
-    private readonly ExcelService _excelService = excelService;
-    private readonly LanguageProvider _languageProvider = languageProvider;
-    private readonly NounProcessor _nounProcessor = nounProcessor;
-    private readonly IGameConfig _gameConfig = gameConfig;
+    private readonly ILogger<SeStringEvaluatorService> _logger;
+    private readonly ExcelService _excelService;
+    private readonly LanguageProvider _languageProvider;
+    private readonly NounProcessor _nounProcessor;
+    private readonly IGameConfig _gameConfig;
 
     public ReadOnlySeString Evaluate(byte[] str, Span<SeStringParameter> localParameters = default, ClientLanguage? language = null)
         => Evaluate((ReadOnlySeStringSpan)str, localParameters, language);
@@ -57,7 +53,12 @@ public partial class SeStringEvaluatorService(
             var context = new SeStringContext(ref builder, localParameters, language ?? _languageProvider.ClientLanguage);
 
             foreach (var payload in str)
-                ResolvePayload(ref context, payload);
+            {
+                if (!ResolvePayload(ref context, payload))
+                {
+                    context.Builder.Append(payload);
+                }
+            }
 
             return builder.ToReadOnlySeString();
         }
@@ -93,19 +94,12 @@ public partial class SeStringEvaluatorService(
 
     private bool ResolvePayload(ref SeStringContext context, ReadOnlySePayloadSpan payload)
     {
-        if (payload.Type == ReadOnlySePayloadType.Invalid)
+        if (payload.Type != ReadOnlySePayloadType.Macro)
             return false;
 
         //if (context.HandlePayload(payload, ref context))
         //    return true;
 
-        if (payload.Type == ReadOnlySePayloadType.Text)
-        {
-            context.Builder.Append(payload.Body);
-            return false;
-        }
-
-        // Note: "x" means that nothing must come after. We ignore any extra expressions.
         switch (payload.MacroCode)
         {
             case MacroCode.SetResetTime:
@@ -120,9 +114,24 @@ public partial class SeStringEvaluatorService(
             case MacroCode.Switch:
                 return TryResolveSwitch(ref context, payload);
 
-            case MacroCode.Icon:
-            case MacroCode.Icon2:
-                return TryResolveIcon(ref context, payload);
+            case MacroCode.PcName:
+                return TryResolvePcName(ref context, payload);
+
+            case MacroCode.IfPcGender:
+                return TryResolveIfPcGender(ref context, payload);
+
+            case MacroCode.IfPcName:
+                return TryResolveIfPcName(ref context, payload);
+
+            // case MacroCode.Josa:
+            // case MacroCode.Josaro:
+
+            case MacroCode.IfSelf:
+                return TryResolveIfSelf(ref context, payload);
+
+            // case MacroCode.NewLine: // pass through
+            // case MacroCode.Wait: // pass through
+            // case MacroCode.Icon: // pass through
 
             case MacroCode.Color:
                 return TryResolveColor(ref context, payload);
@@ -130,11 +139,24 @@ public partial class SeStringEvaluatorService(
             case MacroCode.EdgeColor:
                 return TryResolveEdgeColor(ref context, payload);
 
+            case MacroCode.ShadowColor:
+                return TryResolveShadowColor(ref context, payload);
+
+            // case MacroCode.SoftHyphen: // pass through
+            // case MacroCode.Key:
+            // case MacroCode.Scale:
+
             case MacroCode.Bold:
                 return TryResolveBold(ref context, payload);
 
             case MacroCode.Italic:
                 return TryResolveItalic(ref context, payload);
+
+            // case MacroCode.Edge:
+            // case MacroCode.Shadow:
+            // case MacroCode.NonBreakingSpace: // pass through
+            // case MacroCode.Icon2: // pass through
+            // case MacroCode.Hyphen: // pass through
 
             case MacroCode.Num:
                 return TryResolveNum(ref context, payload);
@@ -145,44 +167,40 @@ public partial class SeStringEvaluatorService(
             case MacroCode.Kilo:
                 return TryResolveKilo(ref context, payload);
 
-            case MacroCode.Digit:
-                return TryResolveDigit(ref context, payload);
+            // case MacroCode.Byte:
 
             case MacroCode.Sec:
                 return TryResolveSec(ref context, payload);
 
+            // case MacroCode.Time:
+
             case MacroCode.Float:
                 return TryResolveFloat(ref context, payload);
+
+            // case MacroCode.Link: // pass through
 
             case MacroCode.Sheet:
                 return TryResolveSheet(ref context, payload);
 
             case MacroCode.String:
-                return payload.TryGetExpression(out var eStr) && ResolveStringExpression(ref context, eStr);
+                return TryResolveString(ref context, payload);
+
+            case MacroCode.Caps:
+                return TryResolveCaps(ref context, payload);
 
             case MacroCode.Head:
                 return TryResolveHead(ref context, payload);
 
+            // case MacroCode.Split:
+
             case MacroCode.HeadAll:
                 return TryResolveHeadAll(ref context, payload);
 
-            case MacroCode.LowerHead:
-                return TryResolveLowerHead(ref context, payload);
+            case MacroCode.Fixed:
+                return TryResolveFixed(ref context, payload);
 
             case MacroCode.Lower:
                 return TryResolveLower(ref context, payload);
-
-            case MacroCode.ColorType:
-                return TryResolveColorType(ref context, payload);
-
-            case MacroCode.EdgeColorType:
-                return TryResolveEdgeColorType(ref context, payload);
-
-            case MacroCode.LevelPos:
-                return TryResolveLevelPos(ref context, payload);
-
-            case MacroCode.Fixed:
-                return TryResolveFixed(ref context, payload);
 
             case MacroCode.JaNoun:
                 return TryResolveNoun(ClientLanguage.Japanese, ref context, payload);
@@ -196,46 +214,31 @@ public partial class SeStringEvaluatorService(
             case MacroCode.FrNoun:
                 return TryResolveNoun(ClientLanguage.French, ref context, payload);
 
-            case MacroCode.PcName:
-                return TryResolvePcName(ref context, payload);
+            // case MacroCode.ChNoun:
 
-            case MacroCode.IfPcGender:
-                return TryResolveIfPcGender(ref context, payload);
+            case MacroCode.LowerHead:
+                return TryResolveLowerHead(ref context, payload);
 
-            case MacroCode.IfPcName:
-                return TryResolveIfPcName(ref context, payload);
+            case MacroCode.ColorType:
+                return TryResolveColorType(ref context, payload);
 
-            case MacroCode.IfSelf:
-                return TryResolveIfSelf(ref context, payload);
+            case MacroCode.EdgeColorType:
+                return TryResolveEdgeColorType(ref context, payload);
 
-            // TODO
-            case MacroCode.Josa:
-            case MacroCode.Josaro:
-            case MacroCode.Key:
-            case MacroCode.Scale:
-            case MacroCode.Byte:
-            case MacroCode.Time:
-            case MacroCode.Caps:
-            case MacroCode.Split:
-            case MacroCode.Ordinal:
-            case MacroCode.Ruby:
-            case MacroCode.ShadowColor:
-            case MacroCode.Edge:
-            case MacroCode.Shadow:
-            case MacroCode.Link:
+            // case MacroCode.Ruby:
 
-            // pass through
-            case MacroCode.NewLine:
-            case MacroCode.SoftHyphen:
-            case MacroCode.NonBreakingSpace:
-            case MacroCode.Hyphen:
-            case MacroCode.Sound:
-            case MacroCode.Wait:
-            case MacroCode.ChNoun: // unsupported here
+            case MacroCode.Digit:
+                return TryResolveDigit(ref context, payload);
+
+            // case MacroCode.Ordinal:
+            // case MacroCode.Sound: // pass through
+
+            case MacroCode.LevelPos:
+                return TryResolveLevelPos(ref context, payload);
+
             default:
-                context.Builder.Append(payload);
                 return false;
-        }
+        };
     }
 
     private unsafe bool TryResolveSetResetTime(ref SeStringContext context, in ReadOnlySePayloadSpan payload)
@@ -308,17 +311,83 @@ public partial class SeStringEvaluatorService(
         return false;
     }
 
-    private bool TryResolveIcon(ref SeStringContext context, in ReadOnlySePayloadSpan payload)
+    private unsafe bool TryResolvePcName(ref SeStringContext context, in ReadOnlySePayloadSpan payload)
     {
-        // Just evaluate the expression, pass through otherwise. The renderer has to remap the id from icon2.
-        // If we would evaluate it here and return an icon macro, then it wouldn't update automatically afterwards.
-
-        if (!payload.TryGetExpression(out var eIcon) || !TryResolveUInt(ref context, eIcon, out var eIconValue))
+        if (!payload.TryGetExpression(out var eEntityId))
             return false;
 
-        context.Builder.BeginMacro(payload.MacroCode).AppendUIntExpression(eIconValue).EndMacro();
+        if (!TryResolveUInt(ref context, eEntityId, out var entityId))
+            return false;
 
-        return true;
+        // TODO: handle LogNameType
+
+        var characterInfo = new NameCache.CharacterInfo();
+        if (NameCache.Instance()->TryGetCharacterInfoByEntityId(entityId, &characterInfo))
+        {
+            context.Builder.Append((ReadOnlySeStringSpan)characterInfo.Name.AsSpan());
+
+            if (characterInfo.HomeWorldId != AgentLobby.Instance()->LobbyData.HomeWorldId &&
+                WorldHelper.Instance()->AllWorlds.TryGetValue((ushort)characterInfo.HomeWorldId, out var world, false))
+            {
+                context.Builder.AppendIcon(88);
+
+                if (_gameConfig.UiConfig.TryGetUInt("LogCrossWorldName", out var logCrossWorldName) && logCrossWorldName == 1)
+                    context.Builder.Append((ReadOnlySeStringSpan)world.Name);
+            }
+
+            return true;
+        }
+
+        // TODO: lookup via InstanceContentCrystallineConflictDirector
+        // TODO: lookup via MJIManager
+
+        return false;
+    }
+
+    private unsafe bool TryResolveIfPcGender(ref SeStringContext context, in ReadOnlySePayloadSpan payload)
+    {
+        if (!payload.TryGetExpression(out var eEntityId, out var eMale, out var eFemale))
+            return false;
+
+        if (!TryResolveUInt(ref context, eEntityId, out var entityId))
+            return false;
+
+        var characterInfo = new NameCache.CharacterInfo();
+        if (NameCache.Instance()->TryGetCharacterInfoByEntityId(entityId, &characterInfo))
+            return ResolveStringExpression(ref context, characterInfo.Sex == 0 ? eMale : eFemale);
+
+        // TODO: lookup via InstanceContentCrystallineConflictDirector
+
+        return false;
+    }
+
+    private unsafe bool TryResolveIfPcName(ref SeStringContext context, in ReadOnlySePayloadSpan payload)
+    {
+        if (!payload.TryGetExpression(out var eEntityId, out var eName, out var eTrue, out var eFalse))
+            return false;
+
+        if (!TryResolveUInt(ref context, eEntityId, out var entityId) || !eName.TryGetString(out var name))
+            return false;
+
+        name = Evaluate(name, context.LocalParameters, context.Language).AsSpan();
+
+        var characterInfo = new NameCache.CharacterInfo();
+        return NameCache.Instance()->TryGetCharacterInfoByEntityId(entityId, &characterInfo) &&
+            ResolveStringExpression(ref context, name.Equals((ReadOnlySeStringSpan)characterInfo.Name.AsSpan())
+                ? eTrue
+                : eFalse);
+    }
+
+    private unsafe bool TryResolveIfSelf(ref SeStringContext context, in ReadOnlySePayloadSpan payload)
+    {
+        if (!payload.TryGetExpression(out var eEntityId, out var eTrue, out var eFalse))
+            return false;
+
+        if (!TryResolveUInt(ref context, eEntityId, out var entityId))
+            return false;
+
+        // the game uses LocalPlayer here, but using PlayerState seems more safe..
+        return ResolveStringExpression(ref context, PlayerState.Instance()->EntityId == entityId ? eTrue : eFalse);
     }
 
     private bool TryResolveColor(ref SeStringContext context, in ReadOnlySePayloadSpan payload)
@@ -343,6 +412,19 @@ public partial class SeStringEvaluatorService(
             context.Builder.PopEdgeColor();
         else if (TryResolveUInt(ref context, eColor, out var eColorVal))
             context.Builder.PushEdgeColorBgra(eColorVal);
+
+        return true;
+    }
+
+    private bool TryResolveShadowColor(ref SeStringContext context, in ReadOnlySePayloadSpan payload)
+    {
+        if (!payload.TryGetExpression(out var eColor))
+            return false;
+
+        if (eColor.TryGetPlaceholderExpression(out var ph) && ph == (int)ExpressionType.StackColor)
+            context.Builder.PopShadowColor();
+        else if (TryResolveUInt(ref context, eColor, out var eColorVal))
+            context.Builder.PushShadowColorBgra(eColorVal);
 
         return true;
     }
@@ -443,22 +525,6 @@ public partial class SeStringEvaluatorService(
             anyDigitPrinted = true;
             context.Builder.Append((char)('0' + digit));
         }
-
-        return true;
-    }
-
-    private bool TryResolveDigit(ref SeStringContext context, in ReadOnlySePayloadSpan payload)
-    {
-        if (!payload.TryGetExpression(out var eValue, out var eTargetLength))
-            return false;
-
-        if (!TryResolveInt(ref context, eValue, out var eValueVal))
-            return false;
-
-        if (!TryResolveInt(ref context, eTargetLength, out var eTargetLengthVal))
-            return false;
-
-        context.Builder.Append(eValueVal.ToString(new string('0', eTargetLengthVal)));
 
         return true;
     }
@@ -584,6 +650,52 @@ public partial class SeStringEvaluatorService(
         return false;
     }
 
+    private bool TryResolveString(ref SeStringContext context, in ReadOnlySePayloadSpan payload)
+    {
+        return payload.TryGetExpression(out var eStr) && ResolveStringExpression(ref context, eStr);
+    }
+
+    private bool TryResolveCaps(ref SeStringContext context, in ReadOnlySePayloadSpan payload)
+    {
+        if (!payload.TryGetExpression(out var eStr))
+            return false;
+
+        var builder = SeStringBuilder.SharedPool.Get();
+
+        try
+        {
+            var headContext = new SeStringContext(ref builder, context.LocalParameters, context.Language);
+
+            if (!ResolveStringExpression(ref headContext, eStr))
+                return false;
+
+            var str = builder.ToReadOnlySeString();
+            var pIdx = 0;
+
+            foreach (var p in str)
+            {
+                pIdx++;
+
+                if (p.Type == ReadOnlySePayloadType.Invalid)
+                    continue;
+
+                if (pIdx == 1 && p.Type == ReadOnlySePayloadType.Text)
+                {
+                    context.Builder.Append(Encoding.UTF8.GetString(p.Body.ToArray()).ToUpper());
+                    continue;
+                }
+
+                context.Builder.Append(p);
+            }
+
+            return true;
+        }
+        finally
+        {
+            SeStringBuilder.SharedPool.Return(builder);
+        }
+    }
+
     private bool TryResolveHead(ref SeStringContext context, in ReadOnlySePayloadSpan payload)
     {
         if (!payload.TryGetExpression(out var eStr))
@@ -666,142 +778,6 @@ public partial class SeStringEvaluatorService(
         {
             SeStringBuilder.SharedPool.Return(builder);
         }
-    }
-
-    private bool TryResolveLowerHead(ref SeStringContext context, in ReadOnlySePayloadSpan payload)
-    {
-        if (!payload.TryGetExpression(out var eStr))
-            return false;
-
-        var builder = SeStringBuilder.SharedPool.Get();
-
-        try
-        {
-            var headContext = new SeStringContext(ref builder, context.LocalParameters, context.Language);
-
-            if (!ResolveStringExpression(ref headContext, eStr))
-                return false;
-
-            var str = builder.ToReadOnlySeString();
-            var pIdx = 0;
-
-            foreach (var p in str)
-            {
-                pIdx++;
-
-                if (p.Type == ReadOnlySePayloadType.Invalid)
-                    continue;
-
-                if (pIdx == 1 && p.Type == ReadOnlySePayloadType.Text)
-                {
-                    context.Builder.Append(Encoding.UTF8.GetString(p.Body.ToArray()).FirstCharToLower());
-                    continue;
-                }
-
-                context.Builder.Append(p);
-            }
-
-            return true;
-        }
-        finally
-        {
-            SeStringBuilder.SharedPool.Return(builder);
-        }
-    }
-
-    private bool TryResolveLower(ref SeStringContext context, in ReadOnlySePayloadSpan payload)
-    {
-        if (!payload.TryGetExpression(out var eStr))
-            return false;
-
-        var builder = SeStringBuilder.SharedPool.Get();
-
-        try
-        {
-            var headContext = new SeStringContext(ref builder, context.LocalParameters, context.Language);
-
-            if (!ResolveStringExpression(ref headContext, eStr))
-                return false;
-
-            var str = builder.ToReadOnlySeString();
-
-            foreach (var p in str)
-            {
-                if (p.Type == ReadOnlySePayloadType.Invalid)
-                    continue;
-
-                if (p.Type == ReadOnlySePayloadType.Text)
-                {
-                    var cultureInfo = _languageProvider.ClientLanguage == context.Language
-                        ? _languageProvider.CultureInfo
-                        : LanguageProvider.GetCultureInfoFromLangCode(context.Language.ToCode());
-
-                    context.Builder.Append(Encoding.UTF8.GetString(p.Body.ToArray()).ToLower(cultureInfo));
-
-                    continue;
-                }
-
-                context.Builder.Append(p);
-            }
-
-            return true;
-        }
-        finally
-        {
-            SeStringBuilder.SharedPool.Return(builder);
-        }
-    }
-
-    private bool TryResolveColorType(ref SeStringContext context, in ReadOnlySePayloadSpan payload)
-    {
-        if (!payload.TryGetExpression(out var eColorType) || !TryResolveUInt(ref context, eColorType, out var eColorTypeVal))
-            return false;
-
-        if (eColorTypeVal == 0)
-            context.Builder.PopColor();
-        else if (_excelService.TryGetRow<UIColor>(eColorTypeVal, out var row))
-            context.Builder.PushColorBgra((row.UIForeground >> 8) | (row.UIForeground << 24));
-
-        return true;
-    }
-
-    private bool TryResolveEdgeColorType(ref SeStringContext context, in ReadOnlySePayloadSpan payload)
-    {
-        if (!payload.TryGetExpression(out var eColorType) || !TryResolveUInt(ref context, eColorType, out var eColorTypeVal))
-            return false;
-
-        if (eColorTypeVal == 0)
-            context.Builder.PopEdgeColor();
-        else if (_excelService.TryGetRow<UIColor>(eColorTypeVal, out var row))
-            context.Builder.PushEdgeColorBgra((row.UIForeground >> 8) | (row.UIForeground << 24));
-
-        return true;
-    }
-
-    private bool TryResolveLevelPos(ref SeStringContext context, in ReadOnlySePayloadSpan payload)
-    {
-        if (!payload.TryGetExpression(out var eLevel) || !TryResolveUInt(ref context, eLevel, out var eLevelVal))
-            return false;
-
-        if (!_excelService.TryGetRow<Level>(eLevelVal, context.Language, out var level) || !level.Map.IsValid)
-            return false;
-
-        if (!_excelService.TryGetRow<PlaceName>(level.Map.Value.PlaceName.RowId, context.Language, out var placeName))
-            return false;
-
-        if (!_excelService.TryGetRow<Addon>(1637, context.Language, out var levelFormatRow))
-            return false;
-
-        var mapPosX = level.Map.Value.ConvertRawToMapPosX(level.X);
-        var mapPosY = level.Map.Value.ConvertRawToMapPosY(level.Z); // Z is [sic]
-
-        context.Builder.Append(
-            Evaluate(
-                levelFormatRow.Text,
-                [placeName.Name, mapPosX, mapPosY],
-                context.Language));
-
-        return true;
     }
 
     private bool TryResolveFixed(ref SeStringContext context, in ReadOnlySePayloadSpan payload)
@@ -1282,6 +1258,49 @@ public partial class SeStringEvaluatorService(
         return true;
     }
 
+    private bool TryResolveLower(ref SeStringContext context, in ReadOnlySePayloadSpan payload)
+    {
+        if (!payload.TryGetExpression(out var eStr))
+            return false;
+
+        var builder = SeStringBuilder.SharedPool.Get();
+
+        try
+        {
+            var headContext = new SeStringContext(ref builder, context.LocalParameters, context.Language);
+
+            if (!ResolveStringExpression(ref headContext, eStr))
+                return false;
+
+            var str = builder.ToReadOnlySeString();
+
+            foreach (var p in str)
+            {
+                if (p.Type == ReadOnlySePayloadType.Invalid)
+                    continue;
+
+                if (p.Type == ReadOnlySePayloadType.Text)
+                {
+                    var cultureInfo = _languageProvider.ClientLanguage == context.Language
+                        ? _languageProvider.CultureInfo
+                        : LanguageProvider.GetCultureInfoFromLangCode(context.Language.ToCode());
+
+                    context.Builder.Append(Encoding.UTF8.GetString(p.Body.ToArray()).ToLower(cultureInfo));
+
+                    continue;
+                }
+
+                context.Builder.Append(p);
+            }
+
+            return true;
+        }
+        finally
+        {
+            SeStringBuilder.SharedPool.Return(builder);
+        }
+    }
+
     private bool TryResolveNoun(ClientLanguage language, ref SeStringContext context, in ReadOnlySePayloadSpan payload)
     {
         var eAmountVal = 1;
@@ -1333,83 +1352,113 @@ public partial class SeStringEvaluatorService(
         return true;
     }
 
-    private unsafe bool TryResolvePcName(ref SeStringContext context, ReadOnlySePayloadSpan payload)
+    private bool TryResolveLowerHead(ref SeStringContext context, in ReadOnlySePayloadSpan payload)
     {
-        if (!payload.TryGetExpression(out var eEntityId))
+        if (!payload.TryGetExpression(out var eStr))
             return false;
 
-        if (!TryResolveUInt(ref context, eEntityId, out var entityId))
-            return false;
+        var builder = SeStringBuilder.SharedPool.Get();
 
-        // TODO: handle LogNameType
-
-        var characterInfo = new NameCache.CharacterInfo();
-        if (NameCache.Instance()->TryGetCharacterInfoByEntityId(entityId, &characterInfo))
+        try
         {
-            context.Builder.Append((ReadOnlySeStringSpan)characterInfo.Name.AsSpan());
+            var headContext = new SeStringContext(ref builder, context.LocalParameters, context.Language);
 
-            if (characterInfo.HomeWorldId != AgentLobby.Instance()->LobbyData.HomeWorldId &&
-                WorldHelper.Instance()->AllWorlds.TryGetValue((ushort)characterInfo.HomeWorldId, out var world, false))
+            if (!ResolveStringExpression(ref headContext, eStr))
+                return false;
+
+            var str = builder.ToReadOnlySeString();
+            var pIdx = 0;
+
+            foreach (var p in str)
             {
-                context.Builder.AppendIcon(88);
+                pIdx++;
 
-                if (_gameConfig.UiConfig.TryGetUInt("LogCrossWorldName", out var logCrossWorldName) && logCrossWorldName == 1)
-                    context.Builder.Append((ReadOnlySeStringSpan)world.Name);
+                if (p.Type == ReadOnlySePayloadType.Invalid)
+                    continue;
+
+                if (pIdx == 1 && p.Type == ReadOnlySePayloadType.Text)
+                {
+                    context.Builder.Append(Encoding.UTF8.GetString(p.Body.ToArray()).FirstCharToLower());
+                    continue;
+                }
+
+                context.Builder.Append(p);
             }
 
             return true;
         }
-
-        // TODO: lookup via InstanceContentCrystallineConflictDirector
-        // TODO: lookup via MJIManager
-
-        return false;
+        finally
+        {
+            SeStringBuilder.SharedPool.Return(builder);
+        }
     }
 
-    private unsafe bool TryResolveIfPcGender(ref SeStringContext context, ReadOnlySePayloadSpan payload)
+    private bool TryResolveColorType(ref SeStringContext context, in ReadOnlySePayloadSpan payload)
     {
-        if (!payload.TryGetExpression(out var eEntityId, out var eMale, out var eFemale))
+        if (!payload.TryGetExpression(out var eColorType) || !TryResolveUInt(ref context, eColorType, out var eColorTypeVal))
             return false;
 
-        if (!TryResolveUInt(ref context, eEntityId, out var entityId))
-            return false;
+        if (eColorTypeVal == 0)
+            context.Builder.PopColor();
+        else if (_excelService.TryGetRow<UIColor>(eColorTypeVal, out var row))
+            context.Builder.PushColorBgra((row.UIForeground >> 8) | (row.UIForeground << 24));
 
-        var characterInfo = new NameCache.CharacterInfo();
-        if (NameCache.Instance()->TryGetCharacterInfoByEntityId(entityId, &characterInfo))
-            return ResolveStringExpression(ref context, characterInfo.Sex == 0 ? eMale : eFemale);
-
-        // TODO: lookup via InstanceContentCrystallineConflictDirector
-
-        return false;
+        return true;
     }
 
-    private unsafe bool TryResolveIfPcName(ref SeStringContext context, ReadOnlySePayloadSpan payload)
+    private bool TryResolveEdgeColorType(ref SeStringContext context, in ReadOnlySePayloadSpan payload)
     {
-        if (!payload.TryGetExpression(out var eEntityId, out var eName, out var eTrue, out var eFalse))
+        if (!payload.TryGetExpression(out var eColorType) || !TryResolveUInt(ref context, eColorType, out var eColorTypeVal))
             return false;
 
-        if (!TryResolveUInt(ref context, eEntityId, out var entityId) || !eName.TryGetString(out var name))
-            return false;
+        if (eColorTypeVal == 0)
+            context.Builder.PopEdgeColor();
+        else if (_excelService.TryGetRow<UIColor>(eColorTypeVal, out var row))
+            context.Builder.PushEdgeColorBgra((row.UIForeground >> 8) | (row.UIForeground << 24));
 
-        name = Evaluate(name, context.LocalParameters, context.Language).AsSpan();
-
-        var characterInfo = new NameCache.CharacterInfo();
-        return NameCache.Instance()->TryGetCharacterInfoByEntityId(entityId, &characterInfo) &&
-            ResolveStringExpression(ref context, name.Equals((ReadOnlySeStringSpan)characterInfo.Name.AsSpan())
-                ? eTrue
-                : eFalse);
+        return true;
     }
 
-    private unsafe bool TryResolveIfSelf(ref SeStringContext context, ReadOnlySePayloadSpan payload)
+    private bool TryResolveDigit(ref SeStringContext context, in ReadOnlySePayloadSpan payload)
     {
-        if (!payload.TryGetExpression(out var eEntityId, out var eTrue, out var eFalse))
+        if (!payload.TryGetExpression(out var eValue, out var eTargetLength))
             return false;
 
-        if (!TryResolveUInt(ref context, eEntityId, out var entityId))
+        if (!TryResolveInt(ref context, eValue, out var eValueVal))
             return false;
 
-        // the game uses LocalPlayer here, but using PlayerState seems more safe..
-        return ResolveStringExpression(ref context, PlayerState.Instance()->EntityId == entityId ? eTrue : eFalse);
+        if (!TryResolveInt(ref context, eTargetLength, out var eTargetLengthVal))
+            return false;
+
+        context.Builder.Append(eValueVal.ToString(new string('0', eTargetLengthVal)));
+
+        return true;
+    }
+
+    private bool TryResolveLevelPos(ref SeStringContext context, in ReadOnlySePayloadSpan payload)
+    {
+        if (!payload.TryGetExpression(out var eLevel) || !TryResolveUInt(ref context, eLevel, out var eLevelVal))
+            return false;
+
+        if (!_excelService.TryGetRow<Level>(eLevelVal, context.Language, out var level) || !level.Map.IsValid)
+            return false;
+
+        if (!_excelService.TryGetRow<PlaceName>(level.Map.Value.PlaceName.RowId, context.Language, out var placeName))
+            return false;
+
+        if (!_excelService.TryGetRow<Addon>(1637, context.Language, out var levelFormatRow))
+            return false;
+
+        var mapPosX = level.Map.Value.ConvertRawToMapPosX(level.X);
+        var mapPosY = level.Map.Value.ConvertRawToMapPosY(level.Z); // Z is [sic]
+
+        context.Builder.Append(
+            Evaluate(
+                levelFormatRow.Text,
+                [placeName.Name, mapPosX, mapPosY],
+                context.Language));
+
+        return true;
     }
 
     private unsafe bool TryGetGNumDefault(uint parameterIndex, out uint value)
@@ -1422,7 +1471,7 @@ public partial class SeStringEvaluatorService(
 
         if (!ThreadSafety.IsMainThread)
         {
-            logger.LogError("Global parameters may only be used from the main thread.");
+            _logger.LogError("Global parameters may only be used from the main thread.");
             return false;
         }
 
@@ -1438,15 +1487,15 @@ public partial class SeStringEvaluatorService(
                 return true;
 
             case TextParameterType.ReferencedUtf8String:
-                logger.LogError("Requested a number; Utf8String global parameter at {parameterIndex}.", parameterIndex);
+                _logger.LogError("Requested a number; Utf8String global parameter at {parameterIndex}.", parameterIndex);
                 return false;
 
             case TextParameterType.String:
-                logger.LogError("Requested a number; string global parameter at {parameterIndex}.", parameterIndex);
+                _logger.LogError("Requested a number; string global parameter at {parameterIndex}.", parameterIndex);
                 return false;
 
             case TextParameterType.Uninitialized:
-                logger.LogError("Requested a number; uninitialized global parameter at {parameterIndex}.", parameterIndex);
+                _logger.LogError("Requested a number; uninitialized global parameter at {parameterIndex}.", parameterIndex);
                 return false;
 
             default:
@@ -1466,7 +1515,7 @@ public partial class SeStringEvaluatorService(
 
         if (!ThreadSafety.IsMainThread)
         {
-            logger.LogError("Global parameters may only be used from the main thread.");
+            _logger.LogError("Global parameters may only be used from the main thread.");
             return false;
         }
 
