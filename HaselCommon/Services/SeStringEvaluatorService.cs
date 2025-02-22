@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using Dalamud.Game;
@@ -191,7 +192,8 @@ public partial class SeStringEvaluatorService
             case MacroCode.Head:
                 return TryResolveHead(ref context, payload);
 
-            // case MacroCode.Split:
+            case MacroCode.Split:
+                return TryResolveSplit(ref context, payload);
 
             case MacroCode.HeadAll:
                 return TryResolveHeadAll(ref context, payload);
@@ -732,6 +734,42 @@ public partial class SeStringEvaluatorService
             }
 
             return true;
+        }
+        finally
+        {
+            SeStringBuilder.SharedPool.Return(builder);
+        }
+    }
+
+    private bool TryResolveSplit(ref SeStringContext context, in ReadOnlySePayloadSpan payload)
+    {
+        if (!payload.TryGetExpression(out var eText, out var eSeparator, out var eIndex))
+            return false;
+
+        if (!eSeparator.TryGetString(out var eSeparatorVal) || !eIndex.TryGetUInt(out var eIndexVal) || eIndexVal <= 0)
+            return false;
+
+        var builder = SeStringBuilder.SharedPool.Get();
+
+        try
+        {
+            var headContext = new SeStringContext(ref builder, context.LocalParameters, context.Language);
+
+            if (!ResolveStringExpression(ref headContext, eText))
+                return false;
+
+            var separator = eSeparatorVal.ExtractText();
+            if (separator.Length < 1)
+                return false;
+
+            var splitted = builder.ToReadOnlySeString().ExtractText().Split(separator[0]);
+            if (eIndexVal <= splitted.Length)
+            {
+                context.Builder.Append(splitted[eIndexVal - 1]);
+                return true;
+            }
+
+            return false;
         }
         finally
         {
