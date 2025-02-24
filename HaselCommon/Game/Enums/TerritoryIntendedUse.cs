@@ -1,68 +1,73 @@
 namespace HaselCommon.Game.Enums;
 
+// Credits:
+// https://github.com/MidoriKami/KamiLib/blob/master/Classes/TerritoryIntendedUseEnum.cs
+// https://github.com/Xpahtalo/XpahtaLib/blob/main/XpahtaLib/DalamudUtilities/UsefulEnums/TerritoryIntendedUseEnum.cs
+// and myself :)
+
 public enum TerritoryIntendedUse : byte
 {
     Town = 0,
-    OpenWorld = 1,
+    Overworld = 1,
     Inn = 2,
-    Dungeon = 3,
+    Dungeon = 3, // Dungeons, Guildhests, Mahjong, Air Force One
     VariantDungeon = 4,
-    Jail = 5,
+    MordionGaol = 5,
     OpeningArea = 6,
     BeforeTrialDung = 7,
     AllianceRaid = 8,
-    OpenWorldInstanceBattle = 9,
+    PreEwOverworldQuestBattle = 9,
     Trial = 10,
     Unknown11 = 11, // unused
     WaitingRoom = 12,
-    HousingArea = 13,
-    IndoorHousingArea = 14,
-    MainStoryQuestPrivateArea = 15,
-    Raids = 16,
-    RaidFights = 17,
-    PvPFrontline = 18,
-    Unknown19 = 19, // unused
-    ChocoboTutorial = 20,
+    HousingOutdoor = 13,
+    HousingIndoor = 14,
+    SoloOverworldInstances = 15,
+    Raid1 = 16,
+    Raid2 = 17,
+    Frontline = 18,
+    ChocoboSquareOld = 19, // unused
+    ChocoboRacing = 20,
     Firmament = 21,
-    Wedding = 22,
+    SanctumOfTheTwelve = 22, // Wedding
     GoldSaucer = 23,
-    Unknown24 = 24, // unused
+    OriginalStepsOfFaith = 24, // unused
     LordOfVerminion = 25,
-    DiademV1 = 26,
-    BeginnerTutorial = 27,
-    PvPTheFeast = 28,
-    MainStoryQuestEventArea = 29,
-    GrandCompanyGarrison = 30,
+    ExploratoryMissions = 26,
+    HallOfTheNovice = 27,
+    CrystallineConflict = 28,
+    SoloDuty = 29,
+    GrandCompanyBarracks = 30,
     DeepDungeon = 31,
     Seasonal = 32, // During the Starlight Celebration, the music in Lower Jeuno will change to a Christmas version.
     TreasureMapInstance = 33,
-    SeasonalEventInstancedArea = 34,
+    SeasonalInstancedArea = 34,
     TripleTriadBattlehall = 35,
     ChaoticRaid = 36,
-    PvPTheFeastCustomMatch = 37,
-    DiademV2 = 38,
-    PvPRivalWings = 39,
+    CrystallineConflictCustomMatch = 37,
+    HuntingGrounds = 38, // Diadem
+    RivalWings = 39,
     Unknown40 = 40,
     Eureka = 41,
-    Unknown42 = 42, // unused
+    Unknown42 = 42, // unused, was Crystal Tower Training Grounds
     TheCalamityRetold = 43,
     LeapOfFaith = 44,
     MaskedCarnival = 45,
     OceanFishing = 46,
-    DiademV3 = 47,
+    Diadem = 47,
     Bozja = 48,
     IslandSanctuary = 49,
     TripleTriadOpenTournament = 50,
     TripleTriadInvitationalParlor = 51,
     DelubrumReginae = 52,
     DelubrumReginaeSavage = 53,
-    Unknown54 = 54, // Propylaion and Ultima Thule?
+    EndwalkerMsqSoloOverworld = 54, // Propylaion and Ultima Thule
     Unknown55 = 55, // unused
     Elysion = 56,
     CriterionDungeon = 57,
     CriterionDungeonSavage = 58,
     Blunderville = 59,
     Unknown60 = 60, // unused
-    Unknown61 = 61, // unused
+    Unknown61 = 61, // unused, probably new Foray
     Unknown62 = 62, // unused
 };
