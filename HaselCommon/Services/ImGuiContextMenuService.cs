@@ -10,6 +10,7 @@ using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
+using FFXIVClientStructs.FFXIV.Component.Exd;
 using HaselCommon.Graphics;
 using HaselCommon.Gui;
 using HaselCommon.Utils;
@@ -114,7 +115,7 @@ public unsafe struct ImGuiContextMenuBuilder(string id, TextService textService,
     {
         entries.Add(new ImGuiContextMenuEntry()
         {
-            Visible = AgentLobby.Instance()->IsLoggedIn,
+            Visible = AgentLobby.Instance()->IsLoggedIn && ExdModule.GetItemRowById(itemId) != null,
             Label = textService.GetAddonText(4697), // "Link"
             LoseFocusOnClick = true,
             ClickCallback = () => AgentChatLog.Instance()->LinkItem(itemId)
