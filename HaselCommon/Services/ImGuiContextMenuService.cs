@@ -55,14 +55,21 @@ public unsafe struct ImGuiContextMenuBuilder(string id, TextService textService,
 {
     internal void Draw()
     {
-        var visibleEntries = entries.Where(entry => entry.Visible);
-        var count = visibleEntries.Count();
-        if (count == 0)
-            return;
-        using var popup = ImRaii.ContextPopupItem(id);
+        if (ImGui.IsMouseReleased(ImGuiMouseButton.Right) && ImGui.IsItemHovered(ImGuiHoveredFlags.AllowWhenBlockedByPopup))
+        {
+            if (!entries.Any(entry => entry.Visible))
+                return;
+
+            ImGui.OpenPopup(id, ImGuiPopupFlags.MouseButtonRight);
+        }
+
+        using var popup = ImRaii.Popup(id, ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoSavedSettings);
         if (!popup)
             return;
+
         var i = 0;
+        var visibleEntries = entries.Where(entry => entry.Visible);
+        var count = visibleEntries.Count();
         foreach (var entry in visibleEntries)
             entry.Draw(new IterationArgs(i++, count));
     }
