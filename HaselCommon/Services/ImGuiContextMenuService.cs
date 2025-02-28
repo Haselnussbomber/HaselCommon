@@ -31,7 +31,7 @@ public partial class ImGuiContextMenuService
     private readonly MapService _mapService;
     private readonly ItemService _itemService;
 
-    private readonly ObjectPool<List<IImGuiContextMenuEntry>> _objectPool = ObjectPool.Create<List<IImGuiContextMenuEntry>>();
+    private readonly ObjectPool<List<IImGuiContextMenuEntry>> _objectPool = ObjectPool.Create(new PooledListPolicy<IImGuiContextMenuEntry>());
 
     public void Draw(string id, Action<ImGuiContextMenuBuilder> buildAction)
     {
