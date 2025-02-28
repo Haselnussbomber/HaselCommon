@@ -110,6 +110,19 @@ public unsafe struct ImGuiContextMenuBuilder(string id, TextService textService,
         return this;
     }
 
+    public ImGuiContextMenuBuilder AddLinkItem(ExcelRowId<Item> itemId)
+    {
+        entries.Add(new ImGuiContextMenuEntry()
+        {
+            Visible = AgentLobby.Instance()->IsLoggedIn,
+            Label = textService.GetAddonText(4697), // "Link"
+            LoseFocusOnClick = true,
+            ClickCallback = () => AgentChatLog.Instance()->LinkItem(itemId)
+        });
+
+        return this;
+    }
+
     public ImGuiContextMenuBuilder AddCopyItemName(ExcelRowId<Item> itemId)
     {
         var itemName = textService.GetItemName(itemId);
