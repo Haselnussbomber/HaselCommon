@@ -35,11 +35,12 @@ public class CommandService(
             attr.Command,
             attr.HelpMessageKey,
             attr.ShowInHelp,
+            attr.DisplayOrder,
             handler,
             autoEnable);
     }
 
-    public CommandHandler Register(string command, string helpMessageKey, IReadOnlyCommandInfo.HandlerDelegate handler, bool showInHelp = true, bool autoEnable = false)
+    public CommandHandler Register(string command, string helpMessageKey, IReadOnlyCommandInfo.HandlerDelegate handler, bool showInHelp = true, int displayOrder = -1, bool autoEnable = false)
     {
         return new CommandHandler(
             this,
@@ -49,6 +50,7 @@ public class CommandService(
             command,
             helpMessageKey,
             showInHelp,
+            displayOrder,
             handler,
             autoEnable);
     }

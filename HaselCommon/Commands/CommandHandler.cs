@@ -16,6 +16,7 @@ public class CommandHandler : IDisposable
     public string Command { get; init; }
     public string HelpMessageKey { get; init; }
     public bool ShowInHelp { get; init; }
+    public int DisplayOrder { get; init; } = -1;
     public IReadOnlyCommandInfo.HandlerDelegate Handler { get; init; }
 
     public bool IsEnabled { get; private set; }
@@ -28,6 +29,7 @@ public class CommandHandler : IDisposable
         string command,
         string helpMessageKey,
         bool showInHelp,
+        int displayOrder,
         IReadOnlyCommandInfo.HandlerDelegate handler,
         bool enabled = true)
     {
@@ -39,6 +41,7 @@ public class CommandHandler : IDisposable
         Command = command;
         HelpMessageKey = helpMessageKey;
         ShowInHelp = showInHelp;
+        DisplayOrder = displayOrder;
         Handler = handler;
 
         _languageProvider.LanguageChanged += OnLanguageChanged;
@@ -77,6 +80,7 @@ public class CommandHandler : IDisposable
             {
                 HelpMessage = !string.IsNullOrEmpty(HelpMessageKey) ? _textService.Translate(HelpMessageKey) : string.Empty,
                 ShowInHelp = ShowInHelp,
+                DisplayOrder = DisplayOrder,
             });
 
             IsEnabled = true;
