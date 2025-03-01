@@ -72,7 +72,7 @@ public static partial class ImGuiUtils
             }
         }
 
-        if (ImGui.IsItemClicked())
+        if (ImGui.IsMouseReleased(ImGuiMouseButton.Left) && ImGui.IsItemHovered())
             Task.Run(() => Util.OpenLink(url));
     }
 
