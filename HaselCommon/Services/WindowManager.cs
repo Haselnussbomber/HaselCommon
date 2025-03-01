@@ -92,6 +92,11 @@ public class WindowManager : IDisposable
         return TryFindWindow<T>(win => win.WindowName == windowName, out outWindow);
     }
 
+    public T CreateOrOpen<T>() where T : SimpleWindow
+    {
+        return CreateOrOpen(Service.Get<T>);
+    }
+
     public T CreateOrOpen<T>(Func<T> factory) where T : SimpleWindow
     {
         if (!TryGetWindow<T>(out var window))
@@ -108,6 +113,11 @@ public class WindowManager : IDisposable
 
         window.Open();
         return window;
+    }
+
+    public T CreateOrToggle<T>() where T : SimpleWindow
+    {
+        return CreateOrToggle(Service.Get<T>);
     }
 
     public T CreateOrToggle<T>(Func<T> factory) where T : SimpleWindow
