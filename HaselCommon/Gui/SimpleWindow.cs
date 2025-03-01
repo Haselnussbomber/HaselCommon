@@ -43,7 +43,7 @@ public abstract class SimpleWindow : Window, IDisposable
         Close();
     }
 
-    private void OnLanguageChanged(string langCode)
+    protected virtual void OnLanguageChanged(string langCode)
     {
         UpdateWindowName();
     }
