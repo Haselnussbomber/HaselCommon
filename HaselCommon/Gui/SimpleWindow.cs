@@ -34,6 +34,8 @@ public abstract class SimpleWindow : Window, IDisposable
         Namespace = type.Namespace;
         WindowNameKey = $"{type.Name}.Title";
 
+        Flags |= ImGuiWindowFlags.NoFocusOnAppearing; // handled by BringToFront() in Open()
+
         languageProvider.LanguageChanged += OnLanguageChanged;
     }
 
@@ -56,12 +58,13 @@ public abstract class SimpleWindow : Window, IDisposable
         }
     }
 
-    public void Open()
+    public void Open(bool focus = true)
     {
         _windowManager.AddWindow(this);
         IsOpen = true;
         Collapsed = false;
-        BringToFront();
+        if (focus)
+            BringToFront();
     }
 
     public void Close()
@@ -71,8 +74,13 @@ public abstract class SimpleWindow : Window, IDisposable
 
     public new void Toggle()
     {
+        Toggle(true);
+    }
+
+    public void Toggle(bool focus = true)
+    {
         if (!IsOpen)
-            Open();
+            Open(focus);
         else
             Close();
     }

@@ -92,44 +92,44 @@ public class WindowManager : IDisposable
         return TryFindWindow<T>(win => win.WindowName == windowName, out outWindow);
     }
 
-    public T CreateOrOpen<T>() where T : SimpleWindow
+    public T CreateOrOpen<T>(bool focus = true) where T : SimpleWindow
     {
-        return CreateOrOpen(Service.Get<T>);
+        return CreateOrOpen(Service.Get<T>, focus);
     }
 
-    public T CreateOrOpen<T>(Func<T> factory) where T : SimpleWindow
+    public T CreateOrOpen<T>(Func<T> factory, bool focus = true) where T : SimpleWindow
     {
         if (!TryGetWindow<T>(out var window))
             _windowSystem.AddWindow(window = factory());
 
-        window.Open();
+        window.Open(focus);
         return window;
     }
 
-    public T CreateOrOpen<T>(string windowName, Func<T> factory) where T : SimpleWindow
+    public T CreateOrOpen<T>(string windowName, Func<T> factory, bool focus = true) where T : SimpleWindow
     {
         if (!TryGetWindow<T>(windowName, out var window))
             _windowSystem.AddWindow(window = factory());
 
-        window.Open();
+        window.Open(focus);
         return window;
     }
 
-    public T CreateOrToggle<T>() where T : SimpleWindow
+    public T CreateOrToggle<T>(bool focus = true) where T : SimpleWindow
     {
-        return CreateOrToggle(Service.Get<T>);
+        return CreateOrToggle(Service.Get<T>, focus);
     }
 
-    public T CreateOrToggle<T>(Func<T> factory) where T : SimpleWindow
+    public T CreateOrToggle<T>(Func<T> factory, bool focus = true) where T : SimpleWindow
     {
         if (!TryGetWindow<T>(out var window))
         {
             _windowSystem.AddWindow(window = factory());
-            window.Open();
+            window.Open(focus);
         }
         else
         {
-            window.Toggle();
+            window.Toggle(focus);
         }
 
         return window;
