@@ -3,7 +3,6 @@ using System.Linq;
 using Dalamud.Game;
 using FFXIVClientStructs.FFXIV.Application.Network.WorkDefinitions;
 using FFXIVClientStructs.FFXIV.Client.Game;
-using HaselCommon.Extensions.Strings;
 using HaselCommon.Utils;
 using Lumina.Excel.Sheets;
 
@@ -146,20 +145,5 @@ public class LeveService(ExcelService excelService, LanguageProvider languagePro
 
         _requiredItemsCache.Add(leveId.RowId, requiredItems = [.. dict.Values]);
         return requiredItems;
-    }
-
-    [Obsolete("Use TextService.GetLeveName")]
-    public string GetLeveName(ExcelRowId<Leve> leveId)
-    {
-        var key = (leveId.RowId, languageProvider.ClientLanguage);
-
-        if (_leveNameCache.TryGetValue(key, out var name))
-            return name;
-
-        if (!leveId.TryGetRow(out var leve))
-            return string.Empty;
-
-        _leveNameCache.Add(key, name = leve.Name.ExtractText().StripSoftHypen());
-        return name;
     }
 }

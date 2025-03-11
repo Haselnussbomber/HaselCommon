@@ -14,7 +14,7 @@ public static class ReadOnlySeStringExtensions
         return new(((ReadOnlySpan<byte>)ross).WithNullTerminator());
     }
 
-    public static bool Contains(this ReadOnlySeString ross, ReadOnlySpan<byte> needle)
+    public static bool ContainsText(this ReadOnlySeString ross, ReadOnlySpan<byte> needle)
     {
         return ross.Data.Span.IndexOf(needle) != -1;
     }

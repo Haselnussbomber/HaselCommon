@@ -4,7 +4,7 @@ namespace HaselCommon.Extensions.Strings;
 
 public static class SeStringBuilderExtensions
 {
-    public static bool Contains(this SeStringBuilder builder, ReadOnlySpan<byte> needle)
+    public static bool ContainsText(this SeStringBuilder builder, ReadOnlySpan<byte> needle)
     {
         return builder.ToArray().AsSpan().IndexOf(needle) != -1;
     }

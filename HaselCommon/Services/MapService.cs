@@ -12,7 +12,6 @@ using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using HaselCommon.Extensions.Sheets;
 using HaselCommon.Game;
-using HaselCommon.Services.SeStringEvaluation;
 using HaselCommon.Utils;
 using Lumina.Excel.Sheets;
 using Lumina.Text;
@@ -22,7 +21,7 @@ using Map = Lumina.Excel.Sheets.Map;
 namespace HaselCommon.Services;
 
 [RegisterSingleton]
-public class MapService(IClientState clientState, IGameGui gameGui, TextService textService, ExcelService excelService, SeStringEvaluatorService seStringEvaluatorService)
+public class MapService(IClientState clientState, IGameGui gameGui, TextService textService, ExcelService excelService, SeStringEvaluator seStringEvaluatorService)
 {
     private static readonly string[] CompassHeadings = ["E", "NE", "N", "NW", "W", "SW", "S", "SE"];
 

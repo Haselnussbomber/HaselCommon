@@ -6,7 +6,7 @@ using Dalamud.Game;
 using Dalamud.Plugin;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using HaselCommon.Extensions.Strings;
-using HaselCommon.Services.SeStringEvaluation;
+using HaselCommon.Services.Evaluator;
 using HaselCommon.Utils;
 using Lumina.Excel;
 using Lumina.Excel.Sheets;
@@ -25,7 +25,7 @@ public class TextService
     private readonly ILogger<TextService> _logger;
     private readonly LanguageProvider _languageProvider;
     private readonly ExcelService _excelService;
-    private readonly SeStringEvaluatorService _seStringEvaluator;
+    private readonly SeStringEvaluator _seStringEvaluator;
 
     public TextService(
         ILogger<TextService> logger,
@@ -33,7 +33,7 @@ public class TextService
         LanguageProvider languageProvider,
         PluginAssemblyProvider pluginAssemblyProvider,
         ExcelService excelService,
-        SeStringEvaluatorService seStringEvaluator)
+        SeStringEvaluator seStringEvaluator)
     {
         _logger = logger;
         _languageProvider = languageProvider;
@@ -235,7 +235,7 @@ public class TextService
         => FromObjStr(ObjectKind.Companion, id, language);
 
     private string FromObjStr(ObjectKind objectKind, uint id, ClientLanguage? language = null)
-        => _seStringEvaluator.EvaluateFromAddon(2025, [GetObjStrId(objectKind, id)], language).ExtractText().StripSoftHypen();
+        => _seStringEvaluator.EvaluateFromAddon(2025, [GetObjStrId(objectKind, id)], language).ExtractText().StripSoftHyphen();
 
     // "8D 41 FE 83 F8 0C 77 4D"
     private static uint GetObjStrId(ObjectKind objectKind, uint id)
@@ -270,7 +270,7 @@ public class TextService
         }
 
         var tempText = getText(row);
-        _rowNameCache.Add(key, text = tempText.IsEmpty ? $"{typeof(T).Name}#{rowId}" : tempText.ExtractText().StripSoftHypen());
+        _rowNameCache.Add(key, text = tempText.IsEmpty ? $"{typeof(T).Name}#{rowId}" : tempText.ExtractText().StripSoftHyphen());
         return text;
     }
 }

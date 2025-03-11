@@ -13,6 +13,7 @@ using FFXIVClientStructs.FFXIV.Component.GUI;
 using HaselCommon.Extensions.Sheets;
 using HaselCommon.Game.Enums;
 using HaselCommon.Graphics;
+using HaselCommon.Services.Evaluator;
 using HaselCommon.Sheets;
 using HaselCommon.Utils;
 using Lumina.Excel.Sheets;
@@ -23,7 +24,7 @@ using Lumina.Text.ReadOnly;
 namespace HaselCommon.Services;
 
 [RegisterSingleton]
-public class ItemService(IClientState clientState, ExcelService excelService, SeStringEvaluatorService seStringEvaluatorService, TextService textService)
+public class ItemService(IClientState clientState, ExcelService excelService, SeStringEvaluator seStringEvaluatorService, TextService textService)
 {
     private readonly Dictionary<uint, bool> _isCraftableCache = [];
     private readonly Dictionary<uint, bool> _isGatherableCache = [];
