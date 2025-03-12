@@ -80,6 +80,27 @@ public class ExcelService(IDataManager dataManager, LanguageProvider languagePro
         return true;
     }
 
+    public bool TryFindSubrow<T>(Predicate<T> predicate, out T subrow) where T : struct, IExcelSubrow<T>
+        => TryFindSubrow(predicate, null, out subrow);
+
+    public bool TryFindSubrow<T>(Predicate<T> predicate, ClientLanguage? language, out T subrow) where T : struct, IExcelSubrow<T>
+    {
+        foreach (var irow in GetSubrowSheet<T>(language ?? languageProvider.ClientLanguage))
+        {
+            foreach (var isubrow in irow)
+            {
+                if (predicate(isubrow))
+                {
+                    subrow = isubrow;
+                    return true;
+                }
+            }
+        }
+
+        subrow = default;
+        return false;
+    }
+
     // RawRow
 
     public bool TryGetRawRow(string sheetName, uint rowId, out RawRow rawRow)
