@@ -1732,7 +1732,7 @@ public partial class SeStringEvaluator
                 return false;
 
             case TextParameterType.String:
-                EvaluateAndAppendTo(builder, new(p.StringValue), null, language);
+                EvaluateAndAppendTo(builder, p.StringValue.ToReadOnlySeStringSpan(), null, language);
                 return false;
 
             case TextParameterType.Uninitialized:

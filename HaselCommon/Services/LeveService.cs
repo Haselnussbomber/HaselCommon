@@ -8,9 +8,11 @@ using Lumina.Excel.Sheets;
 
 namespace HaselCommon.Services;
 
-[RegisterSingleton]
-public class LeveService(ExcelService excelService, LanguageProvider languageProvider)
+[RegisterSingleton, AutoConstruct]
+public partial class LeveService
 {
+    private readonly ExcelService _excelService;
+
     private readonly Dictionary<(uint, ClientLanguage), string> _leveNameCache = [];
     private readonly Dictionary<uint, ItemAmount[]> _requiredItemsCache = [];
 
@@ -31,7 +33,7 @@ public class LeveService(ExcelService excelService, LanguageProvider languagePro
     {
         foreach (var leveId in GetActiveLeveIds())
         {
-            if (excelService.TryGetRow<Leve>(leveId, out var leve))
+            if (_excelService.TryGetRow<Leve>(leveId, out var leve))
                 yield return leve;
         }
     }
