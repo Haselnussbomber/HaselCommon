@@ -9,9 +9,14 @@ namespace HaselCommon.Extensions.Strings;
 
 public static class ReadOnlySeStringExtensions
 {
+    public static ReadOnlySpan<byte> GetViewAsSpan(this ReadOnlySeString ross)
+    {
+        return ((ReadOnlySpan<byte>)ross).WithNullTerminator();
+    }
+
     public static Utf8String ToUtf8String(this ReadOnlySeString ross)
     {
-        return new(((ReadOnlySpan<byte>)ross).WithNullTerminator());
+        return new(ross.GetViewAsSpan());
     }
 
     public static bool ContainsText(this ReadOnlySeString ross, ReadOnlySpan<byte> needle)

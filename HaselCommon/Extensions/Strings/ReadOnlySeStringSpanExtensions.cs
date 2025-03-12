@@ -7,9 +7,14 @@ namespace HaselCommon.Extensions.Strings;
 
 public static class ReadOnlySeStringSpanExtensions
 {
+    public static ReadOnlySpan<byte> GetViewAsSpan(this ReadOnlySeStringSpan rosss)
+    {
+        return ((ReadOnlySpan<byte>)rosss).WithNullTerminator();
+    }
+
     public static Utf8String ToUtf8String(this ReadOnlySeStringSpan rosss)
     {
-        return new(((ReadOnlySpan<byte>)rosss).WithNullTerminator());
+        return new(rosss.GetViewAsSpan());
     }
 
     public static bool IsTextOnly(this ReadOnlySeStringSpan rosss)
