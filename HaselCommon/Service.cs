@@ -17,8 +17,15 @@ public static class Service
     public static IServiceCollection Collection { get; set; } = new ServiceCollection();
     public static ServiceProvider? Provider { get; private set; }
 
-    public static void BuildProvider()
-        => Provider = Collection.BuildServiceProvider();
+    public static void Initialize(Action? callback = null)
+    {
+        Provider = Collection.BuildServiceProvider();
+
+        if (callback != null)
+        {
+            Get<IFramework>().RunOnFrameworkThread(callback);
+        }
+    }
 
     public static void Dispose()
         => Provider?.Dispose();
