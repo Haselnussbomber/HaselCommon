@@ -13,7 +13,6 @@ using FFXIVClientStructs.FFXIV.Component.GUI;
 using HaselCommon.Extensions.Sheets;
 using HaselCommon.Game.Enums;
 using HaselCommon.Graphics;
-using HaselCommon.Services.Evaluator;
 using HaselCommon.Sheets;
 using HaselCommon.Utils;
 using Lumina.Excel.Sheets;

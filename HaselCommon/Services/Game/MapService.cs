@@ -6,7 +6,6 @@ using Dalamud.Game.Text;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
-using FFXIVClientStructs.FFXIV.Client.System.Framework;
 using FFXIVClientStructs.FFXIV.Client.System.String;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
@@ -16,6 +15,7 @@ using HaselCommon.Utils;
 using Lumina.Excel.Sheets;
 using Lumina.Text;
 using Lumina.Text.ReadOnly;
+using Framework = FFXIVClientStructs.FFXIV.Client.System.Framework.Framework;
 using Map = Lumina.Excel.Sheets.Map;
 
 namespace HaselCommon.Services;

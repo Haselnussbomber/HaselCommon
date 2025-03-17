@@ -1,33 +1,37 @@
 using System.Numerics;
-using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game.Control;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
+using FFXIVClientStructs.FFXIV.Client.UI.Agent;
+using HaselCommon.Events;
 using HaselCommon.Game.Enums;
 using Lumina.Excel.Sheets;
 
 namespace HaselCommon.Services;
 
 [RegisterSingleton, AutoConstruct]
-public unsafe partial class TeleportService : IDisposable
+public unsafe partial class TeleportService
 {
-    private readonly IClientState _clientState;
     private readonly ExcelService _excelService;
-    private readonly UnlocksObserver _unlocksObserver;
+    private readonly EventDispatcher _eventDispatcher;
 
     [AutoPostConstruct]
     private void Initialize()
     {
-        _clientState.Login += UpdateAetherytes;
-        _unlocksObserver.Update += UpdateAetherytes;
+        _eventDispatcher.Subscribe(PlayerEvents.Login, OnLogin);
+        _eventDispatcher.Subscribe(PlayerEvents.UnlocksChanged, OnUnlocksChanged);
 
-        if (_clientState.IsLoggedIn)
+        if (AgentLobby.Instance()->IsLoggedIn)
             UpdateAetherytes();
     }
 
-    public void Dispose()
+    private void OnLogin()
     {
-        _unlocksObserver.Update -= UpdateAetherytes;
-        _clientState.Login -= UpdateAetherytes;
+        UpdateAetherytes();
+    }
+
+    private void OnUnlocksChanged()
+    {
+        UpdateAetherytes();
     }
 
     private void UpdateAetherytes()

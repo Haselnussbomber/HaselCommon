@@ -5,22 +5,22 @@ using FFXIVClientStructs.FFXIV.Component.GUI;
 
 namespace HaselCommon.Services;
 
-[RegisterSingleton]
-public unsafe class AddonObserver : IDisposable
+[RegisterSingleton, AutoConstruct]
+public unsafe partial class AddonObserver : IDisposable
 {
-    public delegate void CallbackDelegate(string addonName);
-    public event CallbackDelegate? AddonOpen;
-    public event CallbackDelegate? AddonClose;
+    private readonly IFramework _framework;
 
     private readonly HashSet<Pointer<AtkUnitBase>> _visibleUnits = new(256);
     private readonly HashSet<Pointer<AtkUnitBase>> _removedUnits = new(16);
     private readonly Dictionary<Pointer<AtkUnitBase>, string> _nameCache = new(256);
-    private readonly IFramework _framework;
 
-    public AddonObserver(IFramework framework)
+    public delegate void CallbackDelegate(string addonName);
+    public event CallbackDelegate? AddonOpen;
+    public event CallbackDelegate? AddonClose;
+
+    [AutoPostConstruct]
+    private void Initialize()
     {
-        _framework = framework;
-
         _framework.Update += OnFrameworkUpdate;
     }
 

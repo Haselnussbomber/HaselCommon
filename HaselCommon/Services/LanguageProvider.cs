@@ -24,15 +24,15 @@ public class LanguageProvider : IDisposable
         ClientLanguage = _pluginInterface.UiLanguage.ToClientlanguage();
         CultureInfo = GetCultureInfoFromLangCode(LanguageCode);
 
-        _pluginInterface.LanguageChanged += PluginInterface_LanguageChanged;
+        _pluginInterface.LanguageChanged += OnLanguageChanged;
     }
 
     public void Dispose()
     {
-        _pluginInterface.LanguageChanged -= PluginInterface_LanguageChanged;
+        _pluginInterface.LanguageChanged -= OnLanguageChanged;
     }
 
-    private void PluginInterface_LanguageChanged(string langCode)
+    private void OnLanguageChanged(string langCode)
     {
         LanguageCode = _pluginInterface.UiLanguage;
         ClientLanguage = _pluginInterface.UiLanguage.ToClientlanguage();

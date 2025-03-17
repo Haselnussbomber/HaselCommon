@@ -1,7 +1,7 @@
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using Dalamud.Game;
-using Dalamud.Game.ClientState.Objects;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
 using HaselCommon.Logger;
@@ -20,6 +20,8 @@ public static class Service
     public static void Initialize(Action? callback = null)
     {
         Provider = Collection.BuildServiceProvider();
+
+        Get<IEnumerable<IEventProvider>>();
 
         if (callback != null)
         {
@@ -60,43 +62,43 @@ public static class Service
         collection
             .AddSingleton(new PluginAssemblyProvider(Assembly.GetCallingAssembly()))
             .AddSingleton(pluginInterface)
-            .AddSingleton(DalamudServiceFactory<IAddonEventManager>)
+            //.AddSingleton(DalamudServiceFactory<IAddonEventManager>)
             .AddSingleton(DalamudServiceFactory<IAddonLifecycle>)
-            .AddSingleton(DalamudServiceFactory<IAetheryteList>)
-            .AddSingleton(DalamudServiceFactory<IBuddyList>)
-            .AddSingleton(DalamudServiceFactory<IChatGui>)
+            //.AddSingleton(DalamudServiceFactory<IAetheryteList>)
+            //.AddSingleton(DalamudServiceFactory<IBuddyList>)
+            //.AddSingleton(DalamudServiceFactory<IChatGui>)
             .AddSingleton(DalamudServiceFactory<IClientState>)
             .AddSingleton(DalamudServiceFactory<ICommandManager>)
-            .AddSingleton(DalamudServiceFactory<ICondition>)
+            //.AddSingleton(DalamudServiceFactory<ICondition>)
             .AddSingleton(DalamudServiceFactory<IContextMenu>)
             .AddSingleton(DalamudServiceFactory<IDataManager>)
             .AddSingleton(DalamudServiceFactory<IDtrBar>)
-            .AddSingleton(DalamudServiceFactory<IDutyState>)
-            .AddSingleton(DalamudServiceFactory<IFateTable>)
-            .AddSingleton(DalamudServiceFactory<IFlyTextGui>)
+            //.AddSingleton(DalamudServiceFactory<IDutyState>)
+            //.AddSingleton(DalamudServiceFactory<IFateTable>)
+            //.AddSingleton(DalamudServiceFactory<IFlyTextGui>)
             .AddSingleton(DalamudServiceFactory<IFramework>)
             .AddSingleton(DalamudServiceFactory<IGameConfig>)
             .AddSingleton(DalamudServiceFactory<IGameGui>)
             .AddSingleton(DalamudServiceFactory<IGameInteropProvider>)
             .AddSingleton(DalamudServiceFactory<IGameInventory>)
             .AddSingleton(DalamudServiceFactory<IGameLifecycle>)
-            .AddSingleton(DalamudServiceFactory<IGameNetwork>)
-            .AddSingleton(DalamudServiceFactory<IGamepadState>)
-            .AddSingleton(DalamudServiceFactory<IJobGauges>)
+            //.AddSingleton(DalamudServiceFactory<IGameNetwork>)
+            //.AddSingleton(DalamudServiceFactory<IGamepadState>)
+            //.AddSingleton(DalamudServiceFactory<IJobGauges>)
             .AddSingleton(DalamudServiceFactory<IKeyState>)
             .AddSingleton(DalamudServiceFactory<IMarketBoard>)
             .AddSingleton(DalamudServiceFactory<INotificationManager>)
-            .AddSingleton(DalamudServiceFactory<IObjectTable>)
-            .AddSingleton(DalamudServiceFactory<IPartyFinderGui>)
-            .AddSingleton(DalamudServiceFactory<IPartyList>)
+            //.AddSingleton(DalamudServiceFactory<IObjectTable>)
+            //.AddSingleton(DalamudServiceFactory<IPartyFinderGui>)
+            //.AddSingleton(DalamudServiceFactory<IPartyList>)
             .AddSingleton(DalamudServiceFactory<IPluginLog>)
             .AddSingleton(DalamudServiceFactory<ISigScanner>)
-            .AddSingleton(DalamudServiceFactory<ITargetManager>)
+            //.AddSingleton(DalamudServiceFactory<ITargetManager>)
             .AddSingleton(DalamudServiceFactory<ITextureProvider>)
-            .AddSingleton(DalamudServiceFactory<ITextureReadbackProvider>)
-            .AddSingleton(DalamudServiceFactory<ITextureSubstitutionProvider>)
-            .AddSingleton(DalamudServiceFactory<ITitleScreenMenu>)
-            .AddSingleton(DalamudServiceFactory<IToastGui>)
+            //.AddSingleton(DalamudServiceFactory<ITextureReadbackProvider>)
+            //.AddSingleton(DalamudServiceFactory<ITextureSubstitutionProvider>)
+            //.AddSingleton(DalamudServiceFactory<ITitleScreenMenu>)
+            //.AddSingleton(DalamudServiceFactory<IToastGui>)
             .AddLogging(builder =>
             {
                 builder.ClearProviders();
