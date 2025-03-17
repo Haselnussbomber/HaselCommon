@@ -1371,7 +1371,7 @@ public partial class SeStringEvaluator
         // Sheet without ranges
         if (rangesStart == -1)
         {
-            if (_excelService.TryGetRow<RawRow>(rowId, context.Language, out var row))
+            if (_excelService.TryGetRow<RawRow>(lookupTable, rowId, context.Language, out var row))
             {
                 context.Builder.Append(row.ReadStringColumn(0));
                 return true;
