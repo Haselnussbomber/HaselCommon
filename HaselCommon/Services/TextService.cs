@@ -17,29 +17,20 @@ using ActionSheet = Lumina.Excel.Sheets.Action;
 
 namespace HaselCommon.Services;
 
-[RegisterSingleton]
-public class TextService
+[RegisterSingleton, AutoConstruct]
+public partial class TextService
 {
-    private readonly Dictionary<string, Dictionary<string, string>> _translations = [];
-    private readonly Dictionary<(Type, uint, ClientLanguage), string> _rowNameCache = [];
     private readonly ILogger<TextService> _logger;
     private readonly LanguageProvider _languageProvider;
     private readonly ExcelService _excelService;
     private readonly SeStringEvaluator _seStringEvaluator;
 
-    public TextService(
-        ILogger<TextService> logger,
-        IDalamudPluginInterface pluginInterface,
-        LanguageProvider languageProvider,
-        PluginAssemblyProvider pluginAssemblyProvider,
-        ExcelService excelService,
-        SeStringEvaluator seStringEvaluator)
-    {
-        _logger = logger;
-        _languageProvider = languageProvider;
-        _excelService = excelService;
-        _seStringEvaluator = seStringEvaluator;
+    private readonly Dictionary<string, Dictionary<string, string>> _translations = [];
+    private readonly Dictionary<(Type, uint, ClientLanguage), string> _rowNameCache = [];
 
+    [AutoPostConstruct]
+    public void Initialize(PluginAssemblyProvider pluginAssemblyProvider, IDalamudPluginInterface pluginInterface)
+    {
         LoadEmbeddedResource(GetType().Assembly, "HaselCommon.Translations.json");
         LoadEmbeddedResource(pluginAssemblyProvider.Assembly, $"{pluginInterface.InternalName}.Translations.json");
     }

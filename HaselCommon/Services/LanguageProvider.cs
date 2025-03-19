@@ -5,8 +5,8 @@ using HaselCommon.Extensions.Dalamud;
 
 namespace HaselCommon.Services;
 
-[RegisterSingleton]
-public class LanguageProvider : IDisposable
+[RegisterSingleton, AutoConstruct]
+public partial class LanguageProvider : IDisposable
 {
     private readonly IDalamudPluginInterface _pluginInterface;
 
@@ -16,10 +16,9 @@ public class LanguageProvider : IDisposable
 
     public event Action<string>? LanguageChanged;
 
-    public LanguageProvider(IDalamudPluginInterface pluginInterface)
+    [AutoPostConstruct]
+    private void Initialize()
     {
-        _pluginInterface = pluginInterface;
-
         LanguageCode = _pluginInterface.UiLanguage;
         ClientLanguage = _pluginInterface.UiLanguage.ToClientlanguage();
         CultureInfo = GetCultureInfoFromLangCode(LanguageCode);

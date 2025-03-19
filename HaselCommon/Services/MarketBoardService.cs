@@ -6,13 +6,15 @@ using FFXIVClientStructs.FFXIV.Client.UI.Info;
 
 namespace HaselCommon.Services;
 
-[RegisterSingleton]
-public unsafe class MarketBoardService : IDisposable
+[RegisterSingleton, AutoConstruct]
+public unsafe partial class MarketBoardService : IDisposable
 {
     private readonly IMarketBoard _marketBoard;
-    private readonly Hook<InfoProxyItemSearch.Delegates.ProcessRequestResult> _processRequestResultHook;
-    private readonly Hook<InfoProxyItemSearch.Delegates.EndRequest> _endRequestHook;
+
     private readonly List<IMarketBoardItemListing> _listings = [];
+
+    private Hook<InfoProxyItemSearch.Delegates.ProcessRequestResult> _processRequestResultHook;
+    private Hook<InfoProxyItemSearch.Delegates.EndRequest> _endRequestHook;
 
     public delegate void ListingsStartDelegate();
     public event ListingsStartDelegate? ListingsStart;
@@ -23,10 +25,9 @@ public unsafe class MarketBoardService : IDisposable
     public delegate void ListingsEndDelegate(IReadOnlyList<IMarketBoardItemListing> listings);
     public event ListingsEndDelegate? ListingsEnd;
 
-    public MarketBoardService(IGameInteropProvider gameInteropProvider, IMarketBoard marketBoard)
+    [AutoPostConstruct]
+    private void Initialize(IGameInteropProvider gameInteropProvider)
     {
-        _marketBoard = marketBoard;
-
         _processRequestResultHook = gameInteropProvider.HookFromAddress<InfoProxyItemSearch.Delegates.ProcessRequestResult>(
             InfoProxyItemSearch.MemberFunctionPointers.ProcessRequestResult,
             ProcessRequestResultDetour);

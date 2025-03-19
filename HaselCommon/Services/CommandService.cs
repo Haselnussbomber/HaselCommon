@@ -8,13 +8,14 @@ using Microsoft.Extensions.Logging;
 
 namespace HaselCommon.Services;
 
-[RegisterSingleton]
-public class CommandService(
-    ILogger<CommandService> logger,
-    ICommandManager commandManager,
-    LanguageProvider languageProvider,
-    TextService textService) : IDisposable
+[RegisterSingleton, AutoConstruct]
+public partial class CommandService : IDisposable
 {
+    private readonly ILogger<CommandService> _logger;
+    private readonly ICommandManager _commandManager;
+    private readonly LanguageProvider _languageProvider;
+    private readonly TextService _textService;
+
     private readonly Dictionary<string, CommandHandler> _commandHandlers = [];
 
     public void Dispose()
@@ -29,9 +30,9 @@ public class CommandService(
 
         return new CommandHandler(
             this,
-            commandManager,
-            languageProvider,
-            textService,
+            _commandManager,
+            _languageProvider,
+            _textService,
             attr.Command,
             attr.HelpMessageKey,
             attr.ShowInHelp,
@@ -44,9 +45,9 @@ public class CommandService(
     {
         return new CommandHandler(
             this,
-            commandManager,
-            languageProvider,
-            textService,
+            _commandManager,
+            _languageProvider,
+            _textService,
             command,
             helpMessageKey,
             showInHelp,
@@ -57,7 +58,7 @@ public class CommandService(
 
     public CommandHandler Register(CommandHandler commandHandler)
     {
-        logger.LogDebug("Registering {command}", commandHandler.Command);
+        _logger.LogDebug("Registering {command}", commandHandler.Command);
         _commandHandlers.Add(commandHandler.Command, commandHandler);
         return commandHandler;
     }
@@ -66,7 +67,7 @@ public class CommandService(
     {
         if (_commandHandlers.ContainsKey(commandHandler.Command))
         {
-            logger.LogDebug("Unregistering {command}", commandHandler.Command);
+            _logger.LogDebug("Unregistering {command}", commandHandler.Command);
             _commandHandlers.Remove(commandHandler.Command);
             commandHandler.Dispose();
         }

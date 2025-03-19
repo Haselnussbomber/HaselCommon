@@ -8,20 +8,18 @@ using Microsoft.Extensions.Logging;
 
 namespace HaselCommon.Services;
 
-[RegisterSingleton]
-public class WindowManager : IDisposable
+[RegisterSingleton, AutoConstruct]
+public partial class WindowManager : IDisposable
 {
     private readonly ILogger<WindowManager> _logger;
     private readonly IDalamudPluginInterface _pluginInterface;
     private readonly GlobalScaleObserver _globalScaleObserver;
-    private readonly WindowSystem _windowSystem;
 
-    public WindowManager(ILogger<WindowManager> logger, IDalamudPluginInterface pluginInterface, GlobalScaleObserver globalScaleObserver)
+    private WindowSystem _windowSystem;
+
+    [AutoPostConstruct]
+    private void Initialize()
     {
-        _logger = logger;
-        _pluginInterface = pluginInterface;
-        _globalScaleObserver = globalScaleObserver;
-
         _windowSystem = new(_pluginInterface.InternalName);
 
         _pluginInterface.UiBuilder.Draw += _windowSystem.Draw;

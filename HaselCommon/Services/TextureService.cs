@@ -15,9 +15,13 @@ using Lumina.Extensions;
 
 namespace HaselCommon.Services;
 
-[RegisterSingleton]
-public class TextureService(ITextureProvider textureProvider, IDataManager dataManager, IGameConfig gameConfig)
+[RegisterSingleton, AutoConstruct]
+public partial class TextureService
 {
+    private readonly ITextureProvider _textureProvider;
+    private readonly IDataManager _dataManager;
+    private readonly IGameConfig _gameConfig;
+
     private record UldPartKey(byte ThemeType, string UldName, uint PartListId, uint PartIndex);
     private record UldPartInfo(string Path, Vector2 Uv0, Vector2 Uv1);
 
@@ -31,7 +35,14 @@ public class TextureService(ITextureProvider textureProvider, IDataManager dataM
     ];
 
     private readonly ConcurrentDictionary<UldPartKey, UldPartInfo?> _uldPartCache = [];
-    public readonly Lazy<GfdFileView> GfdFileView = new(() => new(dataManager.GetFile("common/font/gfdata.gfd")!.Data));
+
+    public Lazy<GfdFileView> GfdFileView { get; private set; }
+
+    [AutoPostConstruct]
+    private void Initialize()
+    {
+        GfdFileView = new(() => new(_dataManager.GetFile("common/font/gfdata.gfd")!.Data));
+    }
 
     public void Draw(string path, DrawInfo drawInfo)
     {
@@ -41,7 +52,7 @@ public class TextureService(ITextureProvider textureProvider, IDataManager dataM
             return;
         }
 
-        var textureWrap = textureProvider.GetFromGame(path).GetWrapOrEmpty();
+        var textureWrap = _textureProvider.GetFromGame(path).GetWrapOrEmpty();
         Draw(textureWrap, drawInfo);
     }
 
@@ -53,7 +64,7 @@ public class TextureService(ITextureProvider textureProvider, IDataManager dataM
             return;
         }
 
-        if (!textureProvider.TryGetFromGameIcon(gameIconLookup, out var texture))
+        if (!_textureProvider.TryGetFromGameIcon(gameIconLookup, out var texture))
         {
             ImGui.Dummy(Vector2.Zero);
             return;
@@ -82,7 +93,7 @@ public class TextureService(ITextureProvider textureProvider, IDataManager dataM
         var startPos = new Vector2(entry.Left, entry.Top) * 2 + new Vector2(0, 340);
         var size = new Vector2(entry.Width, entry.Height) * 2;
 
-        gameConfig.TryGet(SystemConfigOption.PadSelectButtonIcon, out uint padSelectButtonIcon);
+        _gameConfig.TryGet(SystemConfigOption.PadSelectButtonIcon, out uint padSelectButtonIcon);
 
         Draw(GfdTextures[padSelectButtonIcon], new()
         {
@@ -130,7 +141,7 @@ public class TextureService(ITextureProvider textureProvider, IDataManager dataM
     {
         uldPartInfo = null;
 
-        var uld = dataManager.GetFile<UldFile>($"ui/uld/{key.UldName}.uld");
+        var uld = _dataManager.GetFile<UldFile>($"ui/uld/{key.UldName}.uld");
         if (uld == null)
         {
             _uldPartCache.TryAdd(key, null);
@@ -158,7 +169,7 @@ public class TextureService(ITextureProvider textureProvider, IDataManager dataM
         var path = assetPath;
         path = path.Insert(7, colorThemePath);
         path = path.Insert(path.LastIndexOf('.'), "_hr1");
-        var exists = dataManager.FileExists(path);
+        var exists = _dataManager.FileExists(path);
         var version = 2;
 
         // fallback to theme normal texture
@@ -166,7 +177,7 @@ public class TextureService(ITextureProvider textureProvider, IDataManager dataM
         {
             path = assetPath;
             path = path.Insert(7, colorThemePath);
-            exists = dataManager.FileExists(path);
+            exists = _dataManager.FileExists(path);
             version = 1;
         }
 
@@ -175,7 +186,7 @@ public class TextureService(ITextureProvider textureProvider, IDataManager dataM
         {
             path = assetPath;
             path = path.Insert(path.LastIndexOf('.'), "_hr1");
-            exists = dataManager.FileExists(path);
+            exists = _dataManager.FileExists(path);
             version = 2;
         }
 
@@ -183,7 +194,7 @@ public class TextureService(ITextureProvider textureProvider, IDataManager dataM
         if (!exists)
         {
             path = assetPath;
-            exists = dataManager.FileExists(path);
+            exists = _dataManager.FileExists(path);
             version = 1;
         }
 

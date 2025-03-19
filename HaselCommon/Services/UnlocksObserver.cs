@@ -6,20 +6,19 @@ using Microsoft.Extensions.Logging;
 
 namespace HaselCommon.Services;
 
-[RegisterSingleton]
-public unsafe class UnlocksObserver : IDisposable
+[RegisterSingleton, AutoConstruct]
+public unsafe partial class UnlocksObserver : IDisposable
 {
-    private delegate void RaptureHotbarModulePerformMateriaActionMigrationDelegate(RaptureHotbarModule* thisPtr);
-
     private readonly ILogger<UnlocksObserver> _logger;
-    private readonly Hook<RaptureHotbarModulePerformMateriaActionMigrationDelegate> _hook;
+
+    private delegate void RaptureHotbarModulePerformMateriaActionMigrationDelegate(RaptureHotbarModule* thisPtr);
+    private Hook<RaptureHotbarModulePerformMateriaActionMigrationDelegate> _hook;
 
     public event Action? Update;
 
-    public UnlocksObserver(ILogger<UnlocksObserver> logger, IGameInteropProvider gameInteropProvider)
+    [AutoPostConstruct]
+    private void Initialize(IGameInteropProvider gameInteropProvider)
     {
-        _logger = logger;
-
         // This might look weird at first, but this function is called inside RaptureAtkModule.Update
         // when RaptureAtkModule.AgentUpdateFlag has flag UnlocksUpdate, which is exactly what I need.
         // Previously, this class hooked RaptureAtkModule.Update directly, but this caused a deadlock

@@ -4,17 +4,18 @@ using Dalamud.Plugin;
 
 namespace HaselCommon.Services;
 
-[RegisterSingleton]
-public class GlobalScaleObserver : IDisposable
+[RegisterSingleton, AutoConstruct]
+public partial class GlobalScaleObserver : IDisposable
 {
     private readonly IDalamudPluginInterface _pluginInterface;
+
     private float _globalScale;
 
     public event Action<float>? ScaleChange;
 
-    public GlobalScaleObserver(IDalamudPluginInterface pluginInterface)
+    [AutoPostConstruct]
+    public void Initialize()
     {
-        _pluginInterface = pluginInterface;
         _pluginInterface.UiBuilder.FontAtlas.BuildStepChange += OnBuildStepChange;
     }
 
