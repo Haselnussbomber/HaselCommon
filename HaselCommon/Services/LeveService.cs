@@ -53,30 +53,30 @@ public partial class LeveService
         return QuestManager.Instance()->NumLeveAllowances;
     }
 
-    public unsafe LeveWork* GetLeveWork(ExcelRowId<Leve> leveId)
+    public unsafe LeveWork* GetLeveWork(uint leveId)
     {
         var leveQuests = QuestManager.Instance()->LeveQuests;
 
         for (var i = 0; i < leveQuests.Length; i++)
         {
-            if (leveQuests[i].LeveId == leveId.RowId)
+            if (leveQuests[i].LeveId == leveId)
                 return leveQuests.GetPointer(i);
         }
 
         return null;
     }
 
-    public unsafe bool IsComplete(ExcelRowId<Leve> leveId)
+    public unsafe bool IsComplete(uint leveId)
     {
-        return QuestManager.Instance()->IsLevequestComplete((ushort)leveId.RowId);
+        return QuestManager.Instance()->IsLevequestComplete((ushort)leveId);
     }
 
-    public bool IsAccepted(ExcelRowId<Leve> leveId)
+    public bool IsAccepted(uint leveId)
     {
-        return GetActiveLeveIds().Any(id => id == leveId.RowId);
+        return GetActiveLeveIds().Any(id => id == leveId);
     }
 
-    public unsafe bool IsReadyForTurnIn(ExcelRowId<Leve> leveId)
+    public unsafe bool IsReadyForTurnIn(uint leveId)
     {
         var leveWork = GetLeveWork(leveId);
         if (leveWork == null)
@@ -85,7 +85,7 @@ public partial class LeveService
         return leveWork->Sequence == 255;
     }
 
-    public unsafe bool IsStarted(ExcelRowId<Leve> leveId)
+    public unsafe bool IsStarted(uint leveId)
     {
         var leveWork = GetLeveWork(leveId);
         if (leveWork == null)
@@ -94,7 +94,7 @@ public partial class LeveService
         return leveWork->Sequence == 1 && leveWork->ClearClass != 0;
     }
 
-    public unsafe bool IsFailed(ExcelRowId<Leve> leveId)
+    public unsafe bool IsFailed(uint leveId)
     {
         var leveWork = GetLeveWork(leveId);
         if (leveWork == null)
@@ -103,29 +103,29 @@ public partial class LeveService
         return leveWork->Sequence == 3;
     }
 
-    public bool IsTownLocked(ExcelRowId<Leve> leveId)
+    public bool IsTownLocked(uint leveId)
     {
-        return leveId.RowId is 546 or 556 or 566;
+        return leveId is 546 or 556 or 566;
     }
 
-    public bool IsCraftLeve(ExcelRowId<Leve> leveId)
+    public bool IsCraftLeve(uint leveId)
     {
-        return leveId.TryGetRow(out var leve) && leve.LeveAssignmentType.RowId is >= 5 and <= 12;
+        return _excelService.TryGetRow<Leve>(leveId, out var leve) && leve.LeveAssignmentType.RowId is >= 5 and <= 12;
     }
 
-    public bool IsFishingLeve(ExcelRowId<Leve> leveId)
+    public bool IsFishingLeve(uint leveId)
     {
-        return leveId.TryGetRow(out var leve) && leve.LeveAssignmentType.RowId is 4;
+        return _excelService.TryGetRow<Leve>(leveId, out var leve) && leve.LeveAssignmentType.RowId is 4;
     }
 
-    public ItemAmount[] GetRequiredItems(ExcelRowId<Leve> leveId)
+    public ItemAmount[] GetRequiredItems(uint leveId)
     {
-        if (_requiredItemsCache.TryGetValue(leveId.RowId, out var requiredItems))
+        if (_requiredItemsCache.TryGetValue(leveId, out var requiredItems))
             return requiredItems;
 
-        if (!(IsCraftLeve(leveId) || IsFishingLeve(leveId)) || !leveId.TryGetRow(out var leve) || !leve.DataId.TryGetValue<CraftLeve>(out var craftLeve))
+        if (!(IsCraftLeve(leveId) || IsFishingLeve(leveId)) || !_excelService.TryGetRow<Leve>(leveId, out var leve) || !leve.DataId.TryGetValue<CraftLeve>(out var craftLeve))
         {
-            _requiredItemsCache.Add(leveId.RowId, requiredItems = []);
+            _requiredItemsCache.Add(leveId, requiredItems = []);
             return requiredItems;
         }
 
@@ -145,7 +145,7 @@ public partial class LeveService
             reqItem.Amount += count;
         }
 
-        _requiredItemsCache.Add(leveId.RowId, requiredItems = [.. dict.Values]);
+        _requiredItemsCache.Add(leveId, requiredItems = [.. dict.Values]);
         return requiredItems;
     }
 }

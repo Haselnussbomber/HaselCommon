@@ -12,7 +12,6 @@ using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using HaselCommon.Extensions.Sheets;
 using HaselCommon.Game;
-using HaselCommon.Utils;
 using Lumina.Excel.Sheets;
 using Lumina.Text;
 using Lumina.Text.ReadOnly;
@@ -165,7 +164,7 @@ public partial class MapService
         ));
     }
 
-    public unsafe bool OpenMap(GatheringPoint point, ExcelRowId<Item> itemId, ReadOnlySeString? prefix = null)
+    public unsafe bool OpenMap(GatheringPoint point, uint itemId, ReadOnlySeString? prefix = null)
     {
         if (!point.TerritoryType.IsValid)
             return false;
@@ -208,7 +207,7 @@ public partial class MapService
             prefix);
     }
 
-    public unsafe bool OpenMap(FishingSpot fishingSpot, ExcelRowId<Item> itemId, ReadOnlySeString? prefix = null)
+    public unsafe bool OpenMap(FishingSpot fishingSpot, uint itemId, ReadOnlySeString? prefix = null)
     {
         if (!fishingSpot.TerritoryType.IsValid)
             return false;
@@ -247,7 +246,7 @@ public partial class MapService
         return AddGatheringMarkerAndOpenMap(territoryType, x, y, radius, iconId, tooltip, itemId, prefix);
     }
 
-    private unsafe bool AddGatheringMarkerAndOpenMap(TerritoryType territoryType, int x, int y, int radius, uint iconId, Utf8String tooltip, ExcelRowId<Item> itemId, ReadOnlySeString? prefix = null)
+    private unsafe bool AddGatheringMarkerAndOpenMap(TerritoryType territoryType, int x, int y, int radius, uint iconId, Utf8String tooltip, uint itemId, ReadOnlySeString? prefix = null)
     {
         var agentMap = AgentMap.Instance();
         if (agentMap == null)

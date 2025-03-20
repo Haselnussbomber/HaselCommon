@@ -15,7 +15,6 @@ using HaselCommon.Graphics;
 using HaselCommon.Gui;
 using HaselCommon.Utils;
 using ImGuiNET;
-using Lumina.Excel.Sheets;
 using Lumina.Extensions;
 using Lumina.Text.ReadOnly;
 using Microsoft.Extensions.ObjectPool;
@@ -86,7 +85,7 @@ public unsafe struct ImGuiContextMenuBuilder(string id, TextService textService,
         return this;
     }
 
-    public ImGuiContextMenuBuilder AddTryOn(ExcelRowId<Item> itemId, uint glamourItemId = 0, byte stain0Id = 0, byte stain1Id = 0)
+    public ImGuiContextMenuBuilder AddTryOn(uint itemId, uint glamourItemId = 0, byte stain0Id = 0, byte stain1Id = 0)
     {
         entries.Add(new ImGuiContextMenuEntry()
         {
@@ -105,7 +104,7 @@ public unsafe struct ImGuiContextMenuBuilder(string id, TextService textService,
         return this;
     }
 
-    public ImGuiContextMenuBuilder AddItemFinder(ExcelRowId<Item> itemId)
+    public ImGuiContextMenuBuilder AddItemFinder(uint itemId)
     {
         entries.Add(new ImGuiContextMenuEntry()
         {
@@ -118,7 +117,7 @@ public unsafe struct ImGuiContextMenuBuilder(string id, TextService textService,
         return this;
     }
 
-    public ImGuiContextMenuBuilder AddLinkItem(ExcelRowId<Item> itemId)
+    public ImGuiContextMenuBuilder AddLinkItem(uint itemId)
     {
         entries.Add(new ImGuiContextMenuEntry()
         {
@@ -131,7 +130,7 @@ public unsafe struct ImGuiContextMenuBuilder(string id, TextService textService,
         return this;
     }
 
-    public ImGuiContextMenuBuilder AddCopyItemName(ExcelRowId<Item> itemId)
+    public ImGuiContextMenuBuilder AddCopyItemName(uint itemId)
     {
         var itemName = textService.GetItemName(itemId);
 
@@ -144,7 +143,7 @@ public unsafe struct ImGuiContextMenuBuilder(string id, TextService textService,
         return this;
     }
 
-    public ImGuiContextMenuBuilder AddItemSearch(ExcelRowId<Item> itemId)
+    public ImGuiContextMenuBuilder AddItemSearch(uint itemId)
     {
         var _itemService = itemService;
 
@@ -214,7 +213,7 @@ public unsafe struct ImGuiContextMenuBuilder(string id, TextService textService,
         return this;
     }
 
-    public ImGuiContextMenuBuilder AddSearchCraftingMethod(ExcelRowId<Item> itemId)
+    public ImGuiContextMenuBuilder AddSearchCraftingMethod(uint itemId)
     {
         entries.Add(new ImGuiContextMenuEntry()
         {
@@ -227,7 +226,7 @@ public unsafe struct ImGuiContextMenuBuilder(string id, TextService textService,
         return this;
     }
 
-    public ImGuiContextMenuBuilder AddOpenMapForGatheringPoint(ExcelRowId<Item> itemId, TerritoryType territoryType, ReadOnlySeString? prefix = null)
+    public ImGuiContextMenuBuilder AddOpenMapForGatheringPoint(uint itemId, TerritoryType territoryType, ReadOnlySeString? prefix = null)
     {
         var _mapService = mapService;
         var _itemService = itemService;
@@ -247,7 +246,7 @@ public unsafe struct ImGuiContextMenuBuilder(string id, TextService textService,
         return this;
     }
 
-    public ImGuiContextMenuBuilder AddOpenMapForFishingSpot(ExcelRowId<Item> itemId, ReadOnlySeString? prefix = null)
+    public ImGuiContextMenuBuilder AddOpenMapForFishingSpot(uint itemId, ReadOnlySeString? prefix = null)
     {
         var _mapService = mapService;
         var _itemService = itemService;
@@ -277,7 +276,7 @@ public unsafe struct ImGuiContextMenuBuilder(string id, TextService textService,
         return this;
     }
 
-    public ImGuiContextMenuBuilder AddSearchGatheringMethod(ExcelRowId<Item> itemId)
+    public ImGuiContextMenuBuilder AddSearchGatheringMethod(uint itemId)
     {
         entries.Add(new ImGuiContextMenuEntry()
         {
@@ -290,7 +289,7 @@ public unsafe struct ImGuiContextMenuBuilder(string id, TextService textService,
         return this;
     }
 
-    public ImGuiContextMenuBuilder AddOpenInFishGuide(ExcelRowId<Item> itemId)
+    public ImGuiContextMenuBuilder AddOpenInFishGuide(uint itemId)
     {
         var isFish = itemService.IsFish(itemId);
         var isSpearfish = itemService.IsSpearfish(itemId);

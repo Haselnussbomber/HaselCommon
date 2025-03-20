@@ -65,19 +65,18 @@ public partial class SheetRedirectResolver
                 {
                     flags |= SheetRedirectFlags.Item;
 
-                    var excelRow = new ExcelRowId<LSheets.Item>(rowId);
-                    var itemId = excelRow.GetBaseId();
+                    var itemId = GetBaseItemId(rowId);
 
-                    if (excelRow.IsHighQuality() || sheetName == "ItemHQ")
+                    if (IsHighQuality(itemId) || sheetName == "ItemHQ")
                     {
                         flags |= SheetRedirectFlags.HighQuality;
                     }
-                    else if (excelRow.IsCollectible() || sheetName == "ItemMP") // MP for Masterpiece?!
+                    else if (IsCollectible(itemId) || sheetName == "ItemMP") // MP for Masterpiece?!
                     {
                         flags |= SheetRedirectFlags.Collectible;
                     }
 
-                    if (excelRow.IsEventItem() &&
+                    if (IsEventItem(itemId) &&
                         rowId - 2_000_000 <= _excelService.GetRowCount<LSheets.EventItem>())
                     {
                         flags |= SheetRedirectFlags.EventItem;
