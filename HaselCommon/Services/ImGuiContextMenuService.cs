@@ -35,44 +35,41 @@ public partial class ImGuiContextMenuService
 
     public void Draw(string id, Action<ImGuiContextMenuBuilder> buildAction)
     {
-        var list = _objectPool.Get();
+        var shouldOpen = ImGui.IsMouseReleased(ImGuiMouseButton.Right) && ImGui.IsItemHovered(ImGuiHoveredFlags.AllowWhenBlockedByPopup);
+        var isOpen = shouldOpen || ImGui.IsPopupOpen(id);
+
+        if (!isOpen)
+            return;
+
+        var entries = _objectPool.Get();
 
         try
         {
-            var builder = new ImGuiContextMenuBuilder(id, _textService, _mapService, _itemService, list);
+            var builder = new ImGuiContextMenuBuilder(_textService, _mapService, _itemService, entries);
             buildAction(builder);
-            builder.Draw();
+
+            if (shouldOpen && entries.Any(entry => entry.Visible))
+                ImGui.OpenPopup(id, ImGuiPopupFlags.MouseButtonRight);
+
+            using var popup = ImRaii.Popup(id, ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoSavedSettings);
+            if (!popup)
+                return;
+
+            var i = 0;
+            var visibleEntries = entries.Where(entry => entry.Visible);
+            var count = visibleEntries.Count();
+            foreach (var entry in visibleEntries)
+                entry.Draw(new IterationArgs(i++, count));
         }
         finally
         {
-            _objectPool.Return(list);
+            _objectPool.Return(entries);
         }
     }
 }
 
-public unsafe struct ImGuiContextMenuBuilder(string id, TextService textService, MapService mapService, ItemService itemService, List<IImGuiContextMenuEntry> entries)
+public unsafe struct ImGuiContextMenuBuilder(TextService textService, MapService mapService, ItemService itemService, List<IImGuiContextMenuEntry> entries)
 {
-    internal void Draw()
-    {
-        if (ImGui.IsMouseReleased(ImGuiMouseButton.Right) && ImGui.IsItemHovered(ImGuiHoveredFlags.AllowWhenBlockedByPopup))
-        {
-            if (!entries.Any(entry => entry.Visible))
-                return;
-
-            ImGui.OpenPopup(id, ImGuiPopupFlags.MouseButtonRight);
-        }
-
-        using var popup = ImRaii.Popup(id, ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoSavedSettings);
-        if (!popup)
-            return;
-
-        var i = 0;
-        var visibleEntries = entries.Where(entry => entry.Visible);
-        var count = visibleEntries.Count();
-        foreach (var entry in visibleEntries)
-            entry.Draw(new IterationArgs(i++, count));
-    }
-
     public ImGuiContextMenuBuilder Add(IImGuiContextMenuEntry entry)
     {
         entries.Add(entry);
@@ -336,13 +333,13 @@ public unsafe struct ImGuiContextMenuBuilder(string id, TextService textService,
 
 public interface IImGuiContextMenuEntry
 {
-    public bool Visible { get; }
-    public bool Enabled { get; }
-    public string Label { get; }
-    public bool LoseFocusOnClick { get; }
-    public Action? ClickCallback { get; }
-    public Action? HoverCallback { get; }
-    public void Draw(IterationArgs args);
+    bool Visible { get; }
+    bool Enabled { get; }
+    string Label { get; }
+    bool LoseFocusOnClick { get; }
+    Action? ClickCallback { get; }
+    Action? HoverCallback { get; }
+    void Draw(IterationArgs args);
 }
 
 public struct ImGuiContextMenuEntry : IImGuiContextMenuEntry
