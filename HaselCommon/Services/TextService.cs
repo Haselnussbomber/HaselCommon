@@ -119,6 +119,9 @@ public partial class TextService
             ? GetOrCreateCachedText<EventItem>(itemId, language, (row) => row.Name)
             : GetOrCreateCachedText<Item>(GetBaseItemId(itemId), language, (row) => row.Name);
 
+    public string GetStainName(uint id, ClientLanguage? language = null)
+        => GetOrCreateCachedText<Stain>(id, language, (row) => row.Name);
+
     public string GetQuestName(uint id, ClientLanguage? language = null)
         => GetOrCreateCachedText<Quest>(id, language, (row) => row.Name);
 
@@ -261,7 +264,7 @@ public partial class TextService
         }
 
         var tempText = getText(row);
-        _rowNameCache.Add(key, text = tempText.IsEmpty ? $"{typeof(T).Name}#{rowId}" : tempText.ExtractText().StripSoftHyphen());
+        _rowNameCache.Add(key, text = tempText.IsEmpty ? $"{typeof(T).Name}#{rowId}" : tempText.ExtractText().StripSoftHyphen().FirstCharToUpper());
         return text;
     }
 }
