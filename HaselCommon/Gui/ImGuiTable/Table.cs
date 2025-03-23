@@ -26,11 +26,13 @@ public class Table<T> : IDisposable
         get => _rows;
         set { _rows = value; RowsLoaded = true; IsSortDirty |= true; }
     }
+    public List<T>? FilteredRows => _filteredRows;
     public bool RowsLoaded { get; set; }
-    public Column<T>[] Columns { get; set; } = [];
+    public List<Column<T>> Columns { get; set; } = [];
     public bool IsFilterDirty { get; set; } = true;
     public bool IsSortDirty { get; set; } = true;
     public float? LineHeight { get; set; } = null;
+    public int ScrollFreezeCols { get; set; } = 1;
     public bool Sortable
     {
         get => Flags.HasFlag(ImGuiTableFlags.Sortable);
@@ -99,9 +101,9 @@ public class Table<T> : IDisposable
             if (Flags.HasFlag(ImGuiTableFlags.SortTristate))
                 SortTristate();
         }
-        else if (Columns.Length > 0)
+        else if (Columns.Count > 0)
         {
-            var column = Columns[Columns.Length <= sortSpecs.Specs.ColumnIndex ? 0 : sortSpecs.Specs.ColumnIndex];
+            var column = Columns[Columns.Count <= sortSpecs.Specs.ColumnIndex ? 0 : sortSpecs.Specs.ColumnIndex];
             _rows.Sort((a, b) => (sortSpecs.Specs.SortDirection == ImGuiSortDirection.Descending ? -1 : 1) * column.Compare(a, b));
         }
 
@@ -128,14 +130,14 @@ public class Table<T> : IDisposable
 
     private void DrawTableInternal()
     {
-        if (Columns.Length == 0)
+        if (Columns.Count == 0)
             return;
 
-        using var table = ImRaii.Table("Table", Columns.Length, Flags, ImGui.GetContentRegionAvail());
+        using var table = ImRaii.Table("Table", Columns.Count, Flags, ImGui.GetContentRegionAvail());
         if (!table)
             return;
 
-        ImGui.TableSetupScrollFreeze(1, 1);
+        ImGui.TableSetupScrollFreeze(ScrollFreezeCols, 1);
 
         foreach (var column in Columns)
             ImGui.TableSetupColumn(column.Label, column.Flags, column.Width * ImGuiHelpers.GlobalScale);
@@ -154,7 +156,7 @@ public class Table<T> : IDisposable
             _closePopupNextFrame = true;
         }
 
-        for (var columnIndex = 0; columnIndex < Columns.Length; columnIndex++)
+        for (var columnIndex = 0; columnIndex < Columns.Count; columnIndex++)
         {
             var column = Columns[columnIndex];
 
