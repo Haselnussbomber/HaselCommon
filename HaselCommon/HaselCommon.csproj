@@ -19,7 +19,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="InteropGenerator.Runtime" Private="false" />
     <Reference Include="Microsoft.Extensions.ObjectPool" Private="false" />
   </ItemGroup>
 
@@ -33,6 +32,7 @@
   </PropertyGroup>
 
   <ItemGroup Condition="Exists('$(ProjectDir)..\..\FFXIVClientStructs')">
+    <ProjectReference Include="..\..\FFXIVClientStructs\InteropGenerator.Runtime\InteropGenerator.Runtime.csproj" Private="True" />
     <ProjectReference Include="..\..\FFXIVClientStructs\FFXIVClientStructs\FFXIVClientStructs.csproj" Private="True" />
   </ItemGroup>
 
