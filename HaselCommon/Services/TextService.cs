@@ -179,7 +179,7 @@ public partial class TextService
         => GetOrCreateCachedText<ActionComboRoute>(id, language, (row) => row.Name);
 
     public string GetBgcArmyActionName(uint id, ClientLanguage? language = null)
-        => GetOrCreateCachedText<BgcArmyAction>(id, language, (row) => row.Unknown0);
+        => GetOrCreateCachedText<BgcArmyAction>(id, language, (row) => row.Name);
 
     public string GetPerformanceInstrumentName(uint id, ClientLanguage? language = null)
         => GetOrCreateCachedText<Perform>(id, language, (row) => row.Instrument);

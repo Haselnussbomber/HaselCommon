@@ -12,6 +12,8 @@ using Microsoft.Extensions.Logging;
 
 namespace HaselCommon;
 
+#pragma warning disable SeStringEvaluator
+
 public static class Service
 {
     public static IServiceCollection Collection { get; set; } = new ServiceCollection();
@@ -91,6 +93,7 @@ public static class Service
             .AddSingleton(DalamudServiceFactory<IPartyList>)
             .AddSingleton(DalamudServiceFactory<IPluginLog>)
             .AddSingleton(DalamudServiceFactory<ISigScanner>)
+            .AddSingleton(DalamudServiceFactory<ISeStringEvaluator>)
             .AddSingleton(DalamudServiceFactory<ITargetManager>)
             .AddSingleton(DalamudServiceFactory<ITextureProvider>)
             .AddSingleton(DalamudServiceFactory<ITextureReadbackProvider>)
