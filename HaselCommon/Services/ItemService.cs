@@ -13,7 +13,6 @@ using FFXIVClientStructs.FFXIV.Component.GUI;
 using HaselCommon.Extensions.Sheets;
 using HaselCommon.Game.Enums;
 using HaselCommon.Graphics;
-using HaselCommon.Sheets;
 using HaselCommon.Utils;
 using Lumina.Excel.Sheets;
 using Lumina.Extensions;
@@ -554,7 +553,7 @@ public partial class ItemService
         if (_hairStyleIconsCache.TryGetValue(key, out var icon))
             return icon;
 
-        if (!_excelService.TryFindRow<CustomHairMakeType>(t => t.Tribe.RowId == tribeId && t.Gender == sexId, out var hairMakeType))
+        if (!_excelService.TryFindRow<HairMakeType>(t => t.Tribe.RowId == tribeId && t.Gender == sexId, out var hairMakeType))
         {
             _hairStyleIconsCache.Add(key, 0);
             return 0;
