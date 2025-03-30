@@ -13,6 +13,7 @@ using Lumina.Text;
 using Lumina.Text.ReadOnly;
 using Microsoft.Extensions.Logging;
 using ActionSheet = Lumina.Excel.Sheets.Action;
+using DObjectKind = Dalamud.Game.ClientState.Objects.Enums.ObjectKind;
 
 namespace HaselCommon.Services;
 
@@ -228,25 +229,7 @@ public partial class TextService
         => FromObjStr(ObjectKind.Companion, id, language);
 
     private string FromObjStr(ObjectKind objectKind, uint id, ClientLanguage? language = null)
-        => _seStringEvaluator.EvaluateFromAddon(2025, [GetObjStrId(objectKind, id)], language).ExtractText().StripSoftHyphen();
-
-    // "8D 41 FE 83 F8 0C 77 4D"
-    private static uint GetObjStrId(ObjectKind objectKind, uint id)
-    {
-        return objectKind switch
-        {
-            ObjectKind.BattleNpc => id < 1000000 ? id : id - 900000,
-            ObjectKind.EventNpc => id,
-            ObjectKind.Treasure or
-            ObjectKind.Aetheryte or
-            ObjectKind.GatheringPoint or
-            ObjectKind.Companion or
-            ObjectKind.HousingEventObject => id + 1000000 * (uint)objectKind - 2000000,
-            ObjectKind.EventObj => id + 1000000 * (uint)objectKind - 4000000,
-            ObjectKind.MjiObject => id + 3000000,
-            _ => 0,
-        };
-    }
+        => _seStringEvaluator.EvaluateFromAddon(2025, [((DObjectKind)objectKind).GetObjStrId(id)], language).ExtractText().StripSoftHyphen();
 
     private string GetOrCreateCachedText<T>(uint rowId, ClientLanguage? language, Func<T, ReadOnlySeString> getText) where T : struct, IExcelRow<T>
     {
