@@ -162,7 +162,7 @@ public partial class ItemService
             return points;
         }
 
-        var bases = _excelService.FindRows<GatheringPointBase>(row => row.GatheringType.RowId == 5 && row.Item.Any(item => item.RowId == itemId));
+        var bases = _excelService.FindRows<GatheringPointBase>(row => row.GatheringType.RowId == 5 && row.Item.Any(item => item.RowId == spearfishingItem.RowId));
         points = _excelService.FindRows<GatheringPoint>(row => bases.Any(b => b.RowId == row.GatheringPointBase.RowId));
         _spearfishingItemGatheringPointsCache.Add(itemId, points);
         return points;
