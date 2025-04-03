@@ -5,6 +5,7 @@ using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Game.Text;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game;
+using FFXIVClientStructs.FFXIV.Client.Game.Control;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using FFXIVClientStructs.FFXIV.Client.System.Framework;
 using FFXIVClientStructs.FFXIV.Client.System.String;
@@ -55,14 +56,14 @@ public partial class MapService
         return _textService.Translate("CoordsXY", x, y);
     }
 
-    public float GetDistanceFromPlayer(Level level)
+    public unsafe float GetDistanceFromPlayer(Level level)
     {
-        var localPlayer = _clientState.LocalPlayer;
+        var localPlayer = Control.GetLocalPlayer();
         if (localPlayer == null || level.Territory.RowId != _clientState.TerritoryType)
             return float.MaxValue; // far, far away
 
         return Vector2.Distance(
-            new Vector2(localPlayer.Position.X, localPlayer.Position.Z),
+            new Vector2(localPlayer->Position.X, localPlayer->Position.Z),
             new Vector2(level.X, level.Z)
         );
     }
@@ -77,14 +78,14 @@ public partial class MapService
         return _textService.Translate($"CompassHeadings.{CompassHeadings[octant]}");
     }
 
-    public string GetCompassDirection(Level level)
+    public unsafe string GetCompassDirection(Level level)
     {
-        var localPlayer = _clientState.LocalPlayer;
+        var localPlayer = Control.GetLocalPlayer();
         if (localPlayer == null)
             return string.Empty;
 
         return GetCompassDirection(
-            new Vector2(-localPlayer.Position.X, localPlayer.Position.Z),
+            new Vector2(-localPlayer->Position.X, localPlayer->Position.Z),
             new Vector2(-level.X, level.Z)
         );
     }
