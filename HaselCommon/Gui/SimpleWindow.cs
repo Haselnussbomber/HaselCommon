@@ -12,17 +12,15 @@ public abstract class SimpleWindow : Window, IDisposable
     private readonly LanguageProvider _languageProvider;
     private readonly Lazy<AddonObserver> _addonObserver = new(Service.Get<AddonObserver>);
 
-    private string _windowNameKey = string.Empty;
-
     public string WindowNameKey
     {
-        get { return _windowNameKey; }
+        get;
         set
         {
-            _windowNameKey = value;
+            field = value;
             UpdateWindowName();
         }
-    }
+    } = string.Empty;
 
     protected SimpleWindow(WindowManager windowManager, TextService textService, LanguageProvider languageProvider) : base("SimpleWindow", ImGuiWindowFlags.None, false)
     {
@@ -52,9 +50,9 @@ public abstract class SimpleWindow : Window, IDisposable
 
     private void UpdateWindowName()
     {
-        if (!string.IsNullOrEmpty(_windowNameKey))
+        if (!string.IsNullOrEmpty(WindowNameKey))
         {
-            WindowName = $"{_textService.Translate(_windowNameKey)}###{GetType().FullName}_{Crc32.Get(_windowNameKey):X}";
+            WindowName = $"{_textService.Translate(WindowNameKey)}###{GetType().FullName}_{Crc32.Get(WindowNameKey):X}";
         }
     }
 

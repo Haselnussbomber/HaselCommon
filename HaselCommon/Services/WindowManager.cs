@@ -16,6 +16,7 @@ public partial class WindowManager : IDisposable
     private readonly GlobalScaleObserver _globalScaleObserver;
 
     private WindowSystem _windowSystem;
+    private bool _isDisposing;
 
     [AutoPostConstruct]
     private void Initialize()
@@ -28,11 +29,16 @@ public partial class WindowManager : IDisposable
 
     void IDisposable.Dispose()
     {
+        _isDisposing = true;
+
         _pluginInterface.UiBuilder.Draw -= _windowSystem.Draw;
         _globalScaleObserver.ScaleChange -= OnScaleChange;
 
-        _windowSystem.Windows.OfType<IDisposable>().ForEach(window => window.Dispose());
-        _windowSystem.RemoveAllWindows();
+        lock(_windowSystem)
+        {
+            _windowSystem.Windows.OfType<IDisposable>().ForEach(window => window.Dispose());
+            _windowSystem.RemoveAllWindows();
+        }
     }
 
     private void OnScaleChange(float scale)
@@ -156,17 +162,26 @@ public partial class WindowManager : IDisposable
 
     public void RemoveWindow(string windowName)
     {
+        if (_isDisposing)
+            return;
+
         if (TryGetWindow<SimpleWindow>(windowName, out var window))
             RemoveWindow(window);
     }
 
     public void Close<T>() where T : SimpleWindow
     {
+        if (_isDisposing)
+            return;
+
         _windowSystem.Windows.OfType<T>().ForEach(window => window.Close());
     }
 
     public bool RemoveWindow(Window window)
     {
+        if (_isDisposing)
+            return false;
+
         if (!_windowSystem.Windows.Contains(window))
             return false;
 
