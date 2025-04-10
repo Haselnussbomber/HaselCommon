@@ -1,5 +1,4 @@
 using System.Linq;
-using Dalamud.Interface.Utility.Raii;
 using HaselCommon.Graphics;
 using ImGuiNET;
 
@@ -36,7 +35,7 @@ public class ColumnBool<TRow> : ColumnFlags<BoolValues, TRow>
     public override unsafe void DrawColumn(TRow row)
     {
         var value = ToBool(row);
-        using (ImRaii.PushColor(ImGuiCol.Text, (uint)(value ? Color.Green : Color.Red)))
+        using ((value ? Color.Green : Color.Red).Push(ImGuiCol.Text))
             ImGui.TextUnformatted(Names[value ? 1 : 0]);
     }
 

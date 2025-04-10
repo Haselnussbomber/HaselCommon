@@ -7,5 +7,5 @@ namespace HaselCommon.Extensions.Sheets;
 public static class StainExtensions
 {
     public static Color GetColor(this Stain row)
-        => Color.From(BinaryPrimitives.ReverseEndianness(row.Color) >> 8) with { A = 1f };
+        => Color.FromRGBA(BinaryPrimitives.ReverseEndianness(row.Color) >> 8) with { A = 1f };
 }

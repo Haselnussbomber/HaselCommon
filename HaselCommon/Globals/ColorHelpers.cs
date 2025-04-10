@@ -14,11 +14,11 @@ public static class ColorHelpers
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Color rgb(float red, float green, float blue)
-        => Color.From(red, green, blue);
+        => new(red, green, blue);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Color rgba(float red, float green, float blue, float alpha)
-        => Color.From(red, green, blue, alpha);
+        => new(red, green, blue, alpha);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Color hsl(float hue, float saturation, float lightness)

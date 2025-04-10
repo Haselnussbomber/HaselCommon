@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using Dalamud.Interface;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Utility;
-using HaselCommon.Extensions.Sheets;
 using HaselCommon.Game;
 using HaselCommon.Graphics;
 using ImGuiNET;
@@ -34,7 +33,7 @@ public static partial class ImGuiUtils
 
         var color = Color.Gold;
         if (respectUiTheme && Misc.IsLightTheme && uiColor.IsValid)
-            color = uiColor.Value.GetForegroundColor();
+            color = Color.FromABGR(uiColor.Value.Dark);
 
         TextUnformattedColored(color, label);
 
@@ -64,7 +63,7 @@ public static partial class ImGuiUtils
                 ImGui.GetWindowDrawList().AddText(
                     UiBuilder.IconFont, 12,
                     ImGui.GetWindowPos() + pos + new Vector2(2),
-                    Color.Grey,
+                    Color.Grey.ToUInt(),
                     FontAwesomeIcon.ExternalLinkAlt.ToIconString()
                 );
                 ImGui.SetCursorPos(pos + new Vector2(20, 0));
@@ -116,9 +115,9 @@ public static partial class ImGuiUtils
             ImGui.TextUnformatted(text);
     }
 
-    public static void TextUnformattedColored(uint color, string text)
+    public static void TextUnformattedColored(Color color, string text)
     {
-        using (ImRaii.PushColor(ImGuiCol.Text, color))
+        using (color.Push(ImGuiCol.Text))
             ImGui.TextUnformatted(text);
     }
 

@@ -10,7 +10,6 @@ using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Component.Exd;
 using FFXIVClientStructs.FFXIV.Component.GUI;
-using HaselCommon.Extensions.Sheets;
 using HaselCommon.Game.Enums;
 using HaselCommon.Graphics;
 using HaselCommon.Utils;
@@ -136,7 +135,7 @@ public partial class ItemService
         if (_gatheringPointsCache.TryGetValue(itemId, out var gatheringPoints))
             return gatheringPoints;
 
-        _gatheringPointsCache.Add(itemId, gatheringPoints = GetGatheringItems(itemId).SelectMany(GetGatheringPoints).ToArray());
+        _gatheringPointsCache.Add(itemId, gatheringPoints = [.. GetGatheringItems(itemId).SelectMany(GetGatheringPoints)]);
 
         return gatheringPoints;
     }
@@ -396,20 +395,20 @@ public partial class ItemService
     public Color GetItemRarityColor(uint itemId, bool isEdgeColor = false)
     {
         if (IsEventItem(itemId))
-            return isEdgeColor ? Color.FromABGR(0x000000FF) : Color.White;
+            return isEdgeColor ? Color.Black : Color.White;
 
         itemId = GetBaseItemId(itemId);
 
         if (!_excelService.GetSheet<Item>().HasRow(itemId))
-            return isEdgeColor ? Color.FromABGR(0x000000FF) : Color.White;
+            return isEdgeColor ? Color.Black : Color.White;
 
         if (!_excelService.TryGetRow<UIColor>(GetItemRarityColorType(itemId, isEdgeColor), out var color))
             return Color.White;
 
-        return color.GetForegroundColor();
+        return Color.FromABGR(color.Dark);
     }
 
-    public unsafe Color GetItemLevelColor(byte classJob, Item item, params Vector4[] colors)
+    public unsafe Color GetItemLevelColor(byte classJob, Item item, params Color[] colors)
     {
         if (colors.Length < 2)
             throw new ArgumentException("At least two colors are required for interpolation.");
@@ -444,7 +443,7 @@ public partial class ItemService
             return Color.White;
 
         var t = value * (colors.Length - 1) - startIndex;
-        return new(Vector4.Lerp(colors[startIndex], colors[endIndex], t));
+        return Color.FromVector4(Vector4.Lerp(colors[startIndex], colors[endIndex], t));
     }
 
     public GatheringPoint[] GetGatheringPoints(GatheringItem gatheringItem)
@@ -494,11 +493,10 @@ public partial class ItemService
             }
         }
 
-        points = pointBases
+        points = [.. pointBases
             .Select((baseId) => gatheringPointSheet.Where((row) => row.TerritoryType.RowId > 1 && row.GatheringPointBase.RowId == baseId))
             .SelectMany(e => e)
-            .OfType<GatheringPoint>()
-            .ToArray();
+            .OfType<GatheringPoint>()];
 
         _gatheringItemGatheringPointsCache.Add(gatheringItem.RowId, points);
 

@@ -8,16 +8,12 @@ namespace HaselCommon.Graphics;
 
 public struct Color
 {
-    public float R { get; set; }
-    public float G { get; set; }
-    public float B { get; set; }
-    public float A { get; set; }
+    public float R;
+    public float G;
+    public float B;
+    public float A;
 
-    public Color()
-    {
-    }
-
-    public Color(float r, float g, float b, float a = 1)
+    public Color(float r, float g, float b, float a = 1) : this()
     {
         R = r;
         G = g;
@@ -25,31 +21,40 @@ public struct Color
         A = a;
     }
 
-    public Color(Vector4 vec) : this(vec.X, vec.Y, vec.Z, vec.W)
-    {
-    }
+    public static Color FromVector4(Vector4 vec, ColorFormat format = ColorFormat.RGBA)
+        => format switch
+        {
+            ColorFormat.RGBA => new() { R = vec.X, G = vec.Y, B = vec.Z, A = vec.W },
+            ColorFormat.BGRA => new() { B = vec.X, G = vec.Y, R = vec.Z, A = vec.W },
+            ColorFormat.ARGB => new() { A = vec.X, R = vec.Y, G = vec.Z, B = vec.W },
+            ColorFormat.ABGR => new() { A = vec.X, B = vec.Y, G = vec.Z, R = vec.W },
+            _ => throw new ArgumentOutOfRangeException(nameof(format))
+        };
 
-    public Color(uint col) : this(ImGui.ColorConvertU32ToFloat4(col))
-    {
-    }
-
-    public ImRaii.Color Push(ImGuiCol idx, bool condition = true)
-        => ImRaii.PushColor(idx, (uint)this, condition);
-
-    public static Color From(float r, float g, float b, float a = 1)
-        => new() { R = r, G = g, B = b, A = a };
-
-    public static Color From(Vector4 vec)
-        => From(vec.X, vec.Y, vec.Z, vec.W);
-
-    public static Color From(uint col)
-        => From(ImGui.ColorConvertU32ToFloat4(col));
+    public static Color FromUInt(uint value, ColorFormat format = ColorFormat.RGBA)
+        => format switch
+        {
+            ColorFormat.RGBA => FromRGBA(value),
+            ColorFormat.BGRA => FromBGRA(value),
+            ColorFormat.ARGB => FromARGB(value),
+            ColorFormat.ABGR => FromABGR(value),
+            _ => throw new ArgumentOutOfRangeException(nameof(format))
+        };
 
     public static Color From(ImGuiCol col)
-        => From(ImGui.GetColorU32(col));
+        => FromRGBA(ImGui.GetColorU32(col));
+
+    public static Color FromRGBA(uint rgba)
+        => FromVector4(ImGui.ColorConvertU32ToFloat4(rgba));
+
+    public static Color FromBGRA(uint bgra)
+        => FromRGBA((bgra & 0xFF00FF00) | ((bgra & 0x000000FF) << 16) | ((bgra & 0x00FF0000) >> 16)); // swap red and blue channel
 
     public static Color FromABGR(uint abgr)
-        => From(BinaryPrimitives.ReverseEndianness(abgr));
+        => FromRGBA(BinaryPrimitives.ReverseEndianness(abgr));
+
+    public static Color FromARGB(uint argb)
+        => FromRGBA(BinaryPrimitives.ReverseEndianness((argb & 0xFF00FF00) | ((argb & 0x000000FF) << 16) | ((argb & 0x00FF0000) >> 16))); // swap red and blue channel, then endianness
 
     //! https://stackoverflow.com/a/64090995
     public static Color FromHSL(float hue, float saturation, float lightness, float alpha = 1f)
@@ -65,7 +70,7 @@ public struct Color
         }
 
         // Calculate RGB channels using the helper function
-        return From(
+        return new(
             GetChannelColor(0, hue, lightness, chroma),   // Red channel
             GetChannelColor(8, hue, lightness, chroma),   // Green channel
             GetChannelColor(4, hue, lightness, chroma),   // Blue channel
@@ -124,7 +129,7 @@ public struct Color
                 ? (c < 0 ? -1 : 1) * (1.055f * MathF.Pow(MathF.Abs(c), 1 / 2.4f) - 0.055f)
                 : 12.92f * c;
 
-        return From(
+        return new(
             srgbLinear2rgb(srgbLinear.X),
             srgbLinear2rgb(srgbLinear.Y),
             srgbLinear2rgb(srgbLinear.Z),
@@ -132,14 +137,27 @@ public struct Color
         );
     }
 
+    public ImRaii.Color Push(ImGuiCol idx, bool condition = true)
+        => ImRaii.PushColor(idx, ToUInt(), condition);
+
+    public uint ToUInt(ColorFormat format = ColorFormat.RGBA)
+        => ImGui.ColorConvertFloat4ToU32(ToVector(format));
+
+    public Vector4 ToVector(ColorFormat format = ColorFormat.RGBA)
+        => format switch
+        {
+            ColorFormat.RGBA => new Vector4(R, G, B, A),
+            ColorFormat.BGRA => new Vector4(B, G, R, A),
+            ColorFormat.ARGB => new Vector4(A, R, B, B),
+            ColorFormat.ABGR => new Vector4(A, B, G, R),
+            _ => throw new ArgumentOutOfRangeException(nameof(format))
+        };
+
     public static implicit operator Vector4(Color col)
         => new(col.R, col.G, col.B, col.A);
 
-    public static implicit operator uint(Color col)
-        => ImGui.ColorConvertFloat4ToU32(col);
-
-    public static Color Transparent { get; } = new(Vector4.Zero);
-    public static Color White { get; } = new(Vector4.One);
+    public static Color Transparent { get; } = new(0, 0, 0, 0);
+    public static Color White { get; } = new(1, 1, 1);
     public static Color Black { get; } = new(0, 0, 0);
     public static Color Red { get; } = new(1, 0, 0);
     public static Color Green { get; } = new(0, 1, 0);

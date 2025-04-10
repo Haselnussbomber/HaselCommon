@@ -319,7 +319,7 @@ public unsafe struct ImGuiContextMenuBuilder(TextService textService, MapService
                 ImGui.GetWindowDrawList().AddText(
                     UiBuilder.IconFont, 12 * ImGuiHelpers.GlobalScale,
                     ImGui.GetWindowPos() + pos + new Vector2(2),
-                    Color.Grey,
+                    Color.Grey.ToUInt(),
                     FontAwesomeIcon.ExternalLinkAlt.ToIconString()
                 );
                 ImGui.SetCursorPos(pos + new Vector2(20, 0) * ImGuiHelpers.GlobalScale);
