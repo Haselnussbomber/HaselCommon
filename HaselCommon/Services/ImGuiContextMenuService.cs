@@ -14,7 +14,7 @@ using FFXIVClientStructs.FFXIV.Component.Exd;
 using HaselCommon.Graphics;
 using HaselCommon.Gui;
 using HaselCommon.Utils;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using Lumina.Extensions;
 using Lumina.Text.ReadOnly;
 using Microsoft.Extensions.ObjectPool;
@@ -317,7 +317,7 @@ public unsafe struct ImGuiContextMenuBuilder(TextService textService, MapService
 
                 var pos = ImGui.GetCursorPos();
                 ImGui.GetWindowDrawList().AddText(
-                    UiBuilder.IconFont, 12 * ImGuiHelpers.GlobalScale,
+                    UiBuilder.IconFontNew, 12 * ImGuiHelpers.GlobalScale,
                     ImGui.GetWindowPos() + pos + new Vector2(2),
                     Color.Grey.ToUInt(),
                     FontAwesomeIcon.ExternalLinkAlt.ToIconString()
@@ -360,7 +360,7 @@ public struct ImGuiContextMenuEntry : IImGuiContextMenuEntry
             ClickCallback?.Invoke();
 
             if (LoseFocusOnClick)
-                ImGui.SetWindowFocus(null);
+                ImGui.SetWindowFocus();
         }
         if (ImGui.IsItemHovered())
             HoverCallback?.Invoke();

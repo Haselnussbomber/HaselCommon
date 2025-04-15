@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 
 namespace HaselCommon.Gui.ImGuiTable;
 

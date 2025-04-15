@@ -1,6 +1,6 @@
 using Dalamud.Interface.Windowing;
 using HaselCommon.Services;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using Lumina.Misc;
 
 namespace HaselCommon.Gui;

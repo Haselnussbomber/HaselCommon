@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
+using Dalamud.Bindings.ImGui;
 using Dalamud.Game.Config;
 using Dalamud.Interface.Textures;
 using Dalamud.Interface.Textures.TextureWraps;
@@ -9,7 +10,6 @@ using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using HaselCommon.Extensions.Collections;
 using HaselCommon.Utils;
-using ImGuiNET;
 using Lumina.Data.Files;
 using Lumina.Extensions;
 
@@ -247,7 +247,7 @@ public partial class TextureService
         }
 
         ImGui.Image(
-            textureWrap.ImGuiHandle,
+            textureWrap.Handle,
             size,
             uv0,
             uv1,

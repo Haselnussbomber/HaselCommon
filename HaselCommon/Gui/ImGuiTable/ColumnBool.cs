@@ -1,6 +1,6 @@
 using System.Linq;
 using HaselCommon.Graphics;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 
 namespace HaselCommon.Gui.ImGuiTable;
 

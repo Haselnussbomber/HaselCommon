@@ -1,5 +1,5 @@
 using HaselCommon.Services;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 
 namespace HaselCommon.Gui.ImGuiTable;
 

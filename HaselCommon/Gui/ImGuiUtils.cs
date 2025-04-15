@@ -6,7 +6,7 @@ using Dalamud.Interface.Utility.Raii;
 using Dalamud.Utility;
 using HaselCommon.Game;
 using HaselCommon.Graphics;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using Lumina.Excel;
 using UIColor = Lumina.Excel.Sheets.UIColor;
 
@@ -60,12 +60,16 @@ public static partial class ImGuiUtils
                 TextUnformattedColored(Color.White, title);
 
                 var pos = ImGui.GetCursorPos();
-                ImGui.GetWindowDrawList().AddText(
-                    UiBuilder.IconFont, 12,
-                    ImGui.GetWindowPos() + pos + new Vector2(2),
-                    Color.Grey.ToUInt(),
-                    FontAwesomeIcon.ExternalLinkAlt.ToIconString()
-                );
+                unsafe
+                {
+                    ImGui.GetWindowDrawList().AddText(
+                        UiBuilder.IconFontNew,
+                        12,
+                        ImGui.GetWindowPos() + pos + new Vector2(2),
+                        Color.Grey.ToUInt(),
+                        FontAwesomeIcon.ExternalLinkAlt.ToIconString()
+                    );
+                }
                 ImGui.SetCursorPos(pos + new Vector2(20, 0));
                 TextUnformattedColored(Color.Grey, url);
             }
@@ -123,26 +127,26 @@ public static partial class ImGuiUtils
 
     public static Vector2 GetIconSize(FontAwesomeIcon icon)
     {
-        using var font = ImRaii.PushFont(UiBuilder.IconFont);
+        using var font = ImRaii.PushFont(UiBuilder.IconFontNew);
         return ImGui.CalcTextSize(icon.ToIconString());
     }
 
     public static void Icon(FontAwesomeIcon icon, uint? color = null)
     {
         using (ImRaii.PushColor(ImGuiCol.Text, color ?? 0u, color != null))
-        using (ImRaii.PushFont(UiBuilder.IconFont))
+        using (ImRaii.PushFont(UiBuilder.IconFontNew))
             ImGui.TextUnformatted(icon.ToIconString());
     }
 
     public static Vector2 GetIconButtonSize(FontAwesomeIcon icon)
     {
-        using var iconFont = ImRaii.PushFont(UiBuilder.IconFont);
+        using var iconFont = ImRaii.PushFont(UiBuilder.IconFontNew);
         return ImGui.CalcTextSize(icon.ToIconString()) + ImGui.GetStyle().FramePadding * 2;
     }
 
     public static bool IconButton(string key, FontAwesomeIcon icon, string tooltip, Vector2 size = default, bool disabled = false, bool active = false)
     {
-        using var iconFont = ImRaii.PushFont(UiBuilder.IconFont);
+        using var iconFont = ImRaii.PushFont(UiBuilder.IconFontNew);
         if (!key.StartsWith("##")) key = "##" + key;
 
         var disposables = new List<IDisposable>();
