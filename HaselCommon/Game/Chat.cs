@@ -32,15 +32,15 @@ public static unsafe class Chat
 
     public static void Print(ReadOnlySeString message, ReadOnlySeString sender = default, ushort logKindId = 1)
     {
-        using var utf8Sender = sender.ToUtf8String();
-        using var utf8Message = message.ToUtf8String();
+        using var utf8Sender = new Utf8String(sender.Data.Span.WithNullTerminator());
+        using var utf8Message = new Utf8String(message.Data.Span.WithNullTerminator());
         RaptureLogModule.Instance()->PrintMessage(logKindId, &utf8Sender, &utf8Message, 0);
     }
 
     public static void Print(ReadOnlySeStringSpan message, ReadOnlySeStringSpan sender = default, ushort logKindId = 1)
     {
-        using var utf8Sender = sender.ToUtf8String();
-        using var utf8Message = message.ToUtf8String();
+        using var utf8Sender = new Utf8String(sender.Data.WithNullTerminator());
+        using var utf8Message = new Utf8String(message.Data.WithNullTerminator());
         RaptureLogModule.Instance()->PrintMessage(logKindId, &utf8Sender, &utf8Message, 0);
     }
 
