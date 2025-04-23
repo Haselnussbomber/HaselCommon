@@ -308,7 +308,7 @@ public partial class ItemService
                 return PlayerState.Instance()->IsOrchestrionRollUnlocked(item.AdditionalData.RowId);
 
             case ItemActionType.FramersKit:
-                return PlayerState.Instance()->IsFramersKitUnlocked(item.ItemAction.Value.Data[0]);
+                return PlayerState.Instance()->IsFramersKitUnlocked(item.AdditionalData.RowId);
 
             case ItemActionType.Ornament:
                 return PlayerState.Instance()->IsOrnamentUnlocked(item.ItemAction.Value.Data[0]);
