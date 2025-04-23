@@ -217,7 +217,7 @@ public unsafe struct ImGuiContextMenuBuilder(TextService textService, MapService
             Visible = itemService.IsCraftable(itemId),
             Label = textService.GetAddonText(1414), // "Search for Item by Crafting Method"
             LoseFocusOnClick = true,
-            ClickCallback = () => AgentRecipeNote.Instance()->OpenRecipeByItemId(itemId)
+            ClickCallback = () => AgentRecipeNote.Instance()->SearchRecipeByItemId(itemId)
         });
 
         return this;
