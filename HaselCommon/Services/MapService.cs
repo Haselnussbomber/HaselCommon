@@ -188,7 +188,7 @@ public partial class MapService
 
         var sb = SeStringBuilder.SharedPool.Get();
         using var tooltip = new Utf8String(sb
-            .Append(MemoryMarshal.CreateReadOnlySpanFromNullTerminated(levelText))
+            .Append(levelText.AsSpan())
             .Append(" " + gatheringPointName)
             .GetViewAsSpan());
         SeStringBuilder.SharedPool.Return(sb);
@@ -236,14 +236,8 @@ public partial class MapService
             ? raptureTextModule->GetAddonText(242) // "Lv. ???"
             : raptureTextModule->FormatAddonText1IntIntUInt(35, gatheringItemLevel, 0, 0);
 
-        var sb = SeStringBuilder.SharedPool.Get();
-        using var tooltip = new Utf8String(sb
-            .Append(MemoryMarshal.CreateReadOnlySpanFromNullTerminated(levelText))
-            .GetViewAsSpan());
-        SeStringBuilder.SharedPool.Return(sb);
-
+        using var tooltip = new Utf8String(levelText.Value);
         var iconId = fishingSpot.Rare ? 60466u : 60465u;
-
         return AddGatheringMarkerAndOpenMap(territoryType, x, y, radius, iconId, tooltip, itemId, prefix);
     }
 
