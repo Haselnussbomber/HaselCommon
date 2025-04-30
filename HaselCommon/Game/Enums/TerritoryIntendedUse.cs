@@ -67,7 +67,7 @@ public enum TerritoryIntendedUse : byte
     CriterionDungeon = 57,
     CriterionDungeonSavage = 58,
     Blunderville = 59,
-    Unknown60 = 60, // unused
+    CosmicExploration = 60,
     Unknown61 = 61, // unused, probably new Foray
     Unknown62 = 62, // unused
 };
