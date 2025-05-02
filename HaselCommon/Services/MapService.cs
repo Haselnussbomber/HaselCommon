@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Numerics;
 using Dalamud.Game;
+using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Game.Text;
 using Dalamud.Plugin.Services;
@@ -9,10 +10,10 @@ using FFXIVClientStructs.FFXIV.Client.Game.Control;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using FFXIVClientStructs.FFXIV.Client.System.Framework;
 using FFXIVClientStructs.FFXIV.Client.System.String;
+using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using HaselCommon.Extensions.Sheets;
-using HaselCommon.Game;
 using Lumina.Excel.Sheets;
 using Lumina.Text;
 using Lumina.Text.ReadOnly;
@@ -27,7 +28,7 @@ public partial class MapService
     private readonly IGameGui _gameGui;
     private readonly TextService _textService;
     private readonly ExcelService _excelService;
-    private readonly SeStringEvaluator _seStringEvaluatorService;
+    private readonly SeStringEvaluator _seStringEvaluator;
 
     private static readonly string[] CompassHeadings = ["E", "NE", "N", "NW", "W", "SW", "S", "SE"];
 
@@ -133,11 +134,11 @@ public partial class MapService
                 z -= 10;
             z /= 10;
 
-            linkText = _seStringEvaluatorService.EvaluateFromAddon(1636, [placeNameWithInstance, mapPosX, mapPosY, z], language);
+            linkText = _seStringEvaluator.EvaluateFromAddon(1636, [placeNameWithInstance, mapPosX, mapPosY, z], language);
         }
         else
         {
-            linkText = _seStringEvaluatorService.EvaluateFromAddon(1635, [placeNameWithInstance, mapPosX, mapPosY], language);
+            linkText = _seStringEvaluator.EvaluateFromAddon(1635, [placeNameWithInstance, mapPosX, mapPosY], language);
         }
 
         var sb = SeStringBuilder.SharedPool.Get();
@@ -149,7 +150,7 @@ public partial class MapService
         SeStringBuilder.SharedPool.Return(sb);
 
         // Link Marker
-        return _seStringEvaluatorService.EvaluateFromAddon(371, [mapLink], language);
+        return _seStringEvaluator.EvaluateFromAddon(371, [mapLink], language);
     }
 
     public void OpenMap(Level level)
@@ -164,6 +165,14 @@ public partial class MapService
             (int)(level.Z * 1_000f)
         ));
     }
+
+    private static readonly uint[,] GatheringPointNameMapping = new uint[4, 5]
+    {
+        {  1,  9, 13, 23,  5 },
+        {  2, 10, 14, 24,  6 },
+        {  3, 11, 15, 25,  7 },
+        {  4, 12, 16, 26,  8 }
+    };
 
     public unsafe bool OpenMap(GatheringPoint point, uint itemId, ReadOnlySeString? prefix = null)
     {
@@ -184,7 +193,23 @@ public partial class MapService
         var levelText = point.GatheringPointBase.Value.GatheringLevel == 1
             ? raptureTextModule->GetAddonText(242) // "Lv. ???"
             : raptureTextModule->FormatAddonText1IntIntUInt(35, point.GatheringPointBase.Value.GatheringLevel, 0, 0);
-        var gatheringPointName = _textService.GetGatheringPointName(point.RowId);
+
+        var isTimed = UIGlobals.IsExportedGatheringPointTimed(exportedPoint.GatheringPointType);
+
+        var offset = isTimed
+            ? exportedPoint.GatheringPointType switch
+            {
+                2 => 4,
+                4 => 1,
+                5 => 2,
+                8 => 3,
+                _ => 4,
+            }
+            : 0;
+
+        var gatheringPointName = _seStringEvaluator.EvaluateObjStr(
+            ObjectKind.GatheringPoint,
+            GatheringPointNameMapping[exportedPoint.GatheringType.RowId, offset]);
 
         var sb = SeStringBuilder.SharedPool.Get();
         using var tooltip = new Utf8String(sb
@@ -193,7 +218,7 @@ public partial class MapService
             .GetViewAsSpan());
         SeStringBuilder.SharedPool.Return(sb);
 
-        var iconId = !Misc.IsGatheringTypeRare(exportedPoint.GatheringPointType)
+        var iconId = !isTimed
             ? exportedPoint.GatheringType.Value.IconMain
             : exportedPoint.GatheringType.Value.IconOff;
 
