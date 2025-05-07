@@ -68,6 +68,6 @@ public enum TerritoryIntendedUse : byte
     CriterionDungeonSavage = 58,
     Blunderville = 59,
     CosmicExploration = 60,
-    Unknown61 = 61, // unused, probably new Foray
-    Unknown62 = 62, // unused
+    OccultCrescent = 61,
+    Unknown62 = 62, // unused, Forked Tower?
 };
