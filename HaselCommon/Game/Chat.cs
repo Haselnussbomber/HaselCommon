@@ -3,7 +3,6 @@ using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using FFXIVClientStructs.FFXIV.Client.UI.Shell;
 using HaselCommon.Extensions.Memory;
-using HaselCommon.Extensions.Strings;
 using Lumina.Text.ReadOnly;
 
 namespace HaselCommon.Game;

@@ -7,9 +7,9 @@ using Dalamud.Game.Text.Evaluator;
 using Dalamud.Plugin;
 using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
+using HaselCommon.Utils;
 using Lumina.Excel;
 using Lumina.Excel.Sheets;
-using Lumina.Text;
 using Lumina.Text.ReadOnly;
 using Microsoft.Extensions.Logging;
 using ActionSheet = Lumina.Excel.Sheets.Action;
@@ -70,42 +70,46 @@ public partial class TextService
         if (!TryGetTranslation(key, out var format))
             return ReadOnlySeString.FromText(key);
 
-        var sb = SeStringBuilder.SharedPool.Get();
-        var placeholders = format.Split(['{', '}']);
+        ReadOnlySeString output;
 
-        for (var i = 0; i < placeholders.Length; i++)
+        using (SeStringBuilderHelper.Rent(out var sb))
         {
-            if (i % 2 == 1) // odd indices contain placeholders
+            var placeholders = format.Split(['{', '}']);
+
+            for (var i = 0; i < placeholders.Length; i++)
             {
-                if (int.TryParse(placeholders[i], out var placeholderIndex))
+                if (i % 2 == 1) // odd indices contain placeholders
                 {
-                    if (placeholderIndex < args.Length)
+                    if (int.TryParse(placeholders[i], out var placeholderIndex))
                     {
-                        var arg = args[placeholderIndex];
-                        if (arg.IsString)
+                        if (placeholderIndex < args.Length)
                         {
-                            sb.Append(arg.StringValue);
+                            var arg = args[placeholderIndex];
+                            if (arg.IsString)
+                            {
+                                sb.Append(arg.StringValue);
+                            }
+                            else
+                            {
+                                sb.Append(arg.UIntValue);
+                            }
                         }
                         else
                         {
-                            sb.Append(arg.UIntValue);
+                            sb.Append($"{placeholderIndex}"); // fallback
                         }
                     }
-                    else
-                    {
-                        sb.Append($"{placeholderIndex}"); // fallback
-                    }
+                }
+                else
+                {
+                    sb.Append(placeholders[i]);
                 }
             }
-            else
-            {
-                sb.Append(placeholders[i]);
-            }
+
+            output = sb.ToReadOnlySeString();
         }
 
-        var ross = sb.ToReadOnlySeString();
-        SeStringBuilder.SharedPool.Return(sb);
-        return ross;
+        return output;
     }
 
     public string GetAddonText(uint id, ClientLanguage? language = null)

@@ -15,7 +15,6 @@ using HaselCommon.Graphics;
 using HaselCommon.Utils;
 using Lumina.Excel.Sheets;
 using Lumina.Extensions;
-using Lumina.Text;
 using Lumina.Text.ReadOnly;
 
 namespace HaselCommon.Services;
@@ -512,17 +511,19 @@ public partial class ItemService
         else if (IsCollectible(itemId))
             itemName += " \uE03D";
 
-        var sb = SeStringBuilder.SharedPool.Get();
-        var itemLink = sb
-            .PushColorType(GetItemRarityColorType(itemId, false))
-            .PushEdgeColorType(GetItemRarityColorType(itemId, true))
-            .PushLinkItem(itemId, itemName)
-            .Append(itemName)
-            .PopLink()
-            .PopEdgeColorType()
-            .PopColorType()
-            .ToReadOnlySeString();
-        SeStringBuilder.SharedPool.Return(sb);
+        ReadOnlySeString itemLink;
+        using (SeStringBuilderHelper.Rent(out var sb))
+        {
+            itemLink = sb
+                .PushColorType(GetItemRarityColorType(itemId, false))
+                .PushEdgeColorType(GetItemRarityColorType(itemId, true))
+                .PushLinkItem(itemId, itemName)
+                .Append(itemName)
+                .PopLink()
+                .PopEdgeColorType()
+                .PopColorType()
+                .ToReadOnlySeString();
+        }
 
         return _seStringEvaluatorService.EvaluateFromAddon(371, [itemLink], language);
     }

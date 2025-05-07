@@ -14,8 +14,8 @@ using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using HaselCommon.Extensions.Sheets;
+using HaselCommon.Utils;
 using Lumina.Excel.Sheets;
-using Lumina.Text;
 using Lumina.Text.ReadOnly;
 using Map = Lumina.Excel.Sheets.Map;
 
@@ -112,15 +112,17 @@ public partial class MapService
         if (!_excelService.TryGetRow<PlaceName>(territoryType.PlaceName.RowId, language, out var placeName))
             return null;
 
-        var placeNameWithInstanceBuilder = SeStringBuilder.SharedPool.Get()
-            .Append(placeName.Name);
+        ReadOnlySeString placeNameWithInstance;
+        using (SeStringBuilderHelper.Rent(out var sb))
+        {
+            sb.Append(placeName.Name);
 
-        var instanceId = Framework.Instance()->GetNetworkModuleProxy()->GetCurrentInstance();
-        if (instanceId > 0)
-            placeNameWithInstanceBuilder.Append((char)(SeIconChar.Instance1 + (byte)(instanceId - 1)));
+            var instanceId = Framework.Instance()->GetNetworkModuleProxy()->GetCurrentInstance();
+            if (instanceId > 0)
+                sb.Append((char)(SeIconChar.Instance1 + (byte)(instanceId - 1)));
 
-        var placeNameWithInstance = placeNameWithInstanceBuilder.ToReadOnlySeString();
-        SeStringBuilder.SharedPool.Return(placeNameWithInstanceBuilder);
+            placeNameWithInstance = sb.ToReadOnlySeString();
+        }
 
         var mapPosX = map.ConvertRawToMapPosX(obj.Position.X);
         var mapPosY = map.ConvertRawToMapPosY(obj.Position.Z);
@@ -141,13 +143,15 @@ public partial class MapService
             linkText = _seStringEvaluator.EvaluateFromAddon(1635, [placeNameWithInstance, mapPosX, mapPosY], language);
         }
 
-        var sb = SeStringBuilder.SharedPool.Get();
-        var mapLink = sb
-            .PushLinkMapPosition(territoryId, mapId, (int)(obj.Position.X * 1000f), (int)(obj.Position.Z * 1000f))
-            .Append(linkText)
-            .PopLink()
-            .ToReadOnlySeString();
-        SeStringBuilder.SharedPool.Return(sb);
+        ReadOnlySeString mapLink;
+        using (SeStringBuilderHelper.Rent(out var sb))
+        {
+            mapLink = sb
+                .PushLinkMapPosition(territoryId, mapId, (int)(obj.Position.X * 1000f), (int)(obj.Position.Z * 1000f))
+                .Append(linkText)
+                .PopLink()
+                .ToReadOnlySeString();
+        }
 
         // Link Marker
         return _seStringEvaluator.EvaluateFromAddon(371, [mapLink], language);
@@ -211,12 +215,15 @@ public partial class MapService
             ObjectKind.GatheringPoint,
             GatheringPointNameMapping[exportedPoint.GatheringType.RowId, offset]);
 
-        var sb = SeStringBuilder.SharedPool.Get();
-        using var tooltip = new Utf8String(sb
-            .Append(levelText.AsSpan())
-            .Append(" " + gatheringPointName)
-            .GetViewAsSpan());
-        SeStringBuilder.SharedPool.Return(sb);
+        using var tooltip = new Utf8String();
+        using (SeStringBuilderHelper.Rent(out var sb))
+        {
+            tooltip.SetString(sb
+                .Append(levelText.AsSpan())
+                .Append(" ")
+                .Append(gatheringPointName)
+                .GetViewAsSpan());
+        }
 
         var iconId = !isTimed
             ? exportedPoint.GatheringType.Value.IconMain
@@ -282,36 +289,36 @@ public partial class MapService
             &tooltip
         );
 
-        var titleBuilder = SeStringBuilder.SharedPool.Get();
-
-        if (prefix != null)
-        {
-            titleBuilder.Append(prefix);
-        }
-
-        if (itemId != 0 && _excelService.GetSheet<Item>().HasRow(itemId))
+        using var title = new Utf8String();
+        using (SeStringBuilderHelper.Rent(out var titleBuilder))
         {
             if (prefix != null)
             {
-                titleBuilder.Append(" (");
+                titleBuilder.Append(prefix);
             }
 
-            titleBuilder
-                .PushColorType(549)
-                .PushEdgeColorType(550)
-                .Append(_textService.GetItemName(itemId))
-                .PopEdgeColorType()
-                .PopColorType();
-
-            if (prefix != null)
+            if (itemId != 0 && _excelService.GetSheet<Item>().HasRow(itemId))
             {
-                titleBuilder.Append(")");
+                if (prefix != null)
+                {
+                    titleBuilder.Append(" (");
+                }
+
+                titleBuilder
+                    .PushColorType(549)
+                    .PushEdgeColorType(550)
+                    .Append(_textService.GetItemName(itemId))
+                    .PopEdgeColorType()
+                    .PopColorType();
+
+                if (prefix != null)
+                {
+                    titleBuilder.Append(")");
+                }
             }
+
+            title.SetString(titleBuilder.GetViewAsSpan());
         }
-
-        using var title = new Utf8String(titleBuilder.GetViewAsSpan());
-
-        SeStringBuilder.SharedPool.Return(titleBuilder);
 
         var mapInfo = new OpenMapInfo
         {

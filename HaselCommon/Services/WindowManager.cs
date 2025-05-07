@@ -34,7 +34,7 @@ public partial class WindowManager : IDisposable
         _pluginInterface.UiBuilder.Draw -= _windowSystem.Draw;
         _globalScaleObserver.ScaleChange -= OnScaleChange;
 
-        lock(_windowSystem)
+        lock (_windowSystem)
         {
             _windowSystem.Windows.OfType<IDisposable>().ForEach(window => window.Dispose());
             _windowSystem.RemoveAllWindows();
