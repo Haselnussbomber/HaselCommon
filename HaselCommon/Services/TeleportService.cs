@@ -53,10 +53,16 @@ public unsafe partial class TeleportService : IDisposable
 
     public bool TryGetClosestAetheryte(Level level, out Aetheryte aetheryte)
     {
-        // Ehll Tou or Charlemend are in the Firmament, so use Foundation instead
-        if (level.RowId is 8370121 or 8658159)
+        if (!level.Territory.IsValid)
         {
-            return _excelService.TryGetRow(70, out aetheryte);
+            aetheryte = default;
+            return false;
+        }
+
+        if (level.Territory.Value.Aetheryte.RowId != 0 && level.Territory.Value.Aetheryte.IsValid)
+        {
+            aetheryte = level.Territory.Value.Aetheryte.Value;
+            return true;
         }
 
         var levelCoords = new Vector2(level.X, level.Z);
@@ -77,8 +83,6 @@ public unsafe partial class TeleportService : IDisposable
                 }
             }
         }
-
-        // TODO: if no aetheryte was found in the same territory, find closest one in adjacent territories
 
         return currentDistance != float.MaxValue;
     }
