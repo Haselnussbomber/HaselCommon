@@ -2,6 +2,7 @@ using Dalamud.Interface.Windowing;
 using HaselCommon.Services;
 using ImGuiNET;
 using Lumina.Misc;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HaselCommon.Gui;
 
@@ -9,8 +10,7 @@ public abstract class SimpleWindow : Window, IDisposable
 {
     private readonly WindowManager _windowManager;
     private readonly TextService _textService;
-    private readonly LanguageProvider _languageProvider;
-    private readonly Lazy<AddonObserver> _addonObserver = new(Service.Get<AddonObserver>);
+    private readonly AddonObserver _addonObserver;
 
     public string WindowNameKey
     {
@@ -22,33 +22,25 @@ public abstract class SimpleWindow : Window, IDisposable
         }
     } = string.Empty;
 
-    protected SimpleWindow(WindowManager windowManager, TextService textService, LanguageProvider languageProvider) : base("SimpleWindow", ImGuiWindowFlags.None, false)
+    protected SimpleWindow(IServiceProvider serviceProvider) : base("SimpleWindow", ImGuiWindowFlags.None, false)
     {
-        _windowManager = windowManager;
-        _textService = textService;
-        _languageProvider = languageProvider;
+        _windowManager = serviceProvider.GetRequiredService<WindowManager>();
+        _textService = serviceProvider.GetRequiredService<TextService>();
+        _addonObserver = serviceProvider.GetRequiredService<AddonObserver>();
 
         var type = GetType();
         Namespace = type.Namespace;
         WindowNameKey = $"{type.Name}.Title";
 
         Flags |= ImGuiWindowFlags.NoFocusOnAppearing; // handled by BringToFront() in Open()
-
-        languageProvider.LanguageChanged += OnLanguageChanged;
     }
 
     public virtual void Dispose()
     {
-        _languageProvider.LanguageChanged -= OnLanguageChanged;
         Close();
     }
 
-    protected virtual void OnLanguageChanged(string langCode)
-    {
-        UpdateWindowName();
-    }
-
-    private void UpdateWindowName()
+    protected void UpdateWindowName()
     {
         if (!string.IsNullOrEmpty(WindowNameKey))
         {
@@ -83,14 +75,14 @@ public abstract class SimpleWindow : Window, IDisposable
             Close();
     }
 
-    public override void OnClose()
+    public override void OnClose() // TODO: switch to OnSafeToRemove
     {
         _windowManager.RemoveWindow(this);
     }
 
     public override bool DrawConditions()
     {
-        return !_addonObserver.Value.IsAddonVisible("Filter");
+        return !_addonObserver.IsAddonVisible("Filter");
     }
 
     public override void PostDraw()
@@ -100,5 +92,12 @@ public abstract class SimpleWindow : Window, IDisposable
             Collapsed = null;
     }
 
-    public virtual void OnScaleChange(float scale) { }
+    public virtual void OnLanguageChanged(string langCode)
+    {
+        UpdateWindowName();
+    }
+
+    public virtual void OnScaleChanged(float scale)
+    {
+    }
 }

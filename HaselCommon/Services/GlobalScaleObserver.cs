@@ -11,7 +11,7 @@ public partial class GlobalScaleObserver : IDisposable
 
     private float _globalScale;
 
-    public event Action<float>? ScaleChange;
+    public event Action<float>? ScaleChanged;
 
     [AutoPostConstruct]
     public void Initialize()
@@ -28,7 +28,7 @@ public partial class GlobalScaleObserver : IDisposable
     {
         if (toolkit.BuildStep == FontAtlasBuildStep.PostBuild && _globalScale != ImGuiHelpers.GlobalScaleSafe)
         {
-            ScaleChange?.Invoke(ImGuiHelpers.GlobalScaleSafe);
+            ScaleChanged?.Invoke(ImGuiHelpers.GlobalScaleSafe);
             _globalScale = ImGuiHelpers.GlobalScaleSafe;
         }
     }

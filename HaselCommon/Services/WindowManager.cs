@@ -13,6 +13,7 @@ public partial class WindowManager : IDisposable
 {
     private readonly ILogger<WindowManager> _logger;
     private readonly IDalamudPluginInterface _pluginInterface;
+    private readonly LanguageProvider _languageProvider;
     private readonly GlobalScaleObserver _globalScaleObserver;
 
     private WindowSystem _windowSystem;
@@ -24,7 +25,9 @@ public partial class WindowManager : IDisposable
         _windowSystem = new(_pluginInterface.InternalName);
 
         _pluginInterface.UiBuilder.Draw += _windowSystem.Draw;
-        _globalScaleObserver.ScaleChange += OnScaleChange;
+
+        _languageProvider.LanguageChanged += OnLanguageChanged;
+        _globalScaleObserver.ScaleChanged += OnScaleChanged;
     }
 
     void IDisposable.Dispose()
@@ -32,7 +35,9 @@ public partial class WindowManager : IDisposable
         _isDisposing = true;
 
         _pluginInterface.UiBuilder.Draw -= _windowSystem.Draw;
-        _globalScaleObserver.ScaleChange -= OnScaleChange;
+
+        _languageProvider.LanguageChanged -= OnLanguageChanged;
+        _globalScaleObserver.ScaleChanged -= OnScaleChanged;
 
         lock (_windowSystem)
         {
@@ -41,13 +46,28 @@ public partial class WindowManager : IDisposable
         }
     }
 
-    private void OnScaleChange(float scale)
+    private void OnLanguageChanged(string langCode)
     {
         foreach (var window in _windowSystem.Windows.OfType<SimpleWindow>())
         {
             try
             {
-                window.OnScaleChange(scale);
+                window.OnLanguageChanged(langCode);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while propagating language change");
+            }
+        }
+    }
+
+    private void OnScaleChanged(float scale)
+    {
+        foreach (var window in _windowSystem.Windows.OfType<SimpleWindow>())
+        {
+            try
+            {
+                window.OnScaleChanged(scale);
             }
             catch (Exception ex)
             {
