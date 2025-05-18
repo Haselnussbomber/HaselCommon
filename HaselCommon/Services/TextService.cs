@@ -119,9 +119,9 @@ public partial class TextService
         => GetOrCreateCachedText<Lobby>(id, language, (row) => row.Text);
 
     public string GetItemName(uint itemId, ClientLanguage? language = null)
-        => IsEventItem(itemId)
+        => ItemUtil.IsEventItem(itemId)
             ? GetOrCreateCachedText<EventItem>(itemId, language, (row) => row.Name)
-            : GetOrCreateCachedText<Item>(GetBaseItemId(itemId), language, (row) => row.Name);
+            : GetOrCreateCachedText<Item>(ItemUtil.GetBaseId(itemId).ItemId, language, (row) => row.Name);
 
     public string GetStainName(uint id, ClientLanguage? language = null)
         => GetOrCreateCachedText<Stain>(id, language, (row) => row.Name);

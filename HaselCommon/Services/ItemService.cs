@@ -4,6 +4,7 @@ using System.Linq;
 using System.Numerics;
 using Dalamud.Game;
 using Dalamud.Plugin.Services;
+using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Client.Game.Control;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using FFXIVClientStructs.FFXIV.Client.UI;
@@ -48,13 +49,13 @@ public partial class ItemService
         if (_itemIconIdCache.TryGetValue(itemId, out var iconId))
             return iconId;
 
-        if (IsEventItem(itemId))
+        if (ItemUtil.IsEventItem(itemId))
         {
             _itemIconIdCache.Add(itemId, iconId = _excelService.TryGetRow<EventItem>(itemId, out var eventItem) ? eventItem.Icon : 0u);
             return iconId;
         }
 
-        _itemIconIdCache.Add(itemId, iconId = _excelService.TryGetRow<Item>(GetBaseItemId(itemId), out var item) ? item.Icon : 0u);
+        _itemIconIdCache.Add(itemId, iconId = _excelService.TryGetRow<Item>(ItemUtil.GetBaseId(itemId).ItemId, out var item) ? item.Icon : 0u);
         return iconId;
     }
 
@@ -380,28 +381,17 @@ public partial class ItemService
         return _maxLevelRanges = dict.ToFrozenDictionary();
     }
 
-    public uint GetItemRarityColorType(uint itemId, bool isEdgeColor = false)
-    {
-        if (IsEventItem(itemId))
-            return GetItemRarityColorType(1, isEdgeColor);
-
-        if (!_excelService.TryGetRow<Item>(GetBaseItemId(itemId), out var item))
-            return GetItemRarityColorType(1, isEdgeColor);
-
-        return (isEdgeColor ? 548u : 547u) + item.Rarity * 2u;
-    }
-
     public Color GetItemRarityColor(uint itemId, bool isEdgeColor = false)
     {
-        if (IsEventItem(itemId))
+        if (ItemUtil.IsEventItem(itemId))
             return isEdgeColor ? Color.Black : Color.White;
 
-        itemId = GetBaseItemId(itemId);
+        itemId = ItemUtil.GetBaseId(itemId).ItemId;
 
         if (!_excelService.GetSheet<Item>().HasRow(itemId))
             return isEdgeColor ? Color.Black : Color.White;
 
-        if (!_excelService.TryGetRow<UIColor>(GetItemRarityColorType(itemId, isEdgeColor), out var color))
+        if (!_excelService.TryGetRow<UIColor>(ItemUtil.GetItemRarityColorType(itemId, isEdgeColor), out var color))
             return Color.White;
 
         return Color.FromABGR(color.Dark);
@@ -506,17 +496,17 @@ public partial class ItemService
     {
         var itemName = _textService.GetItemName(itemId, language);
 
-        if (IsHighQuality(itemId))
+        if (ItemUtil.IsHighQuality(itemId))
             itemName += " \uE03C";
-        else if (IsCollectible(itemId))
+        else if (ItemUtil.IsCollectible(itemId))
             itemName += " \uE03D";
 
         ReadOnlySeString itemLink;
         using (SeStringBuilderHelper.Rent(out var sb))
         {
             itemLink = sb
-                .PushColorType(GetItemRarityColorType(itemId, false))
-                .PushEdgeColorType(GetItemRarityColorType(itemId, true))
+                .PushColorType(ItemUtil.GetItemRarityColorType(itemId, false))
+                .PushEdgeColorType(ItemUtil.GetItemRarityColorType(itemId, true))
                 .PushLinkItem(itemId, itemName)
                 .Append(itemName)
                 .PopLink()
