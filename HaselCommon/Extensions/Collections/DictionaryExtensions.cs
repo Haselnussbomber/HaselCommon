@@ -1,7 +1,4 @@
-using System.Collections.Generic;
-using System.Linq;
-
-namespace HaselCommon.Extensions.Collections;
+namespace HaselCommon.Extensions;
 
 public static class DictionaryExtensions
 {

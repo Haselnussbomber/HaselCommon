@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace HaselCommon.Utils;
 
 public class LimitedQueue<T>(int limit) : Queue<T>

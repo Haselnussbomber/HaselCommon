@@ -1,7 +1,4 @@
-using System.Collections.Generic;
 using Dalamud.Game.Network.Structures;
-using Dalamud.Hooking;
-using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.UI.Info;
 
 namespace HaselCommon.Services;

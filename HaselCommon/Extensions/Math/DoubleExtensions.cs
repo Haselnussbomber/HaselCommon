@@ -1,6 +1,6 @@
 using MathD = System.Math;
 
-namespace HaselCommon.Extensions.Math;
+namespace HaselCommon.Extensions;
 
 public static class DoubleExtensions
 {

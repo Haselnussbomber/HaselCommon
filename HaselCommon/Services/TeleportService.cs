@@ -1,9 +1,6 @@
-using System.Numerics;
-using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game.Control;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using HaselCommon.Game.Enums;
-using Lumina.Excel.Sheets;
 
 namespace HaselCommon.Services;
 

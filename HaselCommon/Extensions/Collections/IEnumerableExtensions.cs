@@ -1,10 +1,6 @@
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
-using HaselCommon.Services;
-using HaselCommon.Utils;
 
-namespace HaselCommon.Extensions.Collections;
+namespace HaselCommon.Extensions;
 
 public static class IEnumerableExtensions
 {

@@ -1,7 +1,6 @@
-using System.Linq;
 using System.Text;
 
-namespace HaselCommon.Extensions.Strings;
+namespace HaselCommon.Extensions;
 
 public static class StringExtensions
 {

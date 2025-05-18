@@ -1,4 +1,4 @@
-namespace HaselCommon.Extensions.Math;
+namespace HaselCommon.Extensions;
 
 public static class FloatExtensions
 {

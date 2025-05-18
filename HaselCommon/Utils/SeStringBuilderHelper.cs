@@ -1,6 +1,3 @@
-using HaselCommon.Gui;
-using Lumina.Text;
-
 namespace HaselCommon.Utils;
 
 public static class SeStringBuilderHelper

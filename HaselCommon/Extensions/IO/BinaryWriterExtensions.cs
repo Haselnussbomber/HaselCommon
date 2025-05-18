@@ -1,7 +1,7 @@
 using System.IO;
 using FFXIVClientStructs.FFXIV.Common.Math;
 
-namespace HaselCommon.Extensions.IO;
+namespace HaselCommon.Extensions;
 
 public static class BinaryWriterExtensions
 {

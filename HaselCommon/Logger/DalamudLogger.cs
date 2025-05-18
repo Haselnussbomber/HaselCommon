@@ -1,6 +1,3 @@
-using Dalamud.Plugin.Services;
-using Microsoft.Extensions.Logging;
-
 namespace HaselCommon.Logger;
 
 public class DalamudLogger(string name, IPluginLog pluginLog) : ILogger

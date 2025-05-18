@@ -1,5 +1,3 @@
-using Lumina.Excel.Sheets;
-
 namespace HaselCommon.Utils;
 
 public record ItemAmount

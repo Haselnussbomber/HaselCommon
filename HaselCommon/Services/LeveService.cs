@@ -1,10 +1,5 @@
-using System.Collections.Generic;
-using System.Linq;
-using Dalamud.Game;
 using FFXIVClientStructs.FFXIV.Application.Network.WorkDefinitions;
 using FFXIVClientStructs.FFXIV.Client.Game;
-using HaselCommon.Utils;
-using Lumina.Excel.Sheets;
 
 namespace HaselCommon.Services;
 

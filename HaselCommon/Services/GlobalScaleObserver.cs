@@ -1,6 +1,4 @@
 using Dalamud.Interface.ManagedFontAtlas;
-using Dalamud.Interface.Utility;
-using Dalamud.Plugin;
 
 namespace HaselCommon.Services;
 

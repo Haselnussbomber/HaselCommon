@@ -1,8 +1,4 @@
 using System.Buffers.Binary;
-using System.Numerics;
-using Dalamud.Interface.Utility.Raii;
-using HaselCommon.Extensions.Math;
-using ImGuiNET;
 
 namespace HaselCommon.Graphics;
 

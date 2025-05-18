@@ -1,6 +1,4 @@
-using Lumina.Excel.Sheets;
-
-namespace HaselCommon.Extensions.Sheets;
+namespace HaselCommon.Extensions;
 
 public static class ClassJobExtensions
 {

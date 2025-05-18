@@ -1,8 +1,6 @@
 using System.Buffers.Binary;
-using HaselCommon.Graphics;
-using Lumina.Excel.Sheets;
 
-namespace HaselCommon.Extensions.Sheets;
+namespace HaselCommon.Extensions;
 
 public static class StainExtensions
 {

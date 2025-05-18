@@ -1,7 +1,4 @@
-using Dalamud.Hooking;
-using Dalamud.Plugin.Services;
-
-namespace HaselCommon.Extensions.Dalamud;
+namespace HaselCommon.Extensions;
 
 public static class IGameInteropProviderExtensions
 {

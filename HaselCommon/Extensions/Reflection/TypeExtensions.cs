@@ -1,8 +1,7 @@
-using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
-namespace HaselCommon.Extensions.Reflection;
+namespace HaselCommon.Extensions;
 
 public static class TypeExtensions
 {

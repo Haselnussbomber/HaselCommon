@@ -1,8 +1,4 @@
-using System.Linq;
-using Dalamud.Hooking;
-using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
-using Microsoft.Extensions.Logging;
 
 namespace HaselCommon.Services;
 

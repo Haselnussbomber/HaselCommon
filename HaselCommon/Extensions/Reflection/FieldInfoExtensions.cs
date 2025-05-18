@@ -1,10 +1,7 @@
-using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using Dalamud.Plugin.Services;
-using Microsoft.Extensions.DependencyInjection;
 
-namespace HaselCommon.Extensions.Reflection;
+namespace HaselCommon.Extensions;
 
 public static class FieldInfoExtensions
 {

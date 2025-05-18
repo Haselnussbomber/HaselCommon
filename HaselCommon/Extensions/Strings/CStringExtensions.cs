@@ -1,7 +1,4 @@
-using InteropGenerator.Runtime;
-using Lumina.Text.ReadOnly;
-
-namespace HaselCommon.Extensions.Strings;
+namespace HaselCommon.Extensions;
 
 public static class CStringExtensions
 {

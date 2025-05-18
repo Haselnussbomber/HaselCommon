@@ -1,8 +1,5 @@
-using Dalamud.Game;
 using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Game.Text.Evaluator;
-using Dalamud.Plugin.Services;
-using Lumina.Text.ReadOnly;
 
 using CSObjectKind = FFXIVClientStructs.FFXIV.Client.Game.Object.ObjectKind;
 

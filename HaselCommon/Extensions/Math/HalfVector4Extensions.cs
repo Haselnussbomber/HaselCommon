@@ -1,6 +1,6 @@
 using FFXIVClientStructs.FFXIV.Common.Math;
 
-namespace HaselCommon.Extensions.Math;
+namespace HaselCommon.Extensions;
 
 public static class HalfVector4Extensions
 {

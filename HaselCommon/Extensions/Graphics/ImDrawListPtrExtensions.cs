@@ -1,7 +1,4 @@
-using System.Numerics;
-using ImGuiNET;
-
-namespace HaselCommon.Extensions.Graphics;
+namespace HaselCommon.Extensions;
 
 public static class ImDrawListPtrExtensions
 {

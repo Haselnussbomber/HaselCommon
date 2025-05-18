@@ -1,5 +1,3 @@
-using Dalamud.Interface.Utility.Raii;
-
 namespace HaselCommon.Gui;
 
 public struct EndUnconditionally(Action endAction, bool success) : ImRaii.IEndObject, IDisposable

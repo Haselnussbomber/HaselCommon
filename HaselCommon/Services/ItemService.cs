@@ -1,10 +1,4 @@
 using System.Collections.Frozen;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using Dalamud.Game;
-using Dalamud.Plugin.Services;
-using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Client.Game.Control;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using FFXIVClientStructs.FFXIV.Client.UI;
@@ -12,11 +6,6 @@ using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Component.Exd;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using HaselCommon.Game.Enums;
-using HaselCommon.Graphics;
-using HaselCommon.Utils;
-using Lumina.Excel.Sheets;
-using Lumina.Extensions;
-using Lumina.Text.ReadOnly;
 
 namespace HaselCommon.Services;
 

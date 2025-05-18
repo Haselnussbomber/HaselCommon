@@ -1,5 +1,4 @@
 using FFXIVClientStructs.FFXIV.Client.System.Framework;
-using HaselCommon.Extensions.Math;
 
 namespace HaselCommon.Utils;
 

@@ -1,8 +1,3 @@
-using System.Collections.Generic;
-using Dalamud.Interface.Utility;
-using Dalamud.Interface.Utility.Raii;
-using ImGuiNET;
-
 namespace HaselCommon.Gui.ImGuiTable;
 
 public class ColumnFlags<T, TItem> : Column<TItem> where T : struct, Enum

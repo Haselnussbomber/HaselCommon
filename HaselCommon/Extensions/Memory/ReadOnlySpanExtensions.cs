@@ -1,4 +1,4 @@
-namespace HaselCommon.Extensions.Memory;
+namespace HaselCommon.Extensions;
 
 public static class ReadOnlySpanExtensions
 {

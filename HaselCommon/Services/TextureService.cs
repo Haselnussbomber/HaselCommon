@@ -1,17 +1,10 @@
 using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
-using System.Numerics;
 using Dalamud.Game.Config;
 using Dalamud.Interface.Textures;
 using Dalamud.Interface.Textures.TextureWraps;
-using Dalamud.Interface.Utility;
-using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.UI;
-using HaselCommon.Extensions.Collections;
-using HaselCommon.Utils;
-using ImGuiNET;
 using Lumina.Data.Files;
-using Lumina.Extensions;
 
 namespace HaselCommon.Services;
 

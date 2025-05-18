@@ -1,6 +1,3 @@
-using System.Collections.Generic;
-using Microsoft.Extensions.ObjectPool;
-
 namespace HaselCommon.Utils;
 
 public class PooledListPolicy<T> : PooledObjectPolicy<List<T>>

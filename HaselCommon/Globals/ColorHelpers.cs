@@ -1,5 +1,4 @@
 using System.Runtime.CompilerServices;
-using HaselCommon.Graphics;
 
 namespace HaselCommon.Globals;
 

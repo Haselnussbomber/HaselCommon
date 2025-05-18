@@ -1,6 +1,3 @@
-using HaselCommon.Services;
-using ImGuiNET;
-
 namespace HaselCommon.Gui.ImGuiTable;
 
 public class Column<T>

@@ -1,6 +1,4 @@
-using System.Numerics;
-
-namespace HaselCommon.Extensions.Math;
+namespace HaselCommon.Extensions;
 
 public static class Vector2Extensions
 {

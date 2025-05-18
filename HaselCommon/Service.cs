@@ -1,14 +1,8 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
-using Dalamud.Game;
 using Dalamud.Game.ClientState.Objects;
-using Dalamud.Plugin;
-using Dalamud.Plugin.Services;
 using HaselCommon.Logger;
-using HaselCommon.Services;
 using HaselCommon.Utils.Internal;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 
 namespace HaselCommon;
 

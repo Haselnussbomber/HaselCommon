@@ -1,7 +1,3 @@
-using System.Linq;
-using HaselCommon.Graphics;
-using ImGuiNET;
-
 namespace HaselCommon.Gui.ImGuiTable;
 
 [Flags]

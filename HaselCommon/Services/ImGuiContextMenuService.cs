@@ -1,24 +1,10 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
 using System.Threading.Tasks;
-using Dalamud.Interface;
-using Dalamud.Interface.Utility;
-using Dalamud.Interface.Utility.Raii;
 using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using FFXIVClientStructs.FFXIV.Component.Exd;
-using HaselCommon.Graphics;
-using HaselCommon.Gui;
-using HaselCommon.Utils;
-using ImGuiNET;
-using Lumina.Extensions;
-using Lumina.Text.ReadOnly;
-using Microsoft.Extensions.ObjectPool;
-using Action = System.Action;
 using GearsetEntry = FFXIVClientStructs.FFXIV.Client.UI.Misc.RaptureGearsetModule.GearsetEntry;
 using TerritoryType = Lumina.Excel.Sheets.TerritoryType;
 

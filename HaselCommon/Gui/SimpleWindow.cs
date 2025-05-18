@@ -1,8 +1,5 @@
 using Dalamud.Interface.Windowing;
-using HaselCommon.Services;
-using ImGuiNET;
 using Lumina.Misc;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace HaselCommon.Gui;
 

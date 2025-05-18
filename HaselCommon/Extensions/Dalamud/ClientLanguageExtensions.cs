@@ -1,6 +1,4 @@
-using Dalamud.Game;
-
-namespace HaselCommon.Extensions.Dalamud;
+namespace HaselCommon.Extensions;
 
 public static class ClientLanguageExtensions
 {

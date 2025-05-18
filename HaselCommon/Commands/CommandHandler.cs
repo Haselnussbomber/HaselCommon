@@ -1,6 +1,4 @@
 using Dalamud.Game.Command;
-using Dalamud.Plugin.Services;
-using HaselCommon.Services;
 
 namespace HaselCommon.Commands;
 

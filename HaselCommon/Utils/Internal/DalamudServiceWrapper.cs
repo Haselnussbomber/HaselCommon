@@ -1,5 +1,4 @@
 using Dalamud.IoC;
-using Dalamud.Plugin;
 
 namespace HaselCommon.Utils.Internal;
 

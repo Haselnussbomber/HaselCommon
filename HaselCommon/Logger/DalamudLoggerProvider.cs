@@ -1,7 +1,4 @@
 using System.Collections.Concurrent;
-using System.Linq;
-using Dalamud.Plugin.Services;
-using Microsoft.Extensions.Logging;
 
 namespace HaselCommon.Logger;
 
