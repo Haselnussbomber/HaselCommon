@@ -490,10 +490,9 @@ public partial class ItemService
         else if (ItemUtil.IsCollectible(itemId))
             itemName += " \uE03D";
 
-        ReadOnlySeString itemLink;
-        using (SeStringBuilderHelper.Rent(out var sb))
-        {
-            itemLink = sb
+        using var rssb = new RentedSeStringBuilder();
+
+        var itemLink = rssb.Builder
                 .PushColorType(ItemUtil.GetItemRarityColorType(itemId, false))
                 .PushEdgeColorType(ItemUtil.GetItemRarityColorType(itemId, true))
                 .PushLinkItem(itemId, itemName)
@@ -502,7 +501,6 @@ public partial class ItemService
                 .PopEdgeColorType()
                 .PopColorType()
                 .ToReadOnlySeString();
-        }
 
         return _seStringEvaluatorService.EvaluateFromAddon(371, [itemLink], language);
     }

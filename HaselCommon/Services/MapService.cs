@@ -105,17 +105,15 @@ public partial class MapService
         if (!_excelService.TryGetRow<PlaceName>(territoryType.PlaceName.RowId, language, out var placeName))
             return null;
 
-        ReadOnlySeString placeNameWithInstance;
-        using (SeStringBuilderHelper.Rent(out var sb))
-        {
-            sb.Append(placeName.Name);
+        using var rssb = new RentedSeStringBuilder();
+        var sb = rssb.Builder;
+        sb.Append(placeName.Name);
 
-            var instanceId = Framework.Instance()->GetNetworkModuleProxy()->GetCurrentInstance();
-            if (instanceId > 0)
-                sb.Append((char)(SeIconChar.Instance1 + (byte)(instanceId - 1)));
+        var instanceId = Framework.Instance()->GetNetworkModuleProxy()->GetCurrentInstance();
+        if (instanceId > 0)
+            sb.Append((char)(SeIconChar.Instance1 + (byte)(instanceId - 1)));
 
-            placeNameWithInstance = sb.ToReadOnlySeString();
-        }
+        var placeNameWithInstance = sb.ToReadOnlySeString();
 
         var mapPosX = map.ConvertRawToMapPosX(obj.Position.X);
         var mapPosY = map.ConvertRawToMapPosY(obj.Position.Z);
@@ -136,15 +134,12 @@ public partial class MapService
             linkText = _seStringEvaluator.EvaluateFromAddon(1635, [placeNameWithInstance, mapPosX, mapPosY], language);
         }
 
-        ReadOnlySeString mapLink;
-        using (SeStringBuilderHelper.Rent(out var sb))
-        {
-            mapLink = sb
-                .PushLinkMapPosition(territoryId, mapId, (int)(obj.Position.X * 1000f), (int)(obj.Position.Z * 1000f))
-                .Append(linkText)
-                .PopLink()
-                .ToReadOnlySeString();
-        }
+        sb.Clear();
+        var mapLink = sb
+            .PushLinkMapPosition(territoryId, mapId, (int)(obj.Position.X * 1000f), (int)(obj.Position.Z * 1000f))
+            .Append(linkText)
+            .PopLink()
+            .ToReadOnlySeString();
 
         // Link Marker
         return _seStringEvaluator.EvaluateFromAddon(371, [mapLink], language);
@@ -209,14 +204,12 @@ public partial class MapService
             GatheringPointNameMapping[exportedPoint.GatheringType.RowId, offset]);
 
         using var tooltip = new Utf8String();
-        using (SeStringBuilderHelper.Rent(out var sb))
-        {
-            tooltip.SetString(sb
-                .Append(levelText.AsSpan())
-                .Append(" ")
-                .Append(gatheringPointName)
-                .GetViewAsSpan());
-        }
+        using var rssb = new RentedSeStringBuilder();
+        tooltip.SetString(rssb.Builder
+            .Append(levelText.AsSpan())
+            .Append(" ")
+            .Append(gatheringPointName)
+            .GetViewAsSpan());
 
         var iconId = !isTimed
             ? exportedPoint.GatheringType.Value.IconMain
@@ -283,35 +276,35 @@ public partial class MapService
         );
 
         using var title = new Utf8String();
-        using (SeStringBuilderHelper.Rent(out var titleBuilder))
+        using var rssb = new RentedSeStringBuilder();
+        var titleBuilder = rssb.Builder;
+
+        if (prefix != null)
+        {
+            titleBuilder.Append(prefix);
+        }
+
+        if (itemId != 0 && _excelService.GetSheet<Item>().HasRow(itemId))
         {
             if (prefix != null)
             {
-                titleBuilder.Append(prefix);
+                titleBuilder.Append(" (");
             }
 
-            if (itemId != 0 && _excelService.GetSheet<Item>().HasRow(itemId))
+            titleBuilder
+                .PushColorType(549)
+                .PushEdgeColorType(550)
+                .Append(_textService.GetItemName(itemId))
+                .PopEdgeColorType()
+                .PopColorType();
+
+            if (prefix != null)
             {
-                if (prefix != null)
-                {
-                    titleBuilder.Append(" (");
-                }
-
-                titleBuilder
-                    .PushColorType(549)
-                    .PushEdgeColorType(550)
-                    .Append(_textService.GetItemName(itemId))
-                    .PopEdgeColorType()
-                    .PopColorType();
-
-                if (prefix != null)
-                {
-                    titleBuilder.Append(")");
-                }
+                titleBuilder.Append(")");
             }
-
-            title.SetString(titleBuilder.GetViewAsSpan());
         }
+
+        title.SetString(titleBuilder.GetViewAsSpan());
 
         var mapInfo = new OpenMapInfo
         {

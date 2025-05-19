@@ -62,46 +62,41 @@ public partial class TextService
         if (!TryGetTranslation(key, out var format))
             return ReadOnlySeString.FromText(key);
 
-        ReadOnlySeString output;
+        using var rssb = new RentedSeStringBuilder();
+        var sb = rssb.Builder;
+        var placeholders = format.Split(['{', '}']);
 
-        using (SeStringBuilderHelper.Rent(out var sb))
+        for (var i = 0; i < placeholders.Length; i++)
         {
-            var placeholders = format.Split(['{', '}']);
-
-            for (var i = 0; i < placeholders.Length; i++)
+            if (i % 2 == 1) // odd indices contain placeholders
             {
-                if (i % 2 == 1) // odd indices contain placeholders
+                if (int.TryParse(placeholders[i], out var placeholderIndex))
                 {
-                    if (int.TryParse(placeholders[i], out var placeholderIndex))
+                    if (placeholderIndex < args.Length)
                     {
-                        if (placeholderIndex < args.Length)
+                        var arg = args[placeholderIndex];
+                        if (arg.IsString)
                         {
-                            var arg = args[placeholderIndex];
-                            if (arg.IsString)
-                            {
-                                sb.Append(arg.StringValue);
-                            }
-                            else
-                            {
-                                sb.Append(arg.UIntValue);
-                            }
+                            sb.Append(arg.StringValue);
                         }
                         else
                         {
-                            sb.Append($"{placeholderIndex}"); // fallback
+                            sb.Append(arg.UIntValue);
                         }
                     }
-                }
-                else
-                {
-                    sb.Append(placeholders[i]);
+                    else
+                    {
+                        sb.Append($"{placeholderIndex}"); // fallback
+                    }
                 }
             }
-
-            output = sb.ToReadOnlySeString();
+            else
+            {
+                sb.Append(placeholders[i]);
+            }
         }
 
-        return output;
+        return sb.ToReadOnlySeString();
     }
 
     public string GetAddonText(uint id, ClientLanguage? language = null)
