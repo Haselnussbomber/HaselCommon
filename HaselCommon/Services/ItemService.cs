@@ -1,4 +1,5 @@
 using System.Collections.Frozen;
+using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Client.Game.Control;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using FFXIVClientStructs.FFXIV.Client.UI;
@@ -329,7 +330,7 @@ public partial class ItemService
         if (TryGetAddon<AtkUnitBase>("ItemSearchResult", out var itemSearchResult))
             itemSearchResult->Hide2();
 
-        var itemName = _textService.GetItemName(item, _clientState.ClientLanguage);
+        var itemName = _textService.GetItemName(item, _clientState.ClientLanguage).ExtractText().StripSoftHyphen();
         if (itemName.Length > 40)
             itemName = itemName[..40];
 
@@ -495,7 +496,7 @@ public partial class ItemService
         var itemLink = rssb.Builder
                 .PushColorType(ItemUtil.GetItemRarityColorType(itemId, false))
                 .PushEdgeColorType(ItemUtil.GetItemRarityColorType(itemId, true))
-                .PushLinkItem(itemId, itemName)
+                .PushLinkItem(itemId, itemName.ExtractText().StripSoftHyphen())
                 .Append(itemName)
                 .PopLink()
                 .PopEdgeColorType()

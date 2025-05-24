@@ -105,10 +105,10 @@ public partial class TextService
     public string GetLobbyText(uint id, ClientLanguage? language = null)
         => GetOrCreateCachedText<Lobby>(id, language, (row) => row.Text);
 
-    public string GetItemName(uint itemId, ClientLanguage? language = null)
+    public ReadOnlySeString GetItemName(uint itemId, ClientLanguage? language = null)
         => ItemUtil.IsEventItem(itemId)
-            ? GetOrCreateCachedText<EventItem>(itemId, language, (row) => row.Name)
-            : GetOrCreateCachedText<Item>(ItemUtil.GetBaseId(itemId).ItemId, language, (row) => row.Name);
+            ? _excelService.TryGetRow<EventItem>(itemId, language, out var eventItem) ? eventItem.Name : default
+            : _excelService.TryGetRow<Item>(ItemUtil.GetBaseId(itemId).ItemId, language, out var item) ? item.Name : default;
 
     public string GetStainName(uint id, ClientLanguage? language = null)
         => GetOrCreateCachedText<Stain>(id, language, (row) => row.Name);
