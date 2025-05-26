@@ -2,6 +2,16 @@ namespace HaselCommon.Extensions;
 
 public static class Vector2Extensions
 {
+    public static Vector2 XOnly(this Vector2 vec)
+    {
+        return new(vec.X, 0);
+    }
+
+    public static Vector2 YOnly(this Vector2 vec)
+    {
+        return new(0, vec.Y);
+    }
+
     public static Vector2 Cover(this Vector2 elementSize, Vector2 maxSize)
     {
         var scaleFactorWidth = maxSize.X / elementSize.X;
