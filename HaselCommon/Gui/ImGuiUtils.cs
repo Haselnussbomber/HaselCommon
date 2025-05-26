@@ -50,7 +50,8 @@ public static partial class ImGuiUtils
             using var tooltip = ImRaii.Tooltip();
             if (tooltip.Success)
             {
-                TextUnformattedColored(Color.White, title);
+                if (!string.IsNullOrEmpty(title))
+                    TextUnformattedColored(Color.White, title);
 
                 var pos = ImGui.GetCursorPos();
                 ImGui.GetWindowDrawList().AddText(
@@ -133,7 +134,7 @@ public static partial class ImGuiUtils
         return ImGui.CalcTextSize(icon.ToIconString()) + ImGui.GetStyle().FramePadding * 2;
     }
 
-    public static bool IconButton(string key, FontAwesomeIcon icon, string tooltip, Vector2 size = default, bool disabled = false, bool active = false)
+    public static bool IconButton(string key, FontAwesomeIcon icon, string? tooltip = null, Vector2 size = default, bool disabled = false, bool active = false)
     {
         using var iconFont = ImRaii.PushFont(UiBuilder.IconFont);
         if (!key.StartsWith("##")) key = "##" + key;
@@ -158,7 +159,7 @@ public static partial class ImGuiUtils
 
         iconFont?.Dispose();
 
-        if (ImGui.IsItemHovered())
+        if (tooltip != null && ImGui.IsItemHovered())
         {
             ImGui.BeginTooltip();
             ImGui.TextUnformatted(tooltip);
