@@ -95,13 +95,13 @@ public static class TypeExtensions
         }
 
         if (type.IsGenericType)
-            return $"{type.Name[..type.Name.IndexOf('`')]}<{string.Join(",", type.GetGenericArguments().Select((t) => t.ReadableTypeName(fullName)))}>{stars}";
+            return $"{type.Name[..type.Name.IndexOf('`')]}<{type.GetGenericArguments().AsValueEnumerable().Select((t) => t.ReadableTypeName(fullName)).JoinToString(',')}>{stars}";
 
         if (type.IsUnmanagedFunctionPointer)
         {
             var argTypes = type.GetFunctionPointerParameterTypes();
             var argTypeStr = argTypes.Length > 0
-                ? string.Join(", ", argTypes.Select(argType => argType.ReadableTypeName(fullName)))
+                ? argTypes.AsValueEnumerable().Select(argType => argType.ReadableTypeName(fullName)).JoinToString(", ")
                 : string.Empty;
             var retType = type.GetFunctionPointerReturnType().ReadableTypeName(fullName);
             return $"delegate* unmanaged<{(string.IsNullOrEmpty(argTypeStr) ? string.Empty : argTypeStr + ", ")}{retType}>";

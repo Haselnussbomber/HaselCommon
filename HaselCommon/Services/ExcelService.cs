@@ -10,7 +10,7 @@ public partial class ExcelService
     private readonly LanguageProvider _languageProvider;
 
     public bool HasSheet(string name)
-        => _dataManager.Excel.SheetNames.Contains(name);
+        => _dataManager.Excel.SheetNames.AsValueEnumerable().Contains(name);
 
     public int GetRowCount<T>() where T : struct, IExcelRow<T>
         => GetSheet<T>().Count;
@@ -45,7 +45,7 @@ public partial class ExcelService
         => GetSheet<T>(language ?? _languageProvider.ClientLanguage).TryGetFirst(predicate, out row);
 
     public T[] FindRows<T>(Predicate<T> predicate, ClientLanguage? language = null) where T : struct, IExcelRow<T>
-        => GetSheet<T>(language ?? _languageProvider.ClientLanguage).Where(row => predicate(row)).ToArray();
+        => GetSheet<T>(language ?? _languageProvider.ClientLanguage).AsValueEnumerable().Where(row => predicate(row)).ToArray();
 
     // Subrow Sheets
 

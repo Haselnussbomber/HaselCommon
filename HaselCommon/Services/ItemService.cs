@@ -90,7 +90,7 @@ public partial class ItemService
         }
 
         var list = new List<ItemAmount>();
-        var recipe = recipes.First();
+        var recipe = recipes.AsValueEnumerable().First();
 
         for (var i = 0; i < recipe.Ingredient.Count; i++)
         {
@@ -125,7 +125,7 @@ public partial class ItemService
         if (_gatheringPointsCache.TryGetValue(itemId, out var gatheringPoints))
             return gatheringPoints;
 
-        _gatheringPointsCache.Add(itemId, gatheringPoints = [.. GetGatheringItems(itemId).SelectMany(GetGatheringPoints)]);
+        _gatheringPointsCache.Add(itemId, gatheringPoints = GetGatheringItems(itemId).AsValueEnumerable().SelectMany(GetGatheringPoints).ToArray());
 
         return gatheringPoints;
     }
@@ -135,7 +135,7 @@ public partial class ItemService
         if (_fishingSpotsCache.TryGetValue(itemId, out var fishingSpots))
             return fishingSpots;
 
-        _fishingSpotsCache.Add(itemId, fishingSpots = _excelService.FindRows<FishingSpot>(row => row.Item.Any(item => item.RowId == itemId)));
+        _fishingSpotsCache.Add(itemId, fishingSpots = _excelService.FindRows<FishingSpot>(row => row.Item.AsValueEnumerable().Any(item => item.RowId == itemId)));
 
         return fishingSpots;
     }
@@ -151,8 +151,8 @@ public partial class ItemService
             return points;
         }
 
-        var bases = _excelService.FindRows<GatheringPointBase>(row => row.GatheringType.RowId == 5 && row.Item.Any(item => item.RowId == spearfishingItem.RowId));
-        points = _excelService.FindRows<GatheringPoint>(row => bases.Any(b => b.RowId == row.GatheringPointBase.RowId));
+        var bases = _excelService.FindRows<GatheringPointBase>(row => row.GatheringType.RowId == 5 && row.Item.AsValueEnumerable().Any(item => item.RowId == spearfishingItem.RowId));
+        points = _excelService.FindRows<GatheringPoint>(row => bases.AsValueEnumerable().Any(b => b.RowId == row.GatheringPointBase.RowId));
         _spearfishingItemGatheringPointsCache.Add(itemId, points);
         return points;
     }
@@ -473,9 +473,9 @@ public partial class ItemService
         }
 
         points = [.. pointBases
-            .Select((baseId) => gatheringPointSheet.Where((row) => row.TerritoryType.RowId > 1 && row.GatheringPointBase.RowId == baseId))
-            .SelectMany(e => e)
-            .OfType<GatheringPoint>()];
+            .AsValueEnumerable()
+            .Select((baseId) => gatheringPointSheet.AsValueEnumerable().Where((row) => row.TerritoryType.RowId > 1 && row.GatheringPointBase.RowId == baseId).ToArray())
+            .SelectMany(e => e)];
 
         _gatheringItemGatheringPointsCache.Add(gatheringItem.RowId, points);
 
@@ -537,6 +537,7 @@ public partial class ItemService
         }
 
         if (!hairMakeType.CharaMakeStruct[0].SubMenuParam
+            .AsValueEnumerable()
             .Select(rowId => _excelService.CreateRef<CharaMakeCustomize>(rowId))
             .Where(rowRef => rowRef.RowId != 0 && rowRef.IsValid)
             .TryGetFirst(h => h.Value.HintItem.RowId == id, out var item) || !item.IsValid)

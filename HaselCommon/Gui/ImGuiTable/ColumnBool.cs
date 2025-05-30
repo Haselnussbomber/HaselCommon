@@ -14,7 +14,7 @@ public class ColumnBool<TRow> : ColumnFlags<BoolValues, TRow>
 
     public ColumnBool()
     {
-        AllFlags = Enum.GetValues<BoolValues>().Aggregate((a, b) => a | b);
+        AllFlags = Enum.GetValues<BoolValues>().AsValueEnumerable().Aggregate((a, b) => a | b);
         _filterValue = AllFlags;
     }
 

@@ -11,10 +11,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <InternalsVisibleTo Include="$(AssemblyName).Tests" />
-  </ItemGroup>
-
-  <ItemGroup>
     <None Remove="Translations.json" />
     <EmbeddedResource Include="Translations.json" />
   </ItemGroup>
@@ -42,5 +38,6 @@
     <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.5" />
     <PackageReference Include="AutoCtor" Version="2.8.1" PrivateAssets="all" ExcludeAssets="compile;runtime" />
     <PackageReference Include="Injectio" Version="5.0.0" PrivateAssets="all" />
+    <PackageReference Include="ZLinq" Version="1.4.9" />
   </ItemGroup>
 </Project>

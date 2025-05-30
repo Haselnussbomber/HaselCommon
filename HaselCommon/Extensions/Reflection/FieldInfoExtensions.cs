@@ -7,17 +7,17 @@ public static class FieldInfoExtensions
 {
     public static bool IsFixed(this FieldInfo info)
     {
-        return info.GetCustomAttributes(typeof(FixedBufferAttribute), false).Cast<FixedBufferAttribute>().FirstOrDefault() != null;
+        return info.GetCustomAttributes(typeof(FixedBufferAttribute), false).AsValueEnumerable().Cast<FixedBufferAttribute>().FirstOrDefault() != null;
     }
 
     public static Type GetFixedType(this FieldInfo info)
     {
-        return info.GetCustomAttributes(typeof(FixedBufferAttribute), false).Cast<FixedBufferAttribute>().Single().ElementType;
+        return info.GetCustomAttributes(typeof(FixedBufferAttribute), false).AsValueEnumerable().Cast<FixedBufferAttribute>().Single().ElementType;
     }
 
     public static int GetFixedSize(this FieldInfo info)
     {
-        return info.GetCustomAttributes(typeof(FixedBufferAttribute), false).Cast<FixedBufferAttribute>().Single().Length;
+        return info.GetCustomAttributes(typeof(FixedBufferAttribute), false).AsValueEnumerable().Cast<FixedBufferAttribute>().Single().Length;
     }
 
     public static int GetFieldOffset(this FieldInfo info)
@@ -25,7 +25,7 @@ public static class FieldInfoExtensions
         var attrs = info.GetCustomAttributes(typeof(FieldOffsetAttribute), false);
 
         return attrs.Length != 0
-            ? attrs.Cast<FieldOffsetAttribute>().Single().Value
+            ? attrs.AsValueEnumerable().Cast<FieldOffsetAttribute>().Single().Value
             : info.GetFieldOffsetSequential();
     }
 

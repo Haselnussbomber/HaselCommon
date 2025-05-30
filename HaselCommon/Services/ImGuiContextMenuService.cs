@@ -34,7 +34,7 @@ public partial class ImGuiContextMenuService
             var builder = new ImGuiContextMenuBuilder(_textService, _mapService, _itemService, entries);
             buildAction(builder);
 
-            if (shouldOpen && entries.Any(entry => entry.Visible))
+            if (shouldOpen && entries.AsValueEnumerable().Any(entry => entry.Visible))
                 ImGui.OpenPopup(id, ImGuiPopupFlags.MouseButtonRight);
 
             using var popup = ImRaii.Popup(id, ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoSavedSettings);
@@ -42,7 +42,7 @@ public partial class ImGuiContextMenuService
                 return;
 
             var i = 0;
-            var visibleEntries = entries.Where(entry => entry.Visible);
+            var visibleEntries = entries.AsValueEnumerable().Where(entry => entry.Visible);
             var count = visibleEntries.Count();
             foreach (var entry in visibleEntries)
                 entry.Draw(new IterationArgs(i++, count));

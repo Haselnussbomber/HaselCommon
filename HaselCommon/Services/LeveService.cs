@@ -10,27 +10,26 @@ public partial class LeveService
 
     private readonly Dictionary<(uint, ClientLanguage), string> _leveNameCache = [];
     private readonly Dictionary<uint, ItemAmount[]> _requiredItemsCache = [];
-
-    public unsafe IEnumerable<ushort> GetActiveLeveIds()
+    
+    public unsafe ValueEnumerable<Distinct<WhereSelect<FromSpan<LeveWork>, LeveWork, ushort>, ushort>, ushort> GetActiveLeveIds()
     {
-        var leveIds = new HashSet<ushort>();
-
-        foreach (ref var entry in QuestManager.Instance()->LeveQuests)
-        {
-            if (entry.LeveId != 0)
-                leveIds.Add(entry.LeveId);
-        }
-
-        return leveIds;
+        return QuestManager.Instance()->LeveQuests
+            .AsValueEnumerable()
+            .Where(entry => entry.LeveId != 0)
+            .Select(entry => entry.LeveId)
+            .Distinct();
     }
 
-    public IEnumerable<Leve> GetActiveLeves()
+    public unsafe ValueEnumerable<Select<Distinct<WhereSelect<FromSpan<LeveWork>, LeveWork, ushort>, ushort>, ushort, Leve>, Leve> GetActiveLeves()
     {
-        foreach (var leveId in GetActiveLeveIds())
-        {
-            if (_excelService.TryGetRow<Leve>(leveId, out var leve))
-                yield return leve;
-        }
+        var leveSheet = _excelService.GetSheet<Leve>();
+
+        return QuestManager.Instance()->LeveQuests
+            .AsValueEnumerable()
+            .Where(entry => entry.LeveId != 0)
+            .Select(entry => entry.LeveId)
+            .Distinct()
+            .Select(leveId => leveSheet.GetRow(leveId));
     }
 
     public int GetNumAcceptedLeveQuests()

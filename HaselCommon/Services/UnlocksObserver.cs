@@ -37,7 +37,7 @@ public unsafe partial class UnlocksObserver : IDisposable
     {
         if (Update != null)
         {
-            foreach (var action in Update.GetInvocationList().Cast<Action>())
+            foreach (var action in Update.GetInvocationList().AsValueEnumerable().Cast<Action>())
             {
                 try
                 {

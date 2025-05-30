@@ -11,9 +11,9 @@ public static class StringExtensions
 
         var builder = new StringBuilder();
 
-        builder.Append(char.ToLower(input.First()));
+        builder.Append(char.ToLower(input.AsSpan()[0]));
 
-        foreach (var c in input.Skip(1))
+        foreach (var c in input.AsSpan().AsValueEnumerable().Skip(1))
         {
             if (char.IsUpper(c))
             {

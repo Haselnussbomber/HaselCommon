@@ -36,14 +36,18 @@ public partial class WindowManager : IDisposable
 
         lock (_windowSystem)
         {
-            _windowSystem.Windows.OfType<IDisposable>().ForEach(window => window.Dispose());
+            foreach (var window in _windowSystem.Windows.AsValueEnumerable().OfType<IDisposable>())
+            {
+                window.Dispose();
+            }
+
             _windowSystem.RemoveAllWindows();
         }
     }
 
     private void OnLanguageChanged(string langCode)
     {
-        foreach (var window in _windowSystem.Windows.OfType<SimpleWindow>())
+        foreach (var window in _windowSystem.Windows.AsValueEnumerable().OfType<SimpleWindow>())
         {
             try
             {
@@ -58,7 +62,7 @@ public partial class WindowManager : IDisposable
 
     private void OnScaleChanged(float scale)
     {
-        foreach (var window in _windowSystem.Windows.OfType<SimpleWindow>())
+        foreach (var window in _windowSystem.Windows.AsValueEnumerable().OfType<SimpleWindow>())
         {
             try
             {
@@ -163,7 +167,7 @@ public partial class WindowManager : IDisposable
 
     public bool AddWindow(Window window)
     {
-        if (_windowSystem.Windows.Contains(window))
+        if (_windowSystem.Windows.AsValueEnumerable().Contains(window))
             return false;
 
         _windowSystem.AddWindow(window);
@@ -172,7 +176,7 @@ public partial class WindowManager : IDisposable
 
     public bool Contains(Predicate<Window> predicate)
     {
-        return _windowSystem.Windows.Any(win => predicate(win));
+        return _windowSystem.Windows.AsValueEnumerable().Any(win => predicate(win));
     }
 
     public void RemoveWindow(string windowName)
@@ -189,7 +193,10 @@ public partial class WindowManager : IDisposable
         if (_isDisposing)
             return;
 
-        _windowSystem.Windows.OfType<T>().ForEach(window => window.Close());
+        foreach (var window in _windowSystem.Windows.AsValueEnumerable().OfType<T>())
+        {
+            window.Close();
+        }
     }
 
     public bool RemoveWindow(Window window)
@@ -197,7 +204,7 @@ public partial class WindowManager : IDisposable
         if (_isDisposing)
             return false;
 
-        if (!_windowSystem.Windows.Contains(window))
+        if (!_windowSystem.Windows.AsValueEnumerable().Contains(window))
             return false;
 
         _windowSystem.RemoveWindow(window);

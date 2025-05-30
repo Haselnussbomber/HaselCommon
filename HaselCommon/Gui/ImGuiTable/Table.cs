@@ -115,7 +115,11 @@ public class Table<T> : IDisposable
 
         _filteredRows?.Clear();
         _filteredRows ??= [];
-        _filteredRows.AddRange(_rows.Where(row => Columns.All(column => column.ShouldShow(row))));
+
+        foreach (var row in _rows.AsValueEnumerable().Where(row => Columns.AsValueEnumerable().All(column => column.ShouldShow(row))))
+        {
+            _filteredRows.Add(row);
+        }
 
         IsFilterDirty = false;
     }

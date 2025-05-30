@@ -53,7 +53,7 @@ public partial class LicensesWindow : SimpleWindow
 
         using (_pluginInterface.UiBuilder.MonoFontHandle.Push())
         {
-            var width = _lines.Max(line => ImGui.CalcTextSize(line).X) + ImGui.GetStyle().ItemSpacing.X * 2 + ImGui.GetStyle().ScrollbarSize + ImGui.GetStyle().IndentSpacing * 2f;
+            var width = _lines.AsValueEnumerable().Max(line => ImGui.CalcTextSize(line).X) + ImGui.GetStyle().ItemSpacing.X * 2 + ImGui.GetStyle().ScrollbarSize + ImGui.GetStyle().IndentSpacing * 2f;
             var height = width / (4f / 3.5f);
             Size = new Vector2(width, height);
         }

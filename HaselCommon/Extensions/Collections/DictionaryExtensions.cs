@@ -7,7 +7,7 @@ public static class DictionaryExtensions
     {
         var anyRemoved = false;
 
-        foreach (var key in dict.Keys.ToArray())
+        foreach (var key in dict.Keys.AsValueEnumerable().ToArray())
         {
             if (!dict.TryGetValue(key, out var value) || !match(key, value))
                 continue;
@@ -23,7 +23,11 @@ public static class DictionaryExtensions
 
     public static void Dispose<K, V>(this IDictionary<K, V> dict)
     {
-        dict.Values.OfType<IDisposable>().ForEach(disposable => disposable.Dispose());
+        foreach (var disposable in dict.Values.AsValueEnumerable().OfType<IDisposable>())
+        {
+            disposable.Dispose();
+        }
+
         dict.Clear();
     }
 }
