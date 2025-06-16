@@ -199,7 +199,7 @@ public partial class TextService
         => GetOrCreateCachedText<PlaceName>(id, language, (row) => row.Name);
 
     public string GetFateName(uint id, ClientLanguage? language = null)
-        => GetOrCreateCachedText<Fate>(id, language, (row) => _seStringEvaluator.Evaluate(row.Name));
+        => GetOrCreateCachedText<Fate>(id, language, (row) => _seStringEvaluator.Evaluate(row.Name, default, language));
 
     public string GetBNpcName(uint id, ClientLanguage? language = null)
         => FromObjStr(ObjectKind.BattleNpc, id, language);
