@@ -46,14 +46,14 @@ public static unsafe class Addon
     // ---
 
     public static bool IsAddonOpen(string name)
-        => Service.Get<AddonObserver>().IsAddonVisible(name);
+        => TryGetAddon<AtkUnitBase>(name, out var addon) && addon->IsVisible;
 
     public static bool IsAddonOpen(string name, int index)
-        => GetAddon<AtkUnitBase>(name, index) != null;
+        => TryGetAddon<AtkUnitBase>(name, index, out var addon) && addon->IsVisible;
 
     public static bool IsAddonOpen(ushort addonId)
-        => GetAddon<AtkUnitBase>(addonId) != null;
+        => TryGetAddon<AtkUnitBase>(addonId, out var addon) && addon->IsVisible;
 
     public static bool IsAddonOpen(AgentId agentId)
-        => GetAddon<AtkUnitBase>(agentId) != null;
+        => TryGetAddon<AtkUnitBase>(agentId, out var addon) && addon->IsVisible;
 }
