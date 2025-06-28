@@ -45,7 +45,6 @@ public static class FieldInfoExtensions
             offset += field.FieldType.SizeOf();
         }
 
-        Service.Provider?.GetRequiredService<IPluginLog>().Debug($"{info.DeclaringType.Name} - {info.Name}");
         throw new Exception("Field not found");
     }
 }

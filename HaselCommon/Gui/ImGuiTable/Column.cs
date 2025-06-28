@@ -52,10 +52,4 @@ public class Column<T>
     public virtual void OnLanguageChanged(string langCode)
     {
     }
-
-    internal void UpdateLabel()
-    {
-        if (AutoLabel)
-            Label = Service.Get<TextService>().Translate(LabelKey);
-    }
 }
