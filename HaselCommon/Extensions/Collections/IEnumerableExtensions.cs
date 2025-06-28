@@ -71,11 +71,9 @@ public static class IEnumerableExtensions
         return false;
     }
 
-    public static IEnumerable<(int Score, T Value)> FuzzyMatch<T>(this IEnumerable<T> values, string term, Func<T, string> valueExtractor, FuzzyMatcher.Mode matchMode = FuzzyMatcher.Mode.Fuzzy, CultureInfo? cultureInfo = null)
+    public static IEnumerable<(int Score, T Value)> FuzzyMatch<T>(this IEnumerable<T> values, string term, Func<T, string> valueExtractor, CultureInfo cultureInfo, FuzzyMatcher.Mode matchMode = FuzzyMatcher.Mode.Fuzzy)
     {
         var results = new PriorityQueue<T, int>(values.Count(), new ReverseComparer<int>());
-
-        cultureInfo ??= Service.Get<LanguageProvider>().CultureInfo;
 
         foreach (var value in values)
         {
