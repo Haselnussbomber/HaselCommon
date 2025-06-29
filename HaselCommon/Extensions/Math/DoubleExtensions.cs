@@ -4,13 +4,16 @@ namespace HaselCommon.Extensions;
 
 public static class DoubleExtensions
 {
-    public static bool IsApproximately(this double a, double b, double margin = 0.0001f)
+    extension(double value)
     {
-        var bothNaN = double.IsNaN(a) && double.IsNaN(b);
+        public bool IsApproximately(double other, double margin = 0.0001f)
+        {
+            var bothNaN = double.IsNaN(value) && double.IsNaN(other);
 
-        if (!bothNaN)
-            return MathD.Abs(a - b) < margin;
+            if (!bothNaN)
+                return MathD.Abs(value - other) < margin;
 
-        return bothNaN;
+            return bothNaN;
+        }
     }
 }

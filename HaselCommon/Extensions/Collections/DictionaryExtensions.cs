@@ -2,28 +2,31 @@ namespace HaselCommon.Extensions;
 
 public static class DictionaryExtensions
 {
-    //! https://www.codeproject.com/Tips/494499/Implementing-Dictionary-RemoveAll
-    public static bool RemoveAll<K, V>(this IDictionary<K, V> dict, Func<K, V, bool> match, bool dispose = false)
+    extension<K, V>(IDictionary<K, V> dict)
     {
-        var anyRemoved = false;
-
-        foreach (var key in dict.Keys.ToArray())
+        //! https://www.codeproject.com/Tips/494499/Implementing-Dictionary-RemoveAll
+        public bool RemoveAll(Func<K, V, bool> match, bool dispose = false)
         {
-            if (!dict.TryGetValue(key, out var value) || !match(key, value))
-                continue;
+            var anyRemoved = false;
 
-            if (dispose && value is IDisposable disposable)
-                disposable.Dispose();
+            foreach (var key in dict.Keys.ToArray())
+            {
+                if (!dict.TryGetValue(key, out var value) || !match(key, value))
+                    continue;
 
-            anyRemoved |= dict.Remove(key);
+                if (dispose && value is IDisposable disposable)
+                    disposable.Dispose();
+
+                anyRemoved |= dict.Remove(key);
+            }
+
+            return anyRemoved;
         }
 
-        return anyRemoved;
-    }
-
-    public static void Dispose<K, V>(this IDictionary<K, V> dict)
-    {
-        dict.Values.OfType<IDisposable>().ForEach(disposable => disposable.Dispose());
-        dict.Clear();
+        public void Dispose()
+        {
+            dict.Values.OfType<IDisposable>().ForEach(disposable => disposable.Dispose());
+            dict.Clear();
+        }
     }
 }

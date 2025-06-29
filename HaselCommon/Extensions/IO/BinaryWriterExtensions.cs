@@ -5,17 +5,20 @@ namespace HaselCommon.Extensions;
 
 public static class BinaryWriterExtensions
 {
-    public static void Write(this BinaryWriter writer, HalfVector2 vec)
+    extension(BinaryWriter writer)
     {
-        writer.Write(vec.X);
-        writer.Write(vec.Y);
-    }
+        public void Write(HalfVector2 vec)
+        {
+            writer.Write(vec.X);
+            writer.Write(vec.Y);
+        }
 
-    public static void Write(this BinaryWriter writer, HalfVector4 vec)
-    {
-        writer.Write(vec.X);
-        writer.Write(vec.Y);
-        writer.Write(vec.Z);
-        writer.Write(vec.W);
+        public void Write(HalfVector4 vec)
+        {
+            writer.Write(vec.X);
+            writer.Write(vec.Y);
+            writer.Write(vec.Z);
+            writer.Write(vec.W);
+        }
     }
 }

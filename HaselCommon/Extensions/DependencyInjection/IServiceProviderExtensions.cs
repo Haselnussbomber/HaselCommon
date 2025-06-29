@@ -4,8 +4,11 @@ namespace HaselCommon.Extensions;
 
 public static class IServiceProviderExtensions
 {
-    public static bool TryGetService<T>(this IServiceProvider serviceProvider, [NotNullWhen(returnValue: true)] out T? service)
+    extension(IServiceProvider serviceProvider)
     {
-        return (service = serviceProvider.GetService<T>()) != null;
+        public bool TryGetService<T>([NotNullWhen(returnValue: true)] out T? service)
+        {
+            return (service = serviceProvider.GetService<T>()) != null;
+        }
     }
 }
