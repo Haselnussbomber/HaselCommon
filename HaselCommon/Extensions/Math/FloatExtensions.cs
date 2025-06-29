@@ -2,13 +2,16 @@ namespace HaselCommon.Extensions;
 
 public static class FloatExtensions
 {
-    public static bool IsApproximately(this float a, float b, float margin = 0.0001f)
+    extension(float value)
     {
-        var bothNaN = float.IsNaN(a) && float.IsNaN(b);
+        public bool IsApproximately(float other, float margin = 0.0001f)
+        {
+            var bothNaN = float.IsNaN(value) && float.IsNaN(other);
 
-        if (!bothNaN)
-            return MathF.Abs(a - b) < margin;
+            if (!bothNaN)
+                return MathF.Abs(value - other) < margin;
 
-        return bothNaN;
+            return bothNaN;
+        }
     }
 }

@@ -5,17 +5,26 @@ namespace HaselCommon.Extensions;
 
 public static class BinaryReaderExtensions
 {
-    public static HalfVector2 ReadHalfVector2(this BinaryReader reader) => new()
+    extension(BinaryReader reader)
     {
-        X = reader.ReadHalf(),
-        Y = reader.ReadHalf()
-    };
+        public HalfVector2 ReadHalfVector2()
+        {
+            return new()
+            {
+                X = reader.ReadHalf(),
+                Y = reader.ReadHalf()
+            };
+        }
 
-    public static HalfVector4 ReadHalfVector4(this BinaryReader reader) => new()
-    {
-        X = reader.ReadHalf(),
-        Y = reader.ReadHalf(),
-        Z = reader.ReadHalf(),
-        W = reader.ReadHalf()
-    };
+        public HalfVector4 ReadHalfVector4()
+        {
+            return new()
+            {
+                X = reader.ReadHalf(),
+                Y = reader.ReadHalf(),
+                Z = reader.ReadHalf(),
+                W = reader.ReadHalf()
+            };
+        }
+    }
 }
