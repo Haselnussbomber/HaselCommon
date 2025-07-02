@@ -1,59 +1,19 @@
-using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using Dalamud.Game.ClientState.Objects;
 using HaselCommon.Logger;
 using HaselCommon.Utils.Internal;
 
-namespace HaselCommon;
+namespace HaselCommon.Extensions;
 
 #pragma warning disable SeStringEvaluator
 
-public static class Service
+public static class IServiceCollectionExtensions
 {
-    public static IServiceCollection Collection { get; set; } = new ServiceCollection();
-    public static ServiceProvider? Provider { get; private set; }
-
-    public static void Initialize(Action? callback = null)
-    {
-        Provider = Collection.BuildServiceProvider();
-
-        if (callback != null)
-        {
-            Get<IFramework>().RunOnFrameworkThread(callback);
-        }
-    }
-
-    public static void Dispose()
-        => Provider?.Dispose();
-
-    public static T Get<T>() where T : notnull
-        => Provider!.GetRequiredService<T>();
-
-    public static bool TryGet<T>([NotNullWhen(returnValue: true)] out T? service)
-    {
-        if (Provider == null)
-        {
-            service = default;
-            return false;
-        }
-
-        try
-        {
-            service = Provider.GetService<T>();
-            return service != null;
-        }
-        catch // might catch ObjectDisposedException here
-        {
-            service = default;
-            return false;
-        }
-    }
-
-    public static IServiceCollection AddDalamud(this IServiceCollection collection, IDalamudPluginInterface pluginInterface)
+    public static IServiceCollection AddDalamud(this IServiceCollection serviceCollection, IDalamudPluginInterface pluginInterface)
     {
         T DalamudServiceFactory<T>(IServiceProvider serviceProvider) => new DalamudServiceWrapper<T>(pluginInterface).Service;
 
-        collection
+        serviceCollection
             .AddSingleton(new PluginAssemblyProvider(Assembly.GetCallingAssembly()))
             .AddSingleton(pluginInterface)
             .AddSingleton(DalamudServiceFactory<IAddonEventManager>)
@@ -105,6 +65,6 @@ public static class Service
                 });
             });
 
-        return collection;
+        return serviceCollection;
     }
 }

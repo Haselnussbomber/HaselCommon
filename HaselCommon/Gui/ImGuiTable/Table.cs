@@ -1,3 +1,6 @@
+using System.Reflection.Emit;
+using Dalamud.Interface.Utility.Table;
+
 namespace HaselCommon.Gui.ImGuiTable;
 
 public static class Table
@@ -5,8 +8,10 @@ public static class Table
     public const float ArrowWidth = 10;
 }
 
-public class Table<T> : IDisposable
+[AutoConstruct]
+public partial class Table<T> : IDisposable
 {
+    protected readonly TextService _textService;
     protected readonly LanguageProvider _languageProvider;
     protected List<T> _rows = [];
     protected List<T>? _filteredRows;
@@ -39,9 +44,9 @@ public class Table<T> : IDisposable
       | ImGuiTableFlags.BordersInnerV
       | ImGuiTableFlags.NoBordersInBodyUntilResize;
 
-    public Table(LanguageProvider languageProvider)
+    [AutoPostConstruct]
+    private void Initialize()
     {
-        _languageProvider = languageProvider;
         _languageProvider.LanguageChanged += OnLanguageChanged;
     }
 
@@ -60,7 +65,7 @@ public class Table<T> : IDisposable
             foreach (var column in Columns)
             {
                 column.OnLanguageChanged(langCode);
-                column.UpdateLabel();
+                UpdateColumnLabel(column);
             }
         }
 
@@ -164,7 +169,7 @@ public class Table<T> : IDisposable
             }
 
             if (column.AutoLabel && string.IsNullOrEmpty(column.Label))
-                column.UpdateLabel();
+                UpdateColumnLabel(column);
 
             IsFilterDirty |= column.DrawFilter();
         }
@@ -200,6 +205,12 @@ public class Table<T> : IDisposable
                 header.DrawColumn(row);
             id.Pop();
         }
+    }
+
+    private void UpdateColumnLabel<TColumn>(Column<TColumn> column)
+    {
+        if (column.AutoLabel)
+            column.Label = _textService.Translate(column.LabelKey);
     }
 }
 

@@ -3,7 +3,7 @@ using Lumina.Misc;
 
 namespace HaselCommon.Gui;
 
-public abstract class SimpleWindow : Window, IDisposable
+public abstract partial class SimpleWindow : Window, IDisposable
 {
     private readonly WindowManager _windowManager;
     private readonly TextService _textService;
@@ -19,11 +19,11 @@ public abstract class SimpleWindow : Window, IDisposable
         }
     } = string.Empty;
 
-    protected SimpleWindow(IServiceProvider serviceProvider) : base("SimpleWindow", ImGuiWindowFlags.None, false)
+    protected SimpleWindow(WindowManager windowManager, TextService textService, AddonObserver addonObserver) : base("SimpleWindow", ImGuiWindowFlags.None, false)
     {
-        _windowManager = serviceProvider.GetRequiredService<WindowManager>();
-        _textService = serviceProvider.GetRequiredService<TextService>();
-        _addonObserver = serviceProvider.GetRequiredService<AddonObserver>();
+        _windowManager = windowManager;
+        _textService = textService;
+        _addonObserver = addonObserver;
 
         var type = GetType();
         Namespace = type.Namespace;

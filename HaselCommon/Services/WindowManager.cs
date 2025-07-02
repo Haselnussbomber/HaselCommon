@@ -7,6 +7,7 @@ namespace HaselCommon.Services;
 public partial class WindowManager : IDisposable
 {
     private readonly ILogger<WindowManager> _logger;
+    private readonly IServiceProvider _serviceProvider;
     private readonly IDalamudPluginInterface _pluginInterface;
     private readonly LanguageProvider _languageProvider;
     private readonly GlobalScaleObserver _globalScaleObserver;
@@ -113,7 +114,7 @@ public partial class WindowManager : IDisposable
 
     public T CreateOrOpen<T>(bool focus = true) where T : SimpleWindow
     {
-        return CreateOrOpen(Service.Get<T>, focus);
+        return CreateOrOpen(_serviceProvider.GetRequiredService<T>, focus);
     }
 
     public T CreateOrOpen<T>(Func<T> factory, bool focus = true) where T : SimpleWindow
@@ -136,7 +137,7 @@ public partial class WindowManager : IDisposable
 
     public T CreateOrToggle<T>(bool focus = true) where T : SimpleWindow
     {
-        return CreateOrToggle(Service.Get<T>, focus);
+        return CreateOrToggle(_serviceProvider.GetRequiredService<T>, focus);
     }
 
     public T CreateOrToggle<T>(Func<T> factory, bool focus = true) where T : SimpleWindow

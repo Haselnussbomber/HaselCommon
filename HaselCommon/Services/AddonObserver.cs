@@ -34,7 +34,7 @@ public unsafe partial class AddonObserver : IDisposable
     {
         _visibleUnits.Clear();
 
-        foreach (var atkUnitBase in RaptureAtkModule.Instance()->RaptureAtkUnitManager.AtkUnitManager.AllLoadedUnitsList.Entries)
+        foreach (var atkUnitBase in RaptureAtkUnitManager.Instance()->AllLoadedUnitsList.Entries)
         {
             if (atkUnitBase.Value != null && atkUnitBase.Value->IsReady && atkUnitBase.Value->IsVisible)
                 _visibleUnits.Add(atkUnitBase);
