@@ -1,5 +1,8 @@
 namespace HaselCommon.Game.Enums;
 
+/// <summary>
+/// An (incomplete) enum for <see cref="ItemAction.Type"/>.
+/// </summary>
 public enum ItemActionType : ushort
 {
     Companion = 853,

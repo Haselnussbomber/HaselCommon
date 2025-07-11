@@ -232,7 +232,7 @@ public partial class ItemService
         if (!(item.EquipSlotCategory.RowId switch
         {
             0 => false, // not equippable
-            2 when item.FilterGroup != 3 => false, // any OffHand that's not a Shield
+            2 when (ItemFilterGroup)item.FilterGroup != ItemFilterGroup.Shield => false, // any OffHand that's not a Shield
             6 => false, // Waist
             17 => false, // SoulCrystal
             _ => true
