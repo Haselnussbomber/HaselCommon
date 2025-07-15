@@ -321,6 +321,7 @@ public interface IImGuiContextMenuEntry
 {
     bool Visible { get; }
     bool Enabled { get; }
+    bool Selected { get; }
     string Label { get; }
     bool LoseFocusOnClick { get; }
     Action? ClickCallback { get; }
@@ -332,6 +333,7 @@ public struct ImGuiContextMenuEntry : IImGuiContextMenuEntry
 {
     public bool Visible { get; set; } = true;
     public bool Enabled { get; set; } = true;
+    public bool Selected { get; set; } = false;
     public bool LoseFocusOnClick { get; set; } = false;
     public string Label { get; set; } = string.Empty;
     public Action? ClickCallback { get; set; } = null;
@@ -341,7 +343,7 @@ public struct ImGuiContextMenuEntry : IImGuiContextMenuEntry
 
     public void Draw(IterationArgs args)
     {
-        if (ImGui.MenuItem(Label, Enabled))
+        if (ImGui.MenuItem(Label, Selected, Enabled))
         {
             ClickCallback?.Invoke();
 
@@ -357,6 +359,7 @@ public struct ImGuiContextMenuSeparator : IImGuiContextMenuEntry
 {
     public bool Visible { get; set; } = true;
     public bool Enabled { get; set; } = true;
+    public bool Selected { get; set; } = false;
     public bool LoseFocusOnClick { get; set; } = false;
     public string Label { get; set; } = string.Empty;
     public Action? ClickCallback { get; set; } = null;
