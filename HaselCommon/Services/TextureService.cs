@@ -240,7 +240,7 @@ public partial class TextureService
         }
 
         ImGui.Image(
-            textureWrap.ImGuiHandle,
+            textureWrap.Handle,
             size,
             uv0,
             uv1,
