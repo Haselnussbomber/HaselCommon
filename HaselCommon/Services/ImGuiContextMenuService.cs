@@ -346,7 +346,7 @@ public struct ImGuiContextMenuEntry : IImGuiContextMenuEntry
             ClickCallback?.Invoke();
 
             if (LoseFocusOnClick)
-                ImGui.SetWindowFocus(null);
+                ImGui.SetWindowFocus();
         }
         if (ImGui.IsItemHovered())
             HoverCallback?.Invoke();

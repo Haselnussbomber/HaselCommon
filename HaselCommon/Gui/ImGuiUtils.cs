@@ -39,7 +39,7 @@ public static partial class ImGuiUtils
     public static ImRaii.Indent ConfigIndent(bool condition = true)
         => ImRaii.PushIndent(ImGui.GetFrameHeight() + ImGui.GetStyle().ItemSpacing.X / 2f, true, condition);
 
-    public static void DrawLink(string label, string title, string url)
+    public static unsafe void DrawLink(string label, string title, string url)
     {
         ImGui.TextUnformatted(label);
 
