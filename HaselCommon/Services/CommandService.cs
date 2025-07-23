@@ -19,7 +19,7 @@ public partial class CommandService : IDisposable
         _commandHandlers.Dispose();
     }
 
-    public CommandHandler? Register(IReadOnlyCommandInfo.HandlerDelegate handler, bool autoEnable = false)
+    public CommandHandler Register(IReadOnlyCommandInfo.HandlerDelegate handler, bool autoEnable = false)
     {
         var attr = handler.Method.GetCustomAttribute<CommandHandlerAttribute>()
             ?? throw new Exception($"Missing CommandHandlerAttribute on {handler.Method.Name}");
