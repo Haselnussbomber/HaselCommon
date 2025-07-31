@@ -242,7 +242,7 @@ public partial class ItemService
         }
 
         var playerState = PlayerState.Instance();
-        if (playerState->IsLoaded == 0)
+        if (playerState->IsLoaded)
             return false;
 
         if (!_excelService.TryGetRow<EquipRaceCategory>(item.EquipRestriction, out var equipRaceCategoryRow))
