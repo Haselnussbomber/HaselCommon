@@ -1,6 +1,3 @@
-using System.Reflection.Emit;
-using Dalamud.Interface.Utility.Table;
-
 namespace HaselCommon.Gui.ImGuiTable;
 
 public static class Table
@@ -28,7 +25,6 @@ public partial class Table<T> : IDisposable
     public List<Column<T>> Columns { get; set; } = [];
     public bool IsFilterDirty { get; set; } = true;
     public bool IsSortDirty { get; set; } = true;
-    public float? LineHeight { get; set; } = null;
     public int ScrollFreezeCols { get; set; } = 1;
     public bool Sortable
     {
@@ -76,6 +72,11 @@ public partial class Table<T> : IDisposable
     {
         using var id = ImRaii.PushId(Id!, !string.IsNullOrEmpty(Id));
         DrawTableInternal();
+    }
+
+    public virtual float CalculateLineHeight()
+    {
+        return ImGui.GetTextLineHeightWithSpacing();
     }
 
     public virtual void LoadRows()
@@ -183,14 +184,15 @@ public partial class Table<T> : IDisposable
         SortInternal();
         UpdateFilter();
 
-        if (LineHeight == 0)
+        var lineHeight = CalculateLineHeight();
+        if (lineHeight == 0)
         {
             for (var i = 0; i < _filteredRows!.Count; i++)
                 DrawRow(_filteredRows[i], i);
         }
         else
         {
-            ImGuiClip.ClippedDraw(_filteredRows!, DrawRow, LineHeight ?? ImGui.GetTextLineHeightWithSpacing());
+            ImGuiClip.ClippedDraw(_filteredRows!, DrawRow, lineHeight);
         }
     }
 
