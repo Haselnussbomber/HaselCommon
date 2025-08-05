@@ -21,7 +21,7 @@ public partial class MapService
     private readonly IGameGui _gameGui;
     private readonly TextService _textService;
     private readonly ExcelService _excelService;
-    private readonly SeStringEvaluator _seStringEvaluator;
+    private readonly ISeStringEvaluator _seStringEvaluator;
 
     private static readonly string[] CompassHeadings = ["E", "NE", "N", "NW", "W", "SW", "S", "SE"];
 

@@ -15,7 +15,7 @@ public partial class ItemService
 {
     private readonly IClientState _clientState;
     private readonly ExcelService _excelService;
-    private readonly SeStringEvaluator _seStringEvaluatorService;
+    private readonly ISeStringEvaluator _seStringEvaluatorService;
     private readonly TextService _textService;
 
     private readonly Dictionary<uint, bool> _isCraftableCache = [];

@@ -15,7 +15,7 @@ public partial class TextService
     private readonly ILogger<TextService> _logger;
     private readonly LanguageProvider _languageProvider;
     private readonly ExcelService _excelService;
-    private readonly SeStringEvaluator _seStringEvaluator;
+    private readonly ISeStringEvaluator _seStringEvaluator;
 
     private readonly Dictionary<string, Dictionary<string, string>> _translations = [];
     private readonly Dictionary<(Type, uint, ClientLanguage), string> _rowNameCache = [];
