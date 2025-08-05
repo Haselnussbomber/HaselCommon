@@ -46,11 +46,11 @@ public unsafe partial class MarketBoardService : IDisposable
         _endRequestHook.Dispose();
     }
 
-    private nint ProcessRequestResultDetour(InfoProxyItemSearch* infoProxy, byte a2, int a3)
+    private void ProcessRequestResultDetour(InfoProxyItemSearch* infoProxy, byte a2, int a3)
     {
         _listings.Clear();
         ListingsStart?.Invoke();
-        return _processRequestResultHook.Original(infoProxy, a2, a3);
+        _processRequestResultHook.Original(infoProxy, a2, a3);
     }
 
     private void EndRequestDetour(InfoProxyItemSearch* infoProxy)

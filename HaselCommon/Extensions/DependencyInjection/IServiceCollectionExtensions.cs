@@ -36,7 +36,6 @@ public static class IServiceCollectionExtensions
             .AddSingleton(DalamudServiceFactory<IGameInteropProvider>)
             .AddSingleton(DalamudServiceFactory<IGameInventory>)
             .AddSingleton(DalamudServiceFactory<IGameLifecycle>)
-            .AddSingleton(DalamudServiceFactory<IGameNetwork>)
             .AddSingleton(DalamudServiceFactory<IGamepadState>)
             .AddSingleton(DalamudServiceFactory<IJobGauges>)
             .AddSingleton(DalamudServiceFactory<IKeyState>)
