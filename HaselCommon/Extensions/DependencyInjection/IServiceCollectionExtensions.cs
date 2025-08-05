@@ -5,8 +5,6 @@ using HaselCommon.Utils.Internal;
 
 namespace HaselCommon.Extensions;
 
-#pragma warning disable SeStringEvaluator
-
 public static class IServiceCollectionExtensions
 {
     public static IServiceCollection AddDalamud(this IServiceCollection serviceCollection, IDalamudPluginInterface pluginInterface)
