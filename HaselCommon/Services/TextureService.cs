@@ -18,7 +18,6 @@ public partial class TextureService
     private record UldPartKey(byte ThemeType, string UldName, uint PartListId, uint PartIndex);
     private record UldPartInfo(string Path, Vector2 Uv0, Vector2 Uv1);
 
-    private static readonly string[] ThemePaths = ["", "light/", "third/", "fourth/"];
     private static readonly string[] GfdTextures = [
         "common/font/fonticon_xinput.tex",
         "common/font/fonticon_ps3.tex",
@@ -155,7 +154,11 @@ public partial class TextureService
             return false;
         }
 
-        var colorThemePath = ThemePaths[key.ThemeType];
+        var colorThemePath = key.ThemeType switch
+        {
+            not 0 => $"img{key.ThemeType:00}/",
+            _ => string.Empty
+        };
         var assetPath = new string(asset.Path, 0, asset.Path.IndexOf('\0'));
 
         // check if theme high-res texture exists
