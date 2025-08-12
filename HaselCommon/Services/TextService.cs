@@ -1,6 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
-using System.Reflection;
-using System.Text.Json;
 using Dalamud.Game.Text.Evaluator;
 using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
@@ -11,44 +8,24 @@ namespace HaselCommon.Services;
 [RegisterSingleton, AutoConstruct]
 public partial class TextService
 {
-    private readonly ILogger<TextService> _logger;
+    private readonly IEnumerable<ITranslationProvider> _translationProviders;
     private readonly LanguageProvider _languageProvider;
     private readonly ExcelService _excelService;
     private readonly ISeStringEvaluator _seStringEvaluator;
 
-    private readonly Dictionary<string, Dictionary<string, string>> _translations = [];
     private readonly Dictionary<(Type, uint, ClientLanguage), string> _rowNameCache = [];
     private readonly Dictionary<(string, ClientLanguage), ReadOnlySeString> _macroStringCache = [];
 
-    [AutoPostConstruct]
-    public void Initialize(PluginAssemblyProvider pluginAssemblyProvider, IDalamudPluginInterface pluginInterface)
+    public bool TryGetTranslation(string key, out string text)
     {
-        LoadEmbeddedResource(GetType().Assembly, "HaselCommon.Translations.json");
-        LoadEmbeddedResource(pluginAssemblyProvider.Assembly, $"{pluginInterface.InternalName}.Translations.json");
-    }
-
-    public void LoadEmbeddedResource(Assembly assembly, string filename)
-    {
-        using var stream = assembly.GetManifestResourceStream(filename);
-        if (stream == null)
+        foreach (var provider in _translationProviders)
         {
-            _logger.LogWarning("[TranslationManager] Could not find translations resource {filename} in assembly {assemblyName}", filename, assembly.ToString());
-            return;
+            if (provider.TryGetTranslation(key, out text))
+                return true;
         }
 
-        LoadDictionary(JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, string>>>(stream) ?? []);
-    }
-
-    public void LoadDictionary(Dictionary<string, Dictionary<string, string>> translations)
-    {
-        foreach (var key in translations.Keys)
-            _translations.Add(key, translations[key]);
-    }
-
-    public bool TryGetTranslation(string key, [MaybeNullWhen(false)] out string text)
-    {
-        text = default;
-        return _translations.TryGetValue(key, out var entry) && (entry.TryGetValue(_languageProvider.LanguageCode, out text) || entry.TryGetValue("en", out text));
+        text = string.Empty;
+        return false;
     }
 
     public string Translate(string key)

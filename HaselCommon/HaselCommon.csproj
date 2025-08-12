@@ -42,4 +42,16 @@
     <PackageReference Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" Version="4.14.0" PrivateAssets="All" />
     <AdditionalFiles Include="BannedSymbols.CustomCS.txt" />
   </ItemGroup>
+
+  <!-- TranslationGenerator -->
+  <PropertyGroup>
+    <TranslationGenerator_Namespace>HaselCommon</TranslationGenerator_Namespace>
+    <TranslationGenerator_ClassName>CommonTranslations</TranslationGenerator_ClassName>
+  </PropertyGroup>
+  <ItemGroup>
+    <AdditionalFiles Include="Translations.json" />
+    <CompilerVisibleProperty Include="TranslationGenerator_Namespace" />
+    <CompilerVisibleProperty Include="TranslationGenerator_ClassName" />
+    <ProjectReference Include="..\HaselCommon.TranslationGenerator\HaselCommon.TranslationGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+  </ItemGroup>
 </Project>
