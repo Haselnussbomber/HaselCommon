@@ -1,4 +1,3 @@
-using System.Globalization;
 using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Game.Text;
@@ -17,13 +16,12 @@ namespace HaselCommon.Services;
 [RegisterSingleton, AutoConstruct]
 public partial class MapService
 {
+    private readonly CommonTranslations _commonTranslations;
     private readonly IClientState _clientState;
     private readonly IGameGui _gameGui;
     private readonly TextService _textService;
     private readonly ExcelService _excelService;
     private readonly ISeStringEvaluator _seStringEvaluator;
-
-    private static readonly string[] CompassHeadings = ["E", "NE", "N", "NW", "W", "SW", "S", "SE"];
 
     public static Vector2 GetCoords(Level level)
     {
@@ -45,9 +43,7 @@ public partial class MapService
     public string GetHumanReadableCoords(Level level)
     {
         var coords = GetCoords(level);
-        var x = coords.X.ToString("0.0", CultureInfo.InvariantCulture);
-        var y = coords.Y.ToString("0.0", CultureInfo.InvariantCulture);
-        return _textService.Translate("CoordsXY", x, y);
+        return _commonTranslations.FormatCoordsXY(coords.X, coords.Y);
     }
 
     public unsafe float GetDistanceFromPlayer(Level level)
@@ -68,11 +64,22 @@ public partial class MapService
         var vector = a - b;
         var angle = MathF.Atan2(vector.Y, vector.X);
         var octant = (int)MathF.Round(8 * angle / (2 * MathF.PI) + 8) % 8;
-
-        return _textService.Translate($"CompassHeadings.{CompassHeadings[octant]}");
+        var heading = octant switch
+        {
+            0 => "E",
+            1 => "NE",
+            2 => "N",
+            3 => "NW",
+            4 => "W",
+            5 => "SW",
+            6 => "S",
+            7 => "SE",
+            _ => ""
+        };
+        return _textService.Translate($"CompassHeadings.{heading}");
     }
 
-    public unsafe string GetCompassDirection(Level level)
+    public unsafe string GetCompassDirectionString(Level level)
     {
         var localPlayer = Control.GetLocalPlayer();
         if (localPlayer == null)
@@ -99,7 +106,7 @@ public partial class MapService
         if (mapId == 0)
             return null;
 
-        if (!_excelService.TryGetRow<Lumina.Excel.Sheets.Map>(mapId, out var map))
+        if (!_excelService.TryGetRow<Map>(mapId, out var map))
             return null;
 
         if (!_excelService.TryGetRow<PlaceName>(territoryType.PlaceName.RowId, language, out var placeName))
@@ -248,13 +255,11 @@ public partial class MapService
         var y = convert(fishingSpot.Z, scale);
         var radius = fishingSpot.Radius / 7 / (scale / 100); // don't ask me why this works
 
-        var raptureTextModule = RaptureTextModule.Instance();
-
         var levelText = gatheringItemLevel == 0
-            ? raptureTextModule->GetAddonText(242) // "Lv. ???"
-            : raptureTextModule->FormatAddonText1IntIntUInt(35, gatheringItemLevel, 0, 0);
+            ? _textService.GetAddonText(242) // "Lv. ???"
+            : _seStringEvaluator.EvaluateFromAddon(35, [gatheringItemLevel]);
 
-        using var tooltip = new Utf8String(levelText.Value);
+        using var tooltip = levelText.ToUtf8String();
         var iconId = fishingSpot.Rare ? 60466u : 60465u;
         return AddGatheringMarkerAndOpenMap(territoryType, x, y, radius, iconId, tooltip, itemId, prefix);
     }
