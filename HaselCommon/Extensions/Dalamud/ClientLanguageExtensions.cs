@@ -11,7 +11,7 @@ public static class ClientLanguageExtensions
             _ => "en"
         };
 
-    public static ClientLanguage ToClientlanguage(this string value)
+    public static ClientLanguage ToClientLanguage(this string value)
         => value switch
         {
             "de" => ClientLanguage.German,

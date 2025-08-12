@@ -1,3 +1,4 @@
+using System.Text;
 using Dalamud.Game.Command;
 
 namespace HaselCommon.Commands;
@@ -62,7 +63,7 @@ public class CommandHandler : IDisposable
 
     private void OnLanguageChanged(string langCode)
     {
-        if (_commandInfo == null || string.IsNullOrEmpty(HelpMessageKey))
+        if (_commandInfo == null || HelpMessageKey.Length == 0)
             return;
 
         _commandInfo.HelpMessage = _textService.Translate(HelpMessageKey);
@@ -76,7 +77,7 @@ public class CommandHandler : IDisposable
         {
             _dalamudCommandManager.AddHandler(Command, _commandInfo = new CommandInfo(Handler)
             {
-                HelpMessage = !string.IsNullOrEmpty(HelpMessageKey) ? _textService.Translate(HelpMessageKey) : string.Empty,
+                HelpMessage = HelpMessageKey.Length != 0 ? _textService.Translate(HelpMessageKey) : string.Empty,
                 ShowInHelp = ShowInHelp,
                 DisplayOrder = DisplayOrder,
             });
