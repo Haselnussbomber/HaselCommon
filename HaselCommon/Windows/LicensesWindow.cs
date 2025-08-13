@@ -46,7 +46,7 @@ public partial class LicensesWindow : SimpleWindow
 
     public override void PreDraw()
     {
-        var center = ImGui.GetMainViewport().Pos + ImGui.GetMainViewport().Size / 2f; // ImGui.GetMainViewport().GetCenter()
+        var center = ImGui.GetMainViewport().GetCenter();
         ImGui.SetNextWindowPos(center, ImGuiCond.Appearing, new Vector2(0.5f));
 
         if (Size.HasValue)
