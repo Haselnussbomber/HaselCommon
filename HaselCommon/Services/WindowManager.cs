@@ -10,7 +10,6 @@ public partial class WindowManager : IDisposable
     private readonly IServiceProvider _serviceProvider;
     private readonly IDalamudPluginInterface _pluginInterface;
     private readonly LanguageProvider _languageProvider;
-    private readonly GlobalScaleObserver _globalScaleObserver;
 
     private WindowSystem _windowSystem;
     private bool _isDisposing;
@@ -23,7 +22,7 @@ public partial class WindowManager : IDisposable
         _pluginInterface.UiBuilder.Draw += _windowSystem.Draw;
 
         _languageProvider.LanguageChanged += OnLanguageChanged;
-        _globalScaleObserver.ScaleChanged += OnScaleChanged;
+        _pluginInterface.UiBuilder.DefaultGlobalScaleChanged += OnScaleChanged;
     }
 
     void IDisposable.Dispose()
@@ -33,7 +32,7 @@ public partial class WindowManager : IDisposable
         _pluginInterface.UiBuilder.Draw -= _windowSystem.Draw;
 
         _languageProvider.LanguageChanged -= OnLanguageChanged;
-        _globalScaleObserver.ScaleChanged -= OnScaleChanged;
+        _pluginInterface.UiBuilder.DefaultGlobalScaleChanged -= OnScaleChanged;
 
         lock (_windowSystem)
         {
@@ -57,8 +56,10 @@ public partial class WindowManager : IDisposable
         }
     }
 
-    private void OnScaleChanged(float scale)
+    private void OnScaleChanged()
     {
+        var scale = ImGuiHelpers.GlobalScaleSafe;
+
         foreach (var window in _windowSystem.Windows.OfType<SimpleWindow>())
         {
             try
