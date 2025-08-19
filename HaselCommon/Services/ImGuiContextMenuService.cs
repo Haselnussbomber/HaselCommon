@@ -120,7 +120,7 @@ public unsafe struct ImGuiContextMenuBuilder(TextService textService, MapService
         entries.Add(new ImGuiContextMenuEntry()
         {
             Label = textService.GetAddonText(159), // "Copy Item Name"
-            ClickCallback = () => ImGui.SetClipboardText(itemName.ExtractText().StripSoftHyphen())
+            ClickCallback = () => ImGui.SetClipboardText(itemName.ToString())
         });
 
         return this;

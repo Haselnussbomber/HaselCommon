@@ -220,7 +220,7 @@ public partial class TextService
         => FromObjStr(ObjectKind.Companion, id, language);
 
     private string FromObjStr(ObjectKind objectKind, uint id, ClientLanguage? language = null)
-        => _seStringEvaluator.EvaluateFromAddon(2025, [((DObjectKind)objectKind).GetObjStrId(id)], language).ExtractText().StripSoftHyphen();
+        => _seStringEvaluator.EvaluateFromAddon(2025, [((DObjectKind)objectKind).GetObjStrId(id)], language).ToString();
 
     private string GetOrCreateCachedText<T>(uint rowId, ClientLanguage? language, Func<T, ReadOnlySeString> getText) where T : struct, IExcelRow<T>
     {
@@ -237,7 +237,7 @@ public partial class TextService
         }
 
         var tempText = getText(row);
-        _rowNameCache.Add(key, text = tempText.IsEmpty ? $"{typeof(T).Name}#{rowId}" : tempText.ExtractText().StripSoftHyphen().FirstCharToUpper());
+        _rowNameCache.Add(key, text = tempText.IsEmpty ? $"{typeof(T).Name}#{rowId}" : tempText.ToString().FirstCharToUpper());
         return text;
     }
 }

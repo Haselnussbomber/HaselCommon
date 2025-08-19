@@ -14,6 +14,6 @@ public static class CStringExtensions
 
     public static string ExtractText(this CStringPointer ptr)
     {
-        return ptr.AsReadOnlySeStringSpan().ExtractText();
+        return ptr.AsReadOnlySeStringSpan().ToString();
     }
 }
