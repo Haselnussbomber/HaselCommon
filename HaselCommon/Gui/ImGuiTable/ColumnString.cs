@@ -52,6 +52,6 @@ public class ColumnString<T> : Column<T>
 
     public override void DrawColumn(T row)
     {
-        ImGui.TextUnformatted(ToName(row));
+        ImGui.Text(ToName(row));
     }
 }

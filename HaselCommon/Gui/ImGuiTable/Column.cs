@@ -35,7 +35,7 @@ public class Column<T>
     public virtual bool DrawFilter()
     {
         ImGui.AlignTextToFramePadding();
-        ImGui.TextUnformatted(Label);
+        ImGui.Text(Label);
         return false;
     }
 

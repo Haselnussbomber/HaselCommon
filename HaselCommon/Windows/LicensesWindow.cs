@@ -98,7 +98,7 @@ public partial class LicensesWindow : SimpleWindow
                 }
                 else
                 {
-                    ImGui.TextUnformatted(line);
+                    ImGui.Text(line);
                 }
 
                 continue;
@@ -121,7 +121,7 @@ public partial class LicensesWindow : SimpleWindow
             if (font == null && string.IsNullOrEmpty(line))
                 continue;
 
-            ImGui.TextUnformatted(line);
+            ImGui.Text(line);
         }
 
         font?.Dispose();

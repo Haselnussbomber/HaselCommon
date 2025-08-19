@@ -32,7 +32,7 @@ public class ColumnBool<TRow> : ColumnFlags<BoolValues, TRow>
     {
         var value = ToBool(row);
         using ((value ? Color.Green : Color.Red).Push(ImGuiCol.Text))
-            ImGui.TextUnformatted(Names[value ? 1 : 0]);
+            ImGui.Text(Names[value ? 1 : 0]);
     }
 
     public override unsafe int Compare(TRow a, TRow b)

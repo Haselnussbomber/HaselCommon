@@ -41,7 +41,7 @@ public static partial class ImGuiUtils
 
     public static unsafe void DrawLink(string label, string title, string url)
     {
-        ImGui.TextUnformatted(label);
+        ImGui.Text(label);
 
         if (ImGui.IsItemHovered())
         {
@@ -106,13 +106,13 @@ public static partial class ImGuiUtils
     public static void TextUnformattedDisabled(string text)
     {
         using (ImRaii.Disabled())
-            ImGui.TextUnformatted(text);
+            ImGui.Text(text);
     }
 
     public static void TextUnformattedColored(Color color, string text)
     {
         using (color.Push(ImGuiCol.Text))
-            ImGui.TextUnformatted(text);
+            ImGui.Text(text);
     }
 
     public static Vector2 GetIconSize(FontAwesomeIcon icon)
@@ -125,7 +125,7 @@ public static partial class ImGuiUtils
     {
         using (ImRaii.PushColor(ImGuiCol.Text, color ?? 0u, color != null))
         using (ImRaii.PushFont(UiBuilder.IconFont))
-            ImGui.TextUnformatted(icon.ToIconString());
+            ImGui.Text(icon.ToIconString());
     }
 
     public static Vector2 GetIconButtonSize(FontAwesomeIcon icon)
@@ -162,7 +162,7 @@ public static partial class ImGuiUtils
         if (tooltip != null && ImGui.IsItemHovered())
         {
             ImGui.BeginTooltip();
-            ImGui.TextUnformatted(tooltip);
+            ImGui.Text(tooltip);
             ImGui.EndTooltip();
         }
 
