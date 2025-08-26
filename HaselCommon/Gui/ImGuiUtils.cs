@@ -28,7 +28,7 @@ public static partial class ImGuiUtils
         if (respectUiTheme && Misc.IsLightTheme && uiColor.IsValid)
             color = Color.FromABGR(uiColor.Value.Dark);
 
-        TextUnformattedColored(color, label);
+        ImGui.TextColored(color, label);
 
         // pull up the separator
         PushCursorY(-itemSpacingHeight + 3);
@@ -51,7 +51,7 @@ public static partial class ImGuiUtils
             if (tooltip.Success)
             {
                 if (!string.IsNullOrEmpty(title))
-                    TextUnformattedColored(Color.White, title);
+                    ImGui.TextColored(Color.White, title);
 
                 var pos = ImGui.GetCursorPos();
                 ImGui.GetWindowDrawList().AddText(
@@ -61,7 +61,7 @@ public static partial class ImGuiUtils
                     FontAwesomeIcon.ExternalLinkAlt.ToIconString()
                 );
                 ImGui.SetCursorPos(pos + new Vector2(20, 0));
-                TextUnformattedColored(Color.Grey, url);
+                ImGui.TextColored(Color.Grey, url);
             }
         }
 
@@ -102,18 +102,6 @@ public static partial class ImGuiUtils
 
     public static void PushCursorY(float y)
         => ImGui.SetCursorPosY(ImGui.GetCursorPosY() + y);
-
-    public static void TextUnformattedDisabled(string text)
-    {
-        using (ImRaii.Disabled())
-            ImGui.Text(text);
-    }
-
-    public static void TextUnformattedColored(Color color, string text)
-    {
-        using (color.Push(ImGuiCol.Text))
-            ImGui.Text(text);
-    }
 
     public static Vector2 GetIconSize(FontAwesomeIcon icon)
     {

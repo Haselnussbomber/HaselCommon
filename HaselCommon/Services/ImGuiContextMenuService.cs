@@ -309,7 +309,7 @@ public unsafe struct ImGuiContextMenuBuilder(TextService textService, MapService
                     FontAwesomeIcon.ExternalLinkAlt.ToIconString()
                 );
                 ImGui.SetCursorPos(pos + new Vector2(20, 0) * ImGuiHelpers.GlobalScale);
-                ImGuiUtils.TextUnformattedColored(Color.Grey, $"https://www.garlandtools.org/db/#{type}/{id}");
+                ImGui.TextColored(Color.Grey, $"https://www.garlandtools.org/db/#{type}/{id}");
             }
         });
 
