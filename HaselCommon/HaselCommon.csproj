@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Project Sdk="Dalamud.NET.Sdk/13.0.0">
+<Project Sdk="Dalamud.NET.Sdk/13.1.0">
   <PropertyGroup>
     <Version>1.0.0</Version>
     <OutputPath>..\bin\</OutputPath>
     <RestorePackagesWithLockFile>false</RestorePackagesWithLockFile>
     <DisableRuntimeMarshalling>true</DisableRuntimeMarshalling>
+    <Use_Dalamud_Newtonsoft_Json>false</Use_Dalamud_Newtonsoft_Json>
     <Use_DalamudPackager>false</Use_DalamudPackager>
     <LangVersion>preview</LangVersion>
     <DefineConstants>AUTOCTOR_EMBED_ATTRIBUTES</DefineConstants>
@@ -17,10 +18,6 @@
   <ItemGroup>
     <None Remove="Translations.json" />
     <EmbeddedResource Include="Translations.json" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="Microsoft.Extensions.ObjectPool" Private="false" />
   </ItemGroup>
 
   <ItemGroup Condition="!Exists('$(ProjectDir)..\..\FFXIVClientStructs')">
