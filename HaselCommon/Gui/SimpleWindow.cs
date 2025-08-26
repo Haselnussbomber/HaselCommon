@@ -8,16 +8,17 @@ public abstract partial class SimpleWindow : Window, IDisposable
     private readonly WindowManager _windowManager;
     private readonly TextService _textService;
     private readonly AddonObserver _addonObserver;
+    private string _windowNameKey = string.Empty;
 
     public string WindowNameKey
     {
-        get;
+        get => _windowNameKey;
         set
         {
-            field = value;
+            _windowNameKey = value;
             UpdateWindowName();
         }
-    } = string.Empty;
+    }
 
     protected SimpleWindow(WindowManager windowManager, TextService textService, AddonObserver addonObserver) : base("SimpleWindow", ImGuiWindowFlags.None, false)
     {

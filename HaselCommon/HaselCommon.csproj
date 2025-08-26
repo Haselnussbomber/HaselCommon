@@ -7,7 +7,6 @@
     <DisableRuntimeMarshalling>true</DisableRuntimeMarshalling>
     <Use_Dalamud_Newtonsoft_Json>false</Use_Dalamud_Newtonsoft_Json>
     <Use_DalamudPackager>false</Use_DalamudPackager>
-    <LangVersion>preview</LangVersion>
     <DefineConstants>AUTOCTOR_EMBED_ATTRIBUTES</DefineConstants>
   </PropertyGroup>
 
