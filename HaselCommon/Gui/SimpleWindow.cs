@@ -73,7 +73,7 @@ public abstract partial class SimpleWindow : Window, IDisposable
             Close();
     }
 
-    public override void OnClose() // TODO: switch to OnSafeToRemove
+    public override void OnClose()
     {
         _windowManager.RemoveWindow(this);
     }
