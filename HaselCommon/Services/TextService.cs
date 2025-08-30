@@ -105,6 +105,9 @@ public partial class TextService
     public string GetLobbyText(uint id, ClientLanguage? language = null)
         => GetOrCreateCachedText<Lobby>(id, language, (row) => row.Text);
 
+    public string GetLogMessage(uint id, ClientLanguage? language = null)
+        => GetOrCreateCachedText<LogMessage>(id, language, (row) => row.Text);
+
     public ReadOnlySeString GetItemName(uint itemId, ClientLanguage? language = null)
         => ItemUtil.IsEventItem(itemId)
             ? _excelService.TryGetRow<EventItem>(itemId, language, out var eventItem) ? eventItem.Name : default
