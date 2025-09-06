@@ -1,8 +1,6 @@
 using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using Dalamud.Game.Config;
-using Dalamud.Interface.Textures;
-using Dalamud.Interface.Textures.TextureWraps;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using Lumina.Data.Files;
 
@@ -36,44 +34,6 @@ public partial class TextureService
         GfdFileView = new(() => new(_dataManager.GetFile("common/font/gfdata.gfd")!.Data));
     }
 
-    public void Draw(string path, DrawInfo drawInfo)
-    {
-        if (drawInfo.DrawSize.HasValue && !ImGui.IsRectVisible(drawInfo.DrawSize.Value * (drawInfo.Scale ?? 1f)))
-        {
-            ImGui.Dummy(drawInfo.DrawSize.Value * (drawInfo.Scale ?? 1f));
-            return;
-        }
-
-        var textureWrap = _textureProvider.GetFromGame(path).GetWrapOrEmpty();
-        Draw(textureWrap, drawInfo);
-    }
-
-    public void DrawIcon(GameIconLookup gameIconLookup, DrawInfo drawInfo)
-    {
-        if (drawInfo.DrawSize.HasValue && !ImGui.IsRectVisible(drawInfo.DrawSize.Value * (drawInfo.Scale ?? 1f)))
-        {
-            ImGui.Dummy(drawInfo.DrawSize.Value * (drawInfo.Scale ?? 1f));
-            return;
-        }
-
-        if (!_textureProvider.TryGetFromGameIcon(gameIconLookup, out var texture))
-        {
-            ImGui.Dummy(Vector2.Zero);
-            return;
-        }
-
-        Draw(texture.GetWrapOrEmpty(), drawInfo);
-    }
-
-    public void DrawIcon(int iconId, bool isHq, DrawInfo drawInfo)
-        => DrawIcon(new GameIconLookup((uint)iconId, isHq), drawInfo);
-
-    public void DrawIcon(uint iconId, DrawInfo drawInfo)
-        => DrawIcon(new GameIconLookup(iconId), drawInfo);
-
-    public void DrawIcon(int iconId, DrawInfo drawInfo)
-        => DrawIcon(new GameIconLookup((uint)iconId), drawInfo);
-
     public void DrawGfd(uint gfdIconId, DrawInfo drawInfo)
     {
         if (!GfdFileView.Value.TryGetEntry(gfdIconId, out var entry))
@@ -87,7 +47,7 @@ public partial class TextureService
 
         _gameConfig.TryGet(SystemConfigOption.PadSelectButtonIcon, out uint padSelectButtonIcon);
 
-        Draw(GfdTextures[padSelectButtonIcon], new()
+        _textureProvider.Draw(GfdTextures[padSelectButtonIcon], new()
         {
             DrawSize = (drawInfo.DrawSize ?? ImGuiHelpers.ScaledVector2(size.X, size.Y) / 2) * (drawInfo.Scale ?? 1f),
             Uv0 = startPos,
@@ -112,7 +72,7 @@ public partial class TextureService
             drawInfo.Uv0 = uldPartInfo.Uv0;
             drawInfo.Uv1 = uldPartInfo.Uv1;
             drawInfo.TransformUv = true;
-            Draw(uldPartInfo.Path, drawInfo);
+            _textureProvider.Draw(uldPartInfo.Path, drawInfo);
             return;
         }
 
@@ -126,7 +86,7 @@ public partial class TextureService
         drawInfo.Uv1 = uldPartInfo.Uv1;
         drawInfo.TransformUv = true;
 
-        Draw(uldPartInfo.Path, drawInfo);
+        _textureProvider.Draw(uldPartInfo.Path, drawInfo);
     }
 
     private bool TryGetUldPartInfo(UldPartKey key, [NotNullWhen(returnValue: true)] out UldPartInfo? uldPartInfo)
@@ -209,79 +169,4 @@ public partial class TextureService
 
         return true;
     }
-
-    public unsafe bool TryGetUldPartSize(string uldName, uint partListId, uint partIndex, out Vector2 size)
-    {
-        var themeType = RaptureAtkModule.Instance()->AtkUIColorHolder.ActiveColorThemeType;
-
-        if (!TryGetUldPartInfo(new(themeType, uldName, partListId, partIndex), out var uldPartInfo))
-        {
-            size = default;
-            return false;
-        }
-
-        size = uldPartInfo.Uv1 - uldPartInfo.Uv0;
-        return true;
-    }
-
-    public static void Draw(IDalamudTextureWrap? textureWrap, DrawInfo drawInfo)
-    {
-        if (textureWrap == null)
-        {
-            ImGui.Dummy((drawInfo.DrawSize ?? Vector2.Zero) * (drawInfo.Scale ?? 1f));
-            return;
-        }
-
-        var size = (drawInfo.DrawSize ?? textureWrap.Size) * (drawInfo.Scale ?? 1f);
-        var uv0 = drawInfo.Uv0 ?? Vector2.Zero;
-        var uv1 = drawInfo.Uv1 ?? Vector2.One;
-
-        if (drawInfo.TransformUv)
-        {
-            uv0 /= textureWrap.Size;
-            uv1 /= textureWrap.Size;
-        }
-
-        ImGui.Image(
-            textureWrap.Handle,
-            size,
-            uv0,
-            uv1,
-            drawInfo.TintColor ?? Vector4.One,
-            drawInfo.BorderColor ?? Vector4.Zero);
-    }
-}
-
-public struct DrawInfo
-{
-    public DrawInfo()
-    {
-    }
-
-    public DrawInfo(Vector2 size)
-    {
-        DrawSize = size;
-    }
-
-    public DrawInfo(float size)
-    {
-        DrawSize = new(size);
-    }
-
-    public DrawInfo(float width, float height)
-    {
-        DrawSize = new(width, height);
-    }
-
-    public float? Scale { get; set; }
-    public Vector2? DrawSize { get; set; }
-    public Vector2? Uv0 { get; set; }
-    public Vector2? Uv1 { get; set; }
-    public Vector4? TintColor { get; set; }
-    public Vector4? BorderColor { get; set; }
-    public bool TransformUv { get; set; }
-
-    public static implicit operator DrawInfo(Vector2 size) => new(size);
-    public static implicit operator DrawInfo(float size) => new(size);
-    public static implicit operator DrawInfo(int size) => new(size);
 }
