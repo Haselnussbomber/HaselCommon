@@ -1,91 +1,42 @@
 using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
-using Dalamud.Game.Config;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using Lumina.Data.Files;
 
 namespace HaselCommon.Services;
 
 [RegisterSingleton, AutoConstruct]
-public partial class TextureService
+public partial class UldService
 {
     private readonly ITextureProvider _textureProvider;
     private readonly IDataManager _dataManager;
     private readonly IGameConfig _gameConfig;
 
-    private record UldPartKey(byte ThemeType, string UldName, uint PartListId, uint PartIndex);
+    private record struct UldPartKey(byte ThemeType, string UldName, uint PartListId, uint PartIndex);
     private record UldPartInfo(string Path, Vector2 Uv0, Vector2 Uv1);
-
-    private static readonly string[] GfdTextures = [
-        "common/font/fonticon_xinput.tex",
-        "common/font/fonticon_ps3.tex",
-        "common/font/fonticon_ps4.tex",
-        "common/font/fonticon_ps5.tex",
-        "common/font/fonticon_lys.tex",
-    ];
 
     private readonly ConcurrentDictionary<UldPartKey, UldPartInfo?> _uldPartCache = [];
 
-    public Lazy<GfdFileView> GfdFileView { get; private set; }
-
-    [AutoPostConstruct]
-    private void Initialize()
+    public unsafe void DrawPart(string uldName, uint partListId, uint partIndex, DrawInfo drawInfo)
     {
-        GfdFileView = new(() => new(_dataManager.GetFile("common/font/gfdata.gfd")!.Data));
-    }
-
-    public void DrawGfd(uint gfdIconId, DrawInfo drawInfo)
-    {
-        if (!GfdFileView.Value.TryGetEntry(gfdIconId, out var entry))
+        if (!drawInfo.IsRectVisible)
         {
-            ImGui.Dummy((drawInfo.DrawSize ?? new(20)) * (drawInfo.Scale ?? 1f));
+            ImGui.Dummy(drawInfo.ScaledDrawSize);
             return;
         }
 
-        var startPos = new Vector2(entry.Left, entry.Top) * 2 + new Vector2(0, 340);
-        var size = new Vector2(entry.Width, entry.Height) * 2;
-
-        _gameConfig.TryGet(SystemConfigOption.PadSelectButtonIcon, out uint padSelectButtonIcon);
-
-        _textureProvider.Draw(GfdTextures[padSelectButtonIcon], new()
-        {
-            DrawSize = (drawInfo.DrawSize ?? ImGuiHelpers.ScaledVector2(size.X, size.Y) / 2) * (drawInfo.Scale ?? 1f),
-            Uv0 = startPos,
-            Uv1 = startPos + size,
-            TransformUv = true,
-        });
-    }
-
-    public unsafe void DrawPart(string uldName, uint partListId, uint partIndex, DrawInfo drawInfo)
-    {
         var themeType = RaptureAtkModule.Instance()->AtkUIColorHolder.ActiveColorThemeType;
         var key = new UldPartKey(themeType, uldName, partListId, partIndex);
 
-        if (_uldPartCache.TryGetValue(key, out var uldPartInfo))
+        if (!_uldPartCache.TryGetValue(key, out var uldPartInfo) || !TryGetUldPartInfo(key, out uldPartInfo))
         {
-            if (uldPartInfo == null || uldPartInfo == null)
-            {
-                ImGui.Dummy((drawInfo.DrawSize ?? Vector2.Zero) * (drawInfo.Scale ?? 1f));
-                return;
-            }
-
-            drawInfo.Uv0 = uldPartInfo.Uv0;
-            drawInfo.Uv1 = uldPartInfo.Uv1;
-            drawInfo.TransformUv = true;
-            _textureProvider.Draw(uldPartInfo.Path, drawInfo);
-            return;
-        }
-
-        if (!TryGetUldPartInfo(key, out uldPartInfo))
-        {
-            ImGui.Dummy((drawInfo.DrawSize ?? Vector2.Zero) * (drawInfo.Scale ?? 1f));
+            ImGui.Dummy(drawInfo.ScaledDrawSize);
             return;
         }
 
         drawInfo.Uv0 = uldPartInfo.Uv0;
         drawInfo.Uv1 = uldPartInfo.Uv1;
         drawInfo.TransformUv = true;
-
         _textureProvider.Draw(uldPartInfo.Path, drawInfo);
     }
 
