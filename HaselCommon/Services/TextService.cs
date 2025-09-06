@@ -109,9 +109,10 @@ public partial class TextService
         => GetOrCreateCachedText<LogMessage>(id, language, (row) => row.Text);
 
     public ReadOnlySeString GetItemName(uint itemId, ClientLanguage? language = null)
-        => ItemUtil.IsEventItem(itemId)
-            ? _excelService.TryGetRow<EventItem>(itemId, language, out var eventItem) ? eventItem.Name : default
-            : _excelService.TryGetRow<Item>(ItemUtil.GetBaseId(itemId).ItemId, language, out var item) ? item.Name : default;
+        => GetItemName(itemId, false, language);
+
+    public ReadOnlySeString GetItemName(uint itemId, bool includeIcon, ClientLanguage? language = null)
+        => ItemUtil.GetItemName(itemId, includeIcon, language);
 
     public string GetStainName(uint id, ClientLanguage? language = null)
         => GetOrCreateCachedText<Stain>(id, language, (row) => row.Name);
