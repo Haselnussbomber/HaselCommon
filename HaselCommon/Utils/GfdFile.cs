@@ -1,37 +1,31 @@
 using System.IO;
+using Lumina.Data;
 
 namespace HaselCommon.Utils;
 
-// copied from Dalamud.Interface.SeStringRenderer
-// https://github.com/goatcorp/Dalamud/blob/48ea0ed9/Dalamud/Interface/SeStringRenderer/GfdFileView.cs
+// copied from Dalamud
+// https://github.com/goatcorp/Dalamud/blob/878b96e/Dalamud/Interface/ImGuiSeStringRenderer/Internal/GfdFile.cs
 
-/// <summary>Reference member view of a .gfd file data.</summary>
-public readonly unsafe struct GfdFileView
+/// <summary>Gaiji font data file.</summary>
+public unsafe class GfdFile : FileResource
 {
-    private readonly ReadOnlyMemory<byte> _memory;
-    private readonly bool _directLookup;
+    /// <summary>Gets or sets the file header.</summary>
+    public GfdHeader Header { get; set; }
 
-    /// <summary>Initializes a new instance of the <see cref="GfdFileView"/> struct.</summary>
-    /// <param name="memory">The data.</param>
-    public GfdFileView(ReadOnlyMemory<byte> memory)
+    /// <summary>Gets or sets the entries.</summary>
+    public GfdEntry[] Entries { get; set; } = [];
+
+    /// <inheritdoc/>
+    public override void LoadFile()
     {
-        _memory = memory;
-        if (memory.Length < sizeof(GfdHeader))
+        if (DataSpan.Length < sizeof(GfdHeader))
             throw new InvalidDataException($"Not enough space for a {nameof(GfdHeader)}");
-        if (memory.Length < sizeof(GfdHeader) + Header.Count * sizeof(GfdEntry))
+        if (DataSpan.Length < sizeof(GfdHeader) + Header.Count * sizeof(GfdEntry))
             throw new InvalidDataException($"Not enough space for all the {nameof(GfdEntry)}");
 
-        var entries = Entries;
-        _directLookup = true;
-        for (var i = 0; i < entries.Length && _directLookup; i++)
-            _directLookup &= i + 1 == entries[i].Id;
+        Header = MemoryMarshal.AsRef<GfdHeader>(DataSpan);
+        Entries = MemoryMarshal.Cast<byte, GfdEntry>(DataSpan[sizeof(GfdHeader)..]).ToArray();
     }
-
-    /// <summary>Gets the header.</summary>
-    public ref readonly GfdHeader Header => ref MemoryMarshal.AsRef<GfdHeader>(_memory.Span);
-
-    /// <summary>Gets the entries.</summary>
-    public ReadOnlySpan<GfdEntry> Entries => MemoryMarshal.Cast<byte, GfdEntry>(_memory.Span[sizeof(GfdHeader)..]);
 
     /// <summary>Attempts to get an entry.</summary>
     /// <param name="iconId">The icon ID.</param>
@@ -47,7 +41,7 @@ public readonly unsafe struct GfdFileView
         }
 
         var entries = Entries;
-        if (_directLookup)
+        if (iconId <= Entries.Length && entries[(int)(iconId - 1)].Id == iconId)
         {
             if (iconId <= entries.Length)
             {
@@ -131,6 +125,36 @@ public readonly unsafe struct GfdFileView
         public ushort Unk0E;
 
         /// <summary>Gets a value indicating whether this entry is effectively empty.</summary>
-        public readonly bool IsEmpty => Width == 0 || Height == 0;
+        public bool IsEmpty => Width == 0 || Height == 0;
+
+        /// <summary>Gets or sets the size of this entry.</summary>
+        public Vector2 Size
+        {
+            get => new(Width, Height);
+            set => (Width, Height) = (checked((ushort)value.X), checked((ushort)value.Y));
+        }
+
+        /// <summary>Gets the UV0 of this entry.</summary>
+        public Vector2 Uv0 => new(Left / 512f, Top / 1024f);
+
+        /// <summary>Gets the UV1 of this entry.</summary>
+        public Vector2 Uv1 => new((Left + Width) / 512f, (Top + Height) / 1024f);
+
+        /// <summary>Gets the UV0 of the HQ version of this entry.</summary>
+        public Vector2 HqUv0 => new(Left / 256f, (Top + 170.5f) / 512f);
+
+        /// <summary>Gets the UV1 of the HQ version of this entry.</summary>
+        public Vector2 HqUv1 => new((Left + Width) / 256f, (Top + Height + 170.5f) / 512f);
+
+        /// <summary>Calculates the size in pixels of a GFD entry when drawn along with a text.</summary>
+        /// <param name="fontSize">Font size in pixels.</param>
+        /// <param name="useHq">Whether to draw the HQ texture.</param>
+        /// <returns>Determined size of the GFD entry when drawn.</returns>
+        public readonly Vector2 CalculateScaledSize(float fontSize, out bool useHq)
+        {
+            useHq = fontSize > 19;
+            var targetHeight = useHq ? fontSize : 20;
+            return new(Width * (targetHeight / Height), targetHeight);
+        }
     }
 }

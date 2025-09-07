@@ -17,35 +17,33 @@ public partial class GfdService
         "common/font/fonticon_lys.tex",
     ];
 
-    private Lazy<GfdFileView> _gfdFileView;
+    private GfdFile _gfdFile;
 
     [AutoPostConstruct]
     private void Initialize()
     {
-        _gfdFileView = new(() => new(_dataManager.GetFile("common/font/gfdata.gfd")!.Data));
+        _gfdFile = _dataManager.GetFile<GfdFile>("common/font/gfdata.gfd")!;
     }
 
-    public ReadOnlySpan<GfdFileView.GfdEntry> Entries => _gfdFileView.Value.Entries;
+    public ReadOnlySpan<GfdFile.GfdEntry> Entries => _gfdFile?.Entries ?? default;
 
     public void Draw(uint gfdIconId, DrawInfo drawInfo)
     {
-        if (!_gfdFileView.Value.TryGetEntry(gfdIconId, out var entry))
+        if (!drawInfo.IsRectVisible || !_gfdFile.TryGetEntry(gfdIconId, out var entry) || entry.IsEmpty)
         {
             ImGui.Dummy((drawInfo.DrawSize ?? new(20)) * (drawInfo.Scale ?? 1f));
             return;
         }
 
-        var startPos = new Vector2(entry.Left, entry.Top) * 2 + new Vector2(0, 340);
-        var size = new Vector2(entry.Width, entry.Height) * 2;
+        var size = entry.CalculateScaledSize((drawInfo.DrawSize?.Y ?? 20) * (drawInfo.Scale ?? 1f), out var useHq);
 
         _gameConfig.TryGet(SystemConfigOption.PadSelectButtonIcon, out uint padSelectButtonIcon);
 
         _textureProvider.Draw(GfdTextures[padSelectButtonIcon], new()
         {
-            DrawSize = (drawInfo.DrawSize ?? ImGuiHelpers.ScaledVector2(size.X, size.Y) / 2) * (drawInfo.Scale ?? 1f),
-            Uv0 = startPos,
-            Uv1 = startPos + size,
-            TransformUv = true,
+            DrawSize = size,
+            Uv0 = useHq ? entry.HqUv0 : entry.Uv0,
+            Uv1 = useHq ? entry.HqUv1 : entry.Uv1,
         });
     }
 }
