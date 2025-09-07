@@ -30,7 +30,7 @@ public struct DrawInfo
     public bool TransformUv { get; set; }
 
     public Vector2 ScaledDrawSize => (DrawSize ?? Vector2.Zero) * (Scale ?? 1f);
-    public bool IsRectVisible => DrawSize.HasValue && !ImGui.IsRectVisible(ScaledDrawSize);
+    public bool IsRectVisible => !DrawSize.HasValue || (DrawSize.HasValue && ImGui.IsRectVisible(ScaledDrawSize));
 
     public static implicit operator DrawInfo(Vector2 size) => new(size);
     public static implicit operator DrawInfo(float size) => new(size);
