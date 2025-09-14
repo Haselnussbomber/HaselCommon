@@ -28,7 +28,12 @@ public partial class UldService
         var themeType = RaptureAtkModule.Instance()->AtkUIColorHolder.ActiveColorThemeType;
         var key = new UldPartKey(themeType, uldName, partListId, partIndex);
 
-        if (!_uldPartCache.TryGetValue(key, out var uldPartInfo) || !TryGetUldPartInfo(key, out uldPartInfo))
+        if (!_uldPartCache.TryGetValue(key, out var uldPartInfo))
+        {
+            TryGetUldPartInfo(key, out uldPartInfo);
+        }
+
+        if (uldPartInfo == null)
         {
             ImGui.Dummy(drawInfo.ScaledDrawSize);
             return;
