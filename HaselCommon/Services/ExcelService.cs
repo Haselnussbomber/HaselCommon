@@ -38,6 +38,12 @@ public partial class ExcelService
     public bool TryGetRow<T>(string sheetName, uint rowId, ClientLanguage? language, out T row) where T : struct, IExcelRow<T>
         => GetSheet<T>(sheetName, language ?? _languageProvider.ClientLanguage).TryGetRow(rowId, out row);
 
+    public bool TryFindRow<T>(string sheetName, Predicate<T> predicate, out T row) where T : struct, IExcelRow<T>
+        => TryFindRow(sheetName, predicate, null, out row);
+
+    public bool TryFindRow<T>(string sheetName, Predicate<T> predicate, ClientLanguage? language, out T row) where T : struct, IExcelRow<T>
+        => GetSheet<T>(sheetName, language ?? _languageProvider.ClientLanguage).TryGetFirst(predicate, out row);
+
     public bool TryFindRow<T>(Predicate<T> predicate, out T row) where T : struct, IExcelRow<T>
         => TryFindRow(predicate, null, out row);
 
