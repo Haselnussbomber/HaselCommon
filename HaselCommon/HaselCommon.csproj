@@ -23,10 +23,10 @@
   <!-- NuGet dependencies -->
   <ItemGroup>
     <PackageReference Include="AutoCtor" Version="2.8.1" PrivateAssets="all" ExcludeAssets="compile;runtime" />
-    <PackageReference Include="Injectio" Version="5.0.0" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.8" />
-    <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.8" />
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.8" />
+    <PackageReference Include="Injectio" Version="5.1.0" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.9" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.9" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.9" />
   </ItemGroup>
 
   <!-- FFXIVClientStructs -->
