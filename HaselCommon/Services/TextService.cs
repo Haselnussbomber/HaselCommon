@@ -112,7 +112,7 @@ public partial class TextService
         => GetItemName(itemId, false, language);
 
     public ReadOnlySeString GetItemName(uint itemId, bool includeIcon, ClientLanguage? language = null)
-        => ItemUtil.GetItemName(itemId, includeIcon, language);
+        => ItemUtil.GetItemName(itemId, includeIcon, language ?? _languageProvider.ClientLanguage);
 
     public string GetStainName(uint id, ClientLanguage? language = null)
         => GetOrCreateCachedText<Stain>(id, language, (row) => row.Name);
