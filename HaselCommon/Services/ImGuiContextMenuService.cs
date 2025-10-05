@@ -91,7 +91,7 @@ public unsafe struct ImGuiContextMenuBuilder(TextService textService, MapService
     {
         entries.Add(new ImGuiContextMenuEntry()
         {
-            Visible = AgentLobby.Instance()->IsLoggedIn,
+            Visible = AgentLobby.Instance()->IsLoggedIn && !itemService.IsCurrency(itemId),
             Label = textService.GetAddonText(4379), // "Search for Item"
             LoseFocusOnClick = true,
             ClickCallback = () => ItemFinderModule.Instance()->SearchForItem(itemId)
@@ -104,7 +104,7 @@ public unsafe struct ImGuiContextMenuBuilder(TextService textService, MapService
     {
         entries.Add(new ImGuiContextMenuEntry()
         {
-            Visible = AgentLobby.Instance()->IsLoggedIn && ExdModule.GetItemRowById(itemId) != null,
+            Visible = AgentLobby.Instance()->IsLoggedIn && !itemService.IsCurrency(itemId) && ExdModule.GetItemRowById(itemId) != null,
             Label = textService.GetAddonText(4697), // "Link"
             LoseFocusOnClick = true,
             ClickCallback = () => AgentChatLog.Instance()->LinkItem(itemId)

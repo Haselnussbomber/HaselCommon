@@ -1,5 +1,4 @@
 using System.Collections.Frozen;
-using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Client.Game.Control;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using FFXIVClientStructs.FFXIV.Client.UI;
@@ -19,6 +18,8 @@ public partial class ItemService
     private readonly TextService _textService;
 
     private readonly Dictionary<uint, bool> _isCraftableCache = [];
+    private readonly Dictionary<uint, bool> _isCrystalCache = [];
+    private readonly Dictionary<uint, bool> _isCurrencyCache = [];
     private readonly Dictionary<uint, bool> _isGatherableCache = [];
     private readonly Dictionary<uint, bool> _isFishCache = [];
     private readonly Dictionary<uint, bool> _isSpearfishCache = [];
@@ -31,6 +32,7 @@ public partial class ItemService
     private readonly Dictionary<uint, GatheringPoint[]> _gatheringPointsCache = [];
     private readonly Dictionary<uint, FishingSpot[]> _fishingSpotsCache = [];
     private readonly Dictionary<(uint, byte, byte), uint> _hairStyleIconsCache = [];
+    private readonly Dictionary<uint, ItemFilterGroup> _itemFilterGroupCache = [];
 
     private FrozenDictionary<short, (uint Min, uint Max)>? _maxLevelRanges = null;
 
@@ -157,6 +159,16 @@ public partial class ItemService
         return points;
     }
 
+    public ItemFilterGroup GetFilterGroup(uint itemId)
+    {
+        if (_itemFilterGroupCache.TryGetValue(itemId, out var result))
+            return result;
+
+        _itemFilterGroupCache.Add(itemId, result = _excelService.TryGetRow<Item>(itemId, out var item) ? (ItemFilterGroup)item.FilterGroup : 0);
+
+        return result;
+    }
+
     public bool IsCraftable(uint itemId)
     {
         if (_isCraftableCache.TryGetValue(itemId, out var result))
@@ -169,7 +181,22 @@ public partial class ItemService
 
     public bool IsCrystal(uint itemId)
     {
-        return _excelService.TryGetRow<Item>(itemId, out var item) && item.ItemUICategory.RowId == 59;
+        if (_isCrystalCache.TryGetValue(itemId, out var result))
+            return result;
+
+        _isCrystalCache.Add(itemId, result = GetFilterGroup(itemId) == ItemFilterGroup.Crystal);
+
+        return result;
+    }
+
+    public bool IsCurrency(uint itemId)
+    {
+        if (_isCurrencyCache.TryGetValue(itemId, out var result))
+            return result;
+
+        _isCurrencyCache.Add(itemId, result = GetFilterGroup(itemId) == ItemFilterGroup.Currency);
+
+        return result;
     }
 
     public bool IsGatherable(uint itemId)
