@@ -9,6 +9,9 @@ public static unsafe class Chat
 {
     public static unsafe void ExecuteCommand(string command)
     {
+        if (!command.StartsWith('/'))
+            return;
+
         using var cmd = new Utf8String(command);
         RaptureShellModule.Instance()->ExecuteCommandInner(&cmd, UIModule.Instance());
     }
