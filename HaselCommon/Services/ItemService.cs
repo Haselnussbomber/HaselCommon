@@ -1,10 +1,8 @@
+using System.Collections.Concurrent;
 using System.Collections.Frozen;
 using FFXIVClientStructs.FFXIV.Client.Game.Control;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
-using FFXIVClientStructs.FFXIV.Client.UI;
-using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Component.Exd;
-using FFXIVClientStructs.FFXIV.Component.GUI;
 using HaselCommon.Game.Enums;
 
 namespace HaselCommon.Services;
@@ -12,55 +10,106 @@ namespace HaselCommon.Services;
 [RegisterSingleton, AutoConstruct]
 public partial class ItemService
 {
-    private readonly IClientState _clientState;
     private readonly ExcelService _excelService;
     private readonly ISeStringEvaluator _seStringEvaluatorService;
-    private readonly TextService _textService;
+    private readonly LanguageProvider _languageProvider;
 
-    private readonly Dictionary<uint, bool> _isCraftableCache = [];
-    private readonly Dictionary<uint, bool> _isCrystalCache = [];
-    private readonly Dictionary<uint, bool> _isCurrencyCache = [];
-    private readonly Dictionary<uint, bool> _isGatherableCache = [];
-    private readonly Dictionary<uint, bool> _isFishCache = [];
-    private readonly Dictionary<uint, bool> _isSpearfishCache = [];
+    private readonly ConcurrentDictionary<uint, ItemCacheEntry> _itemCache = [];
     private readonly Dictionary<uint, GatheringPoint[]> _gatheringItemGatheringPointsCache = [];
-    private readonly Dictionary<uint, GatheringPoint[]> _spearfishingItemGatheringPointsCache = [];
-    private readonly Dictionary<uint, uint> _itemIconIdCache = [];
-    private readonly Dictionary<uint, Recipe[]> _recipesCache = [];
-    private readonly Dictionary<uint, ItemAmount[]> _ingredientsCache = [];
-    private readonly Dictionary<uint, GatheringItem[]> _gatheringItemsCache = [];
-    private readonly Dictionary<uint, GatheringPoint[]> _gatheringPointsCache = [];
-    private readonly Dictionary<uint, FishingSpot[]> _fishingSpotsCache = [];
-    private readonly Dictionary<(uint, byte, byte), uint> _hairStyleIconsCache = [];
-    private readonly Dictionary<uint, ItemFilterGroup> _itemFilterGroupCache = [];
-
     private FrozenDictionary<short, (uint Min, uint Max)>? _maxLevelRanges = null;
 
-    public uint GetIconId(uint itemId)
+    public static ItemService? Instance => ServiceLocator.GetService<ItemService>();
+
+    public uint GetItemIcon(ItemHandle item)
     {
-        if (_itemIconIdCache.TryGetValue(itemId, out var iconId))
-            return iconId;
-
-        if (ItemUtil.IsEventItem(itemId))
-        {
-            _itemIconIdCache.Add(itemId, iconId = _excelService.TryGetRow<EventItem>(itemId, out var eventItem) ? eventItem.Icon : 0u);
-            return iconId;
-        }
-
-        _itemIconIdCache.Add(itemId, iconId = _excelService.TryGetRow<Item>(ItemUtil.GetBaseId(itemId).ItemId, out var item) ? item.Icon : 0u);
-        return iconId;
+        var entry = _itemCache.GetOrAdd(item, _ => new ItemCacheEntry());
+        return entry.IconId ??= item.IsEventItem
+            ? item.TryGetEventItem(out var eventItem) ? eventItem.Icon : 0u
+            : item.TryGetItem(out var itemRow) ? itemRow.Icon : 0u;
     }
 
-    public Recipe[] GetRecipes(uint itemId)
+    public ReadOnlySeString GetItemName(ItemHandle item, bool includeIcon, ClientLanguage? language = null)
     {
-        if (_recipesCache.TryGetValue(itemId, out var recipes))
+        var entry = _itemCache.GetOrAdd(item, _ => new ItemCacheEntry());
+        var lang = language ?? _languageProvider.ClientLanguage;
+        return entry.ItemNames.GetOrAdd((lang, includeIcon), _ => ItemUtil.GetItemName(item.ItemId, includeIcon, lang));
+    }
+
+    public ReadOnlySeString GetItemDescription(ItemHandle item, ClientLanguage? language = null)
+    {
+        var entry = _itemCache.GetOrAdd(item, _ => new ItemCacheEntry());
+        var lang = language ?? _languageProvider.ClientLanguage;
+        return entry.ItemDescriptions.GetOrAdd(lang, _ =>
+        {
+            if (item.IsEventItem && _excelService.TryGetRow<EventItemHelp>(item, lang, out var eventItemHelp))
+            {
+                return eventItemHelp.Description;
+            }
+            else if (item.TryGetItem(lang, out var itemRow))
+            {
+                return itemRow.Description;
+            }
+
+            return default;
+        });
+    }
+
+    public ReadOnlySeString GetItemLink(ItemHandle item, ClientLanguage? language = null)
+    {
+        var entry = _itemCache.GetOrAdd(item, _ => new ItemCacheEntry());
+        return entry.ItemLinks.GetOrAdd(language ?? _languageProvider.ClientLanguage, clientLanguage =>
+        {
+            using var rssb = new RentedSeStringBuilder();
+
+            var itemName = item.GetItemName(true, clientLanguage);
+            var itemLink = rssb.Builder
+                .PushColorType(item.RarityColorType)
+                .PushEdgeColorType(item.RarityEdgeColorType)
+                .PushLinkItem(item.ItemId, itemName.ToString())
+                .Append(itemName)
+                .PopLink()
+                .PopEdgeColorType()
+                .PopColorType()
+                .ToReadOnlySeString();
+
+            return _seStringEvaluatorService.EvaluateFromAddon(371, [itemLink], language);
+        });
+    }
+
+    public bool IsCraftable(ItemHandle item)
+    {
+        var entry = _itemCache.GetOrAdd(item, _ => new ItemCacheEntry());
+        return entry.IsCraftable ??= GetRecipes(item).Count != 0;
+    }
+
+    public bool IsGatherable(ItemHandle item)
+    {
+        var entry = _itemCache.GetOrAdd(item, _ => new ItemCacheEntry());
+        return entry.IsGatherable ??= GetGatheringPoints(item).Count != 0;
+    }
+
+    public bool IsFish(ItemHandle item)
+    {
+        var entry = _itemCache.GetOrAdd(item, _ => new ItemCacheEntry());
+        return entry.IsFish ??= GetFishingSpots(item).Count != 0;
+    }
+
+    public bool IsSpearfish(ItemHandle item)
+    {
+        var entry = _itemCache.GetOrAdd(item, _ => new ItemCacheEntry());
+        var itemId = item.ItemId;
+        return entry.IsSpearfish ??= _excelService.TryFindRow<SpearfishingItem>(row => row.Item.RowId == itemId, out _);
+    }
+
+    public IReadOnlyList<Recipe> GetRecipes(ItemHandle item)
+    {
+        var entry = _itemCache.GetOrAdd(item, _ => new ItemCacheEntry());
+
+        if (entry.Recipes is { } recipes)
             return recipes;
 
-        if (!_excelService.TryGetRawRow("RecipeLookup", itemId, out var lookup))
-        {
-            _recipesCache.Add(itemId, []);
-            return [];
-        }
+        if (!_excelService.TryGetRawRow("RecipeLookup", item.ItemId, out var lookup))
+            return entry.Recipes = [];
 
         var recipesList = new List<Recipe>();
 
@@ -74,25 +123,22 @@ public partial class ItemService
                 recipesList.Add(recipe);
         }
 
-        var recipesArray = recipesList.ToArray();
-        _recipesCache.Add(itemId, recipesArray);
-        return recipesArray;
+        return entry.Recipes = [.. recipesList];
     }
 
-    public ItemAmount[] GetIngredients(uint itemId)
+    public IReadOnlyList<ItemAmount> GetIngredients(ItemHandle item)
     {
-        if (_ingredientsCache.TryGetValue(itemId, out var ingredients))
+        var entry = _itemCache.GetOrAdd(item, _ => new ItemCacheEntry());
+
+        if (entry.Ingredients is { } ingredients)
             return ingredients;
 
-        var recipes = GetRecipes(itemId);
-        if (recipes.Length == 0)
-        {
-            _ingredientsCache.Add(itemId, ingredients = []);
-            return ingredients;
-        }
+        var recipes = GetRecipes(item);
+        if (recipes.Count == 0)
+            return entry.Ingredients = [];
 
         var list = new List<ItemAmount>();
-        var recipe = recipes.First();
+        var recipe = recipes[0];
 
         for (var i = 0; i < recipe.Ingredient.Count; i++)
         {
@@ -107,352 +153,45 @@ public partial class ItemService
             list.Add(new(ingredient.Value, amount));
         }
 
-        _ingredientsCache.Add(itemId, ingredients = [.. list]);
-
-        return ingredients;
+        return entry.Ingredients = [.. list];
     }
 
-    public GatheringItem[] GetGatheringItems(uint itemId)
+    public IReadOnlyList<GatheringItem> GetGatheringItems(ItemHandle item)
     {
-        if (_gatheringItemsCache.TryGetValue(itemId, out var gatheringItems))
-            return gatheringItems;
-
-        _gatheringItemsCache.Add(itemId, gatheringItems = _excelService.FindRows<GatheringItem>(row => row.Item.RowId == itemId));
-
-        return gatheringItems;
+        var entry = _itemCache.GetOrAdd(item, _ => new ItemCacheEntry());
+        var itemId = item.ItemId;
+        return entry.GatheringItems ??= _excelService.FindRows<GatheringItem>(row => row.Item.RowId == itemId);
     }
 
-    public GatheringPoint[] GetGatheringPoints(uint itemId)
+    public IReadOnlyList<GatheringPoint> GetGatheringPoints(ItemHandle item)
     {
-        if (_gatheringPointsCache.TryGetValue(itemId, out var gatheringPoints))
-            return gatheringPoints;
-
-        _gatheringPointsCache.Add(itemId, gatheringPoints = [.. GetGatheringItems(itemId).SelectMany(GetGatheringPoints)]);
-
-        return gatheringPoints;
+        var entry = _itemCache.GetOrAdd(item, _ => new ItemCacheEntry());
+        return entry.GatheringPoints ??= [.. GetGatheringItems(item).SelectMany(GetGatheringPoints)];
     }
 
-    public FishingSpot[] GetFishingSpots(uint itemId)
+    public IReadOnlyList<FishingSpot> GetFishingSpots(ItemHandle item)
     {
-        if (_fishingSpotsCache.TryGetValue(itemId, out var fishingSpots))
-            return fishingSpots;
-
-        _fishingSpotsCache.Add(itemId, fishingSpots = _excelService.FindRows<FishingSpot>(row => row.Item.Any(item => item.RowId == itemId)));
-
-        return fishingSpots;
+        var entry = _itemCache.GetOrAdd(item, _ => new ItemCacheEntry());
+        var itemId = item.ItemId;
+        return entry.FishingSpots ??= _excelService.FindRows<FishingSpot>(row => row.Item.Any(item => item.RowId == itemId));
     }
 
-    public IEnumerable<GatheringPoint> GetSpearfishingGatheringPoints(uint itemId)
+    public IReadOnlyList<GatheringPoint> GetSpearfishingGatheringPoints(ItemHandle item)
     {
-        if (_spearfishingItemGatheringPointsCache.TryGetValue(itemId, out var points))
-            return points;
+        var entry = _itemCache.GetOrAdd(item, _ => new ItemCacheEntry());
 
+        if (entry.SpearfishingPoints is { } spearfishingPoints)
+            return spearfishingPoints;
+
+        var itemId = item.ItemId;
         if (!_excelService.TryFindRow<SpearfishingItem>(row => row.Item.RowId == itemId, out var spearfishingItem))
-        {
-            _spearfishingItemGatheringPointsCache.Add(itemId, points = []);
-            return points;
-        }
+            return entry.SpearfishingPoints = [];
 
         var bases = _excelService.FindRows<GatheringPointBase>(row => row.GatheringType.RowId == 5 && row.Item.Any(item => item.RowId == spearfishingItem.RowId));
-        points = _excelService.FindRows<GatheringPoint>(row => bases.Any(b => b.RowId == row.GatheringPointBase.RowId));
-        _spearfishingItemGatheringPointsCache.Add(itemId, points);
-        return points;
+        return entry.SpearfishingPoints = _excelService.FindRows<GatheringPoint>(row => bases.Any(b => b.RowId == row.GatheringPointBase.RowId));
     }
 
-    public ItemFilterGroup GetFilterGroup(uint itemId)
-    {
-        if (_itemFilterGroupCache.TryGetValue(itemId, out var result))
-            return result;
-
-        _itemFilterGroupCache.Add(itemId, result = _excelService.TryGetRow<Item>(itemId, out var item) ? (ItemFilterGroup)item.FilterGroup : 0);
-
-        return result;
-    }
-
-    public bool IsCraftable(uint itemId)
-    {
-        if (_isCraftableCache.TryGetValue(itemId, out var result))
-            return result;
-
-        _isCraftableCache.Add(itemId, result = GetRecipes(itemId).Length != 0);
-
-        return result;
-    }
-
-    public bool IsCrystal(uint itemId)
-    {
-        if (_isCrystalCache.TryGetValue(itemId, out var result))
-            return result;
-
-        _isCrystalCache.Add(itemId, result = GetFilterGroup(itemId) == ItemFilterGroup.Crystal);
-
-        return result;
-    }
-
-    public bool IsCurrency(uint itemId)
-    {
-        if (_isCurrencyCache.TryGetValue(itemId, out var result))
-            return result;
-
-        _isCurrencyCache.Add(itemId, result = GetFilterGroup(itemId) == ItemFilterGroup.Currency);
-
-        return result;
-    }
-
-    public bool IsGatherable(uint itemId)
-    {
-        if (_isGatherableCache.TryGetValue(itemId, out var result))
-            return result;
-
-        _isGatherableCache.Add(itemId, result = GetGatheringPoints(itemId).Length != 0);
-
-        return result;
-    }
-
-    public bool IsFish(uint itemId)
-    {
-        if (_isFishCache.TryGetValue(itemId, out var result))
-            return result;
-
-        _isFishCache.Add(itemId, result = GetFishingSpots(itemId).Length != 0);
-
-        return result;
-    }
-
-    public bool IsSpearfish(uint itemId)
-    {
-        if (_isSpearfishCache.TryGetValue(itemId, out var result))
-            return result;
-
-        _isSpearfishCache.Add(itemId, result = _excelService.TryFindRow<SpearfishingItem>(row => row.Item.RowId == itemId, out _));
-
-        return result;
-    }
-
-    public bool IsUnlockable(uint itemId)
-    {
-        if (!_excelService.TryGetRow<Item>(itemId, out var item))
-            return false;
-
-        if (item.ItemAction.RowId == 0)
-            return false;
-
-        return (ItemActionType)item.ItemAction.Value.Type is
-            ItemActionType.Companion or
-            ItemActionType.BuddyEquip or
-            ItemActionType.Mount or
-            ItemActionType.SecretRecipeBook or
-            ItemActionType.UnlockLink or
-            ItemActionType.TripleTriadCard or
-            ItemActionType.FolkloreTome or
-            ItemActionType.OrchestrionRoll or
-            ItemActionType.FramersKit or
-            ItemActionType.Ornament or
-            ItemActionType.Glasses;
-    }
-
-    public unsafe bool CanTryOn(uint itemId)
-    {
-        if (!_excelService.TryGetRow<Item>(itemId, out var item))
-            return false;
-
-        if (!(item.EquipSlotCategory.RowId switch
-        {
-            0 => false, // not equippable
-            2 when (ItemFilterGroup)item.FilterGroup != ItemFilterGroup.Shield => false, // any OffHand that's not a Shield
-            6 => false, // Waist
-            17 => false, // SoulCrystal
-            _ => true
-        }))
-        {
-            return false;
-        }
-
-        var playerState = PlayerState.Instance();
-        if (!playerState->IsLoaded)
-            return false;
-
-        if (!_excelService.TryGetRow<EquipRaceCategory>(item.EquipRestriction, out var equipRaceCategoryRow))
-            return false;
-
-        if (!_excelService.TryGetRawRow("EquipRaceCategory", item.EquipRestriction, out var equipRaceCategoryRawRow))
-            return false;
-
-        var race = playerState->Race;
-        if (race == 0 || !equipRaceCategoryRawRow.ReadBool(race - 1u))
-            return false;
-
-        var sex = playerState->Sex;
-        if (sex == 1) // is female
-            return equipRaceCategoryRow.Female;
-
-        return equipRaceCategoryRow.Male;
-    }
-
-    public unsafe bool IsUnlocked(uint itemId)
-    {
-        if (!_excelService.TryGetRow<Item>(itemId, out var item))
-            return false;
-
-        if (item.ItemAction.RowId == 0)
-            return false;
-
-        // just to avoid the ExdModule.GetItemRowById call...
-        switch ((ItemActionType)item.ItemAction.Value.Type)
-        {
-            case ItemActionType.Companion:
-                return UIState.Instance()->IsCompanionUnlocked(item.ItemAction.Value.Data[0]);
-
-            case ItemActionType.BuddyEquip:
-                return UIState.Instance()->Buddy.CompanionInfo.IsBuddyEquipUnlocked(item.ItemAction.Value.Data[0]);
-
-            case ItemActionType.Mount:
-                return PlayerState.Instance()->IsMountUnlocked(item.ItemAction.Value.Data[0]);
-
-            case ItemActionType.SecretRecipeBook:
-                return PlayerState.Instance()->IsSecretRecipeBookUnlocked(item.ItemAction.Value.Data[0]);
-
-            case ItemActionType.UnlockLink:
-                return UIState.Instance()->IsUnlockLinkUnlocked(item.ItemAction.Value.Data[0]);
-
-            case ItemActionType.TripleTriadCard when item.AdditionalData.Is<TripleTriadCard>():
-                return UIState.Instance()->IsTripleTriadCardUnlocked((ushort)item.AdditionalData.RowId);
-
-            case ItemActionType.FolkloreTome:
-                return PlayerState.Instance()->IsFolkloreBookUnlocked(item.ItemAction.Value.Data[0]);
-
-            case ItemActionType.OrchestrionRoll when item.AdditionalData.Is<Orchestrion>():
-                return PlayerState.Instance()->IsOrchestrionRollUnlocked(item.AdditionalData.RowId);
-
-            case ItemActionType.FramersKit:
-                return PlayerState.Instance()->IsFramersKitUnlocked(item.AdditionalData.RowId);
-
-            case ItemActionType.Ornament:
-                return PlayerState.Instance()->IsOrnamentUnlocked(item.ItemAction.Value.Data[0]);
-
-            case ItemActionType.Glasses:
-                return PlayerState.Instance()->IsGlassesUnlocked((ushort)item.AdditionalData.RowId);
-
-            case ItemActionType.CompanySealVouchers:
-                return false;
-        }
-
-        var row = ExdModule.GetItemRowById(item.RowId);
-        return row != null && UIState.Instance()->IsItemActionUnlocked(row) == 1;
-    }
-
-    public bool CanSearchForItem(uint itemId)
-    {
-        return _excelService.TryGetRow<Item>(itemId, out var item) && !item.IsUntradable && !item.IsCollectable && IsAddonOpen(AgentId.ItemSearch);
-    }
-
-    public unsafe void Search(uint item)
-    {
-        if (!CanSearchForItem(item))
-            return;
-
-        if (!TryGetAddon<AddonItemSearch>(AgentId.ItemSearch, out var addon))
-            return;
-
-        if (TryGetAddon<AtkUnitBase>("ItemSearchResult", out var itemSearchResult))
-            itemSearchResult->Hide2();
-
-        var itemName = _textService.GetItemName(item, _clientState.ClientLanguage).ToString();
-        if (itemName.Length > 40)
-            itemName = itemName[..40];
-
-        addon->SearchTextInput->SetText(itemName);
-
-        addon->SetModeFilter(AddonItemSearch.SearchMode.Normal, -1);
-        addon->RunSearch(false);
-    }
-
-    public FrozenDictionary<short, (uint Min, uint Max)> GetMaxLevelRanges()
-    {
-        if (_maxLevelRanges != null)
-            return _maxLevelRanges;
-
-        var dict = new Dictionary<short, (uint Min, uint Max)>();
-
-        short level = 50;
-        foreach (var exVersion in _excelService.GetSheet<ExVersion>())
-        {
-            var entry = (Min: uint.MaxValue, Max: 0u);
-
-            foreach (var item in _excelService.GetSheet<Item>())
-            {
-                if (item.LevelEquip != level || item.LevelItem.RowId <= 1)
-                    continue;
-
-                if (entry.Min > item.LevelItem.RowId)
-                    entry.Min = item.LevelItem.RowId;
-
-                if (entry.Max < item.LevelItem.RowId)
-                    entry.Max = item.LevelItem.RowId;
-            }
-
-            dict.Add(level, entry);
-            level += 10;
-        }
-
-        return _maxLevelRanges = dict.ToFrozenDictionary();
-    }
-
-    public Color GetItemRarityColor(uint itemId, bool isEdgeColor = false)
-    {
-        if (ItemUtil.IsEventItem(itemId))
-            return isEdgeColor ? Color.Black : Color.White;
-
-        itemId = ItemUtil.GetBaseId(itemId).ItemId;
-
-        if (!_excelService.GetSheet<Item>().HasRow(itemId))
-            return isEdgeColor ? Color.Black : Color.White;
-
-        if (!_excelService.TryGetRow<UIColor>(ItemUtil.GetItemRarityColorType(itemId, isEdgeColor), out var color))
-            return Color.White;
-
-        return Color.FromABGR(color.Dark);
-    }
-
-    public unsafe Color GetItemLevelColor(byte classJob, Item item, params Color[] colors)
-    {
-        if (colors.Length < 2)
-            throw new ArgumentException("At least two colors are required for interpolation.");
-
-        if (!_excelService.TryGetRow<ClassJob>(classJob, out var classJobRow))
-            return Color.White;
-
-        var expArrayIndex = classJobRow.ExpArrayIndex;
-        if (expArrayIndex == -1)
-            return Color.White;
-
-        var level = PlayerState.Instance()->ClassJobLevels[expArrayIndex];
-        if (level < 1 || !GetMaxLevelRanges().TryGetValue(level, out var range))
-            return Color.White;
-
-        var itemLevel = item.LevelItem.RowId;
-
-        // special case for Fisher's Secondary Tool
-        // which has only one item, Spearfishing Gig
-        if (item.ItemUICategory.RowId == 99)
-            return itemLevel == 180 ? Color.Green : Color.Red;
-
-        if (itemLevel < range.Min)
-            return Color.Red;
-
-        var value = (itemLevel - range.Min) / (float)(range.Max - range.Min);
-
-        var startIndex = (int)(value * (colors.Length - 1));
-        var endIndex = System.Math.Min(startIndex + 1, colors.Length - 1);
-
-        if (startIndex < 0 || startIndex >= colors.Length || endIndex < 0 || endIndex >= colors.Length)
-            return Color.White;
-
-        var t = value * (colors.Length - 1) - startIndex;
-        return Color.FromVector4(Vector4.Lerp(colors[startIndex], colors[endIndex], t));
-    }
-
-    public GatheringPoint[] GetGatheringPoints(GatheringItem gatheringItem)
+    public IReadOnlyList<GatheringPoint> GetGatheringPoints(GatheringItem gatheringItem)
     {
         if (_gatheringItemGatheringPointsCache.TryGetValue(gatheringItem.RowId, out var points))
             return points;
@@ -509,70 +248,182 @@ public partial class ItemService
         return points;
     }
 
-    public ReadOnlySeString GetItemLink(uint itemId, ClientLanguage? language = null)
+    public unsafe uint GetHairstyleIconId(ItemHandle item, byte? tribeId = null, byte? sexId = null)
     {
-        var itemName = _textService.GetItemName(itemId, language);
+        var entry = _itemCache.GetOrAdd(item, _ => new ItemCacheEntry());
 
-        if (ItemUtil.IsHighQuality(itemId))
-            itemName += " \uE03C";
-        else if (ItemUtil.IsCollectible(itemId))
-            itemName += " \uE03D";
+        if (tribeId is not { } tribe)
+        {
+            var character = Control.GetLocalPlayer();
+            tribe = character != null ? character->DrawData.CustomizeData.Tribe : (byte)1;
+        }
 
-        using var rssb = new RentedSeStringBuilder();
+        if (sexId is not { } sex)
+        {
+            var character = Control.GetLocalPlayer();
+            sex = character != null ? character->DrawData.CustomizeData.Sex : (byte)1;
+        }
 
-        var itemLink = rssb.Builder
-                .PushColorType(ItemUtil.GetItemRarityColorType(itemId, false))
-                .PushEdgeColorType(ItemUtil.GetItemRarityColorType(itemId, true))
-                .PushLinkItem(itemId, itemName.ToString())
-                .Append(itemName)
-                .PopLink()
-                .PopEdgeColorType()
-                .PopColorType()
-                .ToReadOnlySeString();
+        return entry.HairStyleIcons.GetOrAdd((tribe, sex), _ =>
+        {
+            if (!_excelService.TryFindRow<HairMakeType>(t => t.Tribe.RowId == tribe && t.Gender == sex, out var hairMakeType))
+                return 0;
 
-        return _seStringEvaluatorService.EvaluateFromAddon(371, [itemLink], language);
+            if (!hairMakeType.CharaMakeStruct[0].SubMenuParam
+                .Select(rowId => _excelService.CreateRowRef<CharaMakeCustomize>(rowId))
+                .Where(rowRef => rowRef.RowId != 0 && rowRef.IsValid)
+                .TryGetFirst(h => h.Value.HintItem.RowId == item.ItemId, out var itemRow))
+            {
+                return 0;
+            }
+
+            return itemRow.IsValid ? itemRow.Value.Icon : 0;
+        });
     }
 
-    public unsafe uint GetHairstyleIconId(uint id, byte? tribeId = null, byte? sexId = null)
+    public unsafe bool IsUnlocked(ItemHandle item)
     {
-        if (tribeId == null)
-        {
-            tribeId = 1;
+        if (!item.TryGetItem(out var itemRow))
+            return false;
 
-            var character = Control.GetLocalPlayer();
-            if (character != null)
-                tribeId = character->DrawData.CustomizeData.Tribe;
+        // just to avoid the ExdModule.GetItemRowById call...
+        switch (item.ItemActionType)
+        {
+            case ItemActionType.None:
+                return false;
+
+            case ItemActionType.Companion:
+                return UIState.Instance()->IsCompanionUnlocked(itemRow.ItemAction.Value.Data[0]);
+
+            case ItemActionType.BuddyEquip:
+                return UIState.Instance()->Buddy.CompanionInfo.IsBuddyEquipUnlocked(itemRow.ItemAction.Value.Data[0]);
+
+            case ItemActionType.Mount:
+                return PlayerState.Instance()->IsMountUnlocked(itemRow.ItemAction.Value.Data[0]);
+
+            case ItemActionType.SecretRecipeBook:
+                return PlayerState.Instance()->IsSecretRecipeBookUnlocked(itemRow.ItemAction.Value.Data[0]);
+
+            case ItemActionType.UnlockLink:
+                return UIState.Instance()->IsUnlockLinkUnlocked(itemRow.ItemAction.Value.Data[0]);
+
+            case ItemActionType.TripleTriadCard when itemRow.AdditionalData.Is<TripleTriadCard>():
+                return UIState.Instance()->IsTripleTriadCardUnlocked((ushort)itemRow.AdditionalData.RowId);
+
+            case ItemActionType.FolkloreTome:
+                return PlayerState.Instance()->IsFolkloreBookUnlocked(itemRow.ItemAction.Value.Data[0]);
+
+            case ItemActionType.OrchestrionRoll when itemRow.AdditionalData.Is<Orchestrion>():
+                return PlayerState.Instance()->IsOrchestrionRollUnlocked(itemRow.AdditionalData.RowId);
+
+            case ItemActionType.FramersKit:
+                return PlayerState.Instance()->IsFramersKitUnlocked(itemRow.AdditionalData.RowId);
+
+            case ItemActionType.Ornament:
+                return PlayerState.Instance()->IsOrnamentUnlocked(itemRow.ItemAction.Value.Data[0]);
+
+            case ItemActionType.Glasses:
+                return PlayerState.Instance()->IsGlassesUnlocked((ushort)itemRow.AdditionalData.RowId);
+
+            case ItemActionType.CompanySealVouchers:
+                return false;
         }
 
-        if (sexId == null)
-        {
-            sexId = 1;
+        var row = ExdModule.GetItemRowById(itemRow.RowId);
+        return row != null && UIState.Instance()->IsItemActionUnlocked(row) == 1;
+    }
 
-            var character = Control.GetLocalPlayer();
-            if (character != null)
-                sexId = character->DrawData.CustomizeData.Sex;
+    public unsafe Color GetItemLevelColor(ItemHandle item, byte classJob, params Color[] colors)
+    {
+        if (colors.Length < 2)
+            throw new ArgumentException("At least two colors are required for interpolation.");
+
+        if (!item.TryGetItem(out var itemRow))
+            return Color.White;
+
+        if (!_excelService.TryGetRow<ClassJob>(classJob, out var classJobRow))
+            return Color.White;
+
+        var expArrayIndex = classJobRow.ExpArrayIndex;
+        if (expArrayIndex == -1)
+            return Color.White;
+
+        var level = PlayerState.Instance()->ClassJobLevels[expArrayIndex];
+        if (level < 1 || !GetMaxLevelRanges().TryGetValue(level, out var range))
+            return Color.White;
+
+        var itemLevel = item.ItemLevel;
+
+        // special case for Fisher's Secondary Tool
+        // which has only one item, Spearfishing Gig
+        if (itemRow.ItemUICategory.RowId == 99)
+            return itemLevel == 180 ? Color.Green : Color.Red;
+
+        if (itemLevel < range.Min)
+            return Color.Red;
+
+        var value = (itemLevel - range.Min) / (float)(range.Max - range.Min);
+
+        var startIndex = (int)(value * (colors.Length - 1));
+        var endIndex = Math.Min(startIndex + 1, colors.Length - 1);
+
+        if (startIndex < 0 || startIndex >= colors.Length || endIndex < 0 || endIndex >= colors.Length)
+            return Color.White;
+
+        var t = value * (colors.Length - 1) - startIndex;
+        return Color.FromVector4(Vector4.Lerp(colors[startIndex], colors[endIndex], t));
+    }
+
+    public FrozenDictionary<short, (uint Min, uint Max)> GetMaxLevelRanges()
+    {
+        if (_maxLevelRanges != null)
+            return _maxLevelRanges;
+
+        var dict = new Dictionary<short, (uint Min, uint Max)>();
+
+        short level = 50;
+        foreach (var exVersion in _excelService.GetSheet<ExVersion>())
+        {
+            var entry = (Min: uint.MaxValue, Max: 0u);
+
+            foreach (var item in _excelService.GetSheet<Item>())
+            {
+                if (item.LevelEquip != level || item.LevelItem.RowId <= 1)
+                    continue;
+
+                if (entry.Min > item.LevelItem.RowId)
+                    entry.Min = item.LevelItem.RowId;
+
+                if (entry.Max < item.LevelItem.RowId)
+                    entry.Max = item.LevelItem.RowId;
+            }
+
+            dict.Add(level, entry);
+            level += 10;
         }
 
-        var key = (id, (byte)tribeId, (byte)sexId);
-        if (_hairStyleIconsCache.TryGetValue(key, out var icon))
-            return icon;
+        return _maxLevelRanges = dict.ToFrozenDictionary();
+    }
 
-        if (!_excelService.TryFindRow<HairMakeType>(t => t.Tribe.RowId == tribeId && t.Gender == sexId, out var hairMakeType))
-        {
-            _hairStyleIconsCache.Add(key, 0);
-            return 0;
-        }
+    private class ItemCacheEntry
+    {
+        public bool? IsCraftable;
+        public bool? IsGatherable;
+        public bool? IsFish;
+        public bool? IsSpearfish;
 
-        if (!hairMakeType.CharaMakeStruct[0].SubMenuParam
-            .Select(rowId => _excelService.CreateRef<CharaMakeCustomize>(rowId))
-            .Where(rowRef => rowRef.RowId != 0 && rowRef.IsValid)
-            .TryGetFirst(h => h.Value.HintItem.RowId == id, out var item) || !item.IsValid)
-        {
-            _hairStyleIconsCache.Add(key, 0);
-            return 0;
-        }
+        public uint? IconId;
 
-        _hairStyleIconsCache.Add(key, item.Value.Icon);
-        return item.Value.Icon;
+        public ConcurrentDictionary<ValueTuple<ClientLanguage, bool>, ReadOnlySeString> ItemNames = []; // Key: (Language, IncludeIcon)
+        public ConcurrentDictionary<ClientLanguage, ReadOnlySeString> ItemDescriptions = []; // Key: (Language, IncludeIcon)
+        public ConcurrentDictionary<ClientLanguage, ReadOnlySeString> ItemLinks = [];
+        public ConcurrentDictionary<ValueTuple<byte, byte>, uint> HairStyleIcons = []; // Key: (Tribe, Sex)
+
+        public IReadOnlyList<GatheringPoint>? GatheringPoints;
+        public IReadOnlyList<GatheringPoint>? SpearfishingPoints;
+        public IReadOnlyList<Recipe>? Recipes;
+        public IReadOnlyList<ItemAmount>? Ingredients;
+        public IReadOnlyList<GatheringItem>? GatheringItems;
+        public IReadOnlyList<FishingSpot>? FishingSpots;
     }
 }

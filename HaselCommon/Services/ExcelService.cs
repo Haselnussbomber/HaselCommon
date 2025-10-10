@@ -9,6 +9,8 @@ public partial class ExcelService
     private readonly IDataManager _dataManager;
     private readonly LanguageProvider _languageProvider;
 
+    public static ExcelService? Instance => ServiceLocator.GetService<ExcelService>();
+
     public bool HasSheet(string name)
         => _dataManager.Excel.SheetNames.Contains(name);
 
@@ -17,7 +19,7 @@ public partial class ExcelService
 
     // Normal Sheets
 
-    public RowRef<T> CreateRef<T>(uint rowId, ClientLanguage? language = null) where T : struct, IExcelRow<T>
+    public RowRef<T> CreateRowRef<T>(uint rowId, ClientLanguage? language = null) where T : struct, IExcelRow<T>
         => new(_dataManager.Excel, rowId, (language ?? _languageProvider.ClientLanguage).ToLumina());
 
     public ExcelSheet<T> GetSheet<T>(ClientLanguage? language = null) where T : struct, IExcelRow<T>
@@ -50,8 +52,17 @@ public partial class ExcelService
     public bool TryFindRow<T>(Predicate<T> predicate, ClientLanguage? language, out T row) where T : struct, IExcelRow<T>
         => GetSheet<T>(language ?? _languageProvider.ClientLanguage).TryGetFirst(predicate, out row);
 
-    public T[] FindRows<T>(Predicate<T> predicate, ClientLanguage? language = null) where T : struct, IExcelRow<T>
-        => GetSheet<T>(language ?? _languageProvider.ClientLanguage).Where(row => predicate(row)).ToArray();
+    public IReadOnlyList<T> FindRows<T>(Predicate<T> predicate, ClientLanguage? language = null) where T : struct, IExcelRow<T>
+        => [.. GetSheet<T>(language ?? _languageProvider.ClientLanguage).Where(row => predicate(row))];
+
+    public bool TryFindRows<T>(Predicate<T> predicate, out IReadOnlyList<T> rows) where T : struct, IExcelRow<T>
+        => TryFindRows(predicate, null, out rows);
+
+    public bool TryFindRows<T>(Predicate<T> predicate, ClientLanguage? language, out IReadOnlyList<T> rows) where T : struct, IExcelRow<T>
+    {
+        rows = [.. GetSheet<T>(language).Where(row => predicate(row))];
+        return rows.Count != 0;
+    }
 
     // Subrow Sheets
 

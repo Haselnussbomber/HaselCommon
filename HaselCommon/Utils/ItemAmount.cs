@@ -1,13 +1,7 @@
 namespace HaselCommon.Utils;
 
-public record ItemAmount
+public record ItemAmount(ItemHandle item, uint amount = 0)
 {
-    public ItemAmount(Item item, uint amount)
-    {
-        Item = item;
-        Amount = amount;
-    }
-
-    public Item Item { get; }
-    public uint Amount { get; set; }
+    public ItemHandle Item { get; } = item;
+    public uint Amount { get; set; } = amount;
 }

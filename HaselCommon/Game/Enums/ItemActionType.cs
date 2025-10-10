@@ -5,6 +5,7 @@ namespace HaselCommon.Game.Enums;
 /// </summary>
 public enum ItemActionType : ushort
 {
+    None = 0,
     Companion = 853,
     BuddyEquip = 1013,
     Mount = 1322,

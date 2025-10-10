@@ -5,6 +5,7 @@ namespace HaselCommon.Game.Enums;
 /// </summary>
 public enum ItemFilterGroup
 {
+    None = 0,
     PhysicalWeapon = 1,
     MagicalWeapon = 2,
     Shield = 3,
