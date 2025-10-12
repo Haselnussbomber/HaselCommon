@@ -19,4 +19,5 @@ public enum ItemActionType : ushort
     Ornament = 20086,
     Glasses = 37312,
     CompanySealVouchers = 41120, // can use = is in grand company, is unlocked = always false
+    OccultRecord = 43141,
 }
