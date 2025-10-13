@@ -69,5 +69,5 @@ public enum TerritoryIntendedUse : byte
     Blunderville = 59,
     CosmicExploration = 60,
     OccultCrescent = 61,
-    Unknown62 = 62, // unused, Forked Tower?
+    Unknown62 = 62, // future content
 };
