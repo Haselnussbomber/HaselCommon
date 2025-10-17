@@ -14,6 +14,7 @@ public static class IServiceCollectionExtensions
         serviceCollection
             .AddSingleton(new PluginAssemblyProvider(Assembly.GetCallingAssembly()))
             .AddSingleton(pluginInterface)
+            .AddSingleton(serviceProvider => pluginInterface.UiBuilder)
             .AddSingleton(DalamudServiceFactory<IAddonEventManager>)
             .AddSingleton(DalamudServiceFactory<IAddonLifecycle>)
             .AddSingleton(DalamudServiceFactory<IAetheryteList>)
