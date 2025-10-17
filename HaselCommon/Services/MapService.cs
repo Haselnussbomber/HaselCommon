@@ -2,6 +2,7 @@ using System.Globalization;
 using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Game.Text;
+using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.Control;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
@@ -99,7 +100,7 @@ public partial class MapService
         if (mapId == 0)
             return null;
 
-        if (!_excelService.TryGetRow<Lumina.Excel.Sheets.Map>(mapId, out var map))
+        if (!_excelService.TryGetRow<Map>(mapId, out var map))
             return null;
 
         if (!_excelService.TryGetRow<PlaceName>(territoryType.PlaceName.RowId, language, out var placeName))
