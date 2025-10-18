@@ -129,7 +129,9 @@ public record struct ItemHandle
         or ItemActionType.OrchestrionRoll
         or ItemActionType.FramersKit
         or ItemActionType.Ornament
-        or ItemActionType.Glasses;
+        or ItemActionType.Glasses
+        or ItemActionType.OccultRecords
+        or ItemActionType.SoulShards;
 
     public bool IsUnlocked => ItemService.Instance?.IsUnlocked(this) ?? default;
 

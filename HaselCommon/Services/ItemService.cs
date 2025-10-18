@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Collections.Frozen;
 using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Client.Game.Control;
+using FFXIVClientStructs.FFXIV.Client.Game.InstanceContent;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using FFXIVClientStructs.FFXIV.Component.Exd;
 using HaselCommon.Game.Enums;
@@ -306,6 +307,7 @@ public partial class ItemService
                 return PlayerState.Instance()->IsSecretRecipeBookUnlocked(itemRow.ItemAction.Value.Data[0]);
 
             case ItemActionType.UnlockLink:
+            case ItemActionType.OccultRecords:
                 return UIState.Instance()->IsUnlockLinkUnlocked(itemRow.ItemAction.Value.Data[0]);
 
             case ItemActionType.TripleTriadCard when itemRow.AdditionalData.Is<TripleTriadCard>():
@@ -325,6 +327,10 @@ public partial class ItemService
 
             case ItemActionType.Glasses:
                 return PlayerState.Instance()->IsGlassesUnlocked((ushort)itemRow.AdditionalData.RowId);
+
+            case ItemActionType.SoulShards when PublicContentOccultCrescent.GetState() is var occultCrescentState && occultCrescentState != null:
+                var supportJobId = (byte)itemRow.ItemAction.Value.Data[0];
+                return supportJobId < occultCrescentState->SupportJobLevels.Length && occultCrescentState->SupportJobLevels[supportJobId] != 0;
 
             case ItemActionType.CompanySealVouchers:
                 return false;
