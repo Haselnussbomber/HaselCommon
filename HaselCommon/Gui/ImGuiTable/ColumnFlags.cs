@@ -7,8 +7,13 @@ public class ColumnFlags<T, TItem> : Column<TItem> where T : struct, Enum
     public virtual IReadOnlyList<T> Values
         => Enum.GetValues<T>();
 
+    public virtual string NameKeySpace => "";
+
     public virtual string[] Names
         => Enum.GetNames<T>();
+
+    public virtual string GetTranslatedName(int index)
+        => !string.IsNullOrEmpty(NameKeySpace) && ServiceLocator.GetService<TextService>()?.TryGetTranslation($"{NameKeySpace}.{Names[index]}", out var text) == true ? text : Names[index];
 
     public virtual T FilterValue
         => default;
@@ -31,8 +36,10 @@ public class ColumnFlags<T, TItem> : Column<TItem> where T : struct, Enum
             return true;
         }
 
+        var textService = ServiceLocator.GetService<TextService>();
+
         if (!all && ImGui.IsItemHovered())
-            ImGui.SetTooltip("Right-click to clear filters.");
+            ImGui.SetTooltip(textService?.Translate("ImGuiTable.ColumnFlags.Filter.RightClickToClear") ?? "Right-click to clear filters.");
 
         if (!combo)
             return false;
@@ -40,7 +47,7 @@ public class ColumnFlags<T, TItem> : Column<TItem> where T : struct, Enum
         color.Pop();
 
         var ret = false;
-        if (ImGui.Checkbox("Enable All", ref all))
+        if (ImGui.Checkbox(textService?.Translate("ImGuiTable.ColumnFlags.Filter.EnableAll") ?? "Enable All", ref all))
         {
             SetValue(AllFlags, all);
             ret = true;
@@ -50,7 +57,7 @@ public class ColumnFlags<T, TItem> : Column<TItem> where T : struct, Enum
         for (var i = 0; i < Names.Length; ++i)
         {
             var tmp = FilterValue.HasFlag(Values[i]);
-            if (!ImGui.Checkbox(Names[i], ref tmp))
+            if (!ImGui.Checkbox(GetTranslatedName(i), ref tmp))
                 continue;
 
             SetValue(Values[i], tmp);

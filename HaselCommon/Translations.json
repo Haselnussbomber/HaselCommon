@@ -59,5 +59,29 @@
     "de": "Auf den Märkten suchen",
     "fr": "Rechercher sur les marchés",
     "ja": "市場で検索する"
+  },
+  "ImGuiTable.ColumnFlags.Filter.RightClickToClear": {
+    "en": "Right-click to clear filters.",
+    "de": "Rechtsklick zum Löschen der Filter."
+  },
+  "ImGuiTable.ColumnFlags.Filter.EnableAll": {
+    "en": "Enable All",
+    "de": "Alle aktivieren"
+  },
+  "ImGuiTable.ColumnBool.False": {
+    "en": "False",
+    "de": "Falsch"
+  },
+  "ImGuiTable.ColumnBool.True": {
+    "en": "True",
+    "de": "Wahr"
+  },
+  "ImGuiTable.ColumnYesNo.No": {
+    "en": "No",
+    "de": "Nein"
+  },
+  "ImGuiTable.ColumnYesNo.Yes": {
+    "en": "Yes",
+    "de": "Ja"
   }
 }

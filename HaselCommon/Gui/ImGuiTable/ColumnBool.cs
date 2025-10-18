@@ -18,6 +18,8 @@ public class ColumnBool<TRow> : ColumnFlags<BoolValues, TRow>
         _filterValue = AllFlags;
     }
 
+    public override string NameKeySpace => "ImGuiTable.ColumnBool";
+
     public virtual bool ToBool(TRow row)
         => true;
 
@@ -32,7 +34,7 @@ public class ColumnBool<TRow> : ColumnFlags<BoolValues, TRow>
     {
         var value = ToBool(row);
         using ((value ? Color.Green : Color.Red).Push(ImGuiCol.Text))
-            ImGui.Text(Names[value ? 1 : 0]);
+            ImGui.Text(GetTranslatedName(value ? 1 : 0));
     }
 
     public override unsafe int Compare(TRow a, TRow b)
