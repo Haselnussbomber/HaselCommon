@@ -3,8 +3,8 @@ namespace HaselCommon.Windows;
 [AutoConstruct]
 public partial class SimpleDebugWindow : SimpleWindow
 {
-    private readonly List<IDebugTab> _tabs = [];
-    private IDebugTab? _selectedTab;
+    private readonly List<ISimpleDebugTab> _tabs = [];
+    private ISimpleDebugTab? _selectedTab;
 
     [AutoPostConstruct]
     private void Initialize()
@@ -14,12 +14,12 @@ public partial class SimpleDebugWindow : SimpleWindow
         RegisterTab(new WindowManagerTab());
     }
 
-    public void RegisterTab(IDebugTab tab)
+    public void RegisterTab(ISimpleDebugTab tab)
     {
         _tabs.Add(tab);
     }
 
-    public void UnregisterTab(IDebugTab tab)
+    public void UnregisterTab(ISimpleDebugTab tab)
     {
         _tabs.Remove(tab);
     }
@@ -63,7 +63,7 @@ public partial class SimpleDebugWindow : SimpleWindow
         _selectedTab?.Draw();
     }
 
-    private class WindowManagerTab : IDebugTab
+    private class WindowManagerTab : ISimpleDebugTab
     {
         public string Name => "WindowManager";
 
@@ -96,7 +96,7 @@ public partial class SimpleDebugWindow : SimpleWindow
     }
 }
 
-public interface IDebugTab
+public interface ISimpleDebugTab
 {
     string Name { get; }
     void Draw();
