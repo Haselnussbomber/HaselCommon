@@ -1,13 +1,16 @@
 using Dalamud.Interface.Windowing;
 using Lumina.Misc;
 
-namespace HaselCommon.Gui;
+namespace HaselCommon.Windows;
+
+#pragma warning disable IDE0032 // Use auto property
 
 public abstract partial class SimpleWindow : Window, IDisposable
 {
     private readonly WindowManager _windowManager;
     private readonly TextService _textService;
     private readonly AddonObserver _addonObserver;
+
     private string _windowNameKey = string.Empty;
 
     public string WindowNameKey
@@ -20,22 +23,21 @@ public abstract partial class SimpleWindow : Window, IDisposable
         }
     }
 
-    protected SimpleWindow(WindowManager windowManager, TextService textService, AddonObserver addonObserver) : base("SimpleWindow", ImGuiWindowFlags.None, false)
+    protected SimpleWindow(WindowManager windowManager, TextService textService, AddonObserver addonObserver) : base("SimpleWindow", ImGuiWindowFlags.NoFocusOnAppearing, false)
     {
         _windowManager = windowManager;
         _textService = textService;
         _addonObserver = addonObserver;
 
-        var type = GetType();
-        Namespace = type.Namespace;
-        WindowNameKey = $"{type.Name}.Title";
+        WindowNameKey = $"{GetType().Name}.Title";
 
-        Flags |= ImGuiWindowFlags.NoFocusOnAppearing; // handled by BringToFront() in Open()
+        _windowManager.AddWindow(this);
     }
 
     public virtual void Dispose()
     {
         Close();
+        _windowManager.RemoveWindow(this);
     }
 
     protected void UpdateWindowName()
@@ -48,11 +50,13 @@ public abstract partial class SimpleWindow : Window, IDisposable
 
     public void Open(bool focus = true)
     {
-        _windowManager.AddWindow(this);
         IsOpen = true;
         Collapsed = false;
+
         if (focus)
+        {
             BringToFront();
+        }
     }
 
     public void Close()
@@ -68,14 +72,13 @@ public abstract partial class SimpleWindow : Window, IDisposable
     public void Toggle(bool focus = true)
     {
         if (!IsOpen)
+        {
             Open(focus);
+        }
         else
+        {
             Close();
-    }
-
-    public override void OnClose()
-    {
-        _windowManager.RemoveWindow(this);
+        }
     }
 
     public override bool DrawConditions()
@@ -87,7 +90,9 @@ public abstract partial class SimpleWindow : Window, IDisposable
     {
         base.PostDraw();
         if (Collapsed != null)
+        {
             Collapsed = null;
+        }
     }
 
     public virtual void OnLanguageChanged(string langCode)

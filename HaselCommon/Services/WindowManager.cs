@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using Dalamud.Interface.Windowing;
+using HaselCommon.Windows;
 
 namespace HaselCommon.Services;
 
@@ -13,6 +14,8 @@ public partial class WindowManager : IDisposable
 
     private WindowSystem _windowSystem;
     private bool _isDisposing;
+
+    public IEnumerable<SimpleWindow> Windows => _windowSystem.Windows.OfType<SimpleWindow>();
 
     [AutoPostConstruct]
     private void Initialize()
@@ -36,14 +39,14 @@ public partial class WindowManager : IDisposable
 
         lock (_windowSystem)
         {
-            _windowSystem.Windows.OfType<IDisposable>().ForEach(window => window.Dispose());
+            Windows.ForEach(window => window.Dispose());
             _windowSystem.RemoveAllWindows();
         }
     }
 
     private void OnLanguageChanged(string langCode)
     {
-        foreach (var window in _windowSystem.Windows.OfType<SimpleWindow>())
+        foreach (var window in Windows)
         {
             try
             {
@@ -60,7 +63,7 @@ public partial class WindowManager : IDisposable
     {
         var scale = ImGuiHelpers.GlobalScaleSafe;
 
-        foreach (var window in _windowSystem.Windows.OfType<SimpleWindow>())
+        foreach (var window in Windows)
         {
             try
             {
@@ -121,7 +124,7 @@ public partial class WindowManager : IDisposable
     public T CreateOrOpen<T>(Func<T> factory, bool focus = true) where T : SimpleWindow
     {
         if (!TryGetWindow<T>(out var window))
-            _windowSystem.AddWindow(window = factory());
+            AddWindow(window = factory());
 
         window.Open(focus);
         return window;
@@ -130,7 +133,7 @@ public partial class WindowManager : IDisposable
     public T CreateOrOpen<T>(string windowName, Func<T> factory, bool focus = true) where T : SimpleWindow
     {
         if (!TryGetWindow<T>(windowName, out var window))
-            _windowSystem.AddWindow(window = factory());
+            AddWindow(window = factory());
 
         window.Open(focus);
         return window;
@@ -145,7 +148,8 @@ public partial class WindowManager : IDisposable
     {
         if (!TryGetWindow<T>(out var window))
         {
-            _windowSystem.AddWindow(window = factory());
+            _logger.LogDebug("Creating new window of type {WindowType}", typeof(T).FullName);
+            AddWindow(window = factory());
             window.Open(focus);
         }
         else
@@ -158,23 +162,24 @@ public partial class WindowManager : IDisposable
 
     public T Open<T>(T window) where T : SimpleWindow
     {
-        _windowSystem.AddWindow(window);
+        AddWindow(window);
         window.Open();
         return window;
     }
 
-    public bool AddWindow(Window window)
+    public bool AddWindow(SimpleWindow window)
     {
         if (_windowSystem.Windows.Contains(window))
             return false;
 
+        _logger.LogDebug("Adding window {WindowName}", window.WindowName);
         _windowSystem.AddWindow(window);
         return true;
     }
 
-    public bool Contains(Predicate<Window> predicate)
+    public bool Contains(Predicate<SimpleWindow> predicate)
     {
-        return _windowSystem.Windows.Any(win => predicate(win));
+        return Windows.Any(win => predicate(win));
     }
 
     public void RemoveWindow(string windowName)
@@ -194,14 +199,15 @@ public partial class WindowManager : IDisposable
         _windowSystem.Windows.OfType<T>().ForEach(window => window.Close());
     }
 
-    public bool RemoveWindow(Window window)
+    public bool RemoveWindow(SimpleWindow window)
     {
         if (_isDisposing)
             return false;
 
-        if (!_windowSystem.Windows.Contains(window))
+        if (!Windows.Contains(window))
             return false;
 
+        _logger.LogDebug("Removing window {WindowName}", window.WindowName);
         _windowSystem.RemoveWindow(window);
         return true;
     }
