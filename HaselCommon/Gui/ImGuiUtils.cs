@@ -1,11 +1,10 @@
 using System.Threading.Tasks;
 using Dalamud.Utility;
-using Lumina.Excel;
 using UIColor = Lumina.Excel.Sheets.UIColor;
 
 namespace HaselCommon.Gui;
 
-public static partial class ImGuiUtils
+public static class ImGuiUtils
 {
     public static void DrawPaddedSeparator()
     {
@@ -156,4 +155,52 @@ public static partial class ImGuiUtils
 
         return pressed;
     }
+
+    public static void DrawCopyableText(string displayText, CopyableTextOptions? options = null)
+    {
+        var opt = options ?? default;
+        var textCopy = opt.CopyText ?? displayText;
+
+        using var color = opt.TextColor?.Push(ImGuiCol.Text);
+
+        if (opt.AsSelectable)
+        {
+            ImGui.Selectable(displayText);
+        }
+        else if (!string.IsNullOrEmpty(opt.HighlightedText) && displayText.IndexOf(opt.HighlightedText, StringComparison.InvariantCultureIgnoreCase) is { } pos && pos != -1)
+        {
+            ImGui.Text(displayText[..pos]);
+            ImGui.SameLine(0, 0);
+
+            using (Color.Yellow.Push(ImGuiCol.Text))
+                ImGui.Text(displayText[pos..(pos + opt.HighlightedText.Length)]);
+
+            ImGui.SameLine(0, 0);
+            ImGui.Text(displayText[(pos + opt.HighlightedText.Length)..]);
+        }
+        else
+        {
+            ImGui.Text(displayText);
+        }
+
+        if (ImGui.IsItemHovered())
+        {
+            ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
+            if (!opt.NoTooltip)
+                ImGui.SetTooltip(opt.Tooltip ?? textCopy);
+        }
+
+        if (ImGui.IsItemClicked())
+            ImGui.SetClipboardText(textCopy);
+    }
+}
+
+public struct CopyableTextOptions
+{
+    public string? CopyText { get; set; }
+    public string? Tooltip { get; set; }
+    public bool AsSelectable { get; set; }
+    public Color? TextColor { get; set; }
+    public string? HighlightedText { get; set; }
+    public bool NoTooltip { get; set; }
 }
