@@ -49,8 +49,9 @@ public enum ItemFilterGroup
     // 41 unused
     // 42 unused
     // 43 placeholder item
-    GearCoffer = 44,
-    // 45 unused
+    Belts = 44,
+    ArchiveItem = 45, // RowId in AdditionalData
+    // 46 unused
     SanctuaryCowrie = 47,
     SanctuaryMaterial = 48,
     AdventurersParcel = 49,
