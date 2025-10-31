@@ -5,7 +5,7 @@ using Microsoft.Extensions.Hosting;
 
 namespace HaselCommon.Services;
 
-[RegisterSingleton, AutoConstruct]
+[RegisterSingleton<IHostedService>(Duplicate = DuplicateStrategy.Append), AutoConstruct]
 public partial class ServiceLocator : IHostedService
 {
     private readonly IServiceProvider _serviceProvider;
