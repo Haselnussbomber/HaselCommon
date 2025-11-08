@@ -6,6 +6,14 @@ namespace HaselCommon.Globals;
 
 public static unsafe class Addon
 {
+    public static T* GetAddon<T>(ReadOnlySpan<byte> name, int index = 1) where T : unmanaged
+    {
+        var raptureAtkModule = RaptureAtkModule.Instance();
+        var addon = raptureAtkModule->RaptureAtkUnitManager.GetAddonByName(name, index);
+        var ready = addon != null && addon->IsReady;
+        return ready ? (T*)addon : null;
+    }
+
     public static T* GetAddon<T>(string name, int index = 1) where T : unmanaged
     {
         var raptureAtkModule = RaptureAtkModule.Instance();
@@ -31,8 +39,14 @@ public static unsafe class Addon
 
     // ---
 
+    public static bool TryGetAddon<T>(ReadOnlySpan<byte> name, int index, out T* addon) where T : unmanaged
+        => (addon = GetAddon<T>(name, index)) != null;
+
     public static bool TryGetAddon<T>(string name, int index, out T* addon) where T : unmanaged
         => (addon = GetAddon<T>(name, index)) != null;
+
+    public static bool TryGetAddon<T>(ReadOnlySpan<byte> name, out T* addon) where T : unmanaged
+        => (addon = GetAddon<T>(name, 1)) != null;
 
     public static bool TryGetAddon<T>(string name, out T* addon) where T : unmanaged
         => (addon = GetAddon<T>(name, 1)) != null;
@@ -45,8 +59,14 @@ public static unsafe class Addon
 
     // ---
 
+    public static bool IsAddonOpen(ReadOnlySpan<byte> name)
+        => TryGetAddon<AtkUnitBase>(name, out var addon) && addon->IsVisible;
+
     public static bool IsAddonOpen(string name)
         => TryGetAddon<AtkUnitBase>(name, out var addon) && addon->IsVisible;
+
+    public static bool IsAddonOpen(ReadOnlySpan<byte> name, int index)
+        => TryGetAddon<AtkUnitBase>(name, index, out var addon) && addon->IsVisible;
 
     public static bool IsAddonOpen(string name, int index)
         => TryGetAddon<AtkUnitBase>(name, index, out var addon) && addon->IsVisible;
