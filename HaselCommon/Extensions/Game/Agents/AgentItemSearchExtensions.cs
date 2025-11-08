@@ -27,7 +27,7 @@ public static unsafe class AgentItemSearchExtensions
         if (!TryGetAddon<AddonItemSearch>((ushort)agent.GetAddonId(), out var addon))
             return;
 
-        if (TryGetAddon<AtkUnitBase>("ItemSearchResult", out var itemSearchResult))
+        if (TryGetAddon<AtkUnitBase>("ItemSearchResult"u8, out var itemSearchResult))
             itemSearchResult->Hide2();
 
         var itemName = item.GetItemName(clientState.ClientLanguage).ToString();
