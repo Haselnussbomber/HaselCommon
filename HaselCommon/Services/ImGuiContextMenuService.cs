@@ -72,12 +72,13 @@ public unsafe struct ImGuiContextMenuBuilder(TextService textService, MapService
     {
         entries.Add(new ImGuiContextMenuEntry()
         {
-            Visible = AgentTryon.Instance()->CanTryOn(item),
+            Visible = item.CanTryOn,
             Label = textService.GetAddonText(2426), // "Try On"
             LoseFocusOnClick = true,
             ClickCallback = () =>
             {
-                AgentTryon.Instance()->TryOn(
+                AgentTryon.TryOn(
+                    0,
                     item,
                     stain0Id: stain0Id,
                     stain1Id: stain1Id,

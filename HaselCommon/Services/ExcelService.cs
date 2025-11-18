@@ -1,5 +1,4 @@
 using Dalamud.Utility;
-using Lumina.Excel;
 
 namespace HaselCommon.Services;
 

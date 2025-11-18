@@ -6,6 +6,7 @@ using FFXIVClientStructs.FFXIV.Client.Game.InstanceContent;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using FFXIVClientStructs.FFXIV.Component.Exd;
 using HaselCommon.Game.Enums;
+using HaselCommon.Sheets;
 
 namespace HaselCommon.Services;
 
@@ -340,6 +341,154 @@ public partial class ItemService
         return row != null && UIState.Instance()->IsItemActionUnlocked(row) == 1;
     }
 
+    public unsafe bool CanTryOn(ItemHandle item)
+    {
+        // not equippable, Waist or SoulCrystal => false
+        if (item.EquipSlotCategory is 0 or 6 or 17)
+            return false;
+
+        // any OffHand that's not a Shield => false
+        if (item.EquipSlotCategory is 2 && item.ItemFilterGroup != ItemFilterGroup.Shield)
+            return false;
+
+        var playerState = PlayerState.Instance();
+        if (!playerState->IsLoaded)
+            return false;
+
+        var race = playerState->Race;
+        if (race == 0)
+            return false;
+
+        if (ExcelService.Instance is not { } excelService || !excelService.TryGetRow<CustomEquipRaceCategory>(item.EquipRestriction, out var equipRaceCategoryRow))
+            return false;
+
+        if (!equipRaceCategoryRow.Races[race - 1])
+            return false;
+
+        return playerState->Sex switch
+        {
+            1 => equipRaceCategoryRow.Female,
+            _ => equipRaceCategoryRow.Male,
+        };
+    }
+
+    public unsafe bool CanEquip(ItemHandle item, out uint errorLogMessage)
+    {
+        var playerState = PlayerState.Instance();
+        if (!playerState->IsLoaded)
+        {
+            errorLogMessage = 0;
+            return false;
+        }
+
+        if (playerState->Race == 0)
+        {
+            errorLogMessage = 704; // "Only equippable by certain races."
+            return false;
+        }
+
+        return CanEquip(
+            item,
+            playerState->Race,
+            playerState->Sex,
+            playerState->CurrentClassJobId,
+            playerState->CurrentLevel,
+            playerState->GrandCompany,
+            playerState->GrandCompany switch
+            {
+                1 => playerState->GCRankMaelstrom,
+                2 => playerState->GCRankTwinAdders,
+                3 => playerState->GCRankImmortalFlames,
+                _ => 0
+            }, out errorLogMessage);
+    }
+
+    // E8 ?? ?? ?? ?? 85 C0 75 ?? 80 7E
+    public bool CanEquip(ItemHandle item, byte race, byte sex, byte classJob, short level, byte grandCompany, byte pvpRank, out uint errorLogMessage)
+    {
+        var entry = _itemCache.GetOrAdd(item, _ => new ItemCacheEntry());
+        var key = (race, sex, classJob, level, grandCompany, pvpRank);
+        if (entry.CanEquipCache.TryGetValue(key, out var cachedEntry))
+        {
+            errorLogMessage = cachedEntry.Item2;
+            return cachedEntry.Item1;
+        }
+
+        if (race == 0)
+        {
+            errorLogMessage = 704; // "Only equippable by certain races."
+            entry.CanEquipCache[key] = (false, errorLogMessage);
+            return false;
+        }
+
+        if (!item.TryGetItem(out var itemRow) || !_excelService.TryGetRow<CustomEquipRaceCategory>(itemRow.EquipRestriction, out var equipRaceCategoryRow))
+        {
+            errorLogMessage = 716; // "Unable to move item. Please try again. (Reading data...)" ????
+            entry.CanEquipCache[key] = (false, errorLogMessage);
+            return false;
+        }
+
+        if (itemRow.EquipSlotCategory.RowId == 0)
+        {
+            errorLogMessage = 713; // "Unable to equip <ennoun(Item,2,lnum1,1,1)>."
+            entry.CanEquipCache[key] = (false, errorLogMessage);
+            return false;
+        }
+
+        if (!equipRaceCategoryRow.Races[race - 1])
+        {
+            errorLogMessage = 704; // "Only equippable by certain races."
+            entry.CanEquipCache[key] = (false, errorLogMessage);
+            return false;
+        }
+
+        if (sex == 0 && !equipRaceCategoryRow.Male)
+        {
+            errorLogMessage = 706; // "Only equippable by females."
+            entry.CanEquipCache[key] = (false, errorLogMessage);
+            return false;
+        }
+
+        if (sex == 1 && !equipRaceCategoryRow.Female)
+        {
+            errorLogMessage = 705; // "Only equippable by males."
+            entry.CanEquipCache[key] = (false, errorLogMessage);
+            return false;
+        }
+
+        if (itemRow.GrandCompany.RowId > 0 && itemRow.GrandCompany.RowId != grandCompany)
+        {
+            errorLogMessage = 752; // "Unable to equip this Grand Company's gear."
+            entry.CanEquipCache[key] = (false, errorLogMessage);
+            return false;
+        }
+
+        if (!_excelService.TryGetRow<CustomClassJobCategory>(itemRow.ClassJobCategory.RowId, out var classJobCategory) || !classJobCategory.ClassesJobs[classJob])
+        {
+            errorLogMessage = 703; // "Cannot equip as current class."
+            entry.CanEquipCache[key] = (false, errorLogMessage);
+            return false;
+        }
+
+        if (level < itemRow.LevelEquip)
+        {
+            errorLogMessage = 707; // "Not high enough level to equip."
+            entry.CanEquipCache[key] = (false, errorLogMessage);
+            return false;
+        }
+
+        if (pvpRank < itemRow.RequiredPvpRank)
+        {
+            errorLogMessage = 662; // "Unable to equip at current PvP rank."
+            entry.CanEquipCache[key] = (false, errorLogMessage);
+            return false;
+        }
+
+        errorLogMessage = 0;
+        entry.CanEquipCache[key] = (true, errorLogMessage);
+        return true;
+    }
+
     public unsafe Color GetItemLevelColor(ItemHandle item, byte classJob, params Color[] colors)
     {
         if (colors.Length < 2)
@@ -425,6 +574,7 @@ public partial class ItemService
         public ConcurrentDictionary<ClientLanguage, ReadOnlySeString> ItemDescriptions = []; // Key: (Language, IncludeIcon)
         public ConcurrentDictionary<ClientLanguage, ReadOnlySeString> ItemLinks = [];
         public ConcurrentDictionary<ValueTuple<byte, byte>, uint> HairStyleIcons = []; // Key: (Tribe, Sex)
+        public ConcurrentDictionary<ValueTuple<byte, byte, byte, short, byte, byte>, (bool, uint)> CanEquipCache = []; // Key: (Race, Sex, ClassJob, Level, GrandCompany, PvpRank), Value: (CanEquip, ErrorLogMessage)
 
         public IReadOnlyList<GatheringPoint>? GatheringPoints;
         public IReadOnlyList<GatheringPoint>? SpearfishingPoints;

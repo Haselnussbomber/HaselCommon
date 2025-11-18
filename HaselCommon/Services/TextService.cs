@@ -4,7 +4,6 @@ using System.Text.Json;
 using Dalamud.Game.Text.Evaluator;
 using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
-using Lumina.Excel;
 using DObjectKind = Dalamud.Game.ClientState.Objects.Enums.ObjectKind;
 
 namespace HaselCommon.Services;

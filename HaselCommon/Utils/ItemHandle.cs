@@ -1,7 +1,6 @@
 using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using HaselCommon.Game.Enums;
-using Lumina.Excel;
 
 namespace HaselCommon.Utils;
 
@@ -106,6 +105,10 @@ public record struct ItemHandle
 
     public ItemFilterGroup ItemFilterGroup => (ItemFilterGroup)(ItemRow?.FilterGroup ?? 0);
 
+    public uint EquipSlotCategory => ItemRow?.EquipSlotCategory.RowId ?? 0;
+
+    public uint EquipRestriction => ItemRow?.EquipRestriction ?? 0;
+
     public bool IsCraftable => ItemService.Instance?.IsCraftable(this) ?? default;
 
     public bool IsCrystal => ItemFilterGroup == ItemFilterGroup.Crystal;
@@ -134,6 +137,20 @@ public record struct ItemHandle
         or ItemActionType.SoulShards;
 
     public bool IsUnlocked => ItemService.Instance?.IsUnlocked(this) ?? default;
+
+    public bool CanTryOn => ItemService.Instance?.CanTryOn(this) ?? default;
+
+    public bool CanEquip(out uint errorLogMessage)
+    {
+        errorLogMessage = 0;
+        return ItemService.Instance?.CanEquip(this, out errorLogMessage) ?? default;
+    }
+
+    public bool CanEquip(byte race, byte sex, byte classJob, short level, byte grandCompany, byte pvpRank, out uint errorLogMessage)
+    {
+        errorLogMessage = 0;
+        return ItemService.Instance?.CanEquip(this, race, sex, classJob, level, grandCompany, pvpRank, out errorLogMessage) ?? default;
+    }
 
     #endregion
 
