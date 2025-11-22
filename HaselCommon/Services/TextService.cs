@@ -18,6 +18,7 @@ public partial class TextService
 
     private readonly Dictionary<string, Dictionary<string, string>> _translations = [];
     private readonly Dictionary<(Type, uint, ClientLanguage), string> _rowNameCache = [];
+    private readonly Dictionary<string, ReadOnlySeString> _macroStringCache = [];
 
     [AutoPostConstruct]
     public void Initialize(PluginAssemblyProvider pluginAssemblyProvider, IDalamudPluginInterface pluginInterface)
@@ -96,6 +97,19 @@ public partial class TextService
         }
 
         return sb.ToReadOnlySeString();
+    }
+
+    public ReadOnlySeString EvaluateTranslatedSeString(string key, params Span<SeStringParameter> localParameters)
+    {
+        if (!_macroStringCache.TryGetValue(key, out var macroString))
+        {
+            if (!TryGetTranslation(key, out var text))
+                return ReadOnlySeString.FromText(key);
+
+            _macroStringCache.TryAdd(key, macroString = ReadOnlySeString.FromMacroString(text));
+        }
+
+        return _seStringEvaluator.Evaluate(macroString, localParameters, _languageProvider.ClientLanguage);
     }
 
     public string GetAddonText(uint id, ClientLanguage? language = null)
