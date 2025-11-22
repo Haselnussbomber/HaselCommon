@@ -56,7 +56,7 @@ public partial class TextService
 
     public string Translate(string key, params object?[] args)
         => TryGetTranslation(key, out var text) ? string.Format(_languageProvider.CultureInfo, text, args) : key;
-
+    
     public ReadOnlySeString TranslateSeString(string key, params SeStringParameter[] args)
     {
         if (!TryGetTranslation(key, out var format))
@@ -66,34 +66,29 @@ public partial class TextService
         var sb = rssb.Builder;
         var placeholders = format.Split(['{', '}']);
 
-        for (var i = 0; i < placeholders.Length; i++)
+        foreach (var (i, placeholder) in placeholders.Index())
         {
-            if (i % 2 == 1) // odd indices contain placeholders
+            // only odd indices contain placeholders
+            if (i % 2 != 1)
             {
-                if (int.TryParse(placeholders[i], out var placeholderIndex))
-                {
-                    if (placeholderIndex < args.Length)
-                    {
-                        var arg = args[placeholderIndex];
-                        if (arg.IsString)
-                        {
-                            sb.Append(arg.StringValue);
-                        }
-                        else
-                        {
-                            sb.Append(arg.UIntValue);
-                        }
-                    }
-                    else
-                    {
-                        sb.Append($"{placeholderIndex}"); // fallback
-                    }
-                }
+                sb.Append(placeholder);
+                continue;
             }
+
+            if (!int.TryParse(placeholder, out var placeholderIndex))
+                continue;
+
+            if (placeholderIndex >= args.Length)
+            {
+                sb.Append($"{placeholderIndex}"); // fallback
+                continue;
+            }
+
+            var arg = args[placeholderIndex];
+            if (arg.IsString)
+                sb.Append(arg.StringValue);
             else
-            {
-                sb.Append(placeholders[i]);
-            }
+                sb.Append(arg.UIntValue);
         }
 
         return sb.ToReadOnlySeString();

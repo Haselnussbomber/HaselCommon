@@ -166,7 +166,9 @@ public static class FuzzyMatcher
             else
             {
                 if (needleIndex > 0)
+                {
                     gaps++;
+                }
                 else
                 {
                     startPos++;

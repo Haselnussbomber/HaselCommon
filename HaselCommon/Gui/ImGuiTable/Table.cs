@@ -114,18 +114,6 @@ public partial class Table<T> : IDisposable
         throw new NotImplementedException();
     }
 
-    private void UpdateFilter()
-    {
-        if (_filteredRows != null && !IsFilterDirty)
-            return;
-
-        _filteredRows?.Clear();
-        _filteredRows ??= [];
-        _filteredRows.AddRange(_rows.Where(row => Columns.All(column => column.ShouldShow(row))));
-
-        IsFilterDirty = false;
-    }
-
     private void DrawTableInternal()
     {
         if (Columns.Count == 0)
@@ -154,10 +142,8 @@ public partial class Table<T> : IDisposable
             _closePopupNextFrame = true;
         }
 
-        for (var columnIndex = 0; columnIndex < Columns.Count; columnIndex++)
+        foreach (var (columnIndex, column) in Columns.Index())
         {
-            var column = Columns[columnIndex];
-
             if (!ImGui.TableSetColumnIndex(columnIndex))
                 continue;
 
@@ -182,17 +168,25 @@ public partial class Table<T> : IDisposable
         }
 
         SortInternal();
-        UpdateFilter();
+
+        if (_filteredRows == null || IsFilterDirty)
+        {
+            _filteredRows?.Clear();
+            _filteredRows ??= [];
+            _filteredRows.AddRange(_rows.Where(row => Columns.All(column => column.ShouldShow(row))));
+
+            IsFilterDirty = false;
+        }
 
         var lineHeight = CalculateLineHeight();
         if (lineHeight == 0)
         {
-            for (var i = 0; i < _filteredRows!.Count; i++)
-                DrawRow(_filteredRows[i], i);
+            foreach (var (index, row) in _filteredRows.Index())
+                DrawRow(row, index);
         }
         else
         {
-            ImGuiClip.ClippedDraw(_filteredRows!, DrawRow, lineHeight);
+            ImGuiClip.ClippedDraw(_filteredRows, DrawRow, lineHeight);
         }
     }
 

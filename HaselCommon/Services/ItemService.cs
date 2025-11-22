@@ -143,14 +143,9 @@ public partial class ItemService
         var list = new List<ItemAmount>();
         var recipe = recipes[0];
 
-        for (var i = 0; i < recipe.Ingredient.Count; i++)
+        foreach (var (ingredient, amount) in recipe.Ingredient.Zip(recipe.AmountIngredient))
         {
-            var ingredient = recipe.Ingredient[i];
-            if (ingredient.RowId == 0 || !ingredient.IsValid)
-                continue;
-
-            var amount = recipe.AmountIngredient[i];
-            if (amount == 0)
+            if (ingredient.RowId == 0 || amount == 0 || !ingredient.IsValid)
                 continue;
 
             list.Add(new(ingredient.Value, amount));

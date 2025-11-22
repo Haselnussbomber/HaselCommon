@@ -126,11 +126,8 @@ public partial class LeveService
 
         var dict = new Dictionary<uint, ItemAmount>();
 
-        for (var i = 0; i < craftLeve.Item.Count; i++)
+        foreach (var (item, count) in craftLeve.Item.Zip(craftLeve.ItemCount))
         {
-            var item = craftLeve.Item[i];
-            var count = craftLeve.ItemCount[i];
-
             if (!item.IsValid || count == 0)
                 continue;
 
