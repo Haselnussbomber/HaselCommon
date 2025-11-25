@@ -1,21 +1,14 @@
 using System.IO;
 using System.Reflection;
-using HaselCommon.Utils.Internal;
 
 namespace HaselCommon.Extensions;
 
 public static class IDalamudPluginInterfaceExtensions
 {
-    /// <remarks> Use sparingly! </remarks>
-    public static T GetService<T>(this IDalamudPluginInterface pluginInterface)
-    {
-        return new DalamudServiceWrapper<T>(pluginInterface).Service;
-    }
-
     public static void InitializeCustomClientStructs(this IDalamudPluginInterface pluginInterface)
     {
-        var sigScanner = pluginInterface.GetService<ISigScanner>();
-        var dataManager = pluginInterface.GetService<IDataManager>();
+        var sigScanner = pluginInterface.GetRequiredService<ISigScanner>();
+        var dataManager = pluginInterface.GetRequiredService<IDataManager>();
 
         FFXIVClientStructs.Interop.Generated.Addresses.Register();
 

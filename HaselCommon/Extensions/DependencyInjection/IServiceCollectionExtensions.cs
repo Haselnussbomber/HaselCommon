@@ -1,7 +1,6 @@
 using System.Reflection;
 using Dalamud.Game.ClientState.Objects;
 using HaselCommon.Logger;
-using HaselCommon.Utils.Internal;
 
 namespace HaselCommon.Extensions;
 
@@ -9,60 +8,54 @@ public static class IServiceCollectionExtensions
 {
     public static IServiceCollection AddDalamud(this IServiceCollection serviceCollection, IDalamudPluginInterface pluginInterface)
     {
-        T DalamudServiceFactory<T>(IServiceProvider serviceProvider) => new DalamudServiceWrapper<T>(pluginInterface).Service;
+        var pluginLog = pluginInterface.GetRequiredService<IPluginLog>();
 
-        serviceCollection
+        return serviceCollection
             .AddSingleton(new PluginAssemblyProvider(Assembly.GetCallingAssembly()))
+            .AddSingleton(pluginLog)
             .AddSingleton(pluginInterface)
             .AddSingleton(serviceProvider => pluginInterface.UiBuilder)
-            .AddSingleton(DalamudServiceFactory<IAddonEventManager>)
-            .AddSingleton(DalamudServiceFactory<IAddonLifecycle>)
-            .AddSingleton(DalamudServiceFactory<IAetheryteList>)
-            .AddSingleton(DalamudServiceFactory<IBuddyList>)
-            .AddSingleton(DalamudServiceFactory<IChatGui>)
-            .AddSingleton(DalamudServiceFactory<IClientState>)
-            .AddSingleton(DalamudServiceFactory<ICommandManager>)
-            .AddSingleton(DalamudServiceFactory<ICondition>)
-            .AddSingleton(DalamudServiceFactory<IContextMenu>)
-            .AddSingleton(DalamudServiceFactory<IDataManager>)
-            .AddSingleton(DalamudServiceFactory<IDtrBar>)
-            .AddSingleton(DalamudServiceFactory<IDutyState>)
-            .AddSingleton(DalamudServiceFactory<IFateTable>)
-            .AddSingleton(DalamudServiceFactory<IFlyTextGui>)
-            .AddSingleton(DalamudServiceFactory<IFramework>)
-            .AddSingleton(DalamudServiceFactory<IGameConfig>)
-            .AddSingleton(DalamudServiceFactory<IGameGui>)
-            .AddSingleton(DalamudServiceFactory<IGameInteropProvider>)
-            .AddSingleton(DalamudServiceFactory<IGameInventory>)
-            .AddSingleton(DalamudServiceFactory<IGameLifecycle>)
-            .AddSingleton(DalamudServiceFactory<IGamepadState>)
-            .AddSingleton(DalamudServiceFactory<IJobGauges>)
-            .AddSingleton(DalamudServiceFactory<IKeyState>)
-            .AddSingleton(DalamudServiceFactory<IMarketBoard>)
-            .AddSingleton(DalamudServiceFactory<INotificationManager>)
-            .AddSingleton(DalamudServiceFactory<IObjectTable>)
-            .AddSingleton(DalamudServiceFactory<IPartyFinderGui>)
-            .AddSingleton(DalamudServiceFactory<IPartyList>)
-            .AddSingleton(DalamudServiceFactory<IPluginLog>)
-            .AddSingleton(DalamudServiceFactory<ISigScanner>)
-            .AddSingleton(DalamudServiceFactory<ISeStringEvaluator>)
-            .AddSingleton(DalamudServiceFactory<ITargetManager>)
-            .AddSingleton(DalamudServiceFactory<ITextureProvider>)
-            .AddSingleton(DalamudServiceFactory<ITextureReadbackProvider>)
-            .AddSingleton(DalamudServiceFactory<ITextureSubstitutionProvider>)
-            .AddSingleton(DalamudServiceFactory<ITitleScreenMenu>)
-            .AddSingleton(DalamudServiceFactory<IToastGui>)
+            .AddSingleton(_ => pluginInterface.GetRequiredService<IAddonEventManager>())
+            .AddSingleton(_ => pluginInterface.GetRequiredService<IAddonLifecycle>())
+            .AddSingleton(_ => pluginInterface.GetRequiredService<IAetheryteList>())
+            .AddSingleton(_ => pluginInterface.GetRequiredService<IBuddyList>())
+            .AddSingleton(_ => pluginInterface.GetRequiredService<IChatGui>())
+            .AddSingleton(_ => pluginInterface.GetRequiredService<IClientState>())
+            .AddSingleton(_ => pluginInterface.GetRequiredService<ICommandManager>())
+            .AddSingleton(_ => pluginInterface.GetRequiredService<ICondition>())
+            .AddSingleton(_ => pluginInterface.GetRequiredService<IContextMenu>())
+            .AddSingleton(_ => pluginInterface.GetRequiredService<IDataManager>())
+            .AddSingleton(_ => pluginInterface.GetRequiredService<IDtrBar>())
+            .AddSingleton(_ => pluginInterface.GetRequiredService<IDutyState>())
+            .AddSingleton(_ => pluginInterface.GetRequiredService<IFateTable>())
+            .AddSingleton(_ => pluginInterface.GetRequiredService<IFlyTextGui>())
+            .AddSingleton(_ => pluginInterface.GetRequiredService<IFramework>())
+            .AddSingleton(_ => pluginInterface.GetRequiredService<IGameConfig>())
+            .AddSingleton(_ => pluginInterface.GetRequiredService<IGameGui>())
+            .AddSingleton(_ => pluginInterface.GetRequiredService<IGameInteropProvider>())
+            .AddSingleton(_ => pluginInterface.GetRequiredService<IGameInventory>())
+            .AddSingleton(_ => pluginInterface.GetRequiredService<IGameLifecycle>())
+            .AddSingleton(_ => pluginInterface.GetRequiredService<IGamepadState>())
+            .AddSingleton(_ => pluginInterface.GetRequiredService<IJobGauges>())
+            .AddSingleton(_ => pluginInterface.GetRequiredService<IKeyState>())
+            .AddSingleton(_ => pluginInterface.GetRequiredService<IMarketBoard>())
+            .AddSingleton(_ => pluginInterface.GetRequiredService<INotificationManager>())
+            .AddSingleton(_ => pluginInterface.GetRequiredService<IObjectTable>())
+            .AddSingleton(_ => pluginInterface.GetRequiredService<IPartyFinderGui>())
+            .AddSingleton(_ => pluginInterface.GetRequiredService<IPartyList>())
+            .AddSingleton(_ => pluginInterface.GetRequiredService<ISigScanner>())
+            .AddSingleton(_ => pluginInterface.GetRequiredService<ISeStringEvaluator>())
+            .AddSingleton(_ => pluginInterface.GetRequiredService<ITargetManager>())
+            .AddSingleton(_ => pluginInterface.GetRequiredService<ITextureProvider>())
+            .AddSingleton(_ => pluginInterface.GetRequiredService<ITextureReadbackProvider>())
+            .AddSingleton(_ => pluginInterface.GetRequiredService<ITextureSubstitutionProvider>())
+            .AddSingleton(_ => pluginInterface.GetRequiredService<ITitleScreenMenu>())
+            .AddSingleton(_ => pluginInterface.GetRequiredService<IToastGui>())
             .AddLogging(builder =>
             {
                 builder.ClearProviders();
                 builder.SetMinimumLevel(LogLevel.Trace);
-                builder.Services.AddSingleton<ILoggerProvider>(serviceProvider =>
-                {
-                    var pluginLog = serviceProvider.GetRequiredService<IPluginLog>();
-                    return new DalamudLoggerProvider(pluginLog);
-                });
+                builder.Services.AddSingleton<ILoggerProvider>(new DalamudLoggerProvider(pluginLog));
             });
-
-        return serviceCollection;
     }
 }
