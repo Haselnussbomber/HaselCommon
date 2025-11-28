@@ -136,7 +136,7 @@ public record struct ItemHandle
         or ItemActionType.OccultRecords
         or ItemActionType.SoulShards;
 
-    public bool IsUnlocked => ItemService.Instance?.IsUnlocked(this) ?? default;
+    public bool IsUnlocked => TryGetItem(out var itemRow) && ServiceLocator.TryGetService<IUnlockState>(out var unlockState) && unlockState.IsItemUnlocked(itemRow);
 
     public bool CanTryOn => ItemService.Instance?.CanTryOn(this) ?? default;
 

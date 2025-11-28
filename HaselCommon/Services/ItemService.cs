@@ -3,9 +3,6 @@ using System.Collections.Frozen;
 using Dalamud.Game.Player;
 using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Client.Game.Control;
-using FFXIVClientStructs.FFXIV.Client.Game.InstanceContent;
-using FFXIVClientStructs.FFXIV.Client.Game.UI;
-using FFXIVClientStructs.FFXIV.Component.Exd;
 using HaselCommon.Game.Enums;
 using HaselCommon.Sheets;
 
@@ -298,63 +295,6 @@ public partial class ItemService
 
             return charaMakeCustomize.Icon;
         });
-    }
-
-    public unsafe bool IsUnlocked(ItemHandle item)
-    {
-        if (!item.TryGetItem(out var itemRow))
-            return false;
-
-        // just to avoid the ExdModule.GetItemRowById call...
-        switch (item.ItemActionType)
-        {
-            case ItemActionType.None:
-                return false;
-
-            case ItemActionType.Companion:
-                return UIState.Instance()->IsCompanionUnlocked(itemRow.ItemAction.Value.Data[0]);
-
-            case ItemActionType.BuddyEquip:
-                return UIState.Instance()->Buddy.CompanionInfo.IsBuddyEquipUnlocked(itemRow.ItemAction.Value.Data[0]);
-
-            case ItemActionType.Mount:
-                return PlayerState.Instance()->IsMountUnlocked(itemRow.ItemAction.Value.Data[0]);
-
-            case ItemActionType.SecretRecipeBook:
-                return PlayerState.Instance()->IsSecretRecipeBookUnlocked(itemRow.ItemAction.Value.Data[0]);
-
-            case ItemActionType.UnlockLink:
-            case ItemActionType.OccultRecords:
-                return UIState.Instance()->IsUnlockLinkUnlocked(itemRow.ItemAction.Value.Data[0]);
-
-            case ItemActionType.TripleTriadCard when itemRow.AdditionalData.Is<TripleTriadCard>():
-                return UIState.Instance()->IsTripleTriadCardUnlocked((ushort)itemRow.AdditionalData.RowId);
-
-            case ItemActionType.FolkloreTome:
-                return PlayerState.Instance()->IsFolkloreBookUnlocked(itemRow.ItemAction.Value.Data[0]);
-
-            case ItemActionType.OrchestrionRoll when itemRow.AdditionalData.Is<Orchestrion>():
-                return PlayerState.Instance()->IsOrchestrionRollUnlocked(itemRow.AdditionalData.RowId);
-
-            case ItemActionType.FramersKit:
-                return PlayerState.Instance()->IsFramersKitUnlocked(itemRow.AdditionalData.RowId);
-
-            case ItemActionType.Ornament:
-                return PlayerState.Instance()->IsOrnamentUnlocked(itemRow.ItemAction.Value.Data[0]);
-
-            case ItemActionType.Glasses:
-                return PlayerState.Instance()->IsGlassesUnlocked((ushort)itemRow.AdditionalData.RowId);
-
-            case ItemActionType.SoulShards when PublicContentOccultCrescent.GetState() is var occultCrescentState && occultCrescentState != null:
-                var supportJobId = (byte)itemRow.ItemAction.Value.Data[0];
-                return supportJobId < occultCrescentState->SupportJobLevels.Length && occultCrescentState->SupportJobLevels[supportJobId] != 0;
-
-            case ItemActionType.CompanySealVouchers:
-                return false;
-        }
-
-        var row = ExdModule.GetItemRowById(itemRow.RowId);
-        return row != null && UIState.Instance()->IsItemActionUnlocked(row) == 1;
     }
 
     public bool CanTryOn(ItemHandle item)
