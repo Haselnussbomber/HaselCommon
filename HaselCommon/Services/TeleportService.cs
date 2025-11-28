@@ -7,30 +7,42 @@ namespace HaselCommon.Services;
 [RegisterSingleton, AutoConstruct]
 public unsafe partial class TeleportService : IDisposable
 {
+    private readonly ILogger<TeleportService> _logger;
+    private readonly IFramework _framework;
     private readonly IClientState _clientState;
     private readonly ExcelService _excelService;
-    private readonly UnlocksObserver _unlocksObserver;
+    private readonly IUnlockState _unlockState;
+    private Debouncer _updateAetherytesDebouncer;
 
     [AutoPostConstruct]
     private void Initialize()
     {
-        _clientState.Login += UpdateAetherytes;
-        _unlocksObserver.Update += UpdateAetherytes;
+        _updateAetherytesDebouncer = _framework.CreateDebouncer(TimeSpan.FromMilliseconds(200), UpdateAetherytes);
+
+        _unlockState.Unlock += OnUnlock;
 
         if (_clientState.IsLoggedIn)
-            UpdateAetherytes();
+            _updateAetherytesDebouncer.Debounce();
     }
 
     public void Dispose()
     {
-        _unlocksObserver.Update -= UpdateAetherytes;
-        _clientState.Login -= UpdateAetherytes;
+        _unlockState.Unlock -= OnUnlock;
+        _updateAetherytesDebouncer.Dispose();
+    }
+
+    private void OnUnlock(RowRef rowRef)
+    {
+        _updateAetherytesDebouncer.Debounce();
     }
 
     private void UpdateAetherytes()
     {
         if (Control.GetLocalPlayer() != null)
+        {
+            _logger.LogTrace("Updating aetheryte list.");
             Telepo.Instance()->UpdateAetheryteList();
+        }
     }
 
     public uint GetTeleportCost(uint destinationTerritoryTypeId)
