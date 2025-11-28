@@ -1,5 +1,6 @@
 using System.Reflection;
 using Dalamud.Game.ClientState.Objects;
+using Dalamud.Plugin.SelfTest;
 using HaselCommon.Logger;
 
 namespace HaselCommon.Extensions;
@@ -43,14 +44,17 @@ public static class IServiceCollectionExtensions
             .AddSingleton(_ => pluginInterface.GetRequiredService<IObjectTable>())
             .AddSingleton(_ => pluginInterface.GetRequiredService<IPartyFinderGui>())
             .AddSingleton(_ => pluginInterface.GetRequiredService<IPartyList>())
-            .AddSingleton(_ => pluginInterface.GetRequiredService<ISigScanner>())
+            .AddSingleton(_ => pluginInterface.GetRequiredService<IPlayerState>())
             .AddSingleton(_ => pluginInterface.GetRequiredService<ISeStringEvaluator>())
+            .AddSingleton(_ => pluginInterface.GetRequiredService<ISelfTestRegistry>())
+            .AddSingleton(_ => pluginInterface.GetRequiredService<ISigScanner>())
             .AddSingleton(_ => pluginInterface.GetRequiredService<ITargetManager>())
             .AddSingleton(_ => pluginInterface.GetRequiredService<ITextureProvider>())
             .AddSingleton(_ => pluginInterface.GetRequiredService<ITextureReadbackProvider>())
             .AddSingleton(_ => pluginInterface.GetRequiredService<ITextureSubstitutionProvider>())
             .AddSingleton(_ => pluginInterface.GetRequiredService<ITitleScreenMenu>())
             .AddSingleton(_ => pluginInterface.GetRequiredService<IToastGui>())
+            .AddSingleton(_ => pluginInterface.GetRequiredService<IUnlockState>())
             .AddLogging(builder =>
             {
                 builder.ClearProviders();
