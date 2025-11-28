@@ -248,21 +248,12 @@ public partial class ItemService
         return points;
     }
 
-    public unsafe uint GetHairstyleIconId(ItemHandle item, byte? tribeId = null, byte? sexId = null)
+    public uint GetHairstyleIconId(ItemHandle item, byte? tribeId = null, byte? sexId = null)
     {
         var entry = _itemCache.GetOrAdd(item, _ => new ItemCacheEntry());
 
-        if (tribeId is not { } tribe)
-        {
-            var character = Control.GetLocalPlayer();
-            tribe = character != null ? character->DrawData.CustomizeData.Tribe : (byte)1;
-        }
-
-        if (sexId is not { } sex)
-        {
-            var character = Control.GetLocalPlayer();
-            sex = character != null ? character->DrawData.CustomizeData.Sex : (byte)1;
-        }
+        var tribe = tribeId ?? GetTribeId();
+        var sex = sexId ?? GetSexId();
 
         return entry.HairStyleIcons.GetOrAdd((tribe, sex), _ =>
         {
@@ -546,6 +537,32 @@ public partial class ItemService
         }
 
         return _maxLevelRanges = dict.ToFrozenDictionary();
+    }
+
+    private unsafe byte GetTribeId()
+    {
+        var character = Control.GetLocalPlayer();
+
+        if (character != null)
+            return character->DrawData.CustomizeData.Tribe;
+
+        if (_playerState.IsLoaded)
+            return (byte)_playerState.Tribe.RowId;
+
+        return 1;
+    }
+
+    private unsafe byte GetSexId()
+    {
+        var character = Control.GetLocalPlayer();
+
+        if (character != null)
+            return character->DrawData.CustomizeData.Sex;
+
+        if (_playerState.IsLoaded)
+            return (byte)_playerState.Sex;
+
+        return 1;
     }
 
     private class ItemCacheEntry
