@@ -81,7 +81,7 @@ public record struct ItemHandle
 
     public EventItem? EventItemRow => TryGetEventItem(out var item) ? item : null;
 
-    public uint Icon => ItemService.Instance?.GetItemIcon(this) ?? default;
+    public uint Icon => ServiceLocator.TryGetService<ItemService>(out var itemService) ? itemService.GetItemIcon(this) : 0;
 
     public ReadOnlySeString Name => GetItemName();
 
@@ -109,17 +109,17 @@ public record struct ItemHandle
 
     public uint EquipRestriction => ItemRow?.EquipRestriction ?? 0;
 
-    public bool IsCraftable => ItemService.Instance?.IsCraftable(this) ?? default;
+    public bool IsCraftable => ServiceLocator.TryGetService<ItemService>(out var itemService) && itemService.IsCraftable(this);
 
     public bool IsCrystal => ItemFilterGroup == ItemFilterGroup.Crystal;
 
     public bool IsCurrency => ItemFilterGroup == ItemFilterGroup.Currency;
 
-    public bool IsFish => ItemService.Instance?.IsFish(this) ?? default;
+    public bool IsFish => ServiceLocator.TryGetService<ItemService>(out var itemService) && itemService.IsFish(this);
 
-    public bool IsGatherable => ItemService.Instance?.IsGatherable(this) ?? default;
+    public bool IsGatherable => ServiceLocator.TryGetService<ItemService>(out var itemService) && itemService.IsGatherable(this);
 
-    public bool IsSpearfish => ItemService.Instance?.IsSpearfish(this) ?? default;
+    public bool IsSpearfish => ServiceLocator.TryGetService<ItemService>(out var itemService) && itemService.IsSpearfish(this);
 
     public bool IsUnlockable => ItemActionType is
         ItemActionType.Companion
@@ -138,18 +138,18 @@ public record struct ItemHandle
 
     public bool IsUnlocked => TryGetItem(out var itemRow) && ServiceLocator.TryGetService<IUnlockState>(out var unlockState) && unlockState.IsItemUnlocked(itemRow);
 
-    public bool CanTryOn => ItemService.Instance?.CanTryOn(this) ?? default;
+    public bool CanTryOn => ServiceLocator.TryGetService<ItemService>(out var itemService) && itemService.CanTryOn(this);
 
     public bool CanEquip(out uint errorLogMessage)
     {
         errorLogMessage = 0;
-        return ItemService.Instance?.CanEquip(this, out errorLogMessage) ?? default;
+        return ServiceLocator.TryGetService<ItemService>(out var itemService) && itemService.CanEquip(this, out errorLogMessage);
     }
 
     public bool CanEquip(byte race, byte sex, byte classJob, short level, byte grandCompany, byte pvpRank, out uint errorLogMessage)
     {
         errorLogMessage = 0;
-        return ItemService.Instance?.CanEquip(this, race, sex, classJob, level, grandCompany, pvpRank, out errorLogMessage) ?? default;
+        return ServiceLocator.TryGetService<ItemService>(out var itemService) && itemService.CanEquip(this, race, sex, classJob, level, grandCompany, pvpRank, out errorLogMessage);
     }
 
     #endregion
@@ -167,7 +167,7 @@ public record struct ItemHandle
             return true;
         }
 
-        if (IsEmpty || IsEventItem || ExcelService.Instance is not { } excelService || !excelService.TryGetRow(BaseItemId, language, out item))
+        if (IsEmpty || IsEventItem || !ServiceLocator.TryGetService<ExcelService>(out var excelService) || !excelService.TryGetRow(BaseItemId, language, out item))
         {
             item = default;
             return false;
@@ -190,7 +190,7 @@ public record struct ItemHandle
             return true;
         }
 
-        if (IsEmpty || !IsEventItem || ExcelService.Instance is not { } excelService || !excelService.TryGetRow(ItemId, language, out eventItem))
+        if (IsEmpty || !IsEventItem || !ServiceLocator.TryGetService<ExcelService>(out var excelService) || !excelService.TryGetRow(ItemId, language, out eventItem))
         {
             eventItem = default;
             return false;
@@ -207,17 +207,26 @@ public record struct ItemHandle
 
     public ReadOnlySeString GetItemName(bool includeIcon, ClientLanguage? language = null)
     {
-        return ItemService.Instance?.GetItemName(this, includeIcon, language) ?? default;
+        if (!ServiceLocator.TryGetService<ItemService>(out var itemService))
+            return default;
+
+        return itemService.GetItemName(this, includeIcon, language);
     }
 
     public ReadOnlySeString GetItemDescription(ClientLanguage? language = null)
     {
-        return ItemService.Instance?.GetItemDescription(this, language) ?? default;
+        if (!ServiceLocator.TryGetService<ItemService>(out var itemService))
+            return default;
+
+        return itemService.GetItemDescription(this, language);
     }
 
     public ReadOnlySeString GetItemLink(ClientLanguage? language = null)
     {
-        return ItemService.Instance?.GetItemLink(this, language) ?? default;
+        if (!ServiceLocator.TryGetService<ItemService>(out var itemService))
+            return default;
+
+        return itemService.GetItemLink(this, language);
     }
 
     public uint GetItemRarityColorType(bool isEdgeColor = false)
@@ -227,8 +236,13 @@ public record struct ItemHandle
 
     public Color GetItemRarityColor(bool isEdgeColor = false)
     {
-        var colorType = GetItemRarityColorType(isEdgeColor);
-        return ExcelService.Instance?.TryGetRow<UIColor>(colorType, out var uiColor) == true ? Color.FromABGR(uiColor.Dark) : Color.White;
+        if (!ServiceLocator.TryGetService<ExcelService>(out var excelService))
+            return Color.White;
+
+        if (!excelService.TryGetRow<UIColor>(GetItemRarityColorType(isEdgeColor), out var uiColor))
+            return Color.White;
+
+        return Color.FromABGR(uiColor.Dark);
     }
 
     public void Clear()

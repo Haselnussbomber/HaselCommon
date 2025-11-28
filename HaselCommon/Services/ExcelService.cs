@@ -8,8 +8,6 @@ public partial class ExcelService
     private readonly IDataManager _dataManager;
     private readonly LanguageProvider _languageProvider;
 
-    public static ExcelService? Instance => ServiceLocator.GetService<ExcelService>();
-
     public bool HasSheet(string name)
         => _dataManager.Excel.SheetNames.Contains(name);
 

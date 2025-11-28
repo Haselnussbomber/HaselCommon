@@ -20,8 +20,6 @@ public partial class ItemService
     private readonly Dictionary<uint, GatheringPoint[]> _gatheringItemGatheringPointsCache = [];
     private FrozenDictionary<short, (uint Min, uint Max)>? _maxLevelRanges = null;
 
-    public static ItemService? Instance => ServiceLocator.GetService<ItemService>();
-
     public uint GetItemIcon(ItemHandle item)
     {
         var entry = _itemCache.GetOrAdd(item, _ => new ItemCacheEntry());
