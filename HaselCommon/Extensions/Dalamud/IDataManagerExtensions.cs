@@ -9,7 +9,7 @@ public static class IDataManagerExtensions
         this IDataManager dataManager,
         string path,
         [NotNullWhen(returnValue: true)] out T? file,
-        [NotNullWhen(returnValue: false)] out Exception? exception)
+        out Exception? exception)
         where T : FileResource
     {
         try
