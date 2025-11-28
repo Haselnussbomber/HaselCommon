@@ -45,7 +45,7 @@ public partial class ItemService
             {
                 return eventItemHelp.Description;
             }
-            else if (item.TryGetItem(lang, out var itemRow))
+            else if (item.TryGetItem(out var itemRow, lang))
             {
                 return itemRow.Description;
             }
@@ -61,7 +61,7 @@ public partial class ItemService
         {
             using var rssb = new RentedSeStringBuilder();
 
-            var itemName = item.GetItemName(true, clientLanguage);
+            var itemName = item.GetItemName(clientLanguage, true);
             var itemLink = rssb.Builder
                 .PushColorType(item.RarityColorType)
                 .PushEdgeColorType(item.RarityEdgeColorType)

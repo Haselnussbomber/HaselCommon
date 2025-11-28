@@ -4,66 +4,28 @@ using HaselCommon.Game.Enums;
 
 namespace HaselCommon.Utils;
 
-public record struct ItemHandle
+public readonly record struct ItemHandle
 {
-    // backing fields for properties
-    private ItemLocation? _itemLocation;
-    private uint? _itemId;
-
-    // cache
-    private Item? _itemRow;
-    private EventItem? _eventItemRow;
-
-    public ItemHandle()
-    {
-
-    }
-
     public ItemHandle(uint itemId)
     {
-        _itemId = itemId;
+        ItemId = itemId;
     }
 
     public ItemHandle(ItemLocation itemLocation)
     {
-        _itemLocation = itemLocation;
-    }
-
-    public unsafe uint ItemId
-    {
-        get
+        ItemLocation = itemLocation;
+        unsafe
         {
-            if (_itemId is { } itemId)
-                return itemId;
-
-            if (ItemLocation is { } location)
-            {
-                var inventoryItem = location.GetInventoryItem();
-                if (inventoryItem != null)
-                    return _itemId ??= inventoryItem->GetItemId();
-            }
-
-            return default;
-        }
-
-        set
-        {
-            Clear();
-            _itemId = value;
+            var inventoryItem = itemLocation.GetInventoryItem();
+            ItemId = inventoryItem != null ? inventoryItem->GetItemId() : 0;
         }
     }
 
-    public ItemLocation? ItemLocation
-    {
-        get => _itemLocation;
-        set
-        {
-            Clear();
-            _itemLocation = value;
-        }
-    }
+    public uint ItemId { get; }
 
-    public bool IsEmpty => (!_itemId.HasValue || _itemId.Value == 0) && (!_itemLocation.HasValue || _itemLocation.Value.IsEmpty);
+    public ItemLocation? ItemLocation { get; }
+
+    public bool IsEmpty => ItemId == 0;
 
     public uint BaseItemId => ItemUtil.GetBaseId(ItemId).ItemId;
 
@@ -77,11 +39,7 @@ public record struct ItemHandle
 
     public bool IsEventItem => ItemUtil.IsEventItem(ItemId);
 
-    public Item? ItemRow => TryGetItem(out var item) ? item : null;
-
-    public EventItem? EventItemRow => TryGetEventItem(out var item) ? item : null;
-
-    public uint Icon => ServiceLocator.TryGetService<ItemService>(out var itemService) ? itemService.GetItemIcon(this) : 0;
+    public uint Icon => ServiceLocator.GetService<ItemService>()?.GetItemIcon(this) ?? 0;
 
     public ReadOnlySeString Name => GetItemName();
 
@@ -99,27 +57,27 @@ public record struct ItemHandle
 
     #region Item API
 
-    public uint ItemLevel => ItemRow?.LevelItem.RowId ?? 0;
+    public uint ItemLevel => TryGetItem(out var itemRow) ? itemRow.LevelItem.RowId : 0;
 
-    public ItemActionType ItemActionType => (ItemActionType)(ItemRow?.ItemAction.Value.Type ?? 0);
+    public ItemActionType ItemActionType => (ItemActionType)(TryGetItem(out var itemRow) ? itemRow.ItemAction.Value.Type : 0);
 
-    public ItemFilterGroup ItemFilterGroup => (ItemFilterGroup)(ItemRow?.FilterGroup ?? 0);
+    public ItemFilterGroup ItemFilterGroup => (ItemFilterGroup)(TryGetItem(out var itemRow) ? itemRow.FilterGroup : 0);
 
-    public uint EquipSlotCategory => ItemRow?.EquipSlotCategory.RowId ?? 0;
+    public uint EquipSlotCategory => TryGetItem(out var itemRow) ? itemRow.EquipSlotCategory.RowId : 0;
 
-    public uint EquipRestriction => ItemRow?.EquipRestriction ?? 0;
+    public uint EquipRestriction => TryGetItem(out var itemRow) ? itemRow.EquipRestriction : 0u;
 
-    public bool IsCraftable => ServiceLocator.TryGetService<ItemService>(out var itemService) && itemService.IsCraftable(this);
+    public bool IsCraftable => ServiceLocator.GetService<ItemService>()?.IsCraftable(this) ?? false;
 
     public bool IsCrystal => ItemFilterGroup == ItemFilterGroup.Crystal;
 
     public bool IsCurrency => ItemFilterGroup == ItemFilterGroup.Currency;
 
-    public bool IsFish => ServiceLocator.TryGetService<ItemService>(out var itemService) && itemService.IsFish(this);
+    public bool IsFish => ServiceLocator.GetService<ItemService>()?.IsFish(this) ?? false;
 
-    public bool IsGatherable => ServiceLocator.TryGetService<ItemService>(out var itemService) && itemService.IsGatherable(this);
+    public bool IsGatherable => ServiceLocator.GetService<ItemService>()?.IsGatherable(this) ?? false;
 
-    public bool IsSpearfish => ServiceLocator.TryGetService<ItemService>(out var itemService) && itemService.IsSpearfish(this);
+    public bool IsSpearfish => ServiceLocator.GetService<ItemService>()?.IsSpearfish(this) ?? false;
 
     public bool IsUnlockable => ItemActionType is
         ItemActionType.Companion
@@ -136,103 +94,79 @@ public record struct ItemHandle
         or ItemActionType.OccultRecords
         or ItemActionType.SoulShards;
 
-    public bool IsUnlocked => TryGetItem(out var itemRow) && ServiceLocator.TryGetService<IUnlockState>(out var unlockState) && unlockState.IsItemUnlocked(itemRow);
+    public bool IsUnlocked => TryGetItem(out var itemRow) && (ServiceLocator.GetService<IUnlockState>()?.IsItemUnlocked(itemRow) ?? false);
 
-    public bool CanTryOn => ServiceLocator.TryGetService<ItemService>(out var itemService) && itemService.CanTryOn(this);
+    public bool CanTryOn => ServiceLocator.GetService<ItemService>()?.CanTryOn(this) ?? false;
 
     public bool CanEquip(out uint errorLogMessage)
     {
-        errorLogMessage = 0;
-        return ServiceLocator.TryGetService<ItemService>(out var itemService) && itemService.CanEquip(this, out errorLogMessage);
+        if (!ServiceLocator.TryGetService<ItemService>(out var itemService))
+        {
+            errorLogMessage = 0;
+            return false;
+        }
+
+        return itemService.CanEquip(this, out errorLogMessage);
     }
 
     public bool CanEquip(byte race, byte sex, byte classJob, short level, byte grandCompany, byte pvpRank, out uint errorLogMessage)
     {
-        errorLogMessage = 0;
-        return ServiceLocator.TryGetService<ItemService>(out var itemService) && itemService.CanEquip(this, race, sex, classJob, level, grandCompany, pvpRank, out errorLogMessage);
+        if (!ServiceLocator.TryGetService<ItemService>(out var itemService))
+        {
+            errorLogMessage = 0;
+            return false;
+        }
+
+        return itemService.CanEquip(this, race, sex, classJob, level, grandCompany, pvpRank, out errorLogMessage);
     }
 
     #endregion
 
-    public bool TryGetItem(out Item item)
+    public bool TryGetItem(out Item item, ClientLanguage? language = null)
     {
-        return TryGetItem(null, out item);
-    }
-
-    public bool TryGetItem(ClientLanguage? language, out Item item)
-    {
-        if (_itemRow is { } itemRow)
-        {
-            item = itemRow;
-            return true;
-        }
-
-        if (IsEmpty || IsEventItem || !ServiceLocator.TryGetService<ExcelService>(out var excelService) || !excelService.TryGetRow(BaseItemId, language, out item))
+        if (IsEmpty || IsEventItem)
         {
             item = default;
             return false;
         }
 
-        _itemRow = item;
-        return true;
-    }
-
-    public bool TryGetEventItem(out EventItem eventItem)
-    {
-        return TryGetEventItem(null, out eventItem);
-    }
-
-    public bool TryGetEventItem(ClientLanguage? language, out EventItem eventItem)
-    {
-        if (_eventItemRow is { } eventItemRow)
+        if (!ServiceLocator.TryGetService<ExcelService>(out var excelService))
         {
-            eventItem = eventItemRow;
-            return true;
+            item = default;
+            return false;
         }
 
-        if (IsEmpty || !IsEventItem || !ServiceLocator.TryGetService<ExcelService>(out var excelService) || !excelService.TryGetRow(ItemId, language, out eventItem))
+        return excelService.TryGetRow(BaseItemId, language, out item);
+    }
+
+    public bool TryGetEventItem(out EventItem eventItem, ClientLanguage? language = null)
+    {
+        if (IsEmpty || !IsEventItem)
         {
             eventItem = default;
             return false;
         }
 
-        _eventItemRow = eventItem;
-        return true;
+        if (!ServiceLocator.TryGetService<ExcelService>(out var excelService))
+        {
+            eventItem = default;
+            return false;
+        }
+
+        return excelService.TryGetRow(ItemId, language, out eventItem);
     }
 
-    public ReadOnlySeString GetItemName(ClientLanguage? language = null)
-    {
-        return GetItemName(false, language);
-    }
-
-    public ReadOnlySeString GetItemName(bool includeIcon, ClientLanguage? language = null)
-    {
-        if (!ServiceLocator.TryGetService<ItemService>(out var itemService))
-            return default;
-
-        return itemService.GetItemName(this, includeIcon, language);
-    }
+    public ReadOnlySeString GetItemName(ClientLanguage? language = null, bool includeIcon = false)
+        => ServiceLocator.GetService<ItemService>()?.GetItemName(this, includeIcon, language) ?? default;
 
     public ReadOnlySeString GetItemDescription(ClientLanguage? language = null)
-    {
-        if (!ServiceLocator.TryGetService<ItemService>(out var itemService))
-            return default;
-
-        return itemService.GetItemDescription(this, language);
-    }
+        => ServiceLocator.GetService<ItemService>()?.GetItemDescription(this, language) ?? default;
 
     public ReadOnlySeString GetItemLink(ClientLanguage? language = null)
-    {
-        if (!ServiceLocator.TryGetService<ItemService>(out var itemService))
-            return default;
-
-        return itemService.GetItemLink(this, language);
-    }
+        => ServiceLocator.GetService<ItemService>()?.GetItemLink(this, language) ?? default;
 
     public uint GetItemRarityColorType(bool isEdgeColor = false)
-    {
-        return ItemUtil.GetItemRarityColorType(ItemId, isEdgeColor);
-    }
+        => ItemUtil.GetItemRarityColorType(ItemId, isEdgeColor);
 
     public Color GetItemRarityColor(bool isEdgeColor = false)
     {
@@ -245,15 +179,12 @@ public record struct ItemHandle
         return Color.FromABGR(uiColor.Dark);
     }
 
-    public void Clear()
-    {
-        _itemLocation = null;
-        _itemId = null;
-    }
-
     public override string ToString()
     {
-        var name = GetItemName(true);
+        if (IsEmpty)
+            return $"{nameof(ItemHandle)}#Empty";
+
+        var name = GetItemName(null, true);
         return name.IsEmpty ? $"{nameof(ItemHandle)}#{ItemId}" : name.ToString();
     }
 
