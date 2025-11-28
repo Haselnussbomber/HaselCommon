@@ -272,6 +272,34 @@ public partial class ItemService
         });
     }
 
+    public uint GetFacePaintIconId(ItemHandle item, byte? tribeId = null, byte? sexId = null)
+    {
+        var entry = _itemCache.GetOrAdd(item, _ => new ItemCacheEntry());
+
+        var tribe = tribeId ?? GetTribeId();
+        var sex = sexId ?? GetSexId();
+
+        return entry.FacePaintIcons.GetOrAdd((tribe, sex), _ =>
+        {
+            if (!item.TryGetItem(out var itemRow)
+                || !itemRow.ItemAction.IsValid
+                || itemRow.ItemAction.Value.Type != (ushort)ItemActionType.UnlockLink
+                || itemRow.ItemAction.Value.Data[1] != 9390)
+            {
+                return 0;
+            }
+
+            if (!_excelService.TryFindRow<HairMakeType>(t => t.Tribe.RowId == _playerState.Tribe.RowId && t.Gender == (sbyte)_playerState.Sex, out var hairMakeType))
+                return 0;
+
+            var dataId = itemRow.ItemAction.Value.Data[0];
+            if (!_excelService.TryFindRow<CharaMakeCustomize>(row => row.IsPurchasable && row.UnlockLink == dataId && hairMakeType.CharaMakeStruct[7].SubMenuParam.Any(id => id == row.RowId), out var charaMakeCustomize))
+                return 0;
+
+            return charaMakeCustomize.Icon;
+        });
+    }
+
     public unsafe bool IsUnlocked(ItemHandle item)
     {
         if (!item.TryGetItem(out var itemRow))
@@ -578,6 +606,7 @@ public partial class ItemService
         public ConcurrentDictionary<ClientLanguage, ReadOnlySeString> ItemDescriptions = []; // Key: (Language, IncludeIcon)
         public ConcurrentDictionary<ClientLanguage, ReadOnlySeString> ItemLinks = [];
         public ConcurrentDictionary<ValueTuple<byte, byte>, uint> HairStyleIcons = []; // Key: (Tribe, Sex)
+        public ConcurrentDictionary<ValueTuple<byte, byte>, uint> FacePaintIcons = []; // Key: (Tribe, Sex)
         public ConcurrentDictionary<ValueTuple<byte, byte, byte, short, byte, byte>, (bool, uint)> CanEquipCache = []; // Key: (Race, Sex, ClassJob, Level, GrandCompany, PvpRank), Value: (CanEquip, ErrorLogMessage)
 
         public IReadOnlyList<GatheringPoint>? GatheringPoints;
