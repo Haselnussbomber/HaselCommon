@@ -12,20 +12,17 @@ public partial class ServiceLocator : IHostedService
 
     private static ServiceLocator? Instance { get; set; }
 
-    /// <inheritdoc cref="IServiceProvider.GetService(Type)"/>
-    public static T? GetService<T>() => Instance == null ? default : Instance._serviceProvider.GetService<T>();
+    public static T? GetService<T>() => TryGetService<T>(out var service) ? service : default;
 
-    /// <inheritdoc cref="IServiceProvider.GetService(Type)"/>
     public static bool TryGetService<T>([NotNullWhen(returnValue: true)] out T? service)
     {
-        if (Instance == null)
+        if (Instance is not { } instance)
         {
             service = default;
             return false;
         }
 
-        service = Instance._serviceProvider.GetService<T>();
-        return service != null;
+        return instance._serviceProvider.TryGetService(out service);
     }
 
     public Task StartAsync(CancellationToken cancellationToken)
