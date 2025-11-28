@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Collections.Frozen;
+using Dalamud.Game.Player;
 using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Client.Game.Control;
 using FFXIVClientStructs.FFXIV.Client.Game.InstanceContent;
@@ -13,6 +14,7 @@ namespace HaselCommon.Services;
 [RegisterSingleton, AutoConstruct]
 public partial class ItemService
 {
+    private readonly IPlayerState _playerState;
     private readonly ExcelService _excelService;
     private readonly ISeStringEvaluator _seStringEvaluatorService;
     private readonly LanguageProvider _languageProvider;
@@ -336,7 +338,7 @@ public partial class ItemService
         return row != null && UIState.Instance()->IsItemActionUnlocked(row) == 1;
     }
 
-    public unsafe bool CanTryOn(ItemHandle item)
+    public bool CanTryOn(ItemHandle item)
     {
         // not equippable, Waist or SoulCrystal => false
         if (item.EquipSlotCategory is 0 or 6 or 17)
@@ -346,37 +348,36 @@ public partial class ItemService
         if (item.EquipSlotCategory is 2 && item.ItemFilterGroup != ItemFilterGroup.Shield)
             return false;
 
-        var playerState = PlayerState.Instance();
-        if (!playerState->IsLoaded)
+        if (!_playerState.IsLoaded)
             return false;
 
-        var race = playerState->Race;
+        var race = (int)_playerState.Race.RowId;
         if (race == 0)
             return false;
 
-        if (ExcelService.Instance is not { } excelService || !excelService.TryGetRow<CustomEquipRaceCategory>(item.EquipRestriction, out var equipRaceCategoryRow))
+        if (!_excelService.TryGetRow<CustomEquipRaceCategory>(item.EquipRestriction, out var equipRaceCategoryRow))
             return false;
 
         if (!equipRaceCategoryRow.Races[race - 1])
             return false;
 
-        return playerState->Sex switch
+        return _playerState.Sex switch
         {
-            1 => equipRaceCategoryRow.Female,
-            _ => equipRaceCategoryRow.Male,
+            Sex.Female => equipRaceCategoryRow.Female,
+            Sex.Male => equipRaceCategoryRow.Male,
+            _ => false
         };
     }
 
-    public unsafe bool CanEquip(ItemHandle item, out uint errorLogMessage)
+    public bool CanEquip(ItemHandle item, out uint errorLogMessage)
     {
-        var playerState = PlayerState.Instance();
-        if (!playerState->IsLoaded)
+        if (!_playerState.IsLoaded)
         {
             errorLogMessage = 0;
             return false;
         }
 
-        if (playerState->Race == 0)
+        if (_playerState.Race.RowId == 0)
         {
             errorLogMessage = 704; // "Only equippable by certain races."
             return false;
@@ -384,18 +385,13 @@ public partial class ItemService
 
         return CanEquip(
             item,
-            playerState->Race,
-            playerState->Sex,
-            playerState->CurrentClassJobId,
-            playerState->CurrentLevel,
-            playerState->GrandCompany,
-            playerState->GrandCompany switch
-            {
-                1 => playerState->GCRankMaelstrom,
-                2 => playerState->GCRankTwinAdders,
-                3 => playerState->GCRankImmortalFlames,
-                _ => 0
-            }, out errorLogMessage);
+            (byte)_playerState.Race.RowId,
+            (byte)_playerState.Sex,
+            (byte)_playerState.ClassJob.RowId,
+            _playerState.Level,
+            (byte)_playerState.GrandCompany.RowId,
+            _playerState.GetGrandCompanyRank(_playerState.GrandCompany.Value),
+            out errorLogMessage);
     }
 
     // E8 ?? ?? ?? ?? 85 C0 75 ?? 80 7E
@@ -484,7 +480,7 @@ public partial class ItemService
         return true;
     }
 
-    public unsafe Color GetItemLevelColor(ItemHandle item, byte classJob, params Color[] colors)
+    public Color GetItemLevelColor(ItemHandle item, byte classJob, params Color[] colors)
     {
         if (colors.Length < 2)
             throw new ArgumentException("At least two colors are required for interpolation.");
@@ -495,11 +491,7 @@ public partial class ItemService
         if (!_excelService.TryGetRow<ClassJob>(classJob, out var classJobRow))
             return Color.White;
 
-        var expArrayIndex = classJobRow.ExpArrayIndex;
-        if (expArrayIndex == -1)
-            return Color.White;
-
-        var level = PlayerState.Instance()->ClassJobLevels[expArrayIndex];
+        var level = _playerState.GetClassJobLevel(classJobRow);
         if (level < 1 || !GetMaxLevelRanges().TryGetValue(level, out var range))
             return Color.White;
 
