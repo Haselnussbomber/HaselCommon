@@ -2,6 +2,14 @@ namespace HaselCommon.Extensions;
 
 public static class DictionaryExtensions
 {
+    public static V GetOrCreate<K, V>(this IDictionary<K, V> dict, K key, Func<V> createFn)
+    {
+        if (!dict.TryGetValue(key, out var val))
+            dict.TryAdd(key, val = createFn());
+
+        return val;
+    }
+
     //! https://www.codeproject.com/Tips/494499/Implementing-Dictionary-RemoveAll
     public static bool RemoveAll<K, V>(this IDictionary<K, V> dict, Func<K, V, bool> match, bool dispose = false)
     {
