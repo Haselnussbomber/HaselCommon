@@ -471,7 +471,7 @@ public partial class ItemService
             return Color.White;
 
         var t = value * (colors.Length - 1) - startIndex;
-        return Color.FromVector4(Vector4.Lerp(colors[startIndex], colors[endIndex], t));
+        return colors[startIndex].LerpTo(colors[endIndex], t);
     }
 
     public FrozenDictionary<short, (uint Min, uint Max)> GetMaxLevelRanges()

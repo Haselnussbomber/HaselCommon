@@ -9,12 +9,45 @@ public struct Color
     public float B;
     public float A;
 
-    public Color(float r, float g, float b, float a = 1) : this()
+    public Color(float r, float g, float b, float a = 1)
     {
         R = r;
         G = g;
         B = b;
         A = a;
+    }
+
+    public readonly float Luminance
+        => 0.299f * R + 0.587f * G + 0.114f * B;
+
+    public readonly Color LerpTo(in Color colorB, float fraction)
+        => Lerp(this, colorB, fraction);
+
+    public readonly Color Darken(float fraction)
+    {
+        var c = this;
+        c.R *= 1.0f - fraction;
+        c.G *= 1.0f - fraction;
+        c.B *= 1.0f - fraction;
+        return c;
+    }
+
+    public readonly Color Lighten(float fraction)
+    {
+        var c = this;
+        c.R *= 1.0f + fraction;
+        c.G *= 1.0f + fraction;
+        c.B *= 1.0f + fraction;
+        return c;
+    }
+
+    public static Color Lerp(in Color colorA, in Color colorB, float fraction)
+    {
+        return new Color(
+            colorA.R.LerpTo(colorB.R, fraction),
+            colorA.G.LerpTo(colorB.G, fraction),
+            colorA.B.LerpTo(colorB.B, fraction),
+            colorA.A.LerpTo(colorB.A, fraction));
     }
 
     public static Color FromVector4(Vector4 vec, ColorFormat format = ColorFormat.RGBA)
@@ -52,39 +85,49 @@ public struct Color
     public static Color FromARGB(uint argb)
         => FromRGBA(BinaryPrimitives.ReverseEndianness((argb & 0xFF00FF00) | ((argb & 0x000000FF) << 16) | ((argb & 0x00FF0000) >> 16))); // swap red and blue channel, then endianness
 
+    public ImRaii.Color Push(ImGuiCol idx, bool condition = true)
+        => ImRaii.PushColor(idx, ToUInt(), condition);
+
+    public uint ToUInt(ColorFormat format = ColorFormat.RGBA)
+        => ImGui.ColorConvertFloat4ToU32(ToVector(format));
+
+    public Vector4 ToVector(ColorFormat format = ColorFormat.RGBA)
+        => format switch
+        {
+            ColorFormat.RGBA => new Vector4(R, G, B, A),
+            ColorFormat.BGRA => new Vector4(B, G, R, A),
+            ColorFormat.ARGB => new Vector4(A, R, B, B),
+            ColorFormat.ABGR => new Vector4(A, B, G, R),
+            _ => throw new ArgumentOutOfRangeException(nameof(format))
+        };
+
+    public static implicit operator Vector4(Color col)
+        => new(col.R, col.G, col.B, col.A);
+
+    #region HSL
+
     //! https://stackoverflow.com/a/64090995
     public static Color FromHSL(float hue, float saturation, float lightness, float alpha = 1f)
     {
-        // Calculate the chroma component
         var chroma = saturation * MathF.Min(lightness, 1 - lightness);
 
-        // Local function to compute color channels
         static float GetChannelColor(float channelOffset, float hue, float lightness, float chroma)
         {
             var hueSegment = (channelOffset + hue / 30) % 12;
             return lightness - chroma * MathF.Max(MathF.Min(MathF.Min(hueSegment - 3, 9 - hueSegment), 1), -1);
         }
 
-        // Calculate RGB channels using the helper function
         return new(
-            GetChannelColor(0, hue, lightness, chroma),   // Red channel
-            GetChannelColor(8, hue, lightness, chroma),   // Green channel
-            GetChannelColor(4, hue, lightness, chroma),   // Blue channel
-            alpha                                         // Alpha channel
+            GetChannelColor(0, hue, lightness, chroma),
+            GetChannelColor(8, hue, lightness, chroma),
+            GetChannelColor(4, hue, lightness, chroma),
+            alpha
         );
     }
 
-    private struct Matrix3x3(
-        float m11, float m12, float m13,
-        float m21, float m22, float m23,
-        float m31, float m32, float m33)
-    {
-        public Vector3 Multiply(Vector3 vec)
-            => new(
-                m11 * vec.X + m12 * vec.Y + m13 * vec.Z,
-                m21 * vec.X + m22 * vec.Y + m23 * vec.Z,
-                m31 * vec.X + m32 * vec.Y + m33 * vec.Z);
-    }
+    #endregion
+
+    #region OKLCH
 
     //! https://github.com/color-js/color.js/blob/6332f3a/src/spaces/oklab.js
     private static readonly Matrix3x3 LABtoLMS = new(
@@ -132,25 +175,21 @@ public struct Color
             alpha
         );
     }
+    private struct Matrix3x3(
+        float m11, float m12, float m13,
+        float m21, float m22, float m23,
+        float m31, float m32, float m33)
+    {
+        public Vector3 Multiply(Vector3 vec)
+            => new(
+                m11 * vec.X + m12 * vec.Y + m13 * vec.Z,
+                m21 * vec.X + m22 * vec.Y + m23 * vec.Z,
+                m31 * vec.X + m32 * vec.Y + m33 * vec.Z);
+    }
 
-    public ImRaii.Color Push(ImGuiCol idx, bool condition = true)
-        => ImRaii.PushColor(idx, ToUInt(), condition);
+    #endregion
 
-    public uint ToUInt(ColorFormat format = ColorFormat.RGBA)
-        => ImGui.ColorConvertFloat4ToU32(ToVector(format));
-
-    public Vector4 ToVector(ColorFormat format = ColorFormat.RGBA)
-        => format switch
-        {
-            ColorFormat.RGBA => new Vector4(R, G, B, A),
-            ColorFormat.BGRA => new Vector4(B, G, R, A),
-            ColorFormat.ARGB => new Vector4(A, R, B, B),
-            ColorFormat.ABGR => new Vector4(A, B, G, R),
-            _ => throw new ArgumentOutOfRangeException(nameof(format))
-        };
-
-    public static implicit operator Vector4(Color col)
-        => new(col.R, col.G, col.B, col.A);
+    #region Presets
 
     public static Color Transparent { get; } = new(0, 0, 0, 0);
     public static Color White { get; } = new(1, 1, 1);
@@ -168,4 +207,6 @@ public struct Color
     public static Color Grey2 { get; } = new(0.87f, 0.87f, 0.87f);
     public static Color Grey3 { get; } = new(0.6f, 0.6f, 0.6f);
     public static Color Grey4 { get; } = new(0.3f, 0.3f, 0.3f);
+
+    #endregion
 }
