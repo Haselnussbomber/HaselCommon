@@ -8,18 +8,20 @@ public class Debouncer(IFramework framework, TimeSpan delay, Action action) : ID
 
     public void Debounce()
     {
-        var oldCts = Interlocked.Exchange(ref _cts, new CancellationTokenSource());
+        var newCts = new CancellationTokenSource();
+        var oldCts = Interlocked.Exchange(ref _cts, newCts);
 
         oldCts?.Cancel();
         oldCts?.Dispose();
 
-        framework.RunOnTick(action, delay, cancellationToken: _cts.Token);
+        framework.RunOnTick(action, delay, cancellationToken: newCts.Token);
     }
 
     public void Dispose()
     {
-        _cts?.Cancel();
-        _cts?.Dispose();
-        _cts = null;
+        var oldCts = Interlocked.Exchange(ref _cts, null);
+
+        oldCts?.Cancel();
+        oldCts?.Dispose();
     }
 }
