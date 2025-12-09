@@ -16,6 +16,7 @@ public static class IServiceCollectionExtensions
             .AddSingleton(pluginLog)
             .AddSingleton(pluginInterface)
             .AddSingleton(serviceProvider => pluginInterface.UiBuilder)
+            .AddSingleton(serviceProvider => pluginInterface.UiBuilder.FontAtlas)
             .AddSingleton(_ => pluginInterface.GetRequiredService<IAddonEventManager>())
             .AddSingleton(_ => pluginInterface.GetRequiredService<IAddonLifecycle>())
             .AddSingleton(_ => pluginInterface.GetRequiredService<IAetheryteList>())
