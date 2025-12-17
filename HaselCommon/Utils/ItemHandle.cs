@@ -59,7 +59,7 @@ public readonly record struct ItemHandle
 
     public uint ItemLevel => TryGetItem(out var itemRow) ? itemRow.LevelItem.RowId : 0;
 
-    public ItemActionType ItemActionType => (ItemActionType)(TryGetItem(out var itemRow) ? itemRow.ItemAction.Value.Type : 0);
+    public ItemActionType ItemActionType => (ItemActionType)(TryGetItem(out var itemRow) ? itemRow.ItemAction.Value.Action.RowId : 0);
 
     public ItemFilterGroup ItemFilterGroup => (ItemFilterGroup)(TryGetItem(out var itemRow) ? itemRow.FilterGroup : 0);
 

@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Frozen;
 using Dalamud.Game.Player;
+using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Client.Game.Control;
 using HaselCommon.Game.Enums;
@@ -278,7 +279,7 @@ public partial class ItemService
         {
             if (!item.TryGetItem(out var itemRow)
                 || !itemRow.ItemAction.IsValid
-                || itemRow.ItemAction.Value.Type != (ushort)ItemActionType.UnlockLink
+                || itemRow.ItemAction.Value.Action.RowId != (ushort)ItemActionType.UnlockLink
                 || itemRow.ItemAction.Value.Data[1] != 9390)
             {
                 return 0;

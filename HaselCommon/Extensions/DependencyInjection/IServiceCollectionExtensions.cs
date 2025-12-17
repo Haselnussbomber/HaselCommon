@@ -1,6 +1,5 @@
 using System.Reflection;
 using Dalamud.Game.ClientState.Objects;
-using Dalamud.Plugin.SelfTest;
 using HaselCommon.Logger;
 
 namespace HaselCommon.Extensions;

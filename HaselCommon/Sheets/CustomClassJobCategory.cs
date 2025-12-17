@@ -6,6 +6,8 @@ namespace HaselCommon.Sheets;
 [Sheet("ClassJobCategory", 0x6733E334)]
 public readonly unsafe struct CustomClassJobCategory(ExcelPage page, uint offset, uint row) : IExcelRow<CustomClassJobCategory>
 {
+    public ExcelPage ExcelPage => page;
+    public uint RowOffset => offset;
     public uint RowId => row;
 
     public readonly ReadOnlySeString Name => page.ReadString(offset, offset);
