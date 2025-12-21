@@ -59,8 +59,9 @@ public readonly unsafe struct CustomClassJobCategory(ExcelPage page, uint offset
     public readonly bool Unknown1 => page.ReadBool(offset + 48);
     public readonly bool Unknown2 => page.ReadBool(offset + 49);
 
-    private static bool ClassesJobsCtor(ExcelPage page, uint parentOffset, uint offset, uint i) => page.ReadBool(offset + 4 + i);
+    private static bool ClassesJobsCtor(ExcelPage page, uint parentOffset, uint offset, uint i)
+        => page.ReadBool(offset + 4 + i);
 
-    static CustomClassJobCategory IExcelRow<CustomClassJobCategory>.Create(ExcelPage page, uint offset, uint row) =>
-        new(page, offset, row);
+    static CustomClassJobCategory IExcelRow<CustomClassJobCategory>.Create(ExcelPage page, uint offset, uint row)
+        => new(page, offset, row);
 }

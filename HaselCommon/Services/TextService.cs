@@ -56,7 +56,7 @@ public partial class TextService
 
     public string Translate(string key, params object?[] args)
         => TryGetTranslation(key, out var text) ? string.Format(_languageProvider.CultureInfo, text, args) : key;
-    
+
     public ReadOnlySeString TranslateSeString(string key, params SeStringParameter[] args)
     {
         if (!TryGetTranslation(key, out var format))
