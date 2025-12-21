@@ -11,7 +11,7 @@ public readonly unsafe struct CustomClassJobCategory(ExcelPage page, uint offset
     public uint RowId => row;
 
     public readonly ReadOnlySeString Name => page.ReadString(offset, offset);
-    public readonly Collection<bool> ClassesJobs => new(page, offset, offset, &ClassesJobsCtor, 8);
+    public readonly Collection<bool> ClassesJobs => new(page, offset, offset, &ClassesJobsCtor, 46);
 
     private static bool ClassesJobsCtor(ExcelPage page, uint parentOffset, uint offset, uint i) => page.ReadBool(offset + 4 + i);
 
