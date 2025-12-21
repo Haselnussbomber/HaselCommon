@@ -176,7 +176,7 @@ public ref struct Utf8RowReader(ReadOnlySpan<byte> line, byte columnSeparator = 
         return true;
     }
 
-    public bool TryReadString(out string value)
+    public bool TryRead(out string value)
     {
         if (!TryReadRaw(out var column))
         {
