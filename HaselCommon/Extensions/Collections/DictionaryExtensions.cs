@@ -2,36 +2,39 @@ namespace HaselCommon.Extensions;
 
 public static class DictionaryExtensions
 {
-    public static V GetOrCreate<K, V>(this IDictionary<K, V> dict, K key, Func<V> createFn)
+    extension<K,V>(IDictionary<K, V> dict)
     {
-        if (!dict.TryGetValue(key, out var val))
-            dict.TryAdd(key, val = createFn());
-
-        return val;
-    }
-
-    //! https://www.codeproject.com/Tips/494499/Implementing-Dictionary-RemoveAll
-    public static bool RemoveAll<K, V>(this IDictionary<K, V> dict, Func<K, V, bool> match, bool dispose = false)
-    {
-        var anyRemoved = false;
-
-        foreach (var key in dict.Keys.ToArray())
+        public V GetOrCreate(K key, Func<V> createFn)
         {
-            if (!dict.TryGetValue(key, out var value) || !match(key, value))
-                continue;
+            if (!dict.TryGetValue(key, out var val))
+                dict.TryAdd(key, val = createFn());
 
-            if (dispose && value is IDisposable disposable)
-                disposable.Dispose();
-
-            anyRemoved |= dict.Remove(key);
+            return val;
         }
 
-        return anyRemoved;
-    }
+        //! https://www.codeproject.com/Tips/494499/Implementing-Dictionary-RemoveAll
+        public bool RemoveAll(Func<K, V, bool> match, bool dispose = false)
+        {
+            var anyRemoved = false;
 
-    public static void Dispose<K, V>(this IDictionary<K, V> dict)
-    {
-        dict.Values.OfType<IDisposable>().ForEach(disposable => disposable.Dispose());
-        dict.Clear();
+            foreach (var key in dict.Keys.ToArray())
+            {
+                if (!dict.TryGetValue(key, out var value) || !match(key, value))
+                    continue;
+
+                if (dispose && value is IDisposable disposable)
+                    disposable.Dispose();
+
+                anyRemoved |= dict.Remove(key);
+            }
+
+            return anyRemoved;
+        }
+
+        public void Dispose()
+        {
+            dict.Values.OfType<IDisposable>().ForEach(disposable => disposable.Dispose());
+            dict.Clear();
+        }
     }
 }

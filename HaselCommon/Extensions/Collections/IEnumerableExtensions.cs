@@ -4,84 +4,93 @@ namespace HaselCommon.Extensions;
 
 public static class IEnumerableExtensions
 {
-    public static int IndexOf<T>(this IEnumerable<T> array, Predicate<T> predicate)
+    extension<T>(IEnumerable<T> enumerable)
     {
-        var i = 0;
-
-        foreach (var obj in array)
+        public int IndexOf(Predicate<T> predicate)
         {
-            if (predicate(obj))
-                return i;
+            var i = 0;
 
-            ++i;
-        }
-
-        return -1;
-    }
-
-    public static int IndexOf<T>(this IEnumerable<T> array, T needle) where T : notnull
-    {
-        var i = 0;
-
-        foreach (var obj in array)
-        {
-            if (needle.Equals(obj))
-                return i;
-
-            ++i;
-        }
-
-        return -1;
-    }
-
-    public static bool Contains<T>(this IEnumerable<T> source, Predicate<T> predicate)
-    {
-        foreach (var element in source)
-        {
-            if (predicate(element))
-                return true;
-        }
-
-        return false;
-    }
-
-    public static void ForEach<T>(this IEnumerable<T> source, Action<T> action)
-    {
-        foreach (var element in source)
-            action(element);
-    }
-
-    public static bool TryGetFirst<T>(this IEnumerable<T> values, Predicate<T> predicate, out T result, out int index) where T : struct
-    {
-        using var e = values.GetEnumerator();
-        index = 0;
-
-        while (e.MoveNext())
-        {
-            if (predicate(e.Current))
+            foreach (var obj in enumerable)
             {
-                result = e.Current;
-                return true;
+                if (predicate(obj))
+                    return i;
+
+                ++i;
             }
 
-            index++;
+            return -1;
         }
 
-        result = default;
-        return false;
+        public bool Contains(Predicate<T> predicate)
+        {
+            foreach (var element in enumerable)
+            {
+                if (predicate(element))
+                    return true;
+            }
+
+            return false;
+        }
+
+        public void ForEach(Action<T> action)
+        {
+            foreach (var element in enumerable)
+                action(element);
+        }
+
+        public IEnumerable<(int Score, T Value)> FuzzyMatch(string term, Func<T, string> valueExtractor, CultureInfo cultureInfo, FuzzyMatcher.Mode matchMode = FuzzyMatcher.Mode.Fuzzy)
+        {
+            var results = new PriorityQueue<T, int>(enumerable.Count(), new ReverseComparer<int>());
+
+            foreach (var value in enumerable)
+            {
+                if (valueExtractor(value).FuzzyMatches(term, matchMode, cultureInfo, out var score))
+                    results.Enqueue(value, score);
+            }
+
+            while (results.TryDequeue(out var result, out var score))
+                yield return (score, result);
+        }
     }
 
-    public static IEnumerable<(int Score, T Value)> FuzzyMatch<T>(this IEnumerable<T> values, string term, Func<T, string> valueExtractor, CultureInfo cultureInfo, FuzzyMatcher.Mode matchMode = FuzzyMatcher.Mode.Fuzzy)
+    extension<T>(IEnumerable<T> enumerable) where T : notnull
     {
-        var results = new PriorityQueue<T, int>(values.Count(), new ReverseComparer<int>());
-
-        foreach (var value in values)
+        public int IndexOf(T needle)
         {
-            if (valueExtractor(value).FuzzyMatches(term, matchMode, cultureInfo, out var score))
-                results.Enqueue(value, score);
-        }
+            var i = 0;
 
-        while (results.TryDequeue(out var result, out var score))
-            yield return (score, result);
+            foreach (var obj in enumerable)
+            {
+                if (needle.Equals(obj))
+                    return i;
+
+                ++i;
+            }
+
+            return -1;
+        }
+    }
+
+    extension<T>(IEnumerable<T> enumerable) where T : struct
+    {
+        public bool TryGetFirst(Predicate<T> predicate, out T result, out int index)
+        {
+            using var e = enumerable.GetEnumerator();
+            index = 0;
+
+            while (e.MoveNext())
+            {
+                if (predicate(e.Current))
+                {
+                    result = e.Current;
+                    return true;
+                }
+
+                index++;
+            }
+
+            result = default;
+            return false;
+        }
     }
 }

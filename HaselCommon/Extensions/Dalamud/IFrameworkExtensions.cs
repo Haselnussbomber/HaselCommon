@@ -2,8 +2,11 @@ namespace HaselCommon.Extensions;
 
 public static class IFrameworkExtensions
 {
-    public static Debouncer CreateDebouncer(this IFramework framework, TimeSpan delay, Action action)
+    extension(IFramework framework)
     {
-        return new Debouncer(framework, delay, action);
+        public Debouncer CreateDebouncer(TimeSpan delay, Action action)
+        {
+            return new Debouncer(framework, delay, action);
+        }
     }
 }

@@ -2,17 +2,24 @@ namespace HaselCommon.Extensions;
 
 public static class MapExtensions
 {
-    // "41 0F BF C0 66 0F 6E D0 B8"
-    private static uint ConvertRawToMapPos(this Map map, short offset, float value)
+    extension(Map row)
     {
-        var scale = map.SizeFactor / 100.0f;
-        return (uint)(10 - (int)(((value + offset) * scale + 1024f) * -0.2f / scale));
+        // "41 0F BF C0 66 0F 6E D0 B8"
+        private uint ConvertRawToMapPos(short offset, float value)
+        {
+            var scale = row.SizeFactor / 100.0f;
+            return (uint)(10 - (int)(((value + offset) * scale + 1024f) * -0.2f / scale));
+        }
+
+        public uint ConvertRawToMapPosX(float x)
+        {
+            return row.ConvertRawToMapPos(row.OffsetX, x);
+        }
+
+        // tip: you probably want to pass the Z coord
+        public uint ConvertRawToMapPosY(float y)
+        {
+            return row.ConvertRawToMapPos(row.OffsetY, y);
+        }
     }
-
-    public static uint ConvertRawToMapPosX(this Map map, float x)
-        => map.ConvertRawToMapPos(map.OffsetX, x);
-
-    // tip: you probably want to pass the Z coord
-    public static uint ConvertRawToMapPosY(this Map map, float y)
-        => map.ConvertRawToMapPos(map.OffsetY, y);
 }

@@ -2,12 +2,15 @@ namespace HaselCommon.Extensions;
 
 public static class Vector3Extensions
 {
-    public static Vector3 Pow(this Vector3 vec, float exp)
+    extension(Vector3 value)
     {
-        return new Vector3(
-            MathF.Pow(vec.X, exp),
-            MathF.Pow(vec.Y, exp),
-            MathF.Pow(vec.Z, exp)
-        );
+        public Vector3 Pow(float exp)
+        {
+            return new Vector3(
+                MathF.Pow(value.X, exp),
+                MathF.Pow(value.Y, exp),
+                MathF.Pow(value.Z, exp)
+            );
+        }
     }
 }

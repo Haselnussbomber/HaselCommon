@@ -2,16 +2,19 @@ namespace HaselCommon.Extensions;
 
 public static class ReadOnlySpanExtensions
 {
-    public static byte[] WithNullTerminator(this ReadOnlySpan<byte> input)
+    extension(ReadOnlySpan<byte> value)
     {
-        var len = input.Length;
+        public byte[] WithNullTerminator()
+        {
+            var len = value.Length;
 
-        if (len > 0 && input[^1] == 0)
-            return input.ToArray();
+            if (len > 0 && value[^1] == 0)
+                return value.ToArray();
 
-        var output = new byte[len + 1];
-        input.CopyTo(output);
-        output[len] = 0;
-        return output;
+            var output = new byte[len + 1];
+            value.CopyTo(output);
+            output[len] = 0;
+            return output;
+        }
     }
 }

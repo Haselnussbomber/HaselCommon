@@ -1,16 +1,20 @@
-using MathD = System.Math;
+using System.Runtime.CompilerServices;
 
 namespace HaselCommon.Extensions;
 
 public static class DoubleExtensions
 {
-    public static bool IsApproximately(this double a, double b, double margin = 0.0001f)
+    extension(double value)
     {
-        var bothNaN = double.IsNaN(a) && double.IsNaN(b);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool IsApproximately(double b, double margin = 0.0001f)
+        {
+            var bothNaN = double.IsNaN(value) && double.IsNaN(b);
 
-        if (!bothNaN)
-            return MathD.Abs(a - b) < margin;
+            if (!bothNaN)
+                return Math.Abs(value - b) < margin;
 
-        return bothNaN;
+            return bothNaN;
+        }
     }
 }

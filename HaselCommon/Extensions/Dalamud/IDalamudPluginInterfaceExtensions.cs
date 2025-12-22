@@ -5,23 +5,26 @@ namespace HaselCommon.Extensions;
 
 public static class IDalamudPluginInterfaceExtensions
 {
-    public static void InitializeCustomClientStructs(this IDalamudPluginInterface pluginInterface)
+    extension(IDalamudPluginInterface pluginInterface)
     {
-        var sigScanner = pluginInterface.GetRequiredService<ISigScanner>();
-        var dataManager = pluginInterface.GetRequiredService<IDataManager>();
+        public void InitializeCustomClientStructs()
+        {
+            var sigScanner = pluginInterface.GetRequiredService<ISigScanner>();
+            var dataManager = pluginInterface.GetRequiredService<IDataManager>();
 
-        FFXIVClientStructs.Interop.Generated.Addresses.Register();
+            FFXIVClientStructs.Interop.Generated.Addresses.Register();
 
-        Assembly.GetCallingAssembly()
-            .GetType($"{pluginInterface.InternalName}.Addresses")
-            ?.GetMethod("Register", BindingFlags.Static | BindingFlags.Public)
-            ?.Invoke(null, null);
+            Assembly.GetCallingAssembly()
+                .GetType($"{pluginInterface.InternalName}.Addresses")
+                ?.GetMethod("Register", BindingFlags.Static | BindingFlags.Public)
+                ?.Invoke(null, null);
 
-        Resolver.GetInstance.Setup(
-            sigScanner.SearchBase,
-            dataManager.GameData.Repositories["ffxiv"].Version,
-            new FileInfo(Path.Join(pluginInterface.ConfigDirectory.FullName, "SigCache.json")));
+            Resolver.GetInstance.Setup(
+                sigScanner.SearchBase,
+                dataManager.GameData.Repositories["ffxiv"].Version,
+                new FileInfo(Path.Join(pluginInterface.ConfigDirectory.FullName, "SigCache.json")));
 
-        Resolver.GetInstance.Resolve();
+            Resolver.GetInstance.Resolve();
+        }
     }
 }

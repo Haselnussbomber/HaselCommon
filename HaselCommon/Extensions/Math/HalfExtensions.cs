@@ -2,6 +2,11 @@ namespace HaselCommon.Extensions;
 
 public static class HalfExtensions
 {
-    public static bool IsApproximately(this Half a, Half b)
-        => ((float)a).IsApproximately((float)b, 0.001f);
+    extension(Half value)
+    {
+        public bool IsApproximately(Half other)
+        {
+            return ((float)value).IsApproximately((float)other, 0.001f);
+        }
+    }
 }

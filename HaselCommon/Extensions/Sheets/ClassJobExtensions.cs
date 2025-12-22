@@ -2,6 +2,9 @@ namespace HaselCommon.Extensions;
 
 public static class ClassJobExtensions
 {
-    public static bool IsGatherer(this ClassJob row) => row.ClassJobCategory.RowId == 32;
-    public static bool IsCrafter(this ClassJob row) => row.ClassJobCategory.RowId == 33;
+    extension(ClassJob row)
+    {
+        public bool IsGatherer => row.ClassJobCategory.RowId == 32;
+        public bool IsCrafter => row.ClassJobCategory.RowId == 33;
+    }
 }

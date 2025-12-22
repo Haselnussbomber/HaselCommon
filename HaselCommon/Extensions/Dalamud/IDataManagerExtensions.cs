@@ -5,32 +5,32 @@ namespace HaselCommon.Extensions.Dalamud;
 
 public static class IDataManagerExtensions
 {
-    public static bool TryGetFile<T>(
-        this IDataManager dataManager,
-        string path,
-        [NotNullWhen(returnValue: true)] out T? file,
-        out Exception? exception)
-        where T : FileResource
+    extension(IDataManager dataManager)
     {
-        try
+        public bool TryGetFile<T>(string path, [NotNullWhen(returnValue: true)] out T? file, out Exception? exception) where T : FileResource
         {
-            file = dataManager.GetFile<T>(path);
-            exception = null;
-            return file != null;
+            try
+            {
+                file = dataManager.GetFile<T>(path);
+                exception = null;
+                return file != null;
+            }
+            catch (Exception ex)
+            {
+                exception = ex;
+                file = null;
+                return false;
+            }
         }
-        catch (Exception ex)
-        {
-            exception = ex;
-            file = null;
-            return false;
-        }
-    }
 
-    public static bool TryGetFile<T>(this IDataManager dataManager, string path, [NotNullWhen(returnValue: true)] out T? file) where T : FileResource
-    {
-        var result = TryGetFile(dataManager, path, out file, out var exception);
-        if (!result)
-            ServiceLocator.GetService<ILogger<IDataManager>>()?.LogError(exception, "Unexpected exception while getting file {path}", path);
-        return result;
+        public bool TryGetFile<T>(string path, [NotNullWhen(returnValue: true)] out T? file) where T : FileResource
+        {
+            var result = TryGetFile(dataManager, path, out file, out var exception);
+
+            if (!result && ServiceLocator.TryGetService<ILogger<IDataManager>>(out var logger) && logger.IsEnabled(LogLevel.Error))
+                logger.LogError(exception, "Unexpected exception while getting file {path}", path);
+
+            return result;
+        }
     }
 }

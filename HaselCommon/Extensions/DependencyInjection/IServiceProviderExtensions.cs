@@ -4,17 +4,20 @@ namespace HaselCommon.Extensions;
 
 public static class IServiceProviderExtensions
 {
-    public static bool TryGetService<T>(this IServiceProvider serviceProvider, [NotNullWhen(returnValue: true)] out T? service)
+    extension(IServiceProvider serviceProvider)
     {
-        try
+        public bool TryGetService<T>([NotNullWhen(returnValue: true)] out T? service)
         {
-            service = serviceProvider.GetService<T>();
-            return service != null;
-        }
-        catch // might catch ObjectDisposedException here
-        {
-            service = default;
-            return false;
+            try
+            {
+                service = serviceProvider.GetService<T>();
+                return service != null;
+            }
+            catch // might catch ObjectDisposedException here
+            {
+                service = default;
+                return false;
+            }
         }
     }
 }
