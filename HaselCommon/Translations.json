@@ -1,4 +1,22 @@
 {
+  "CommandManager.Usage": {
+    "en": "USAGE: ",
+    "de": "VERWENDUNG: ",
+    "fr": "Utilisation<nbsp>: ",
+    "ja": ""
+  },
+  "CommandManager.Subcommands": {
+    "en": ">>Subcommands:",
+    "de": ">>Unterbefehle:",
+    "fr": ">> Sous-commandes<nbsp>:",
+    "ja": ">>サブコマンド"
+  },
+  "CommandManager.NoDescription": {
+    "en": "No description.",
+    "de": "Keine Beschreibung",
+    "fr": "Aucune description.",
+    "ja": "説明はありません。"
+  },
   "CoordsXY": {
     "en": "X: {0}, Y: {1}"
   },
