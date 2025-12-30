@@ -1,3 +1,6 @@
+using FFXIVClientStructs.FFXIV.Client.Game;
+using FFXIVClientStructs.FFXIV.Client.UI.Misc;
+
 namespace HaselCommon.Sheets;
 
 /// <summary>
@@ -25,6 +28,34 @@ public readonly unsafe struct CustomMirageStoreSetItem(ExcelPage page, uint offs
     public readonly RowRef<Item> Necklace => new(page.Module, page.ReadUInt32(offset + 32), page.Language);
     public readonly RowRef<Item> Bracelets => new(page.Module, page.ReadUInt32(offset + 36), page.Language);
     public readonly RowRef<Item> Ring => new(page.Module, page.ReadUInt32(offset + 40), page.Language);
+
+    public unsafe bool TryGetSetItemBitArray(out BitArray bitArray, bool useCache = true)
+    {
+        var mirageManager = MirageManager.Instance();
+        if (mirageManager->PrismBoxLoaded)
+        {
+            var prismBoxItemIndex = mirageManager->PrismBoxItemIds.IndexOf(RowId);
+            if (prismBoxItemIndex != -1)
+            {
+                bitArray = new BitArray(mirageManager->PrismBoxStain0Ids.GetPointer(prismBoxItemIndex), Items.Count);
+                return true;
+            }
+        }
+
+        if (useCache)
+        {
+            var itemFinderModule = ItemFinderModule.Instance();
+            var glamourDresserIndex = itemFinderModule->GlamourDresserItemIds.IndexOf(RowId);
+            if (glamourDresserIndex != -1)
+            {
+                bitArray = new BitArray((byte*)itemFinderModule->GlamourDresserItemSetUnlockBits.GetPointer(glamourDresserIndex), Items.Count);
+                return true;
+            }
+        }
+
+        bitArray = default;
+        return false;
+    }
 
     private static RowRef<Item> ItemCtor(ExcelPage page, uint parentOffset, uint offset, uint i)
         => new(page.Module, page.ReadUInt32(offset + i * 4), page.Language);
