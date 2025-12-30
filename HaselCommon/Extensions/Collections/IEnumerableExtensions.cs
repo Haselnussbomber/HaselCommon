@@ -1,5 +1,3 @@
-using System.Globalization;
-
 namespace HaselCommon.Extensions;
 
 public static class IEnumerableExtensions
@@ -38,13 +36,15 @@ public static class IEnumerableExtensions
                 action(element);
         }
 
-        public IEnumerable<(int Score, T Value)> FuzzyMatch(string term, Func<T, string> valueExtractor, CultureInfo cultureInfo, FuzzyMatcher.Mode matchMode = FuzzyMatcher.Mode.Fuzzy)
+        public IEnumerable<(int Score, T Value)> FuzzyMatch(string term, Func<T, string> valueExtractor, MatchMode matchMode = MatchMode.Fuzzy)
         {
+            var fuzzyMatcher = new FuzzyMatcher(term, matchMode);
             var results = new PriorityQueue<T, int>(enumerable.Count(), new ReverseComparer<int>());
 
             foreach (var value in enumerable)
             {
-                if (valueExtractor(value).FuzzyMatches(term, matchMode, cultureInfo, out var score))
+                var score = fuzzyMatcher.Matches(valueExtractor(value));
+                if (score != 0)
                     results.Enqueue(value, score);
             }
 
