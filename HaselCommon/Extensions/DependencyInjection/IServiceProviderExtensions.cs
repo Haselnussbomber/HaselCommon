@@ -6,11 +6,6 @@ public static class IServiceProviderExtensions
 {
     extension(IServiceProvider provider)
     {
-        public T CreateInstance<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(params object[] parameters)
-        {
-            return ActivatorUtilities.CreateInstance<T>(provider, parameters);
-        }
-
         public bool TryGetService<T>([NotNullWhen(returnValue: true)] out T? service)
         {
             try
@@ -24,5 +19,11 @@ public static class IServiceProviderExtensions
                 return false;
             }
         }
+    }
+
+    /// <inheritdoc cref="ActivatorUtilities.CreateFactory{T}(Type[])" />
+    public static T CreateInstance<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(this IServiceProvider provider, params object[] parameters)
+    {
+        return ActivatorUtilities.CreateInstance<T>(provider, parameters);
     }
 }
