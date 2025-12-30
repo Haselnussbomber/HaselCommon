@@ -187,7 +187,7 @@ public partial class CommandService : IDisposable
             var argDisplay = string.Join(" ", node.Args.Select(a => $"<{a.Name}>"));
             rssb.Builder
                 .AppendNewLine()
-                .Append(_textService.Translate("CommandManager.Usage"))
+                .Append(_textService.EvaluateTranslatedSeString("CommandManager.Usage"))
                 .Append($"{node.GetFullPath()} {argDisplay}");
         }
 
@@ -195,7 +195,7 @@ public partial class CommandService : IDisposable
         {
             rssb.Builder
                 .AppendNewLine()
-                .Append(_textService.Translate("CommandManager.Subcommands"));
+                .Append(_textService.EvaluateTranslatedSeString("CommandManager.Subcommands"));
 
             foreach (var child in node.Children.Values)
             {
@@ -204,7 +204,7 @@ public partial class CommandService : IDisposable
 
                 var desc = child.HelpTextKey != null
                     ? _textService.Translate(child.HelpTextKey)
-                    : _textService.Translate("CommandManager.NoDescription");
+                    : _textService.EvaluateTranslatedSeString("CommandManager.NoDescription");
 
                 rssb.Builder
                     .AppendNewLine()
