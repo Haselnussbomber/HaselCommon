@@ -4,13 +4,18 @@ namespace HaselCommon.Extensions;
 
 public static class IServiceProviderExtensions
 {
-    extension(IServiceProvider serviceProvider)
+    extension(IServiceProvider provider)
     {
+        public T CreateInstance<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(params object[] parameters)
+        {
+            return ActivatorUtilities.CreateInstance<T>(provider, parameters);
+        }
+
         public bool TryGetService<T>([NotNullWhen(returnValue: true)] out T? service)
         {
             try
             {
-                service = serviceProvider.GetService<T>();
+                service = provider.GetService<T>();
                 return service != null;
             }
             catch // might catch ObjectDisposedException here
