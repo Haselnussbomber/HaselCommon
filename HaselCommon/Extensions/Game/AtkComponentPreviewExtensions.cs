@@ -6,6 +6,9 @@ public static unsafe class AtkComponentPreviewExtensions
 {
     extension(ref AtkComponentPreview component)
     {
+        public AtkNineGridNode* BorderNode => component.GetNineGridNodeById(3);
+        public AtkImageNode* ImageNode => component.GetImageNodeById(4);
+
         public Vector2 Size
         {
             get
@@ -29,14 +32,14 @@ public static unsafe class AtkComponentPreviewExtensions
                 ownerNode->SetWidth(width);
                 ownerNode->SetHeight(height);
 
-                var border = component.GetNodeById(3);
+                var border = component.BorderNode;
                 if (border != null)
                 {
                     border->SetWidth((ushort)(width + 8));
                     border->SetHeight((ushort)(height + 10));
                 }
 
-                var image = component.GetImageNodeById(4);
+                var image = component.ImageNode;
                 if (image != null)
                 {
                     image->SetWidth(width);
