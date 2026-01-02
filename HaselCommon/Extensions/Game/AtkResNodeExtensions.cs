@@ -4,7 +4,7 @@ namespace HaselCommon.Extensions;
 
 public static class AtkResNodeExtensions
 {
-    extension(AtkResNode node)
+    extension(ref AtkResNode node)
     {
         public Vector2 Position => new(node.X, node.Y);
         public Vector2 Size => new(node.GetWidth(), node.GetHeight());

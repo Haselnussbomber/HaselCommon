@@ -4,7 +4,7 @@ namespace HaselCommon.Extensions;
 
 public static unsafe class AtkUnitBaseExtensions
 {
-    extension(AtkUnitBase unitBase)
+    extension(ref AtkUnitBase unitBase)
     {
         public Vector2 Position => new(unitBase.X, unitBase.Y);
 
