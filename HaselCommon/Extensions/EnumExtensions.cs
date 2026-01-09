@@ -21,9 +21,11 @@ public static class EnumExtensions
         where TUnderlying : unmanaged, IBinaryInteger<TUnderlying>
     {
         ref var value = ref Unsafe.As<TEnum, TUnderlying>(ref flags);
-        var bit = Unsafe.As<TEnum, TUnderlying>(ref flag);
-        var current = (value & bit) != TUnderlying.Zero;
-        if (current != enable)
-            value ^= bit;
+        var mask = Unsafe.As<TEnum, TUnderlying>(ref flag);
+
+        if (enable)
+            value |= mask;
+        else
+            value &= ~mask;
     }
 }
