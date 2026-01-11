@@ -36,14 +36,13 @@ public static class IEnumerableExtensions
                 action(element);
         }
 
-        public IEnumerable<(int Score, T Value)> FuzzyMatch(string term, Func<T, string> valueExtractor, MatchMode matchMode = MatchMode.Fuzzy)
+        public IEnumerable<(int Score, T Value)> FuzzyMatch(string term, Func<T, string> valueExtractor, FuzzyMatcherMode matchMode = FuzzyMatcherMode.Fuzzy)
         {
-            var fuzzyMatcher = new FuzzyMatcher(term, matchMode);
             var results = new PriorityQueue<T, int>(enumerable.Count(), new ReverseComparer<int>());
 
             foreach (var value in enumerable)
             {
-                var score = fuzzyMatcher.Matches(valueExtractor(value));
+                var score = FuzzyMatcher.FuzzyScore(valueExtractor(value), term, matchMode);
                 if (score != 0)
                     results.Enqueue(value, score);
             }
