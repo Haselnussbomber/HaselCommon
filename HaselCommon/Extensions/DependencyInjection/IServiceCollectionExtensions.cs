@@ -20,6 +20,7 @@ public static class IServiceCollectionExtensions
                 .AddSingleton(_ => pluginInterface.GetRequiredService<IAddonEventManager>())
                 .AddSingleton(_ => pluginInterface.GetRequiredService<IAddonLifecycle>())
                 .AddSingleton(_ => pluginInterface.GetRequiredService<IAetheryteList>())
+                .AddSingleton(_ => pluginInterface.GetRequiredService<IAgentLifecycle>())
                 .AddSingleton(_ => pluginInterface.GetRequiredService<IBuddyList>())
                 .AddSingleton(_ => pluginInterface.GetRequiredService<IChatGui>())
                 .AddSingleton(_ => pluginInterface.GetRequiredService<IClientState>())
