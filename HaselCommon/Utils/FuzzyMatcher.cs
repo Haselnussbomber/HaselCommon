@@ -11,7 +11,7 @@ namespace HaselCommon.Utils;
 /// <summary>
 /// Matches a string in a fuzzy way.
 /// </summary>
-internal static class FuzzyMatcher
+public static class FuzzyMatcher
 {
     /// <summary>
     /// Scores how well <paramref name="needle"/> can be found in <paramref name="haystack"/> in a fuzzy way.
