@@ -309,14 +309,14 @@ public partial class ItemService
         if (!_playerState.IsLoaded)
             return false;
 
-        var race = (int)_playerState.Race.RowId;
+        var race = _playerState.Race.RowId;
         if (race == 0)
             return false;
 
-        if (!_excelService.TryGetRow<CustomEquipRaceCategory>(item.EquipRestriction, out var equipRaceCategoryRow))
+        if (!_excelService.TryGetRow<EquipRaceCategory>(item.EquipRestriction, out var equipRaceCategoryRow))
             return false;
 
-        if (!equipRaceCategoryRow.Races[race - 1])
+        if (!equipRaceCategoryRow.Races[(int)race - 1])
             return false;
 
         return _playerState.Sex switch
@@ -370,7 +370,7 @@ public partial class ItemService
             return false;
         }
 
-        if (!item.TryGetItem(out var itemRow) || !_excelService.TryGetRow<CustomEquipRaceCategory>(itemRow.EquipRestriction, out var equipRaceCategoryRow))
+        if (!item.TryGetItem(out var itemRow) || !_excelService.TryGetRow<EquipRaceCategory>(itemRow.EquipRestriction, out var equipRaceCategoryRow))
         {
             errorLogMessage = 716; // "Unable to move item. Please try again. (Reading data...)" ????
             entry.CanEquipCache[key] = (false, errorLogMessage);
