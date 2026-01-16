@@ -412,7 +412,7 @@ public partial class ItemService
             return false;
         }
 
-        if (!_excelService.TryGetRow<CustomClassJobCategory>(itemRow.ClassJobCategory.RowId, out var classJobCategory) || !classJobCategory.ClassesJobs[classJob])
+        if (!_excelService.TryGetRow<ClassJobCategory>(itemRow.ClassJobCategory.RowId, out var classJobCategory) || !classJobCategory.ClassesJobs[classJob])
         {
             errorLogMessage = 703; // "Cannot equip as current class."
             entry.CanEquipCache[key] = (false, errorLogMessage);
