@@ -1,4 +1,5 @@
 using Dalamud.Interface.Windowing;
+using FFXIVClientStructs.FFXIV.Component.GUI;
 using Lumina.Misc;
 
 namespace HaselCommon.Windows;
@@ -9,7 +10,6 @@ public abstract partial class SimpleWindow : Window, IDisposable
 {
     private readonly WindowManager _windowManager;
     private readonly TextService _textService;
-    private readonly AddonObserver _addonObserver;
 
     private string _windowNameKey = string.Empty;
 
@@ -23,11 +23,10 @@ public abstract partial class SimpleWindow : Window, IDisposable
         }
     }
 
-    protected SimpleWindow(WindowManager windowManager, TextService textService, AddonObserver addonObserver) : base("SimpleWindow", ImGuiWindowFlags.NoFocusOnAppearing, false)
+    protected SimpleWindow(WindowManager windowManager, TextService textService) : base("SimpleWindow", ImGuiWindowFlags.NoFocusOnAppearing, false)
     {
         _windowManager = windowManager;
         _textService = textService;
-        _addonObserver = addonObserver;
 
         WindowNameKey = $"{GetType().Name}.Title";
 
@@ -81,14 +80,15 @@ public abstract partial class SimpleWindow : Window, IDisposable
         }
     }
 
-    public override bool DrawConditions()
+    public override unsafe bool DrawConditions()
     {
-        return !_addonObserver.IsAddonVisible("Filter");
+        return AtkStage.Instance()->Filter.NumActiveFilters > 0;
     }
 
     public override void PostDraw()
     {
         base.PostDraw();
+
         if (Collapsed != null)
         {
             Collapsed = null;
