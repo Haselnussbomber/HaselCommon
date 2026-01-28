@@ -132,7 +132,7 @@ public partial class Table<T> : IDisposable
 
         if (_closePopupNextFrame)
         {
-            ImGuiNativeAdditions.igClosePopupsExceptModals();
+            ImGuiP.ClosePopupsExceptModals();
             _closePopupNextFrame = false;
         }
 
@@ -208,10 +208,4 @@ public partial class Table<T> : IDisposable
         if (column.AutoLabel)
             column.Label = _textService.Translate(column.LabelKey);
     }
-}
-
-internal static class ImGuiNativeAdditions
-{
-    [DllImport("cimgui", CallingConvention = CallingConvention.Cdecl)]
-    internal static extern void igClosePopupsExceptModals();
 }
