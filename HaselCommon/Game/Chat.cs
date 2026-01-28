@@ -18,9 +18,9 @@ public static unsafe class Chat
 
     public static void Print(string message, string? sender = null, ushort logKindId = 1)
     {
-        using var _sender = new Utf8String(sender ?? string.Empty);
-        using var _message = new Utf8String(message);
-        RaptureLogModule.Instance()->PrintMessage(logKindId, &_sender, &_message, 0);
+        using var utf8Sender = new Utf8String(sender ?? string.Empty);
+        using var utf8Message = new Utf8String(message);
+        RaptureLogModule.Instance()->PrintMessage(logKindId, &utf8Sender, &utf8Message, 0);
     }
 
     public static void Print(ReadOnlySpan<byte> message, ReadOnlySpan<byte> sender = default, ushort logKindId = 1)
