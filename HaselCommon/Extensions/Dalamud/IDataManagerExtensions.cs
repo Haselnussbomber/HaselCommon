@@ -1,7 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using Lumina.Data;
 
-namespace HaselCommon.Extensions.Dalamud;
+namespace HaselCommon.Extensions;
 
 public static class IDataManagerExtensions
 {

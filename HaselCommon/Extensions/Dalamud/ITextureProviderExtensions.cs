@@ -1,5 +1,4 @@
 using Dalamud.Interface.Textures;
-using HaselCommon.Extensions.Dalamud;
 using Lumina.Data.Files;
 
 namespace HaselCommon.Extensions;
