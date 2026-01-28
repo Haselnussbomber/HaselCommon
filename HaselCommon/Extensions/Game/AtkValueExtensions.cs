@@ -4,7 +4,7 @@ using ValueType = FFXIVClientStructs.FFXIV.Component.GUI.ValueType;
 
 namespace HaselCommon.Extensions;
 
-public unsafe static class AtkValueExtensions
+public static unsafe class AtkValueExtensions
 {
     extension(ref AtkValue atkValue)
     {
