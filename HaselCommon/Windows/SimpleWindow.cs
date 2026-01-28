@@ -4,24 +4,20 @@ using Lumina.Misc;
 
 namespace HaselCommon.Windows;
 
-#pragma warning disable IDE0032 // Use auto property
-
 public abstract partial class SimpleWindow : Window, IDisposable
 {
     private readonly WindowManager _windowManager;
     private readonly TextService _textService;
 
-    private string _windowNameKey = string.Empty;
-
     public string WindowNameKey
     {
-        get => _windowNameKey;
+        get;
         set
         {
-            _windowNameKey = value;
+            field = value;
             UpdateWindowName();
         }
-    }
+    } = string.Empty;
 
     protected SimpleWindow(WindowManager windowManager, TextService textService) : base("SimpleWindow", ImGuiWindowFlags.NoFocusOnAppearing, false)
     {
