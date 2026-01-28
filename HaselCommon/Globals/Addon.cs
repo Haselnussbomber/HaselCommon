@@ -59,16 +59,10 @@ public static unsafe class Addon
 
     // ---
 
-    public static bool IsAddonOpen(ReadOnlySpan<byte> name)
-        => TryGetAddon<AtkUnitBase>(name, out var addon) && addon->IsVisible;
-
-    public static bool IsAddonOpen(string name)
-        => TryGetAddon<AtkUnitBase>(name, out var addon) && addon->IsVisible;
-
-    public static bool IsAddonOpen(ReadOnlySpan<byte> name, int index)
+    public static bool IsAddonOpen(ReadOnlySpan<byte> name, int index = 1)
         => TryGetAddon<AtkUnitBase>(name, index, out var addon) && addon->IsVisible;
 
-    public static bool IsAddonOpen(string name, int index)
+    public static bool IsAddonOpen(string name, int index = 1)
         => TryGetAddon<AtkUnitBase>(name, index, out var addon) && addon->IsVisible;
 
     public static bool IsAddonOpen(ushort addonId)
