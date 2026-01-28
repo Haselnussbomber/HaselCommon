@@ -78,7 +78,7 @@ public abstract partial class SimpleWindow : Window, IDisposable
 
     public override unsafe bool DrawConditions()
     {
-        return AtkStage.Instance()->Filter.NumActiveFilters > 0;
+        return AtkStage.Instance()->Filter.NumActiveFilters == 0;
     }
 
     public override void PostDraw()
