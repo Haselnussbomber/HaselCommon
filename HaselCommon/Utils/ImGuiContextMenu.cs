@@ -8,30 +8,32 @@ using FFXIVClientStructs.FFXIV.Component.Exd;
 using GearsetEntry = FFXIVClientStructs.FFXIV.Client.UI.Misc.RaptureGearsetModule.GearsetEntry;
 using TerritoryType = Lumina.Excel.Sheets.TerritoryType;
 
-namespace HaselCommon.Services;
+namespace HaselCommon.Utils;
 
-[RegisterSingleton, AutoConstruct]
-public partial class ImGuiContextMenuService
+public static class ImGuiContextMenu
 {
-    private readonly TextService _textService;
-    private readonly MapService _mapService;
-    private readonly ItemService _itemService;
+    private static readonly ObjectPool<List<IImGuiContextMenuEntry>> EntryObjectPool = ObjectPool.Create(new PooledListPolicy<IImGuiContextMenuEntry>());
 
-    private readonly ObjectPool<List<IImGuiContextMenuEntry>> _objectPool = ObjectPool.Create(new PooledListPolicy<IImGuiContextMenuEntry>());
-
-    public void Draw(string id, Action<ImGuiContextMenuBuilder> buildAction)
+    public static void Draw(string id, Action<ImGuiContextMenuBuilder> buildAction)
     {
+        if (!ServiceLocator.TryGetService<TextService>(out var textService)
+         || !ServiceLocator.TryGetService<MapService>(out var mapService) 
+         || !ServiceLocator.TryGetService<ItemService>(out var itemService))
+        {
+            return;
+        }
+
         var shouldOpen = ImGui.IsMouseReleased(ImGuiMouseButton.Right) && ImGui.IsItemHovered(ImGuiHoveredFlags.AllowWhenBlockedByPopup);
         var isOpen = shouldOpen || ImGui.IsPopupOpen(id);
 
         if (!isOpen)
             return;
 
-        var entries = _objectPool.Get();
+        var entries = EntryObjectPool.Get();
 
         try
         {
-            var builder = new ImGuiContextMenuBuilder(_textService, _mapService, _itemService, entries);
+            var builder = new ImGuiContextMenuBuilder(textService, mapService, itemService, entries);
             buildAction(builder);
 
             if (shouldOpen && entries.Any(entry => entry.Visible))
@@ -49,10 +51,11 @@ public partial class ImGuiContextMenuService
         }
         finally
         {
-            _objectPool.Return(entries);
+            EntryObjectPool.Return(entries);
         }
     }
 }
+
 
 public unsafe struct ImGuiContextMenuBuilder(TextService textService, MapService mapService, ItemService itemService, List<IImGuiContextMenuEntry> entries)
 {
