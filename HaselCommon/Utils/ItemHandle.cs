@@ -79,20 +79,7 @@ public readonly record struct ItemHandle
 
     public bool IsSpearfish => ServiceLocator.GetService<ItemService>()?.IsSpearfish(this) ?? false;
 
-    public bool IsUnlockable => ItemActionType is
-        ItemActionType.Companion
-        or ItemActionType.BuddyEquip
-        or ItemActionType.Mount
-        or ItemActionType.SecretRecipeBook
-        or ItemActionType.UnlockLink
-        or ItemActionType.TripleTriadCard
-        or ItemActionType.FolkloreTome
-        or ItemActionType.OrchestrionRoll
-        or ItemActionType.FramersKit
-        or ItemActionType.Ornament
-        or ItemActionType.Glasses
-        or ItemActionType.OccultRecords
-        or ItemActionType.SoulShards;
+    public bool IsUnlockable => ItemActionType.IsUnlockable;
 
     public bool IsUnlocked => TryGetItem(out var itemRow) && (ServiceLocator.GetService<IUnlockState>()?.IsItemUnlocked(itemRow) ?? false);
 
