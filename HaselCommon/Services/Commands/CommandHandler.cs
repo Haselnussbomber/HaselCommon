@@ -4,7 +4,7 @@ namespace HaselCommon.Services.Commands;
 
 public class CommandHandler : IDisposable
 {
-    private readonly CommandService _commandManager;
+    private readonly CommandService _commandService;
 
     public string Name { get; init; }
 
@@ -14,9 +14,9 @@ public class CommandHandler : IDisposable
         set
         {
             if (field = value)
-                _commandManager?.EnableCommand(this);
+                _commandService?.EnableCommand(this);
             else
-                _commandManager?.DisableCommand(this);
+                _commandService?.DisableCommand(this);
         }
     } = true;
 
@@ -60,7 +60,7 @@ public class CommandHandler : IDisposable
     internal CommandHandler(string name, CommandService commandManager)
     {
         Name = name;
-        _commandManager = commandManager;
+        _commandService = commandManager;
     }
 
     public void Dispose()
@@ -68,7 +68,7 @@ public class CommandHandler : IDisposable
         if (Parent != null)
             Parent.RemoveSubcommand(this);
         else
-            _commandManager?.RemoveCommand(this);
+            _commandService?.RemoveCommand(this);
     }
 
     public string GetFullPath()
@@ -80,7 +80,7 @@ public class CommandHandler : IDisposable
 
     public CommandHandler AddSubcommand(string name, Action<CommandHandler>? callback = null)
     {
-        var node = new CommandHandler(name, _commandManager)
+        var node = new CommandHandler(name, _commandService)
         {
             Parent = this
         };
@@ -134,11 +134,8 @@ public class CommandHandler : IDisposable
         if (CommandInfo == null)
             return;
 
-        if (!ServiceLocator.TryGetService<TextService>(out var textService))
-            return;
-
         CommandInfo.HelpMessage = !string.IsNullOrEmpty(HelpTextKey)
-            ? textService.Translate(HelpTextKey)
+            ? _commandService._textService.Translate(HelpTextKey)
             : string.Empty;
     }
 }

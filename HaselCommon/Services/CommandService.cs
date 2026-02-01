@@ -10,11 +10,12 @@ public partial class CommandService : IDisposable
 {
     private readonly ILogger<CommandService> _logger;
     private readonly ICommandManager _commandManager;
-    private readonly TextService _textService;
     private readonly LanguageProvider _languageProvider;
     private readonly Dictionary<string, CommandHandler> _commands = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, CommandInfo> _commandInfos = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, bool> _commandState = new(StringComparer.OrdinalIgnoreCase);
+
+    internal readonly TextService _textService;
 
     [AutoPostConstruct]
     private void Initialize()
