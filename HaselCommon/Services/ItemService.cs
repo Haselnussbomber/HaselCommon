@@ -19,15 +19,47 @@ public partial class ItemService
     private readonly Dictionary<uint, GatheringPoint[]> _gatheringItemGatheringPointsCache = [];
     private FrozenDictionary<short, (uint Min, uint Max)>? _maxLevelRanges = null;
 
+    public bool TryGetItem(ItemHandle itemHandle, out Item item)
+    {
+        return TryGetItem(itemHandle, _languageProvider.ClientLanguage, out item);
+    }
+
+    public bool TryGetItem(ItemHandle itemHandle, ClientLanguage language, out Item item)
+    {
+        if (itemHandle.IsEmpty || itemHandle.IsEventItem)
+        {
+            item = default;
+            return false;
+        }
+
+        return _excelService.TryGetRow(itemHandle.BaseItemId, language, out item);
+    }
+
+    public bool TryGetEventItem(ItemHandle itemHandle, out EventItem eventItem)
+    {
+        return TryGetEventItem(itemHandle, _languageProvider.ClientLanguage, out eventItem);
+    }
+
+    public bool TryGetEventItem(ItemHandle itemHandle, ClientLanguage language, out EventItem eventItem)
+    {
+        if (itemHandle.IsEmpty || !itemHandle.IsEventItem)
+        {
+            eventItem = default;
+            return false;
+        }
+
+        return _excelService.TryGetRow(itemHandle.BaseItemId, language, out eventItem);
+    }
+
     public uint GetItemIcon(ItemHandle item)
     {
         var entry = _itemCache.GetOrAdd(item, _ => new ItemCacheEntry());
         return entry.IconId ??= item.IsEventItem
-            ? item.TryGetEventItem(out var eventItem) ? eventItem.Icon : 0u
-            : item.TryGetItem(out var itemRow) ? itemRow.Icon : 0u;
+            ? TryGetEventItem(item, out var eventItem) ? eventItem.Icon : 0u
+            : TryGetItem(item, out var itemRow) ? itemRow.Icon : 0u;
     }
 
-    public ReadOnlySeString GetItemName(ItemHandle item, bool includeIcon, ClientLanguage? language = null)
+    public ReadOnlySeString GetItemName(ItemHandle item, bool includeIcon = false, ClientLanguage? language = null)
     {
         var entry = _itemCache.GetOrAdd(item, _ => new ItemCacheEntry());
         var lang = language ?? _languageProvider.ClientLanguage;
@@ -44,7 +76,7 @@ public partial class ItemService
             {
                 return eventItemHelp.Description;
             }
-            else if (item.TryGetItem(out var itemRow, lang))
+            else if (TryGetItem(item, lang, out var itemRow))
             {
                 return itemRow.Description;
             }
@@ -60,10 +92,10 @@ public partial class ItemService
         {
             using var rssb = new RentedSeStringBuilder();
 
-            var itemName = item.GetItemName(clientLanguage, true);
+            var itemName = GetItemName(item, true, clientLanguage);
             var itemLink = rssb.Builder
-                .PushColorType(item.RarityColorType)
-                .PushEdgeColorType(item.RarityEdgeColorType)
+                .PushColorType(ItemUtil.GetItemRarityColorType(item, false))
+                .PushEdgeColorType(ItemUtil.GetItemRarityColorType(item, true))
                 .PushLinkItem(item.ItemId, itemName.ToString())
                 .Append(itemName)
                 .PopLink()
@@ -73,6 +105,12 @@ public partial class ItemService
 
             return _seStringEvaluatorService.EvaluateFromAddon(371, [itemLink], language);
         });
+    }
+
+    public bool IsCurrency(ItemHandle item)
+    {
+        var entry = _itemCache.GetOrAdd(item, _ => new ItemCacheEntry());
+        return entry.IsCurrency ??= TryGetItem(item, out var itemRow) && itemRow.FilterGroup == (int)ItemFilterGroup.Currency;
     }
 
     public bool IsCraftable(ItemHandle item)
@@ -275,7 +313,7 @@ public partial class ItemService
 
         return entry.FacePaintIcons.GetOrAdd((tribe, sex), _ =>
         {
-            if (!item.TryGetItem(out var itemRow)
+            if (!TryGetItem(item, out var itemRow)
                 || !itemRow.ItemAction.IsValid
                 || itemRow.ItemAction.Value.Action.RowId != (ushort)ItemActionType.UnlockLink
                 || itemRow.ItemAction.Value.Data[1] != 9390)
@@ -296,12 +334,15 @@ public partial class ItemService
 
     public bool CanTryOn(ItemHandle item)
     {
+        if (!TryGetItem(item, out var itemRow))
+            return false;
+
         // not equippable, Waist or SoulCrystal => false
-        if (item.EquipSlotCategory is 0 or 6 or 17)
+        if (itemRow.EquipSlotCategory.RowId is 0 or 6 or 17)
             return false;
 
         // any OffHand that's not a Shield => false
-        if (item.EquipSlotCategory is 2 && item.ItemFilterGroup != ItemFilterGroup.Shield)
+        if (itemRow.EquipSlotCategory.RowId is 2 && itemRow.FilterGroup != (int)ItemFilterGroup.Shield)
             return false;
 
         if (!_playerState.IsLoaded)
@@ -311,7 +352,7 @@ public partial class ItemService
         if (race == 0)
             return false;
 
-        if (!_excelService.TryGetRow<EquipRaceCategory>(item.EquipRestriction, out var equipRaceCategoryRow))
+        if (!_excelService.TryGetRow<EquipRaceCategory>(itemRow.EquipRestriction, out var equipRaceCategoryRow))
             return false;
 
         if (!equipRaceCategoryRow.Races[(int)race - 1])
@@ -368,7 +409,7 @@ public partial class ItemService
             return false;
         }
 
-        if (!item.TryGetItem(out var itemRow) || !_excelService.TryGetRow<EquipRaceCategory>(itemRow.EquipRestriction, out var equipRaceCategoryRow))
+        if (!TryGetItem(item, out var itemRow) || !_excelService.TryGetRow<EquipRaceCategory>(itemRow.EquipRestriction, out var equipRaceCategoryRow))
         {
             errorLogMessage = 716; // "Unable to move item. Please try again. (Reading data...)" ????
             entry.CanEquipCache[key] = (false, errorLogMessage);
@@ -441,7 +482,7 @@ public partial class ItemService
         if (colors.Length < 2)
             throw new ArgumentException("At least two colors are required for interpolation.");
 
-        if (!item.TryGetItem(out var itemRow))
+        if (!TryGetItem(item, out var itemRow))
             return Color.White;
 
         if (!_excelService.TryGetRow<ClassJob>(classJob, out var classJobRow))
@@ -451,7 +492,7 @@ public partial class ItemService
         if (level < 1 || !GetMaxLevelRanges().TryGetValue(level, out var range))
             return Color.White;
 
-        var itemLevel = item.ItemLevel;
+        var itemLevel = itemRow.LevelItem.RowId;
 
         // special case for Fisher's Secondary Tool
         // which has only one item, Spearfishing Gig
@@ -532,6 +573,7 @@ public partial class ItemService
 
     private class ItemCacheEntry
     {
+        public bool? IsCurrency;
         public bool? IsCraftable;
         public bool? IsGatherable;
         public bool? IsFish;

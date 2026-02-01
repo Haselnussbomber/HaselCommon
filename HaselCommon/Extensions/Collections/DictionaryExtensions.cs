@@ -2,7 +2,7 @@ namespace HaselCommon.Extensions;
 
 public static class DictionaryExtensions
 {
-    extension<K,V>(IDictionary<K, V> dict)
+    extension<K, V>(IDictionary<K, V> dict)
     {
         public V GetOrCreate(K key, Func<V> createFn)
         {

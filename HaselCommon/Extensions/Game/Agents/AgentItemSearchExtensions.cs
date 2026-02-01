@@ -1,4 +1,3 @@
-using FFXIVClientStructs.FFXIV.Client.System.Framework;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Component.GUI;
@@ -13,7 +12,8 @@ public static unsafe class AgentItemSearchExtensions
         {
             return agent.IsAgentActive()
                 && !item.IsEventItem
-                && item.TryGetItem(out var itemRow)
+                && ServiceLocator.TryGetService<ItemService>(out var itemService)
+                && itemService.TryGetItem(item, out var itemRow)
                 && !itemRow.IsUntradable
                 && !itemRow.IsCollectable
                 && IsAddonOpen(AgentId.ItemSearch);
@@ -27,11 +27,16 @@ public static unsafe class AgentItemSearchExtensions
             if (!TryGetAddon<AddonItemSearch>((ushort)agent.GetAddonId(), out var addon))
                 return;
 
+            if (!ServiceLocator.TryGetService<IClientState>(out var clientState))
+                return;
+
+            if (!ServiceLocator.TryGetService<ItemService>(out var itemService))
+                return;
+
             if (TryGetAddon<AtkUnitBase>("ItemSearchResult"u8, out var itemSearchResult))
                 itemSearchResult->Hide2();
 
-            var clientLanguage = (ClientLanguage)Framework.Instance()->ClientLanguage;
-            var itemName = item.GetItemName(clientLanguage).ToString();
+            var itemName = itemService.GetItemName(item, false, clientState.ClientLanguage).ToString();
             if (itemName.Length > 40)
                 itemName = itemName[..40];
 
