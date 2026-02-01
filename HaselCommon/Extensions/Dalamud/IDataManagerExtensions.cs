@@ -22,15 +22,5 @@ public static class IDataManagerExtensions
                 return false;
             }
         }
-
-        public bool TryGetFile<T>(string path, [NotNullWhen(returnValue: true)] out T? file) where T : FileResource
-        {
-            var result = TryGetFile(dataManager, path, out file, out var exception);
-
-            if (!result && ServiceLocator.TryGetService<ILogger<IDataManager>>(out var logger) && logger.IsEnabled(LogLevel.Error))
-                logger.LogError(exception, "Unexpected exception while getting file {path}", path);
-
-            return result;
-        }
     }
 }
