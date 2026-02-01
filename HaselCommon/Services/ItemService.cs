@@ -12,6 +12,7 @@ public partial class ItemService
 {
     private readonly IPlayerState _playerState;
     private readonly ExcelService _excelService;
+    private readonly IUnlockState _unlockState;
     private readonly ISeStringEvaluator _seStringEvaluatorService;
     private readonly LanguageProvider _languageProvider;
 
@@ -136,6 +137,17 @@ public partial class ItemService
         var entry = _itemCache.GetOrAdd(item, _ => new ItemCacheEntry());
         var itemId = item.ItemId;
         return entry.IsSpearfish ??= _excelService.TryFindRow<SpearfishingItem>(row => row.Item.RowId == itemId, out _);
+    }
+
+    public bool IsUnlockable(ItemHandle item)
+    {
+        var entry = _itemCache.GetOrAdd(item, _ => new ItemCacheEntry());
+        return entry.IsUnlockable ??= TryGetItem(item, out var itemRow) && _unlockState.IsItemUnlockable(itemRow);
+    }
+
+    public bool IsUnlocked(ItemHandle item)
+    {
+        return TryGetItem(item, out var itemRow) && _unlockState.IsItemUnlocked(itemRow);
     }
 
     public IReadOnlyList<Recipe> GetRecipes(ItemHandle item)
@@ -578,6 +590,7 @@ public partial class ItemService
         public bool? IsGatherable;
         public bool? IsFish;
         public bool? IsSpearfish;
+        public bool? IsUnlockable;
 
         public uint? IconId;
 
