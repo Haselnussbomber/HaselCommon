@@ -4,6 +4,7 @@ namespace HaselCommon.Windows;
 public partial class SimpleDebugWindow : SimpleWindow
 {
     private readonly List<ISimpleDebugTab> _tabs = [];
+    private readonly WindowManager _windowManager;
     private ISimpleDebugTab? _selectedTab;
 
     [AutoPostConstruct]
@@ -11,7 +12,7 @@ public partial class SimpleDebugWindow : SimpleWindow
     {
         Size = new Vector2(900, 600);
         SizeCondition = ImGuiCond.Appearing;
-        RegisterTab(new WindowManagerTab());
+        RegisterTab(new WindowManagerTab(_windowManager));
     }
 
     public void RegisterTab(ISimpleDebugTab tab)
@@ -63,7 +64,7 @@ public partial class SimpleDebugWindow : SimpleWindow
         _selectedTab?.Draw();
     }
 
-    private class WindowManagerTab : ISimpleDebugTab
+    private class WindowManagerTab(WindowManager windowManager) : ISimpleDebugTab
     {
         public string Name => "WindowManager";
 
@@ -78,7 +79,7 @@ public partial class SimpleDebugWindow : SimpleWindow
             ImGui.TableSetupColumn("State", ImGuiTableColumnFlags.WidthFixed, 100);
             ImGui.TableHeadersRow();
 
-            foreach (var window in ServiceLocator.GetService<WindowManager>()!.Windows)
+            foreach (var window in windowManager.Windows)
             {
                 ImGui.TableNextRow();
                 ImGui.TableNextColumn();
