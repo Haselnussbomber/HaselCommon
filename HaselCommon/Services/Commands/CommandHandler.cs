@@ -13,10 +13,15 @@ public class CommandHandler : IDisposable
         get;
         set
         {
-            if (field = value)
-                _commandService?.EnableCommand(this);
-            else
-                _commandService?.DisableCommand(this);
+            field = value;
+
+            if (Parent == null)
+            {
+                if (field)
+                    _commandService?.EnableCommand(this);
+                else
+                    _commandService?.DisableCommand(this);
+            }
         }
     } = true;
 
