@@ -489,6 +489,16 @@ public partial class ItemService
         return true;
     }
 
+    public Color GetItemRarityColor(ItemHandle item, bool isEdgeColor = false)
+    {
+        var colorType = ItemUtil.GetItemRarityColorType(item, isEdgeColor);
+
+        if (!_excelService.TryGetRow<UIColor>(colorType, out var row))
+            return Color.White;
+
+        return Color.FromABGR(row.Dark);
+    }
+
     public Color GetItemLevelColor(ItemHandle item, byte classJob, params Color[] colors)
     {
         if (colors.Length < 2)
