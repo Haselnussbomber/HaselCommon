@@ -1,0 +1,4 @@
+T:Dalamud.Utility.CStringExtensions;Type conflict with custom ClientStructs
+T:Dalamud.Utility.Utf8StringExtensions;Type conflict with custom ClientStructs
+M:Dalamud.Game.Addon.Lifecycle.AddonArgTypes.AddonRefreshArgs.AtkValueSpan;Type conflict with custom ClientStructs
+M:Dalamud.Game.Addon.Lifecycle.AddonArgTypes.AddonSetupArgs.AtkValueSpan;Type conflict with custom ClientStructs
