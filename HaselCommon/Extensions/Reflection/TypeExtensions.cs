@@ -101,7 +101,12 @@ public static class TypeExtensions
             }
 
             if (type.IsGenericType)
-                return $"{type.Name[..type.Name.IndexOf('`')]}<{string.Join(",", type.GetGenericArguments().Select((t) => t.ReadableTypeName(fullName)))}>{stars}";
+            {
+                var nameEndPos = type.Name.IndexOf('`');
+                if (nameEndPos == -1)
+                    nameEndPos = type.Name.Length;
+                return $"{type.Name[..nameEndPos]}<{string.Join(",", type.GetGenericArguments().Select((t) => t.ReadableTypeName(fullName)))}>{stars}";
+            }
 
             if (type.IsUnmanagedFunctionPointer)
             {
