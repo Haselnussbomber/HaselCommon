@@ -10,9 +10,9 @@ public static class ImGuiUtils
     {
         var itemSpacingHeight = ImGui.GetStyle().ItemSpacing.Y;
 
-        ImGuiCursor.Y += itemSpacingHeight;
+        ImCursor.Y += itemSpacingHeight;
         ImGui.Separator();
-        ImGuiCursor.Y += itemSpacingHeight - 1;
+        ImCursor.Y += itemSpacingHeight - 1;
     }
 
     public static void DrawSection(string label, bool pushDown = true, bool respectUiTheme = false, RowRef<UIColor> uiColor = default)
@@ -21,7 +21,7 @@ public static class ImGuiUtils
 
         // push down a bit
         if (pushDown)
-            ImGuiCursor.Y += itemSpacingHeight * 2;
+            ImCursor.Y += itemSpacingHeight * 2;
 
         var color = Color.Gold;
         if (respectUiTheme && Misc.IsLightTheme && uiColor.IsValid)
@@ -30,9 +30,9 @@ public static class ImGuiUtils
         ImGui.TextColored(color, label);
 
         // pull up the separator
-        ImGuiCursor.Y += -itemSpacingHeight + 3;
+        ImCursor.Y += -itemSpacingHeight + 3;
         ImGui.Separator();
-        ImGuiCursor.Y += itemSpacingHeight * 2 - 1;
+        ImCursor.Y += itemSpacingHeight * 2 - 1;
     }
 
     public static ImRaii.Indent ConfigIndent(bool condition = true)

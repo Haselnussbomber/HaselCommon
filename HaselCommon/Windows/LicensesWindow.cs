@@ -76,7 +76,7 @@ public partial class LicensesWindow : SimpleWindow
                 {
                     indent?.Dispose();
                     indent = null;
-                    ImGuiCursor.Y += ImGui.GetFrameHeight();
+                    ImCursor.Y += ImGui.GetFrameHeight();
                 }
 
                 hadPrevious = true;

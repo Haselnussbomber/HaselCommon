@@ -3,7 +3,7 @@ namespace HaselCommon.Gui;
 // Adapted from ImSharp
 // https://github.com/Ottermandias/ImSharp/blob/gc1.88/ImSharp/ImSharp/Cursor.cs
 
-public static class ImGuiCursor
+public static class ImCursor
 {
     public static Vector2 Position
     {
