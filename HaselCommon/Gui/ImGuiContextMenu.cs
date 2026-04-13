@@ -309,14 +309,14 @@ public unsafe struct ImGuiContextMenuBuilder(TextService textService, MapService
             {
                 using var tooltip = ImRaii.Tooltip();
 
-                var pos = ImGui.GetCursorPos();
                 ImGui.GetWindowDrawList().AddText(
-                    UiBuilder.IconFont, 12 * ImGuiHelpers.GlobalScale,
-                    ImGui.GetWindowPos() + pos + new Vector2(2),
+                    UiBuilder.IconFont, 12 * ImStyle.Scale,
+                    ImCursor.ScreenPosition + new Vector2(2 * ImStyle.Scale),
                     Color.Grey.ToUInt(),
-                    FontAwesomeIcon.ExternalLinkAlt.ToIconString()
-                );
-                ImGui.SetCursorPos(pos + new Vector2(20, 0) * ImGuiHelpers.GlobalScale);
+                    FontAwesomeIcon.ExternalLinkAlt.ToIconString());
+
+                ImCursor.X += 20 * ImStyle.Scale;
+
                 ImGui.TextColored(Color.Grey, $"https://www.garlandtools.org/db/#{type}/{id}");
             }
         });

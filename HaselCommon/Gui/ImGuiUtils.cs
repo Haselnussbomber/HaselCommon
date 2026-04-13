@@ -52,14 +52,14 @@ public static class ImGuiUtils
                 if (!string.IsNullOrEmpty(title))
                     ImGui.TextColored(Color.White, title);
 
-                var pos = ImGui.GetCursorPos();
                 ImGui.GetWindowDrawList().AddText(
-                    UiBuilder.IconFont, 12,
-                    ImGui.GetWindowPos() + pos + new Vector2(2),
+                    UiBuilder.IconFont, 12 * ImStyle.Scale,
+                    ImCursor.ScreenPosition + new Vector2(2 * ImStyle.Scale),
                     Color.Grey.ToUInt(),
-                    FontAwesomeIcon.ExternalLinkAlt.ToIconString()
-                );
-                ImGui.SetCursorPos(pos + new Vector2(20, 0));
+                    FontAwesomeIcon.ExternalLinkAlt.ToIconString());
+
+                ImCursor.X += 20 * ImStyle.Scale;
+
                 ImGui.TextColored(Color.Grey, url);
             }
         }
@@ -73,13 +73,12 @@ public static class ImGuiUtils
         ImGui.SameLine();
 
         var height = ImGui.GetFrameHeight();
-        var pos = ImGui.GetWindowPos() + ImGui.GetCursorPos();
+        var pos = ImCursor.ScreenPosition;
 
         ImGui.GetWindowDrawList().AddLine(
             pos + new Vector2(3f, 0f),
             pos + new Vector2(3f, height),
-            color
-        );
+            color);
 
         ImGui.Dummy(new(7, height));
     }
