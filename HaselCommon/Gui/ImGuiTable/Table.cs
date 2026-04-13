@@ -1,5 +1,8 @@
 namespace HaselCommon.Gui.ImGuiTable;
 
+// Originally from Dalamud
+// https://github.com/goatcorp/Dalamud/tree/master/Dalamud/Interface/Utility/Table
+
 public static class Table
 {
     public const float ArrowWidth = 10;

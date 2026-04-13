@@ -8,7 +8,7 @@ using FFXIVClientStructs.FFXIV.Component.Exd;
 using GearsetEntry = FFXIVClientStructs.FFXIV.Client.UI.Misc.RaptureGearsetModule.GearsetEntry;
 using TerritoryType = Lumina.Excel.Sheets.TerritoryType;
 
-namespace HaselCommon.Utils;
+namespace HaselCommon.Gui;
 
 public static class ImGuiContextMenu
 {

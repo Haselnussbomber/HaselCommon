@@ -1,4 +1,4 @@
-namespace HaselCommon.Utils;
+namespace HaselCommon.Gui;
 
 public readonly ref struct ImRaiiListClipper
 {
