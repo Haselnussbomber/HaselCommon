@@ -30,14 +30,14 @@ public class ColumnBool<TRow> : ColumnFlags<BoolValues, TRow>
                (FilterValue.HasFlag(BoolValues.False) && !value);
     }
 
-    public override unsafe void DrawColumn(TRow row)
+    public override void DrawColumn(TRow row)
     {
         var value = ToBool(row);
         using ((value ? Color.Green : Color.Red).Push(ImGuiCol.Text))
             ImGui.Text(GetTranslatedName(value ? 1 : 0));
     }
 
-    public override unsafe int Compare(TRow a, TRow b)
+    public override int Compare(TRow a, TRow b)
         => ToBool(a).CompareTo(ToBool(b));
 
     public override void SetValue(BoolValues value, bool enable)

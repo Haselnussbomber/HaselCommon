@@ -12,7 +12,7 @@ public static unsafe class MirageStoreSetItemExtensions
         public RowRef<Item> Set => new(row.ExcelPage.Module, row.RowId, row.ExcelPage.Language);
         public Collection<RowRef<Item>> Items => new(row.ExcelPage, parentOffset: row.RowOffset, offset: row.RowOffset, &ItemCtor, size: 11);
 
-        public unsafe bool TryGetSetItemBitArray(out BitArray bitArray, bool useCache = true)
+        public bool TryGetSetItemBitArray(out BitArray bitArray, bool useCache = true)
         {
             var mirageManager = MirageManager.Instance();
             if (mirageManager->PrismBoxLoaded)

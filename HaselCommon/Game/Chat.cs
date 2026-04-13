@@ -7,7 +7,7 @@ namespace HaselCommon.Game;
 
 public static unsafe class Chat
 {
-    public static unsafe void ExecuteCommand(string command)
+    public static void ExecuteCommand(string command)
     {
         if (!command.StartsWith('/'))
             return;
