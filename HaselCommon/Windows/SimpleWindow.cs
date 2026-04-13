@@ -9,6 +9,9 @@ public abstract partial class SimpleWindow : Window, IDisposable
     private readonly WindowManager _windowManager;
     private readonly TextService _textService;
 
+    public readonly ImRaii.Style WindowStyle = new();
+    public readonly ImRaii.Color WindowColor = new();
+
     public string WindowNameKey
     {
         get;
@@ -31,6 +34,8 @@ public abstract partial class SimpleWindow : Window, IDisposable
 
     public virtual void Dispose()
     {
+        WindowStyle.Dispose();
+        WindowColor.Dispose();
         Close();
         _windowManager.RemoveWindow(this);
     }
@@ -59,6 +64,13 @@ public abstract partial class SimpleWindow : Window, IDisposable
         IsOpen = false;
     }
 
+    public override void OnClose()
+    {
+        WindowStyle.Dispose();
+        WindowColor.Dispose();
+        base.OnClose();
+    }
+
     public new void Toggle()
     {
         Toggle(true);
@@ -83,6 +95,9 @@ public abstract partial class SimpleWindow : Window, IDisposable
 
     public override void PostDraw()
     {
+        WindowStyle.Dispose();
+        WindowColor.Dispose();
+
         base.PostDraw();
 
         if (Collapsed != null)
