@@ -87,9 +87,10 @@ public record struct ItemLocation
         }
     }
 
-    public ValueTuple<InventoryType, ushort> AsTuple()
+    public void Deconstruct(out InventoryType container, out ushort slot)
     {
-        return (Container, Slot);
+        container = Container;
+        slot = Slot;
     }
 
     public static unsafe implicit operator ItemLocation(InventoryItem* item) => new(item);
@@ -97,6 +98,4 @@ public record struct ItemLocation
     public static implicit operator ItemLocation((InventoryType Container, ushort Slot) tuple) => new(tuple.Container, tuple.Slot);
 
     public static implicit operator ItemLocation(EquipmentSlot slot) => new(slot);
-
-    public static implicit operator ValueTuple<InventoryType, ushort>(ItemLocation itemLoc) => itemLoc.AsTuple();
 }
