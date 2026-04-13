@@ -8,7 +8,7 @@ public static class ImGuiUtils
 {
     public static void DrawPaddedSeparator()
     {
-        var itemSpacingHeight = ImGui.GetStyle().ItemSpacing.Y;
+        var itemSpacingHeight = ImStyle.ItemSpacing.Y;
 
         ImCursor.Y += itemSpacingHeight;
         ImGui.Separator();
@@ -17,7 +17,7 @@ public static class ImGuiUtils
 
     public static void DrawSection(string label, bool pushDown = true, bool respectUiTheme = false, RowRef<UIColor> uiColor = default)
     {
-        var itemSpacingHeight = ImGui.GetStyle().ItemSpacing.Y;
+        var itemSpacingHeight = ImStyle.ItemSpacing.Y;
 
         // push down a bit
         if (pushDown)
@@ -36,7 +36,7 @@ public static class ImGuiUtils
     }
 
     public static ImRaii.Indent ConfigIndent(bool condition = true)
-        => ImRaii.PushIndent(ImGui.GetFrameHeight() + ImGui.GetStyle().ItemSpacing.X / 2f, true, condition);
+        => ImRaii.PushIndent(ImGui.GetFrameHeight() + ImStyle.ItemSpacing.X / 2f, true, condition);
 
     public static void DrawLink(string label, string title, string url)
     {
@@ -103,7 +103,7 @@ public static class ImGuiUtils
     public static Vector2 GetIconButtonSize(FontAwesomeIcon icon)
     {
         using var iconFont = ImRaii.PushFont(UiBuilder.IconFont);
-        return ImGui.CalcTextSize(icon.ToIconString()) + ImGui.GetStyle().FramePadding * 2;
+        return ImGui.CalcTextSize(icon.ToIconString()) + ImStyle.FramePadding * 2;
     }
 
     public static bool IconButton(string key, FontAwesomeIcon icon, string? tooltip = null, Vector2 size = default, bool disabled = false, bool active = false)
@@ -111,23 +111,22 @@ public static class ImGuiUtils
         using var iconFont = ImRaii.PushFont(UiBuilder.IconFont);
         if (!key.StartsWith("##")) key = "##" + key;
 
-        var disposables = new List<IDisposable>();
+        using var color = new ImRaii.Color();
 
         if (disabled)
         {
-            disposables.Add(ImRaii.PushColor(ImGuiCol.Text, ImGui.GetStyle().Colors[(int)ImGuiCol.TextDisabled]));
-            disposables.Add(ImRaii.PushColor(ImGuiCol.ButtonActive, ImGui.GetStyle().Colors[(int)ImGuiCol.Button]));
-            disposables.Add(ImRaii.PushColor(ImGuiCol.ButtonHovered, ImGui.GetStyle().Colors[(int)ImGuiCol.Button]));
+            color.Push(ImGuiCol.Text, ImGuiCol.TextDisabled)
+                 .Push(ImGuiCol.ButtonActive, ImGuiCol.Button)
+                 .Push(ImGuiCol.ButtonHovered, ImGuiCol.Button);
         }
         else if (active)
         {
-            disposables.Add(ImRaii.PushColor(ImGuiCol.Button, ImGui.GetStyle().Colors[(int)ImGuiCol.ButtonActive]));
+            color.Push(ImGuiCol.Button, ImGuiCol.ButtonActive);
         }
 
         var pressed = ImGui.Button(icon.ToIconString() + key, size);
 
-        foreach (var disposable in disposables)
-            disposable.Dispose();
+        color.Dispose();
 
         iconFont?.Dispose();
 

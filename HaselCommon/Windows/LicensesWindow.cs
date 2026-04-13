@@ -54,7 +54,7 @@ public partial class LicensesWindow : SimpleWindow
 
         using (_pluginInterface.UiBuilder.MonoFontHandle.Push())
         {
-            var width = _lines.Max(line => ImGui.CalcTextSize(line).X) + ImGui.GetStyle().ItemSpacing.X * 2 + ImGui.GetStyle().ScrollbarSize + ImGui.GetStyle().IndentSpacing * 2f;
+            var width = _lines.Max(line => ImGui.CalcTextSize(line).X) + ImStyle.ItemSpacing.X * 2 + ImStyle.ScrollbarSize + ImStyle.IndentSpacing * 2f;
             var height = width / (4f / 3.5f);
             Size = new Vector2(width, height);
         }
@@ -87,7 +87,7 @@ public partial class LicensesWindow : SimpleWindow
                     using (_pluginInterface.UiBuilder.MonoFontHandle.Push())
                     {
                         using (Color.Gold.Push(ImGuiCol.Text))
-                        using (ImRaii.PushIndent(ImGui.GetStyle().IndentSpacing / 2f))
+                        using (ImRaii.PushIndent(ImStyle.IndentSpacing / 2f))
                             ImGuiUtils.DrawLink(match.Groups[1].Value, string.Empty, match.Groups[2].Value);
                         ImGui.Spacing();
                         ImGui.Separator();
