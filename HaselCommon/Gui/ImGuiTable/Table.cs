@@ -122,7 +122,7 @@ public partial class Table<T> : IDisposable
         if (Columns.Count == 0)
             return;
 
-        using var table = ImRaii.Table("Table", Columns.Count, Flags, ImGui.GetContentRegionAvail());
+        using var table = ImRaii.Table("Table", Columns.Count, Flags, ImStyle.ContentRegionAvail);
         if (!table)
             return;
 

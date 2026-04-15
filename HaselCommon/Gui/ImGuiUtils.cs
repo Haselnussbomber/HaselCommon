@@ -36,7 +36,7 @@ public static class ImGuiUtils
     }
 
     public static ImRaii.Indent ConfigIndent(bool condition = true)
-        => ImRaii.PushIndent(ImGui.GetFrameHeight() + ImStyle.ItemSpacing.X / 2f, true, condition);
+        => ImRaii.PushIndent(ImStyle.FrameHeight + ImStyle.ItemSpacing.X / 2f, true, condition);
 
     public static void DrawLink(string label, string title, string url)
     {
@@ -72,7 +72,7 @@ public static class ImGuiUtils
     {
         ImGui.SameLine();
 
-        var height = ImGui.GetFrameHeight();
+        var height = ImStyle.FrameHeight;
         var pos = ImCursor.ScreenPosition;
 
         ImGui.GetWindowDrawList().AddLine(

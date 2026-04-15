@@ -14,8 +14,8 @@ public static class IDalamudTextureWrapExtensions
 
             var size = drawInfo.Fit switch
             {
-                ContentFit.Cover => textureWrap.Size.Cover(drawInfo.DrawSize ?? new Vector2(ImGui.GetContentRegionAvail().X, 1)),
-                ContentFit.Contain => textureWrap.Size.Contain(drawInfo.DrawSize ?? ImGui.GetContentRegionAvail()),
+                ContentFit.Cover => textureWrap.Size.Cover(drawInfo.DrawSize ?? new Vector2(ImStyle.ContentRegionAvail.X, 1)),
+                ContentFit.Contain => textureWrap.Size.Contain(drawInfo.DrawSize ?? ImStyle.ContentRegionAvail),
                 _ => drawInfo.DrawSize ?? textureWrap.Size
             };
 
