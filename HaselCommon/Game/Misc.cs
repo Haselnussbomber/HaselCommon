@@ -5,5 +5,5 @@ namespace HaselCommon.Game;
 public static class Misc
 {
     public static unsafe bool IsLightTheme
-        => RaptureAtkModule.Instance()->AtkUIColorHolder.ActiveColorThemeType == 1;
+        => RaptureAtkModule.Instance()->AtkUIColorHolder.ActiveColorThemeType is 1 or 4;
 }

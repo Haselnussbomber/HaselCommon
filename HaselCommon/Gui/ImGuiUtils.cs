@@ -15,7 +15,7 @@ public static class ImGuiUtils
         ImCursor.Y += itemSpacingHeight - 1;
     }
 
-    public static void DrawSection(string label, bool pushDown = true, bool respectUiTheme = false, RowRef<UIColor> uiColor = default)
+    public static void DrawSection(string label, bool pushDown = true, Color? color = null)
     {
         var itemSpacingHeight = ImStyle.ItemSpacing.Y;
 
@@ -23,11 +23,7 @@ public static class ImGuiUtils
         if (pushDown)
             ImCursor.Y += itemSpacingHeight * 2;
 
-        var color = Color.Gold;
-        if (respectUiTheme && Misc.IsLightTheme && uiColor.IsValid)
-            color = Color.FromABGR(uiColor.Value.Dark);
-
-        ImGui.TextColored(color, label);
+        ImGui.TextColored(color ?? Color.Gold, label);
 
         // pull up the separator
         ImCursor.Y += -itemSpacingHeight + 3;
@@ -47,7 +43,7 @@ public static class ImGuiUtils
             ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
 
             using var tooltip = ImRaii.Tooltip();
-            if (tooltip.Success)
+            if (tooltip)
             {
                 if (!string.IsNullOrEmpty(title))
                     ImGui.TextColored(Color.White, title);
@@ -55,12 +51,12 @@ public static class ImGuiUtils
                 ImGui.GetWindowDrawList().AddText(
                     UiBuilder.IconFont, 12 * ImStyle.Scale,
                     ImCursor.ScreenPosition + new Vector2(2 * ImStyle.Scale),
-                    Color.Grey.ToUInt(),
+                    Color.Text700.ToUInt(),
                     FontAwesomeIcon.ExternalLinkAlt.ToIconString());
 
                 ImCursor.X += 20 * ImStyle.Scale;
 
-                ImGui.TextColored(Color.Grey, url);
+                ImGui.TextColored(Color.Text700, url);
             }
         }
 

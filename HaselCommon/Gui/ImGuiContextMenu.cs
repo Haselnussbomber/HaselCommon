@@ -312,12 +312,12 @@ public unsafe struct ImGuiContextMenuBuilder(TextService textService, MapService
                 ImGui.GetWindowDrawList().AddText(
                     UiBuilder.IconFont, 12 * ImStyle.Scale,
                     ImCursor.ScreenPosition + new Vector2(2 * ImStyle.Scale),
-                    Color.Grey.ToUInt(),
+                    Color.Text700.ToUInt(),
                     FontAwesomeIcon.ExternalLinkAlt.ToIconString());
 
                 ImCursor.X += 20 * ImStyle.Scale;
 
-                ImGui.TextColored(Color.Grey, $"https://www.garlandtools.org/db/#{type}/{id}");
+                ImGui.TextColored(Color.Text700, $"https://www.garlandtools.org/db/#{type}/{id}");
             }
         });
 
