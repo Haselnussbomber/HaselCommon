@@ -20,28 +20,32 @@ public static unsafe class Chat
     {
         using var utf8Sender = new Utf8String(sender ?? string.Empty);
         using var utf8Message = new Utf8String(message);
-        RaptureLogModule.Instance()->PrintMessage(logKindId, &utf8Sender, &utf8Message, 0);
+        var logInfo = new LogInfo { LogKind = logKindId };
+        RaptureLogModule.Instance()->PrintMessage(logInfo, &utf8Sender, &utf8Message, 0);
     }
 
     public static void Print(ReadOnlySpan<byte> message, ReadOnlySpan<byte> sender = default, ushort logKindId = 1)
     {
         using var utf8Sender = new Utf8String(sender.WithNullTerminator());
         using var utf8Message = new Utf8String(message.WithNullTerminator());
-        RaptureLogModule.Instance()->PrintMessage(logKindId, &utf8Sender, &utf8Message, 0);
+        var logInfo = new LogInfo { LogKind = logKindId };
+        RaptureLogModule.Instance()->PrintMessage(logInfo, &utf8Sender, &utf8Message, 0);
     }
 
     public static void Print(ReadOnlySeString message, ReadOnlySeString sender = default, ushort logKindId = 1)
     {
         using var utf8Sender = new Utf8String(sender.Data.Span.WithNullTerminator());
         using var utf8Message = new Utf8String(message.Data.Span.WithNullTerminator());
-        RaptureLogModule.Instance()->PrintMessage(logKindId, &utf8Sender, &utf8Message, 0);
+        var logInfo = new LogInfo { LogKind = logKindId };
+        RaptureLogModule.Instance()->PrintMessage(logInfo, &utf8Sender, &utf8Message, 0);
     }
 
     public static void Print(ReadOnlySeStringSpan message, ReadOnlySeStringSpan sender = default, ushort logKindId = 1)
     {
         using var utf8Sender = new Utf8String(sender.Data.WithNullTerminator());
         using var utf8Message = new Utf8String(message.Data.WithNullTerminator());
-        RaptureLogModule.Instance()->PrintMessage(logKindId, &utf8Sender, &utf8Message, 0);
+        var logInfo = new LogInfo { LogKind = logKindId };
+        RaptureLogModule.Instance()->PrintMessage(logInfo, &utf8Sender, &utf8Message, 0);
     }
 
     public static void PrintError(string message, string? sender = null)

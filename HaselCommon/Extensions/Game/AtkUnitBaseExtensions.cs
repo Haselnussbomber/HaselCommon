@@ -16,8 +16,8 @@ public static unsafe class AtkUnitBaseExtensions
         {
             get
             {
-                short width;
-                short height;
+                ushort width;
+                ushort height;
                 unitBase.GetSize(&width, &height, false);
                 return new Vector2(width, height);
             }
@@ -29,8 +29,8 @@ public static unsafe class AtkUnitBaseExtensions
         {
             get
             {
-                short width;
-                short height;
+                ushort width;
+                ushort height;
                 unitBase.GetSize(&width, &height, true);
                 return new Vector2(width, height);
             }
