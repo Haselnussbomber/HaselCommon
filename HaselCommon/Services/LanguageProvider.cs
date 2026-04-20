@@ -1,4 +1,5 @@
 using System.Globalization;
+using Dalamud;
 
 namespace HaselCommon.Services;
 
@@ -16,34 +17,25 @@ public partial class LanguageProvider : IDisposable
     [AutoPostConstruct]
     private void Initialize()
     {
-        LanguageCode = _pluginInterface.UiLanguage;
-        ClientLanguage = _pluginInterface.UiLanguage.ToClientlanguage();
-        CultureInfo = GetCultureInfoFromLangCode(LanguageCode);
-
-        _pluginInterface.LanguageChanged += PluginInterface_LanguageChanged;
+        SetLangCode(LanguageCode);
+        _pluginInterface.LanguageChanged += OnLanguageChanged;
     }
 
     public void Dispose()
     {
-        _pluginInterface.LanguageChanged -= PluginInterface_LanguageChanged;
+        _pluginInterface.LanguageChanged -= OnLanguageChanged;
     }
 
-    private void PluginInterface_LanguageChanged(string langCode)
+    private void OnLanguageChanged(string langCode)
     {
-        LanguageCode = _pluginInterface.UiLanguage;
-        ClientLanguage = _pluginInterface.UiLanguage.ToClientlanguage();
-        CultureInfo = GetCultureInfoFromLangCode(LanguageCode);
-        LanguageChanged?.Invoke(LanguageCode);
+        SetLangCode(langCode);
+        LanguageChanged?.Invoke(langCode);
     }
 
-    /// copied from <see cref="Dalamud.Localization.GetCultureInfoFromLangCode"/>
-    public static CultureInfo GetCultureInfoFromLangCode(string langCode)
+    private void SetLangCode(string langCode)
     {
-        return CultureInfo.GetCultureInfo(langCode switch
-        {
-            "tw" => "zh-hant",
-            "zh" => "zh-hans",
-            _ => langCode,
-        });
+        LanguageCode = langCode;
+        ClientLanguage = langCode.ToClientlanguage();
+        CultureInfo = Localization.GetCultureInfoFromLangCode(langCode);
     }
 }
