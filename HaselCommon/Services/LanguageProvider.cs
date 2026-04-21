@@ -17,7 +17,7 @@ public partial class LanguageProvider : IDisposable
     [AutoPostConstruct]
     private void Initialize()
     {
-        SetLangCode(LanguageCode);
+        SetLangCode(_pluginInterface.UiLanguage);
         _pluginInterface.LanguageChanged += OnLanguageChanged;
     }
 
