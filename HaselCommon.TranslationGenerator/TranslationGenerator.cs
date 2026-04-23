@@ -3,49 +3,54 @@ using System.Text;
 using System.Text.Json;
 using HaselCommon.TranslationGenerator.Utils;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+
+namespace HaselCommon.TranslationGenerator;
 
 [Generator]
 public class TranslationGenerator : IIncrementalGenerator
 {
+    private const string AttributeName = "HaselCommon.Translations.TranslationSourceAttribute";
+
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        var namespaceProvider = context.AnalyzerConfigOptionsProvider.Select((optionsProvider, _) =>
-        {
-            optionsProvider.GlobalOptions.TryGetValue("build_property.TranslationGenerator_Namespace", out var namespaceName);
-            return namespaceName ?? "GeneratedTranslations";
-        });
+        var additionalFiles = context.AdditionalTextsProvider.Collect();
 
-        var classNameProvider = context.AnalyzerConfigOptionsProvider.Select((optionsProvider, _) =>
-        {
-            optionsProvider.GlobalOptions.TryGetValue("build_property.TranslationGenerator_ClassName", out var className);
-            return className ?? "Translations";
-        });
+        var sourceInfo = context.SyntaxProvider.ForAttributeWithMetadataName(
+            AttributeName,
+            static (node, _) => node is ClassDeclarationSyntax,
+            static (ctx, _) => {
+                ctx.Attributes[0].TryGetConstructorArgument(0, out string? filename);
+                return new { Symbol = ctx.TargetSymbol as INamedTypeSymbol, Filename = filename };
+            })
+            .Combine(additionalFiles)
+            .Select(static (combined, cancellationToken) => {
+                var (info, allFiles) = combined;
 
-        var parsedTranslations = context.AdditionalTextsProvider
-            .Where(file => file.Path.EndsWith("Translations.json"))
-            .Select((file, cancellationToken) => file.GetText(cancellationToken)?.ToString() ?? string.Empty)
-            .Select((json, cancellationToken) => JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, string>>>(json) ?? []);
+                if (info.Symbol == null || string.IsNullOrEmpty(info.Filename))
+                    return null;
 
-        var combined = parsedTranslations
-            .Combine(classNameProvider)
-            .Combine(namespaceProvider);
+                var file = allFiles.FirstOrDefault(file => file.Path.EndsWith(info.Filename, StringComparison.OrdinalIgnoreCase));
+                if (file == null)
+                    return null;
 
-        context.RegisterSourceOutput(combined, (spc, source) =>
-        {
-            var ((translations, className), namespaceName) = source;
-            var code = GenerateSource(
-                namespaceName,
-                className,
-                translations);
-            spc.AddSource($"{namespaceName}.{className}.g.cs", SourceText.From(code, Encoding.UTF8));
-        });
+                var content = file.GetText(cancellationToken)?.ToString();
+                if (content == null)
+                    return null;
+
+                var translations = JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, string>>>(content);
+                if (translations == null)
+                    return null;
+
+                return new SourceRecord(info.Symbol, translations);
+            })
+            .Where(static info => info != null)!;
+
+        context.RegisterSourceOutput(sourceInfo,
+            static (sourceContext, item) => { sourceContext.AddSource($"{item!.FullyQualifiedMetadataName}.Translations.g.cs", RenderTranslations(item)); });
     }
 
-    private static string GenerateSource(
-        string namespaceName,
-        string className,
-        Dictionary<string, Dictionary<string, string>> translations)
+    private static string RenderTranslations(SourceRecord item)
     {
         var writer = new IndentedTextWriter();
 
@@ -61,11 +66,11 @@ public class TranslationGenerator : IIncrementalGenerator
         writer.WriteLine("using Lumina.Text.ReadOnly;");
         writer.WriteLine("using Microsoft.Extensions.DependencyInjection;");
         writer.WriteLine();
-        writer.WriteLine($"namespace {namespaceName};");
+        writer.WriteLine($"namespace {item.Symbol.ContainingNamespace};");
         writer.WriteLine();
         writer.WriteLine("[RegisterSingleton]");
         writer.WriteLine("[RegisterSingleton<ITranslationProvider>(Duplicate = DuplicateStrategy.Append)]");
-        writer.WriteLine($"public partial class {className} : ITranslationProvider");
+        writer.WriteLine($"public partial class {item.Symbol.Name} : ITranslationProvider");
 
         using (writer.WriteBlock())
         {
@@ -73,7 +78,7 @@ public class TranslationGenerator : IIncrementalGenerator
             writer.WriteLine("protected readonly ISeStringEvaluator _seStringEvaluator;");
             writer.WriteLine("protected readonly LanguageProvider _languageProvider;");
             writer.WriteLine();
-            writer.WriteLine($"public {className}(IServiceProvider serviceProvider)");
+            writer.WriteLine($"public {item.Symbol.Name}(IServiceProvider serviceProvider)");
 
             using (writer.WriteBlock())
             {
@@ -83,10 +88,10 @@ public class TranslationGenerator : IIncrementalGenerator
             }
 
             writer.WriteLine();
-            GenerateTryGetTranslation(writer, translations);
-            GenerateMacroStringCache(writer, translations);
-            GenerateStringProperties(writer, translations);
-            GenerateEvaluateFunctions(writer, translations);
+            GenerateTryGetTranslation(writer, item.Translations);
+            GenerateMacroStringCache(writer, item.Translations);
+            GenerateStringProperties(writer, item.Translations);
+            GenerateEvaluateFunctions(writer, item.Translations);
         }
 
         return writer.ToString() + "\n";

@@ -1,7 +1,9 @@
 using System.Globalization;
+using HaselCommon.Translations;
 
 namespace HaselCommon;
 
+[TranslationSource("Translations.json")]
 public partial class CommonTranslations
 {
     public string FormatCoordsXY(float x, float y)
