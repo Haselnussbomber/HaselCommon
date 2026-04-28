@@ -31,7 +31,7 @@ public static class ImGuiUtils
         ImCursor.Y += itemSpacingHeight * 2 - 1;
     }
 
-    public static ImRaii.Indent ConfigIndent(bool condition = true)
+    public static ImRaii.IndentDisposable ConfigIndent(bool condition = true)
         => ImRaii.PushIndent(ImStyle.FrameHeight + ImStyle.ItemSpacing.X / 2f, true, condition);
 
     public static void DrawLink(string label, string title, string url)
@@ -43,21 +43,19 @@ public static class ImGuiUtils
             ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
 
             using var tooltip = ImRaii.Tooltip();
-            if (tooltip)
-            {
-                if (!string.IsNullOrEmpty(title))
-                    ImGui.TextColored(Color.White, title);
 
-                ImGui.GetWindowDrawList().AddText(
-                    UiBuilder.IconFont, 12 * ImStyle.Scale,
-                    ImCursor.ScreenPosition + new Vector2(2 * ImStyle.Scale),
-                    Color.Text700.ToUInt(),
-                    FontAwesomeIcon.ExternalLinkAlt.ToIconString());
+            if (!string.IsNullOrEmpty(title))
+                ImGui.TextColored(Color.White, title);
 
-                ImCursor.X += 20 * ImStyle.Scale;
+            ImGui.GetWindowDrawList().AddText(
+                UiBuilder.IconFont, 12 * ImStyle.Scale,
+                ImCursor.ScreenPosition + new Vector2(2 * ImStyle.Scale),
+                Color.Text700.ToUInt(),
+                FontAwesomeIcon.ExternalLinkAlt.ToIconString());
 
-                ImGui.TextColored(Color.Text700, url);
-            }
+            ImCursor.X += 20 * ImStyle.Scale;
+
+            ImGui.TextColored(Color.Text700, url);
         }
 
         if (ImGui.IsMouseReleased(ImGuiMouseButton.Left) && ImGui.IsItemHovered())
@@ -106,7 +104,7 @@ public static class ImGuiUtils
         using var iconFont = ImRaii.PushFont(UiBuilder.IconFont);
         if (!key.StartsWith("##")) key = "##" + key;
 
-        using var color = new ImRaii.Color();
+        using var color = new ImRaii.ColorDisposable();
 
         if (disabled)
         {

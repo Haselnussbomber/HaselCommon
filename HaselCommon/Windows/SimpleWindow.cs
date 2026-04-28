@@ -9,8 +9,8 @@ public abstract partial class SimpleWindow : Window, IDisposable
     private readonly WindowManager _windowManager;
     private readonly TextService _textService;
 
-    public readonly ImRaii.Style WindowStyle = new();
-    public readonly ImRaii.Color WindowColor = new();
+    public readonly ImRaii.StyleDisposable WindowStyle = new();
+    public readonly ImRaii.ColorDisposable WindowColor = new();
 
     public string WindowNameKey
     {

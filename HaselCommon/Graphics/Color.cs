@@ -81,7 +81,7 @@ public struct Color
     public static Color FromARGB(uint argb)
         => FromRGBA(BinaryPrimitives.ReverseEndianness((argb & 0xFF00FF00) | ((argb & 0x000000FF) << 16) | ((argb & 0x00FF0000) >> 16))); // swap red and blue channel, then endianness
 
-    public ImRaii.Color Push(ImGuiCol idx, bool condition = true)
+    public ImRaii.ColorDisposable Push(ImGuiCol idx, bool condition = true)
         => ImRaii.PushColor(idx, ToUInt(), condition);
 
     public uint ToUInt(ColorFormat format = ColorFormat.RGBA)
