@@ -364,7 +364,7 @@ public partial class ItemService
         if (race == 0)
             return false;
 
-        if (!_excelService.TryGetRow<EquipRaceCategory>(itemRow.EquipRestriction, out var equipRaceCategoryRow))
+        if (!itemRow.EquipRestriction.TryGetRow(out var equipRaceCategoryRow))
             return false;
 
         if (!equipRaceCategoryRow.Races[(int)race - 1])
@@ -421,7 +421,7 @@ public partial class ItemService
             return false;
         }
 
-        if (!TryGetItem(item, out var itemRow) || !_excelService.TryGetRow<EquipRaceCategory>(itemRow.EquipRestriction, out var equipRaceCategoryRow))
+        if (!TryGetItem(item, out var itemRow) || !itemRow.EquipRestriction.TryGetRow(out var equipRaceCategoryRow))
         {
             errorLogMessage = 716; // "Unable to move item. Please try again. (Reading data...)" ????
             entry.CanEquipCache[key] = (false, errorLogMessage);
