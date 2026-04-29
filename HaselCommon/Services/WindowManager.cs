@@ -1,5 +1,4 @@
 using System.Diagnostics.CodeAnalysis;
-using Dalamud.Interface.Windowing;
 using HaselCommon.Windows;
 
 namespace HaselCommon.Services;
@@ -92,7 +91,7 @@ public partial class WindowManager : IDisposable
         return false;
     }
 
-    public bool TryFindWindow<T>(Predicate<Window> predicate, [NotNullWhen(returnValue: true)] out T? outWindow) where T : Window
+    public bool TryFindWindow<T>(Predicate<IWindow> predicate, [NotNullWhen(returnValue: true)] out T? outWindow) where T : Window
     {
         outWindow = null;
 

@@ -1,6 +1,5 @@
 using System.Threading.Tasks;
 using Dalamud.Utility;
-using UIColor = Lumina.Excel.Sheets.UIColor;
 
 namespace HaselCommon.Gui;
 

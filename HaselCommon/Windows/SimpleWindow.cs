@@ -1,4 +1,3 @@
-using Dalamud.Interface.Windowing;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using Lumina.Misc;
 

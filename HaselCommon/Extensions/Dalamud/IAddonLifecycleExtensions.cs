@@ -5,7 +5,7 @@ namespace HaselCommon.Extensions;
 
 public static unsafe class IAddonLifecycleExtensions
 {
-    
+
     extension(AddonArgs args)
     {
         public T* GetAddon<T>() where T : unmanaged => (T*)args.Addon.Address;
