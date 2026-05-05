@@ -4,20 +4,12 @@ using FFXIVClientStructs.FFXIV.Component.GUI;
 
 namespace HaselCommon.Graphics;
 
-public struct Color
+public struct Color(float r, float g, float b, float a = 1)
 {
-    public float R;
-    public float G;
-    public float B;
-    public float A;
-
-    public Color(float r, float g, float b, float a = 1)
-    {
-        R = r;
-        G = g;
-        B = b;
-        A = a;
-    }
+    public float R = r;
+    public float G = g;
+    public float B = b;
+    public float A = a;
 
     public readonly float Luminance => 0.299f * R + 0.587f * G + 0.114f * B;
 
@@ -85,14 +77,21 @@ public struct Color
         => ImRaii.PushColor(idx, ToUInt(), condition);
 
     public uint ToUInt(ColorFormat format = ColorFormat.RGBA)
-        => ImGui.ColorConvertFloat4ToU32(ToVector(format));
+    {
+        var vec = ToVector(format);
+
+        static uint Pack(float value, byte shift)
+            => (uint)(MathUtils.Clamp01(value) * 255f + 0.5f) << shift;
+
+        return Pack(vec.X, 0) | Pack(vec.Y, 8) | Pack(vec.Z, 16) | Pack(vec.W, 24);
+    }
 
     public Vector4 ToVector(ColorFormat format = ColorFormat.RGBA)
         => format switch
         {
             ColorFormat.RGBA => new Vector4(R, G, B, A),
             ColorFormat.BGRA => new Vector4(B, G, R, A),
-            ColorFormat.ARGB => new Vector4(A, R, B, B),
+            ColorFormat.ARGB => new Vector4(A, R, G, B),
             ColorFormat.ABGR => new Vector4(A, B, G, R),
             _ => throw new ArgumentOutOfRangeException(nameof(format))
         };
