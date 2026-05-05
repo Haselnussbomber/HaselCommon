@@ -129,7 +129,7 @@ public partial class Table<T> : IDisposable
         ImGui.TableSetupScrollFreeze(ScrollFreezeCols, 1);
 
         foreach (var column in Columns)
-            ImGui.TableSetupColumn(column.Label, column.Flags, column.Width * ImGuiHelpers.GlobalScale);
+            ImGui.TableSetupColumn(column.Label, column.Flags, column.Width * ImStyle.Scale);
 
         ImGui.TableNextRow(ImGuiTableRowFlags.Headers);
 

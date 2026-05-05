@@ -23,7 +23,7 @@ public class ColumnString<T> : Column<T>
     {
         using var style = ImRaii.PushStyle(ImGuiStyleVar.FrameRounding, 0);
 
-        ImGui.SetNextItemWidth(-Table.ArrowWidth * ImGuiHelpers.GlobalScale);
+        ImGui.SetNextItemWidth(-Table.ArrowWidth * ImStyle.Scale);
         var tmp = FilterValue;
         if (!ImGui.InputTextWithHint("##Filter", Label, ref tmp, 256, ImGuiInputTextFlags.AutoSelectAll) || tmp == FilterValue)
             return false;

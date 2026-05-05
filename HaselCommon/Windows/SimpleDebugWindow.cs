@@ -34,7 +34,7 @@ public partial class SimpleDebugWindow : SimpleWindow
 
     private void DrawSidebar()
     {
-        using var child = ImRaii.Child("##Sidebar", new Vector2(260 * ImGuiHelpers.GlobalScale, -1), true);
+        using var child = ImRaii.Child("##Sidebar", new Vector2(260 * ImStyle.Scale, -1), true);
         if (!child)
             return;
 

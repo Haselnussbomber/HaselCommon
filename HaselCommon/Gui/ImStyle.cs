@@ -2,7 +2,7 @@ namespace HaselCommon.Gui;
 
 public static class ImStyle
 {
-    public static float Scale => ImGui.GetIO().FontGlobalScale;
+    public static float Scale => ImGuiHelpers.GlobalScale;
     public static float FrameHeight => ImGui.GetFrameHeight();
     public static float TextLineHeight => ImGui.GetTextLineHeight();
     public static Vector2 ContentRegionAvail => ImGui.GetContentRegionAvail();

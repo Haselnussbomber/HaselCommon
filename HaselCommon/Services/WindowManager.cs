@@ -60,7 +60,7 @@ public partial class WindowManager : IDisposable
 
     private void OnScaleChanged()
     {
-        var scale = ImGuiHelpers.GlobalScaleSafe;
+        var scale = ImStyle.Scale;
 
         foreach (var window in Windows)
         {
