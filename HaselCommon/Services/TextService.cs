@@ -2,8 +2,10 @@ using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Text.Json;
 using Dalamud.Game.Text.Evaluator;
-using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
+using static Dalamud.Utility.ObjectKindExtensions;
+using static Dalamud.Utility.StringExtensions;
+using RentedSeStringBuilder = Dalamud.Utility.RentedSeStringBuilder;
 using DObjectKind = Dalamud.Game.ClientState.Objects.Enums.ObjectKind;
 
 namespace HaselCommon.Services;
@@ -49,6 +51,12 @@ public partial class TextService
     {
         text = default;
         return _translations.TryGetValue(key, out var entry) && (entry.TryGetValue(_languageProvider.LanguageCode, out text) || entry.TryGetValue("en", out text));
+    }
+
+    public bool TryGetTranslation(string key, ClientLanguage language, [MaybeNullWhen(false)] out string text)
+    {
+        text = default;
+        return _translations.TryGetValue(key, out var entry) && (entry.TryGetValue(language.ToCode(), out text) || entry.TryGetValue("en", out text));
     }
 
     public string Translate(string key)
@@ -107,6 +115,21 @@ public partial class TextService
         }
 
         return _seStringEvaluator.Evaluate(macroString, localParameters, _languageProvider.ClientLanguage);
+    }
+
+    public ReadOnlySeString EvaluateTranslatedSeString(string key, ClientLanguage language, params Span<SeStringParameter> localParameters)
+    {
+        var cacheKey = (key, language);
+
+        if (!_macroStringCache.TryGetValue(cacheKey, out var macroString))
+        {
+            if (!TryGetTranslation(key, language, out var text))
+                return ReadOnlySeString.FromText(key);
+
+            _macroStringCache.TryAdd(cacheKey, macroString = ReadOnlySeString.FromMacroString(text));
+        }
+
+        return _seStringEvaluator.Evaluate(macroString, localParameters, language);
     }
 
     public string GetAddonText(uint id, ClientLanguage? language = null)
