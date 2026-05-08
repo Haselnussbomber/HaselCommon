@@ -1,4 +1,5 @@
 using System.Text;
+using Dalamud.Game.Text;
 
 namespace HaselCommon.Extensions;
 
@@ -47,6 +48,14 @@ public static class StringExtensions
             }
 
             return builder.ToString();
+        }
+    }
+
+    extension(int number)
+    {
+        public string ToSeIconCharNumbers()
+        {
+            return number.ToString().Aggregate("", (str, chr) => str + (char)(SeIconChar.Number0 + byte.Parse(chr.ToString())));
         }
     }
 }
