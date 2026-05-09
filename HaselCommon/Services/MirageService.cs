@@ -23,7 +23,7 @@ public unsafe partial class MirageService
 
                 foreach (var (slotIndex, slot) in setRow.Items.Index())
                 {
-                    if (slot.RowId != item)
+                    if (slot.RowId != item.ItemId)
                         continue;
 
                     if (IsSetSlotCollected(setRow.RowId, slotIndex, useCache))
