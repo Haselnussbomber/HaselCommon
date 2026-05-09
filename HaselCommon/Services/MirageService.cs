@@ -11,7 +11,7 @@ public unsafe partial class MirageService
     public bool IsItemCollected(ItemHandle item, bool useCache = true)
     {
         // check if item is collected as part of set first
-        if (!_excelService.TryGetRow<MirageStoreSetItemLookup>(item, out var lookupRow))
+        if (_excelService.TryGetRow<MirageStoreSetItemLookup>(item, out var lookupRow))
         {
             foreach (var setItem in lookupRow.Item)
             {
