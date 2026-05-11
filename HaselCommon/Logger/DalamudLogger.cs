@@ -3,7 +3,14 @@ namespace HaselCommon.Logger;
 public class DalamudLogger(string name, IPluginLog pluginLog) : ILogger
 {
     public IDisposable? BeginScope<TState>(TState state) where TState : notnull => default;
-    public bool IsEnabled(LogLevel logLevel) => true;
+    
+    public bool IsEnabled(LogLevel logLevel)
+    {
+        if (logLevel == LogLevel.None)
+            return false;
+
+        return (int)logLevel >= (int)pluginLog.MinimumLogLevel;
+    }
 
     public void Log<TState>(
         LogLevel logLevel,
@@ -44,11 +51,7 @@ public class DalamudLogger(string name, IPluginLog pluginLog) : ILogger
                 break;
 
             case LogLevel.Critical:
-                pluginLog.Error(message);
-                break;
-
-            case LogLevel.None:
-                pluginLog.Information(message);
+                pluginLog.Fatal(message);
                 break;
         }
     }
