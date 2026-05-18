@@ -20,7 +20,7 @@ public enum ItemFilterGroup
     CraftingMaterial = 12,
     Materia = 13,
     Housing = 14,
-    Stain = 15,
+    Dyes = 15,
     // Misc = 16, // Various stuff
     FishingBait = 17,
     TreasureMap = 18,
@@ -63,4 +63,7 @@ public enum ItemFilterGroup
     CosmicExplorationCosmocredit = 55,
     CosmicExplorationLunarCredit = 56,
     OccultCrescentSanguineCipher = 57,
+    OizysDronebit = 58,
+    // 59 unused
+    OldDyes = 60,
 }
