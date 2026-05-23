@@ -7,31 +7,24 @@ public static class FieldInfoExtensions
 {
     extension(FieldInfo info)
     {
-        public bool IsFixed()
+        public bool IsFixed => Attribute.IsDefined(info, typeof(FixedBufferAttribute), false);
+
+        public Type FixedType => info.GetCustomAttribute<FixedBufferAttribute>()!.ElementType;
+
+        public int FixedSize => info.GetCustomAttribute<FixedBufferAttribute>()!.Length;
+
+        public int FieldOffset
         {
-            return info.GetCustomAttributes(typeof(FixedBufferAttribute), false).Cast<FixedBufferAttribute>().FirstOrDefault() != null;
+            get
+            {
+                if (Attribute.IsDefined(info, typeof(FieldOffsetAttribute), false))
+                    return info.GetCustomAttribute<FieldOffsetAttribute>()!.Value;
+
+                return info.GetFieldOffsetSequential();
+            }
         }
 
-        public Type GetFixedType()
-        {
-            return info.GetCustomAttributes(typeof(FixedBufferAttribute), false).Cast<FixedBufferAttribute>().Single().ElementType;
-        }
-
-        public int GetFixedSize()
-        {
-            return info.GetCustomAttributes(typeof(FixedBufferAttribute), false).Cast<FixedBufferAttribute>().Single().Length;
-        }
-
-        public int GetFieldOffset()
-        {
-            var attrs = info.GetCustomAttributes(typeof(FieldOffsetAttribute), false);
-
-            return attrs.Length != 0
-                ? attrs.Cast<FieldOffsetAttribute>().Single().Value
-                : info.GetFieldOffsetSequential();
-        }
-
-        public int GetFieldOffsetSequential()
+        private int GetFieldOffsetSequential()
         {
             if (info.DeclaringType == null)
                 throw new Exception($"Unable to access declaring type of field {info.Name}");

@@ -153,7 +153,7 @@ public static class TypeExtensions
                 _ when type.Name.StartsWith("FixedSizeArray")
                     => type.GetGenericArguments()[0].SizeOf() * int.Parse(type.Name[14..type.Name.IndexOf('`')]),
 
-                _ when type.GetCustomAttribute<InlineArrayAttribute>() is { Length: var length }
+                _ when Attribute.IsDefined(type, typeof(InlineArrayAttribute)) && type.GetCustomAttribute<InlineArrayAttribute>() is { Length: var length }
                     => type.GetGenericArguments()[0].SizeOf() * length,
 
                 _ when type.IsStruct()
