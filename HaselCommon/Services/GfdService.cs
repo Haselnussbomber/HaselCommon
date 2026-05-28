@@ -10,11 +10,12 @@ public partial class GfdService
     private readonly IGameConfig _gameConfig;
 
     private static readonly string[] GfdTextures = [
-        "common/font/fonticon_xinput.tex",
-        "common/font/fonticon_ps3.tex",
-        "common/font/fonticon_ps4.tex",
-        "common/font/fonticon_ps5.tex",
-        "common/font/fonticon_lys.tex",
+        "common/font/fontIcon_Xinput.tex",
+        "common/font/fontIcon_Ps3.tex",
+        "common/font/fontIcon_Ps4.tex",
+        "common/font/fontIcon_Ps5.tex",
+        "common/font/fontIcon_Lys.tex",
+        "common/font/fontIcon_Obe.tex",
     ];
 
     private GfdFile _gfdFile;
