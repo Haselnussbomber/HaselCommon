@@ -2,7 +2,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
 
-namespace HaselCommon.Services;
+namespace HaselCommon.Utils;
 
 [RegisterSingleton<IHostLifetime>(Duplicate = DuplicateStrategy.Replace)]
 public class NoopLifetime : IHostLifetime
