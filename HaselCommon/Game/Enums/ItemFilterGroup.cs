@@ -58,12 +58,12 @@ public enum ItemFilterGroup
     CosmicExplorationMaterial = 50,
     Outfit = 51,
     OccultCrescentKnowledge = 52,
-    OccultCrescentPhantomExperience = 53,
-    OccultCrescentEnlightenmentPiece = 54,
-    CosmicExplorationCosmocredit = 55,
-    CosmicExplorationLunarCredit = 56,
-    OccultCrescentSanguineCipher = 57,
-    OizysDronebit = 58,
-    // 59 unused
+    PhantomExperience = 53, // Occult Crescent
+    EnlightenmentPiece = 54, // Occult Crescent
+    Cosmocredit = 55, // Cosmic Exploration
+    LunarCredit = 56, // Cosmic Exploration
+    SanguineCipher = 57, // Occult Crescent
+    OizysDronebit = 58, // Cosmic Exploration (Oizys)
+    ToolMasteryPoints = 59, // Cosmic Exploration (Auxesia)
     OldDyes = 60,
 }
