@@ -63,7 +63,7 @@ public enum ItemFilterGroup
     Cosmocredit = 55, // Cosmic Exploration
     LunarCredit = 56, // Cosmic Exploration
     SanguineCipher = 57, // Occult Crescent
-    OizysDronebit = 58, // Cosmic Exploration (Oizys)
+    Dronebits = 58, // Cosmic Exploration (Oizys, Auxesia)
     ToolMasteryPoints = 59, // Cosmic Exploration (Auxesia)
     OldDyes = 60,
 }
