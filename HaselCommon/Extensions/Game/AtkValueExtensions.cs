@@ -15,7 +15,7 @@ public static unsafe class AtkValueExtensions
         public bool IsUInt => atkValue.Is(AtkValueType.UInt);
         public bool IsUInt64 => atkValue.Is(AtkValueType.UInt64);
         public bool IsFloat => atkValue.Is(AtkValueType.Float);
-        public bool IsString => atkValue.Is(AtkValueType.String) || atkValue.Is(AtkValueType.String8);
+        public bool IsString => atkValue.Is(AtkValueType.String) || atkValue.Is(AtkValueType.ConstString);
         public bool IsWideString => atkValue.Is(AtkValueType.WideString);
         public bool IsVector => atkValue.Is(AtkValueType.Vector);
         public bool IsPointer => atkValue.Is(AtkValueType.Pointer);
