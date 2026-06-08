@@ -1,3 +1,4 @@
+using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Client.System.String;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
@@ -26,24 +27,27 @@ public static unsafe class Chat
 
     public static void Print(ReadOnlySpan<byte> message, ReadOnlySpan<byte> sender = default, ushort logKindId = 1)
     {
-        using var utf8Sender = new Utf8String(sender.WithNullTerminator());
-        using var utf8Message = new Utf8String(message.WithNullTerminator());
+        using var rssb = new RentedSeStringBuilder();
+        using var utf8Sender = new Utf8String(rssb.Builder.Append(sender).GetViewAsSpan());
+        using var utf8Message = new Utf8String(rssb.Builder.Clear().Append(sender).GetViewAsSpan());
         var logInfo = new LogInfo { LogKind = logKindId };
         RaptureLogModule.Instance()->PrintMessage(logInfo, &utf8Sender, &utf8Message, 0);
     }
 
     public static void Print(ReadOnlySeString message, ReadOnlySeString sender = default, ushort logKindId = 1)
     {
-        using var utf8Sender = new Utf8String(sender.Data.Span.WithNullTerminator());
-        using var utf8Message = new Utf8String(message.Data.Span.WithNullTerminator());
+        using var rssb = new RentedSeStringBuilder();
+        using var utf8Sender = new Utf8String(rssb.Builder.Append(sender).GetViewAsSpan());
+        using var utf8Message = new Utf8String(rssb.Builder.Clear().Append(sender).GetViewAsSpan());
         var logInfo = new LogInfo { LogKind = logKindId };
         RaptureLogModule.Instance()->PrintMessage(logInfo, &utf8Sender, &utf8Message, 0);
     }
 
     public static void Print(ReadOnlySeStringSpan message, ReadOnlySeStringSpan sender = default, ushort logKindId = 1)
     {
-        using var utf8Sender = new Utf8String(sender.Data.WithNullTerminator());
-        using var utf8Message = new Utf8String(message.Data.WithNullTerminator());
+        using var rssb = new RentedSeStringBuilder();
+        using var utf8Sender = new Utf8String(rssb.Builder.Append(sender).GetViewAsSpan());
+        using var utf8Message = new Utf8String(rssb.Builder.Clear().Append(sender).GetViewAsSpan());
         var logInfo = new LogInfo { LogKind = logKindId };
         RaptureLogModule.Instance()->PrintMessage(logInfo, &utf8Sender, &utf8Message, 0);
     }
