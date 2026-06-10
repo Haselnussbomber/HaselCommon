@@ -5,7 +5,7 @@ public static unsafe class ClassJobCategoryExtensions
     extension(ClassJobCategory row)
     {
         public Collection<bool> ClassesJobs
-            => new(row.ExcelPage, parentOffset: row.RowOffset, offset: row.RowOffset, &ClassJobCtor, size: row.ExcelPage.Module.GetSheet<ClassJob>().Count);
+            => new(row.ExcelPage, parentOffset: row.RowOffset, offset: row.RowOffset, &ClassJobCtor, size: row.ExcelPage.Sheet.Columns.Count);
     }
 
     private static bool ClassJobCtor(ExcelPage page, uint parentOffset, uint offset, uint i)
