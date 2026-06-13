@@ -219,7 +219,7 @@ public partial class CommandService : IDisposable
             }
         }
 
-        Chat.Print(rssb.Builder.GetViewAsSpan());
+        Chat.Print(rssb.Builder.ToReadOnlySeString());
     }
 
     private static Dictionary<string, string>? ParseArgs(CommandHandler node, List<string> tokens)
