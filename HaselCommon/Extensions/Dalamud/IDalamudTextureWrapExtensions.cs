@@ -25,13 +25,26 @@ public static class IDalamudTextureWrapExtensions
                 uv1 /= textureWrap.Size;
             }
 
-            ImGui.Image(
-                textureWrap.Handle,
-                size * scale,
-                uv0,
-                uv1,
-                drawInfo.TintColor ?? Vector4.One,
-                drawInfo.BorderColor ?? Vector4.Zero);
+            if (!drawInfo.DrawList.IsNull)
+            {
+                drawInfo.DrawList.AddImage(
+                    textureWrap.Handle,
+                    ImCursor.ScreenPosition,
+                    ImCursor.ScreenPosition + size * scale,
+                    uv0,
+                    uv1,
+                    ImGui.ColorConvertFloat4ToU32(drawInfo.TintColor ?? Vector4.One));
+            }
+            else
+            {
+                ImGui.Image(
+                    textureWrap.Handle,
+                    size * scale,
+                    uv0,
+                    uv1,
+                    drawInfo.TintColor ?? Vector4.One,
+                    drawInfo.BorderColor ?? Vector4.Zero);
+            }
         }
     }
 }

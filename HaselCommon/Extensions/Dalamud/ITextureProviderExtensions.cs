@@ -13,7 +13,7 @@ public static class ITextureProviderExtensions
             {
                 textureWrap.Draw(drawInfo);
             }
-            else
+            else if (drawInfo.DrawList.IsNull)
             {
                 ImGui.Dummy(drawInfo.ScaledDrawSize);
             }
@@ -27,7 +27,7 @@ public static class ITextureProviderExtensions
             {
                 textureWrap.Draw(drawInfo);
             }
-            else
+            else if (drawInfo.DrawList.IsNull)
             {
                 ImGui.Dummy(drawInfo.ScaledDrawSize);
             }

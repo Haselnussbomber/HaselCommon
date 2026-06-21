@@ -21,7 +21,8 @@ public partial class UldService
     {
         if (!drawInfo.IsRectVisible)
         {
-            ImGui.Dummy(drawInfo.ScaledDrawSize);
+            if (drawInfo.DrawList.IsNull)
+                ImGui.Dummy(drawInfo.ScaledDrawSize);
             return;
         }
 
@@ -35,7 +36,8 @@ public partial class UldService
 
         if (uldPartInfo == null)
         {
-            ImGui.Dummy(drawInfo.ScaledDrawSize);
+            if (drawInfo.DrawList.IsNull)
+                ImGui.Dummy(drawInfo.ScaledDrawSize);
             return;
         }
 

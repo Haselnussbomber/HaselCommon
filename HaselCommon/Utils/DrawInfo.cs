@@ -21,6 +21,7 @@ public struct DrawInfo
         DrawSize = new(width, height);
     }
 
+    public ImDrawListPtr DrawList { get; set; }
     public float? Scale { get; set; }
     public Vector2? DrawSize { get; set; }
     public Vector2? Uv0 { get; set; }
