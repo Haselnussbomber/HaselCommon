@@ -11,25 +11,9 @@ public unsafe partial class MirageService
     public bool IsItemCollected(ItemHandle item, bool useCache = true)
     {
         // check if item is collected as part of set first
-        if (_excelService.TryGetRow<MirageStoreSetItemLookup>(item, out var lookupRow))
+        if (IsItemCollectedInSet(item, useCache))
         {
-            foreach (var setItem in lookupRow.Item)
-            {
-                if (setItem.RowId == 0 || !setItem.IsValid)
-                    continue;
-
-                if (!_excelService.TryGetRow<MirageStoreSetItem>(setItem.RowId, out var setRow))
-                    continue;
-
-                foreach (var (slotIndex, slot) in setRow.Items.Index())
-                {
-                    if (slot.RowId != item.ItemId)
-                        continue;
-
-                    if (IsSetSlotCollected(setRow.RowId, slotIndex, useCache))
-                        return true;
-                }
-            }
+            return true;
         }
 
         var mirageManager = MirageManager.Instance();
@@ -42,6 +26,32 @@ public unsafe partial class MirageService
         {
             var itemFinderModule = ItemFinderModule.Instance();
             return itemFinderModule->GlamourDresserItemIds.IndexOf(item) != -1;
+        }
+
+        return false;
+    }
+
+    public bool IsItemCollectedInSet(ItemHandle item, bool useCache = true)
+    {
+        if (!_excelService.TryGetRow<MirageStoreSetItemLookup>(item, out var lookupRow))
+            return false;
+
+        foreach (var setItem in lookupRow.Item)
+        {
+            if (setItem.RowId == 0 || !setItem.IsValid)
+                continue;
+
+            if (!_excelService.TryGetRow<MirageStoreSetItem>(setItem.RowId, out var setRow))
+                continue;
+
+            foreach (var (slotIndex, slot) in setRow.Items.Index())
+            {
+                if (slot.RowId != item.ItemId)
+                    continue;
+
+                if (IsSetSlotCollected(setRow.RowId, slotIndex, useCache))
+                    return true;
+            }
         }
 
         return false;
