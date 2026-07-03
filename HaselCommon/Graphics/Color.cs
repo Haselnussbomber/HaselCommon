@@ -13,10 +13,10 @@ public struct Color(float r, float g, float b, float a = 1)
 
     public readonly float Luminance => 0.299f * R + 0.587f * G + 0.114f * B;
 
-    public readonly Color LerpTo(in Color colorB, float fraction)
+    public readonly Color LerpTo(Color colorB, float fraction)
         => Lerp(this, colorB, fraction);
 
-    public static Color Lerp(in Color colorA, in Color colorB, float fraction)
+    public static Color Lerp(Color colorA, Color colorB, float fraction)
     {
         return new Color(
             colorA.R.LerpTo(colorB.R, fraction),
