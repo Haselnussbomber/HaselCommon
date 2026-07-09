@@ -37,9 +37,8 @@ public partial class MapService
 
     public static Vector2 GetCoords(Map map, MapMarker mapMarker)
     {
-        var scale = map.SizeFactor / 100f;
-        var x = (int)(2 * mapMarker.X / scale + 100.9);
-        var y = (int)(2 * mapMarker.Y / scale + 100.9);
+        var x = mapMarker.X / 2048f * (1 + 4096.0f / map.SizeFactor);
+        var y = mapMarker.Y / 2048f * (1 + 4096.0f / map.SizeFactor);
         return new(x, y);
     }
 

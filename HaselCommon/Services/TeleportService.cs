@@ -68,7 +68,7 @@ public unsafe partial class TeleportService : IDisposable
             return false;
         }
 
-        var levelCoords = new Vector2(level.X, level.Z);
+        var levelCoords = MapService.GetCoords(level);
         var aetherytes = _excelService.FindRows<Aetheryte>(row => row.Map.RowId == level.Map.RowId && row.Territory.RowId == level.Territory.RowId);
 
         aetheryte = default;
@@ -78,7 +78,8 @@ public unsafe partial class TeleportService : IDisposable
         {
             if (_excelService.TryFindSubrow<MapMarker>(row => row.DataType == (byte)MapMarkerDataType.Aetheryte && row.DataKey.RowId == aetheryteRow.RowId, out var mapMarker))
             {
-                var distance = (MapService.GetCoords(aetheryteRow.Map.Value, mapMarker) - levelCoords).LengthSquared();
+                var coords = MapService.GetCoords(aetheryteRow.Map.Value, mapMarker);
+                var distance = (coords - levelCoords).LengthSquared();
                 if (distance < currentDistance)
                 {
                     currentDistance = distance;
