@@ -68,12 +68,6 @@ public unsafe partial class TeleportService : IDisposable
             return false;
         }
 
-        if (level.Territory.Value.Aetheryte.RowId != 0 && level.Territory.Value.Aetheryte.IsValid)
-        {
-            aetheryte = level.Territory.Value.Aetheryte.Value;
-            return true;
-        }
-
         var levelCoords = new Vector2(level.X, level.Z);
         var aetherytes = _excelService.FindRows<Aetheryte>(row => row.Map.RowId == level.Map.RowId && row.Territory.RowId == level.Territory.RowId);
 
@@ -91,6 +85,12 @@ public unsafe partial class TeleportService : IDisposable
                     aetheryte = aetheryteRow;
                 }
             }
+        }
+
+        if (currentDistance == float.MaxValue && level.Territory.Value.Aetheryte.RowId != 0 && level.Territory.Value.Aetheryte.IsValid)
+        {
+            aetheryte = level.Territory.Value.Aetheryte.Value;
+            return true;
         }
 
         return currentDistance != float.MaxValue;
