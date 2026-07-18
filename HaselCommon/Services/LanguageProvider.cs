@@ -29,7 +29,7 @@ public partial class LanguageProvider : IDisposable
     private void OnLanguageChanged(string langCode)
     {
         SetLangCode(langCode);
-        LanguageChanged?.Invoke(langCode);
+        LanguageChanged.InvokeSafely(langCode);
     }
 
     private void SetLangCode(string langCode)

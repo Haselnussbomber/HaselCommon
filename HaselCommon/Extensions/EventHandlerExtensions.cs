@@ -1,0 +1,108 @@
+namespace HaselCommon.Extensions;
+
+// copied from https://github.com/goatcorp/Dalamud/blob/master/Dalamud/Utility/EventHandlerExtensions.cs
+
+/// <summary>
+/// Extensions for Events.
+/// </summary>
+public static class EventHandlerExtensions
+{
+    private static IPluginLog? PluginLog => ServiceLocator.GetService<IPluginLog>();
+
+    /// <summary>
+    /// Replacement for Invoke() on EventHandlers to catch exceptions that stop event propagation in case
+    /// of a thrown Exception inside an invocation.
+    /// </summary>
+    /// <param name="eh">The EventHandler in question.</param>
+    /// <param name="sender">Default sender for Invoke equivalent.</param>
+    /// <param name="e">Default EventArgs for Invoke equivalent.</param>
+    public static void InvokeSafely(this EventHandler? eh, object sender, EventArgs e)
+    {
+        foreach (var handler in Delegate.EnumerateInvocationList(eh))
+        {
+            try
+            {
+                handler(sender, e);
+            }
+            catch (Exception ex)
+            {
+                PluginLog?.Error(ex, "Exception during raise of {handler}", handler.Method);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Replacement for Invoke() on generic EventHandlers to catch exceptions that stop event propagation in case
+    /// of a thrown Exception inside an invocation.
+    /// </summary>
+    /// <param name="eh">The EventHandler in question.</param>
+    /// <param name="sender">Default sender for Invoke equivalent.</param>
+    /// <param name="e">Default EventArgs for Invoke equivalent.</param>
+    /// <typeparam name="T">Type of EventArgs.</typeparam>
+    public static void InvokeSafely<T>(this EventHandler<T>? eh, object sender, T e)
+    {
+        foreach (var handler in Delegate.EnumerateInvocationList(eh))
+        {
+            try
+            {
+                handler(sender, e);
+            }
+            catch (Exception ex)
+            {
+                PluginLog?.Error(ex, "Exception during raise of {handler}", handler.Method);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Replacement for Invoke() on event Actions to catch exceptions that stop event propagation in case
+    /// of a thrown Exception inside an invocation.
+    /// </summary>
+    /// <param name="act">The Action in question.</param>
+    public static void InvokeSafely(this Action? act)
+    {
+        foreach (var action in Delegate.EnumerateInvocationList(act))
+        {
+            try
+            {
+                action();
+            }
+            catch (Exception ex)
+            {
+                PluginLog?.Error(ex, "Exception during raise of {handler}", action.Method);
+            }
+        }
+    }
+
+    /// <inheritdoc cref="InvokeSafely(Action)"/>
+    public static void InvokeSafely<T>(this Action<T>? act, T argument)
+    {
+        foreach (var action in Delegate.EnumerateInvocationList(act))
+        {
+            try
+            {
+                action(argument);
+            }
+            catch (Exception ex)
+            {
+                PluginLog?.Error(ex, "Exception during raise of {handler}", action.Method);
+            }
+        }
+    }
+
+    /// <inheritdoc cref="InvokeSafely(Action)"/>
+    public static void InvokeSafely<T1, T2>(this Action<T1, T2>? act, T1 arg1, T2 arg2)
+    {
+        foreach (var action in Delegate.EnumerateInvocationList(act))
+        {
+            try
+            {
+                action(arg1, arg2);
+            }
+            catch (Exception ex)
+            {
+                PluginLog?.Error(ex, "Exception during raise of {handler}", action.Method);
+            }
+        }
+    }
+}
