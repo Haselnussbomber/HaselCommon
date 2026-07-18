@@ -7,6 +7,7 @@ namespace HaselCommon.Services;
 public partial class WindowManager : IDisposable
 {
     private readonly ILogger<WindowManager> _logger;
+    private readonly ImGuiService _immGuiService;
     private readonly IServiceProvider _serviceProvider;
     private readonly IDalamudPluginInterface _pluginInterface;
     private readonly LanguageProvider _languageProvider;
@@ -21,20 +22,18 @@ public partial class WindowManager : IDisposable
     {
         _windowSystem = new(_pluginInterface.InternalName);
 
-        _pluginInterface.UiBuilder.Draw += _windowSystem.Draw;
-
+        _immGuiService.Draw += _windowSystem.Draw;
+        _immGuiService.ScaleChanged += OnScaleChanged;
         _languageProvider.LanguageChanged += OnLanguageChanged;
-        _pluginInterface.UiBuilder.DefaultGlobalScaleChanged += OnScaleChanged;
     }
 
     void IDisposable.Dispose()
     {
         _isDisposing = true;
 
-        _pluginInterface.UiBuilder.Draw -= _windowSystem.Draw;
-
+        _immGuiService.Draw -= _windowSystem.Draw;
+        _immGuiService.ScaleChanged += OnScaleChanged;
         _languageProvider.LanguageChanged -= OnLanguageChanged;
-        _pluginInterface.UiBuilder.DefaultGlobalScaleChanged -= OnScaleChanged;
 
         lock (_windowSystem)
         {
