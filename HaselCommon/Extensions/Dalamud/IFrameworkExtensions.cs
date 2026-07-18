@@ -4,7 +4,7 @@ public static class IFrameworkExtensions
 {
     extension(IFramework framework)
     {
-        public Debouncer CreateDebouncer(TimeSpan delay, Action action)
+        public Debouncer CreateHaselDebouncer(TimeSpan delay, Action action)
         {
             return new Debouncer(framework, delay, action);
         }

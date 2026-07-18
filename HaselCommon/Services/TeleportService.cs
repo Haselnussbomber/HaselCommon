@@ -17,7 +17,7 @@ public unsafe partial class TeleportService : IDisposable
     [AutoPostConstruct]
     private void Initialize()
     {
-        _updateAetherytesDebouncer = _framework.CreateDebouncer(TimeSpan.FromMilliseconds(200), UpdateAetherytes);
+        _updateAetherytesDebouncer = _framework.CreateHaselDebouncer(TimeSpan.FromMilliseconds(200), UpdateAetherytes);
 
         _unlockState.Unlock += OnUnlock;
 
