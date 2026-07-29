@@ -1,3 +1,4 @@
+using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Client.Game.Control;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using HaselCommon.Game.Enums;
@@ -12,12 +13,12 @@ public unsafe partial class TeleportService : IDisposable
     private readonly IClientState _clientState;
     private readonly ExcelService _excelService;
     private readonly IUnlockState _unlockState;
-    private Debouncer _updateAetherytesDebouncer;
+    private IDebouncer _updateAetherytesDebouncer;
 
     [AutoPostConstruct]
     private void Initialize()
     {
-        _updateAetherytesDebouncer = _framework.CreateHaselDebouncer(TimeSpan.FromMilliseconds(200), UpdateAetherytes);
+        _updateAetherytesDebouncer = _framework.CreateDebouncer(TimeSpan.FromMilliseconds(200), UpdateAetherytes);
 
         _unlockState.Unlock += OnUnlock;
 
