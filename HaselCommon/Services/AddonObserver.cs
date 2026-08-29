@@ -1,4 +1,3 @@
-using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
 namespace HaselCommon.Services;
@@ -6,59 +5,75 @@ namespace HaselCommon.Services;
 [RegisterSingleton, AutoConstruct]
 public unsafe partial class AddonObserver : IDisposable
 {
-    private readonly IFramework _framework;
+    public delegate void AddonShowDelegate(AtkUnitBase* addon);
+    public delegate void AddonHideDelegate(AtkUnitBase* addon);
+
+    private readonly ILogger<AddonObserver> _logger;
+    private readonly IGameInteropProvider _gameInteropProvider;
 
     private readonly HashSet<Pointer<AtkUnitBase>> _visibleUnits = new(256);
-    private readonly HashSet<Pointer<AtkUnitBase>> _removedUnits = new(16);
-    private readonly Dictionary<Pointer<AtkUnitBase>, string> _nameCache = new(256);
 
-    public delegate void CallbackDelegate(string addonName);
-    public event CallbackDelegate? AddonOpen;
-    public event CallbackDelegate? AddonClose;
+    private Hook<UpdateAppliedVisibilityStateDelegate>? _hook;
+
+    public event AddonShowDelegate? Show;
+    public event AddonHideDelegate? Hide;
+
+    [return: MarshalAs(UnmanagedType.U1)]
+    public delegate bool UpdateAppliedVisibilityStateDelegate(AtkUnitBase* thisPtr);
 
     [AutoPostConstruct]
     private void Initialize()
     {
-        _framework.Update += OnFrameworkUpdate;
+        _hook = _gameInteropProvider.EnabledHookFromSignature<UpdateAppliedVisibilityStateDelegate>(
+            "E8 ?? ?? ?? ?? 84 C0 0F 84 ?? ?? ?? ?? 44 0F B6 97",
+            UpdateAppliedVisibilityStateDetour);
     }
 
     public void Dispose()
     {
-        _framework.Update -= OnFrameworkUpdate;
+        DisposeAndNull(ref _hook);
     }
 
-    public bool IsAddonVisible(string name)
-        => _nameCache.ContainsValue(name);
-
-    private void OnFrameworkUpdate(IFramework framework)
+    private bool UpdateAppliedVisibilityStateDetour(AtkUnitBase* thisPtr)
     {
-        _visibleUnits.Clear();
+        var ret = _hook!.OriginalDisposeSafe(thisPtr);
 
-        foreach (var atkUnitBase in RaptureAtkUnitManager.Instance()->AllLoadedUnitsList.Entries)
+        if (thisPtr->VisibilityState == thisPtr->AppliedVisibilityState)
         {
-            if (atkUnitBase.Value != null && atkUnitBase.Value->IsReady && atkUnitBase.Value->IsVisible)
-                _visibleUnits.Add(atkUnitBase);
-        }
-
-        _removedUnits.Clear();
-
-        foreach (var (address, name) in _nameCache)
-        {
-            if (!_visibleUnits.Contains(address) && _removedUnits.Add(address))
+            if (thisPtr->AppliedVisibilityState.HasFlag(AtkUnitBaseVisibilityState.Show) && (thisPtr->VisibilityFlags & 1) == 0 && _visibleUnits.Add(thisPtr))
             {
-                _nameCache.Remove(address);
-                AddonClose?.Invoke(name);
+                _logger.LogTrace("Show: {name}", thisPtr->NameString);
+
+                foreach (var action in Delegate.EnumerateInvocationList(Show))
+                {
+                    try
+                    {
+                        action(thisPtr);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Exception during raise of {handler}", action.Method);
+                    }
+                }
+            }
+            else if ((thisPtr->AppliedVisibilityState.HasFlag(AtkUnitBaseVisibilityState.Hide) || (thisPtr->VisibilityFlags & 1) == 1) && _visibleUnits.Remove(thisPtr))
+            {
+                _logger.LogTrace("Hide: {name}", thisPtr->NameString);
+
+                foreach (var action in Delegate.EnumerateInvocationList(Hide))
+                {
+                    try
+                    {
+                        action(thisPtr);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Exception during raise of {handler}", action.Method);
+                    }
+                }
             }
         }
 
-        foreach (var address in _visibleUnits)
-        {
-            if (_nameCache.ContainsKey(address))
-                continue;
-
-            var name = address.Value->NameString;
-            _nameCache.Add(address, name);
-            AddonOpen?.Invoke(name);
-        }
+        return ret;
     }
 }
