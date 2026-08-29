@@ -105,7 +105,7 @@ public abstract partial class SimpleWindow : Window, IDisposable
         }
     }
 
-    public virtual void OnLanguageChanged(string langCode)
+    public virtual void OnLanguageChanged()
     {
         UpdateWindowName();
     }

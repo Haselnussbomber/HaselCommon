@@ -12,7 +12,7 @@ public partial class LanguageProvider : IDisposable
     public ClientLanguage ClientLanguage { get; private set; }
     public string LanguageCode { get; private set; }
 
-    public event Action<string>? LanguageChanged;
+    public event Action LanguageChanged;
 
     [AutoPostConstruct]
     private void Initialize()
@@ -29,7 +29,7 @@ public partial class LanguageProvider : IDisposable
     private void OnLanguageChanged(string langCode)
     {
         SetLangCode(langCode);
-        LanguageChanged.InvokeSafely(langCode);
+        LanguageChanged.InvokeSafely();
     }
 
     private void SetLangCode(string langCode)

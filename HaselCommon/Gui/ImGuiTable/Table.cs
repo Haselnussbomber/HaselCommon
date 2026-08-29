@@ -54,7 +54,7 @@ public partial class Table<T> : IDisposable
         _languageProvider.LanguageChanged -= OnLanguageChanged;
     }
 
-    public virtual void OnLanguageChanged(string langCode)
+    public virtual void OnLanguageChanged()
     {
         if (RowsLoaded)
         {
@@ -63,7 +63,7 @@ public partial class Table<T> : IDisposable
 
             foreach (var column in Columns)
             {
-                column.OnLanguageChanged(langCode);
+                column.OnLanguageChanged();
                 UpdateColumnLabel(column);
             }
         }

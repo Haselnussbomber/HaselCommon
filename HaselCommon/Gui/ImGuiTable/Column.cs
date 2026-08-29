@@ -49,7 +49,7 @@ public class Column<T>
     {
     }
 
-    public virtual void OnLanguageChanged(string langCode)
+    public virtual void OnLanguageChanged()
     {
     }
 }

@@ -28,7 +28,7 @@ public partial class CommandService : IDisposable
         _languageProvider.LanguageChanged -= OnLanguageChanged;
     }
 
-    private void OnLanguageChanged(string lang)
+    private void OnLanguageChanged()
     {
         foreach (var command in _commands.Values)
             UpdateRecursive(command);

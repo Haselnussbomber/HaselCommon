@@ -42,13 +42,13 @@ public partial class WindowManager : IDisposable
         }
     }
 
-    private void OnLanguageChanged(string langCode)
+    private void OnLanguageChanged()
     {
         foreach (var window in Windows)
         {
             try
             {
-                window.OnLanguageChanged(langCode);
+                window.OnLanguageChanged();
             }
             catch (Exception ex)
             {
