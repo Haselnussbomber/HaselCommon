@@ -38,4 +38,10 @@ public partial class LanguageProvider : IDisposable
         ClientLanguage = langCode.ToClientlanguage();
         CultureInfo = Localization.GetCultureInfoFromLangCode(langCode);
     }
+
+    public IDisposable OnLanguageChange(Action handler)
+    {
+        LanguageChanged += handler.Invoke;
+        return new DisposableAction(() => LanguageChanged -= handler.Invoke);
+    }
 }

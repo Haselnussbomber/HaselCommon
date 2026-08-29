@@ -3,7 +3,7 @@ using FFXIVClientStructs.FFXIV.Component.GUI;
 
 namespace HaselCommon.Extensions;
 
-public static unsafe class IAddonLifecycleExtensions
+public static unsafe partial class IAddonLifecycleExtensions
 {
 
     extension(AddonArgs args)

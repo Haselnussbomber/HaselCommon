@@ -1,6 +1,6 @@
 namespace HaselCommon.Extensions;
 
-public static class IGameInteropProviderExtensions
+public static partial class IGameInteropProviderExtensions
 {
     extension(IGameInteropProvider gameInteropProvider)
     {

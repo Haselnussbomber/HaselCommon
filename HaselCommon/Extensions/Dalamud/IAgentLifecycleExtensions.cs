@@ -3,7 +3,7 @@ using FFXIVClientStructs.FFXIV.Component.GUI;
 
 namespace HaselCommon.Extensions;
 
-public static unsafe class IAgentLifecycleExtensions
+public static unsafe partial class IAgentLifecycleExtensions
 {
     extension(AgentArgs args)
     {

@@ -30,6 +30,7 @@ global using Microsoft.Extensions.Logging;
 global using Microsoft.Extensions.ObjectPool;
 global using static FFXIVClientStructs.Interop.SpanExtensions;
 global using static HaselCommon.Globals.Addon;
+global using static HaselCommon.Globals.Disposable;
 global using Action = System.Action;
 global using ActionSheet = Lumina.Excel.Sheets.Action;
 global using Color = HaselCommon.Graphics.Color;
