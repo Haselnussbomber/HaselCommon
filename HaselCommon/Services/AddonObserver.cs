@@ -42,8 +42,6 @@ public unsafe partial class AddonObserver : IDisposable
         {
             if (thisPtr->AppliedVisibilityState.HasFlag(AtkUnitBaseVisibilityState.Show) && (thisPtr->VisibilityFlags & 1) == 0 && _visibleUnits.Add(thisPtr))
             {
-                _logger.LogTrace("Show: {name}", thisPtr->NameString);
-
                 foreach (var action in Delegate.EnumerateInvocationList(Show))
                 {
                     try
@@ -58,8 +56,6 @@ public unsafe partial class AddonObserver : IDisposable
             }
             else if ((thisPtr->AppliedVisibilityState.HasFlag(AtkUnitBaseVisibilityState.Hide) || (thisPtr->VisibilityFlags & 1) == 1) && _visibleUnits.Remove(thisPtr))
             {
-                _logger.LogTrace("Hide: {name}", thisPtr->NameString);
-
                 foreach (var action in Delegate.EnumerateInvocationList(Hide))
                 {
                     try
