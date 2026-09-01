@@ -26,7 +26,7 @@ public class ColumnFlags<T, TItem> : Column<TItem> where T : struct, Enum
         using var id = ImRaii.PushId("##Filter");
         using var style = ImRaii.PushStyle(ImGuiStyleVar.FrameRounding, 0);
         ImGui.SetNextItemWidth(-Table.ArrowWidth * ImStyle.Scale);
-        var all = FilterValue.HasFlag(AllFlags);
+        var all = FilterValue.HasFlagFast(AllFlags);
         using var color = ImRaii.PushColor(ImGuiCol.FrameBg, 0x803030A0, !all);
         using var combo = ImRaii.Combo(string.Empty, Label, ImGuiComboFlags.NoArrowButton);
 
@@ -56,7 +56,7 @@ public class ColumnFlags<T, TItem> : Column<TItem> where T : struct, Enum
         using var indent = ImRaii.PushIndent(10f);
         for (var i = 0; i < Names.Length; ++i)
         {
-            var tmp = FilterValue.HasFlag(Values[i]);
+            var tmp = FilterValue.HasFlagFast(Values[i]);
             if (!ImGui.Checkbox(GetTranslatedName(i), ref tmp))
                 continue;
 

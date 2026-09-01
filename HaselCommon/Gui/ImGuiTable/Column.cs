@@ -16,7 +16,7 @@ public class Column<T>
 
     public void SetStretchWidth(float width = 1)
     {
-        if (Flags.HasFlag(ImGuiTableColumnFlags.WidthFixed))
+        if ((Flags & ImGuiTableColumnFlags.WidthFixed) != 0)
             Flags &= ~ImGuiTableColumnFlags.WidthFixed;
 
         Flags |= ImGuiTableColumnFlags.WidthStretch;
@@ -25,7 +25,7 @@ public class Column<T>
 
     public void SetFixedWidth(float width)
     {
-        if (Flags.HasFlag(ImGuiTableColumnFlags.WidthStretch))
+        if ((Flags & ImGuiTableColumnFlags.WidthStretch) != 0)
             Flags &= ~ImGuiTableColumnFlags.WidthStretch;
 
         Flags |= ImGuiTableColumnFlags.WidthFixed;

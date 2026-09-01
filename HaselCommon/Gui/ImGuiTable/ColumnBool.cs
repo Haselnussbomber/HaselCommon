@@ -26,8 +26,8 @@ public class ColumnBool<TRow> : ColumnFlags<BoolValues, TRow>
     public override bool ShouldShow(TRow row)
     {
         var value = ToBool(row);
-        return (FilterValue.HasFlag(BoolValues.True) && value) ||
-               (FilterValue.HasFlag(BoolValues.False) && !value);
+        return ((FilterValue & BoolValues.True) != 0 && value) ||
+               ((FilterValue & BoolValues.False) != 0 && !value);
     }
 
     public override void DrawColumn(TRow row)

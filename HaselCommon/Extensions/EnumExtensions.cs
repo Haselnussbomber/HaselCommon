@@ -4,6 +4,19 @@ namespace HaselCommon.Extensions;
 
 public static class EnumExtensions
 {
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool HasFlagFast<T>(this T value, T flag) where T : struct, Enum
+    {
+        return Unsafe.SizeOf<T>() switch
+        {
+            1 => (Unsafe.As<T, byte>(ref value) & Unsafe.As<T, byte>(ref flag)) == Unsafe.As<T, byte>(ref flag),
+            2 => (Unsafe.As<T, ushort>(ref value) & Unsafe.As<T, ushort>(ref flag)) == Unsafe.As<T, ushort>(ref flag),
+            4 => (Unsafe.As<T, uint>(ref value) & Unsafe.As<T, uint>(ref flag)) == Unsafe.As<T, uint>(ref flag),
+            8 => (Unsafe.As<T, ulong>(ref value) & Unsafe.As<T, ulong>(ref flag)) == Unsafe.As<T, ulong>(ref flag),
+            _ => throw new NotSupportedException($"Unsupported enum size: {Unsafe.SizeOf<T>()} bytes.")
+        };
+    }
+
     public static unsafe void SetFlag<T>(this ref T flags, T flag, bool enable = true) where T : unmanaged, Enum
     {
         switch (sizeof(T))

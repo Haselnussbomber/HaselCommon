@@ -31,7 +31,7 @@ public partial class Table<T> : IDisposable
     public int ScrollFreezeCols { get; set; } = 1;
     public bool Sortable
     {
-        get => Flags.HasFlag(ImGuiTableFlags.Sortable);
+        get => (Flags & ImGuiTableFlags.Sortable) != 0;
         set => Flags = value ? Flags | ImGuiTableFlags.Sortable : Flags & ~ImGuiTableFlags.Sortable;
     }
     public bool ClosePopup { get; set; }
@@ -99,7 +99,7 @@ public partial class Table<T> : IDisposable
 
         if (sortSpecs.SpecsCount == 0)
         {
-            if (Flags.HasFlag(ImGuiTableFlags.SortTristate))
+            if ((Flags & ImGuiTableFlags.SortTristate) != 0)
                 SortTristate();
         }
         else if (Columns.Count > 0)
