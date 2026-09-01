@@ -41,7 +41,7 @@ public unsafe partial class AddonObserver : IDisposable
         if (thisPtr->VisibilityState == thisPtr->AppliedVisibilityState)
         {
             // AtkUnitBaseVisibilityState.Show
-            if ((thisPtr->AppliedVisibilityState & (AtkUnitBaseVisibilityState)2) != 0 && (thisPtr->VisibilityFlags & 1) == 0 && _visibleUnits.Add(thisPtr))
+            if (((byte)thisPtr->AppliedVisibilityState & 2) == 2 && (thisPtr->VisibilityFlags & 1) == 0 && _visibleUnits.Add(thisPtr))
             {
                 foreach (var action in Delegate.EnumerateInvocationList(Show))
                 {
@@ -56,7 +56,7 @@ public unsafe partial class AddonObserver : IDisposable
                 }
             }
             // AtkUnitBaseVisibilityState.Hide
-            else if (((thisPtr->AppliedVisibilityState & (AtkUnitBaseVisibilityState)3) != 0 || (thisPtr->VisibilityFlags & 1) == 1) && _visibleUnits.Remove(thisPtr))
+            else if ((((byte)thisPtr->AppliedVisibilityState & 4) == 4 || (thisPtr->VisibilityFlags & 1) == 1) && _visibleUnits.Remove(thisPtr))
             {
                 foreach (var action in Delegate.EnumerateInvocationList(Hide))
                 {
