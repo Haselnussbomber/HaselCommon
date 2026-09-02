@@ -39,7 +39,7 @@ public static class ImGuiContextMenu
             if (shouldOpen && entries.Any(entry => entry.Visible))
                 ImGui.OpenPopup(id, ImGuiPopupFlags.MouseButtonRight);
 
-            using var popup = ImRaii.Popup(id, ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoSavedSettings);
+            using var popup = ImRaii.Popup(id, ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoSavedSettings);
             if (!popup)
                 return;
 
