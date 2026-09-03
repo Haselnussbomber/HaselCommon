@@ -241,12 +241,12 @@ public partial class MapService
             gatheringItemLevel = fishParameter.GatheringItemLevel.Value.GatheringItemLevel;
         }
 
-        static int convert(short pos, ushort scale) => (pos - 1024) / (scale / 100);
+        static int convert(short pos, ushort scale) => (int)((pos - 1024) / (scale / 100f));
 
-        var scale = territoryType!.Map.Value!.SizeFactor;
+        var scale = territoryType.Map.Value.SizeFactor;
         var x = convert(fishingSpot.X, scale);
         var y = convert(fishingSpot.Z, scale);
-        var radius = fishingSpot.Radius / 7 / (scale / 100); // don't ask me why this works
+        var radius = (int)(fishingSpot.Radius / 7f / (scale / 100f)); // don't ask me why this works
 
         var raptureTextModule = RaptureTextModule.Instance();
 
