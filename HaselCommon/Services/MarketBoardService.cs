@@ -1,17 +1,19 @@
+using System.Threading.Tasks;
 using Dalamud.Game.Network.Structures;
 using FFXIVClientStructs.FFXIV.Client.UI.Info;
 
 namespace HaselCommon.Services;
 
 [RegisterSingleton, AutoConstruct]
-public unsafe partial class MarketBoardService : IDisposable
+public unsafe partial class MarketBoardService : IAsyncDisposable
 {
     private readonly IMarketBoard _marketBoard;
+    private readonly IFramework _framework;
 
     private readonly List<IMarketBoardItemListing> _listings = [];
 
-    private Hook<InfoProxyItemSearch.Delegates.ProcessRequestResult> _processRequestResultHook;
-    private Hook<InfoProxyItemSearch.Delegates.EndRequest> _endRequestHook;
+    private Hook<InfoProxyItemSearch.Delegates.ProcessRequestResult>? _processRequestResultHook;
+    private Hook<InfoProxyItemSearch.Delegates.EndRequest>? _endRequestHook;
 
     public delegate void ListingsStartDelegate();
     public event ListingsStartDelegate? ListingsStart;
@@ -25,37 +27,38 @@ public unsafe partial class MarketBoardService : IDisposable
     [AutoPostConstruct]
     private void Initialize(IGameInteropProvider gameInteropProvider)
     {
-        _processRequestResultHook = gameInteropProvider.HookFromAddress<InfoProxyItemSearch.Delegates.ProcessRequestResult>(
+        _processRequestResultHook = gameInteropProvider.EnabledHookFromAddress<InfoProxyItemSearch.Delegates.ProcessRequestResult>(
             InfoProxyItemSearch.MemberFunctionPointers.ProcessRequestResult,
             ProcessRequestResultDetour);
 
-        _endRequestHook = gameInteropProvider.HookFromAddress<InfoProxyItemSearch.Delegates.EndRequest>(
+        _endRequestHook = gameInteropProvider.EnabledHookFromAddress<InfoProxyItemSearch.Delegates.EndRequest>(
             InfoProxyItemSearch.StaticVirtualTablePointer->EndRequest,
             EndRequestDetour);
-
-        _processRequestResultHook.Enable();
-        _endRequestHook.Enable();
 
         _marketBoard.OfferingsReceived += OnOfferingsReceived;
     }
 
-    public void Dispose()
+    public ValueTask DisposeAsync()
     {
         _marketBoard.OfferingsReceived -= OnOfferingsReceived;
-        _processRequestResultHook.Dispose();
-        _endRequestHook.Dispose();
+
+        return new ValueTask(_framework.Run(() =>
+        {
+            DisposeAndNull(ref _processRequestResultHook);
+            DisposeAndNull(ref _endRequestHook);
+        }));
     }
 
     private void ProcessRequestResultDetour(InfoProxyItemSearch* infoProxy, byte a2, int a3)
     {
         _listings.Clear();
         ListingsStart?.Invoke();
-        _processRequestResultHook.Original(infoProxy, a2, a3);
+        _processRequestResultHook!.Original(infoProxy, a2, a3);
     }
 
     private void EndRequestDetour(InfoProxyItemSearch* infoProxy)
     {
-        _endRequestHook.Original(infoProxy);
+        _endRequestHook!.Original(infoProxy);
         ListingsEnd?.Invoke(_listings);
         _listings.Clear();
     }

@@ -1,15 +1,17 @@
+using System.Threading.Tasks;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
 namespace HaselCommon.Services;
 
 [RegisterSingleton, AutoConstruct]
-public unsafe partial class AddonObserver : IDisposable
+public unsafe partial class AddonObserver : IAsyncDisposable
 {
     public delegate void AddonShowDelegate(AtkUnitBase* addon);
     public delegate void AddonHideDelegate(AtkUnitBase* addon);
 
     private readonly ILogger<AddonObserver> _logger;
     private readonly IGameInteropProvider _gameInteropProvider;
+    private readonly IFramework _framework;
 
     private readonly HashSet<Pointer<AtkUnitBase>> _visibleUnits = new(256);
 
@@ -29,9 +31,9 @@ public unsafe partial class AddonObserver : IDisposable
             UpdateAppliedVisibilityStateDetour);
     }
 
-    public void Dispose()
+    public ValueTask DisposeAsync()
     {
-        DisposeAndNull(ref _hook);
+        return new ValueTask(_framework.Run(() => DisposeAndNull(ref _hook)));
     }
 
     private bool UpdateAppliedVisibilityStateDetour(AtkUnitBase* thisPtr)
