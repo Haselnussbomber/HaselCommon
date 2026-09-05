@@ -19,10 +19,10 @@ public struct Color(float r, float g, float b, float a = 1)
     public static Color Lerp(Color colorA, Color colorB, float fraction)
     {
         return new Color(
-            colorA.R.LerpTo(colorB.R, fraction),
-            colorA.G.LerpTo(colorB.G, fraction),
-            colorA.B.LerpTo(colorB.B, fraction),
-            colorA.A.LerpTo(colorB.A, fraction));
+            colorA.R.Lerp(colorB.R, fraction),
+            colorA.G.Lerp(colorB.G, fraction),
+            colorA.B.Lerp(colorB.B, fraction),
+            colorA.A.Lerp(colorB.A, fraction));
     }
 
     public static Color FromVector4(Vector4 vec, ColorFormat format = ColorFormat.RGBA)
@@ -81,7 +81,7 @@ public struct Color(float r, float g, float b, float a = 1)
         var vec = ToVector(format);
 
         static uint Pack(float value, byte shift)
-            => (uint)(MathUtils.Clamp01(value) * 255f + 0.5f) << shift;
+            => (uint)(value.Clamp01() * 255f + 0.5f) << shift;
 
         return Pack(vec.X, 0) | Pack(vec.Y, 8) | Pack(vec.Z, 16) | Pack(vec.W, 24);
     }
