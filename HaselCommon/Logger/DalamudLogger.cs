@@ -3,7 +3,7 @@ namespace HaselCommon.Logger;
 public class DalamudLogger(string name, IPluginLog pluginLog) : ILogger
 {
     public IDisposable? BeginScope<TState>(TState state) where TState : notnull => default;
-    
+
     public bool IsEnabled(LogLevel logLevel)
     {
         if (logLevel == LogLevel.None)

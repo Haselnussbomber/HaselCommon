@@ -2,6 +2,7 @@ using Dalamud.Game.Config;
 
 namespace HaselCommon.Extensions;
 
+[GenerateEventSubscribers<IGameConfig>]
 public static partial class IGameConfigExtensions
 {
     public delegate void GameConfigChangeDelegate(ConfigChangeEvent change);

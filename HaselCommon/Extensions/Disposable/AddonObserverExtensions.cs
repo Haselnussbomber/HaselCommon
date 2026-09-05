@@ -2,19 +2,11 @@ using FFXIVClientStructs.FFXIV.Component.GUI;
 
 namespace HaselCommon.Extensions;
 
-public static unsafe class AddonObserverExtensions
+[GenerateEventSubscribers<AddonObserver>]
+public static unsafe partial class AddonObserverExtensions
 {
     extension(AddonObserver addonObserver)
     {
-        public IDisposable OnShow(AddonObserver.AddonShowDelegate handler)
-        {
-            return EventExtensions.Subscribe(
-                handler => addonObserver.Show += handler,
-                handler => addonObserver.Show -= handler,
-                (AddonObserver.AddonShowDelegate)handler.Invoke
-            );
-        }
-
         public IDisposable OnShow(AddonObserver.AddonShowDelegate handler, string addonName)
         {
             void wrapper(AtkUnitBase* addon)
@@ -42,15 +34,6 @@ public static unsafe class AddonObserverExtensions
                 handler => addonObserver.Show += handler,
                 handler => addonObserver.Show -= handler,
                 (AddonObserver.AddonShowDelegate)wrapper
-            );
-        }
-
-        public IDisposable OnHide(AddonObserver.AddonHideDelegate handler)
-        {
-            return EventExtensions.Subscribe(
-                handler => addonObserver.Hide += handler,
-                handler => addonObserver.Hide -= handler,
-                (AddonObserver.AddonHideDelegate)handler.Invoke
             );
         }
 

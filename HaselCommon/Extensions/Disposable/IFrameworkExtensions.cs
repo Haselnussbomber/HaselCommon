@@ -2,6 +2,7 @@ using FFXIVClientStructs.FFXIV.Client.System.Framework;
 
 namespace HaselCommon.Extensions;
 
+[GenerateEventSubscribers<IFramework>]
 public static partial class IFrameworkExtensions
 {
     public delegate void UpdateDelegate(float delta);

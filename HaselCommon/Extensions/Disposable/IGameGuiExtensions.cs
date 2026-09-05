@@ -2,6 +2,7 @@ using Dalamud.Game.Gui;
 
 namespace HaselCommon.Extensions;
 
+[GenerateEventSubscribers<IGameGui>]
 public static partial class IGameGuiExtensions
 {
     extension(IGameGui gameGui)
@@ -45,15 +46,6 @@ public static partial class IGameGuiExtensions
                 handler => gameGui.HoveredActionChanged += handler,
                 handler => gameGui.HoveredActionChanged -= handler,
                 (EventHandler<HoveredAction>)wrapper
-            );
-        }
-
-        public IDisposable OnAgentUpdate(Action<AgentUpdateFlag> handler)
-        {
-            return EventExtensions.Subscribe(
-                handler => gameGui.AgentUpdate += handler,
-                handler => gameGui.AgentUpdate -= handler,
-                handler.Invoke
             );
         }
     }
