@@ -6,7 +6,7 @@ using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using FFXIVClientStructs.FFXIV.Component.Exd;
 using GearsetEntry = FFXIVClientStructs.FFXIV.Client.UI.Misc.RaptureGearsetModule.GearsetEntry;
-using TerritoryType = Lumina.Excel.Sheets.TerritoryType;
+using TerritoryType = Dalamud.Excel.Sheets.TerritoryType;
 
 namespace HaselCommon.Gui;
 

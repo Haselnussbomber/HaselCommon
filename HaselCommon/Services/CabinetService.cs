@@ -1,6 +1,6 @@
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
-using CabinetSheet = Lumina.Excel.Sheets.Cabinet;
+using CabinetSheet = Dalamud.Excel.Sheets.Cabinet;
 using CabinetState = FFXIVClientStructs.FFXIV.Client.Game.UI.Cabinet.CabinetState;
 
 namespace HaselCommon.Services;

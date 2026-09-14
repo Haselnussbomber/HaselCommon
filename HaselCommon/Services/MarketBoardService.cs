@@ -1,5 +1,5 @@
 using System.Threading.Tasks;
-using Dalamud.Game.Network.Structures;
+using Dalamud.Game.Marketboard.Network.Structures;
 using FFXIVClientStructs.FFXIV.Client.UI.Info;
 
 namespace HaselCommon.Services;

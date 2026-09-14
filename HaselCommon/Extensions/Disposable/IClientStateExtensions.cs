@@ -3,7 +3,7 @@ namespace HaselCommon.Extensions;
 [GenerateEventSubscribers<IClientState>]
 public static partial class IClientStateExtensions
 {
-    public delegate void ContentsFinderPoppedDelegate(uint cfcId);
+    public delegate void ContentsFinderPoppedDelegate(RowRef<ContentFinderCondition> cfcRef);
 
     extension(IClientState clientState)
     {
@@ -23,9 +23,9 @@ public static partial class IClientStateExtensions
 
         public IDisposable OnContentsFinderPopped(ContentsFinderPoppedDelegate handler)
         {
-            void wrapper(ContentFinderCondition cfc)
+            void wrapper(RowRef<ContentFinderCondition> cfcRef)
             {
-                handler(cfc.RowId);
+                handler(cfcRef);
             }
 
             return EventExtensions.Subscribe(
