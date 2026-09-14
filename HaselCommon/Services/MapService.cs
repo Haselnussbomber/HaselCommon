@@ -53,7 +53,7 @@ public partial class MapService
     public unsafe float GetDistanceFromPlayer(Level level)
     {
         var localPlayer = Control.GetLocalPlayer();
-        if (localPlayer == null || level.Territory.RowId != _clientState.TerritoryType)
+        if (localPlayer == null || level.Territory.RowId != _clientState.TerritoryType.RowId)
             return float.MaxValue; // far, far away
 
         return Vector2.Distance(
@@ -147,15 +147,10 @@ public partial class MapService
 
     public void OpenMap(Level level)
     {
-        if (!level.Map.IsValid || !level.Map.Value.TerritoryType.IsValid)
+        if (!level.Territory.IsValid || !level.Map.IsValid)
             return;
 
-        _gameGui.OpenMapWithMapLink(new Dalamud.Game.Text.SeStringHandling.Payloads.MapLinkPayload(
-            level.Map.Value.TerritoryType.RowId,
-            level.Map.RowId,
-            (int)(level.X * 1_000f),
-            (int)(level.Z * 1_000f)
-        ));
+        _gameGui.OpenMapWithMapLink(level.Territory.RowId, level.Map.RowId, level.Position);
     }
 
     private static readonly uint[,] GatheringPointNameMapping = new uint[4, 5]

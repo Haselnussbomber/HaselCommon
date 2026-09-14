@@ -23,6 +23,7 @@
 
   <!-- NuGet dependencies -->
   <ItemGroup>
+    <Reference Include="Dalamud.Common" Private="false" />
     <PackageReference Include="AutoCtor" Version="3.1.1" PrivateAssets="all" ExcludeAssets="compile;runtime" />
     <PackageReference Include="Injectio" Version="6.2.0" PrivateAssets="all" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.12" />
