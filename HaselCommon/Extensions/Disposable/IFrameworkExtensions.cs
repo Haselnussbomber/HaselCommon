@@ -24,7 +24,7 @@ public static partial class IFrameworkExtensions
             return EventExtensions.Subscribe(
                 handler => framework.Update += handler,
                 handler => framework.Update -= handler,
-                (IFramework.OnUpdateDelegate)wrapper
+                (IFramework.UpdateDelegate)wrapper
             );
         }
 
@@ -38,7 +38,7 @@ public static partial class IFrameworkExtensions
             return EventExtensions.Subscribe(
                 handler => framework.Update += handler,
                 handler => framework.Update -= handler,
-                (IFramework.OnUpdateDelegate)wrapper
+                (IFramework.UpdateDelegate)wrapper
             );
         }
     }
