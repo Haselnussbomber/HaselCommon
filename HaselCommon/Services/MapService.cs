@@ -11,7 +11,7 @@ using FFXIVClientStructs.FFXIV.Client.System.String;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
-using Map = Dalamud.Excel.Sheets.Map;
+using Map = Lumina.Excel.Sheets.Map;
 
 namespace HaselCommon.Services;
 
