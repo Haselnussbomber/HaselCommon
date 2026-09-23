@@ -15,19 +15,16 @@ public unsafe partial class AddonObserver : IAsyncDisposable
 
     private readonly HashSet<Pointer<AtkUnitBase>> _visibleUnits = new(256);
 
-    private Hook<UpdateAppliedVisibilityStateDelegate>? _hook;
+    private Hook<AtkUnitBase.Delegates.UpdateAppliedVisibilityState>? _hook;
 
     public event AddonShowDelegate? Show;
     public event AddonHideDelegate? Hide;
 
-    [return: MarshalAs(UnmanagedType.U1)]
-    public delegate bool UpdateAppliedVisibilityStateDelegate(AtkUnitBase* thisPtr);
-
     [AutoPostConstruct]
     private void Initialize()
     {
-        _hook = _gameInteropProvider.EnabledHookFromSignature<UpdateAppliedVisibilityStateDelegate>(
-            "E8 ?? ?? ?? ?? 84 C0 0F 84 ?? ?? ?? ?? 44 0F B6 97",
+        _hook = _gameInteropProvider.EnabledHookFromAddress<AtkUnitBase.Delegates.UpdateAppliedVisibilityState>(
+            (nint)AtkUnitBase.MemberFunctionPointers.UpdateAppliedVisibilityState,
             UpdateAppliedVisibilityStateDetour);
     }
 
