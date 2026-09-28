@@ -11,10 +11,10 @@ public partial class LicensesWindow : SimpleWindow
     private string[] _lines = [];
 
     [GeneratedRegex("\r?\n")]
-    private static partial Regex NewLineRegex();
+    private static partial Regex NewLineRegex { get; }
 
     [GeneratedRegex(@"\[([^\]]+)\]\(([^\)]+)\)")]
-    private static partial Regex MarkdownLinkRegex();
+    private static partial Regex MarkdownLinkRegex { get; }
 
     [AutoPostConstruct]
     private void Initialize()
@@ -30,7 +30,7 @@ public partial class LicensesWindow : SimpleWindow
 
         using var reader = new StreamReader(stream);
 
-        var lines = NewLineRegex().Split(reader.ReadToEnd());
+        var lines = NewLineRegex.Split(reader.ReadToEnd());
         var startLine = 0;
         for (; startLine < lines.Length; startLine++)
         {
@@ -81,7 +81,7 @@ public partial class LicensesWindow : SimpleWindow
 
                 hadPrevious = true;
 
-                var match = MarkdownLinkRegex().Match(line[3..]);
+                var match = MarkdownLinkRegex.Match(line[3..]);
                 if (match.Success)
                 {
                     using (_pluginInterface.UiBuilder.MonoFontHandle.Push())
