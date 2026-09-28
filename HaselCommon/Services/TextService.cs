@@ -21,10 +21,10 @@ public partial class TextService
     private readonly Dictionary<(string, ClientLanguage), ReadOnlySeString> _macroStringCache = [];
 
     [AutoPostConstruct]
-    public void Initialize(PluginAssemblyProvider pluginAssemblyProvider, IDalamudPluginInterface pluginInterface)
+    public void Initialize(PluginAssembly pluginAssembly, IDalamudPluginInterface pluginInterface)
     {
         LoadEmbeddedResource(GetType().Assembly, "HaselCommon.Translations.json");
-        LoadEmbeddedResource(pluginAssemblyProvider.Assembly, $"{pluginInterface.InternalName}.Translations.json");
+        LoadEmbeddedResource(pluginAssembly.Assembly, $"{pluginInterface.InternalName}.Translations.json");
     }
 
     public void LoadEmbeddedResource(Assembly assembly, string filename)

@@ -7,7 +7,7 @@ namespace HaselCommon.Windows;
 public partial class LicensesWindow : SimpleWindow
 {
     private readonly IDalamudPluginInterface _pluginInterface;
-    private readonly PluginAssemblyProvider _pluginAssembly;
+    private readonly PluginAssembly _pluginAssembly;
     private string[] _lines = [];
 
     [GeneratedRegex("\r?\n")]
@@ -24,7 +24,7 @@ public partial class LicensesWindow : SimpleWindow
         AllowClickthrough = false;
         AllowPinning = false;
 
-        using var stream = _pluginAssembly.Assembly.GetManifestResourceStream(_pluginInterface.InternalName + ".LICENSES.md");
+        using var stream = _pluginAssembly.GetManifestResourceStream(_pluginInterface.InternalName + ".LICENSES.md");
         if (stream == null)
             return;
 
