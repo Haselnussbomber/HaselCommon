@@ -1,5 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
-using System.Reflection;
+using System.IO;
 using System.Text.Json;
 using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Game.Text.Evaluator;
@@ -12,6 +12,7 @@ namespace HaselCommon.Services;
 public partial class TextService
 {
     private readonly ILogger<TextService> _logger;
+    private readonly IDalamudPluginInterface _pluginInterface;
     private readonly LanguageProvider _languageProvider;
     private readonly ExcelService _excelService;
     private readonly ISeStringEvaluator _seStringEvaluator;
@@ -21,28 +22,32 @@ public partial class TextService
     private readonly Dictionary<(string, ClientLanguage), ReadOnlySeString> _macroStringCache = [];
 
     [AutoPostConstruct]
-    public void Initialize(PluginAssembly pluginAssembly, IDalamudPluginInterface pluginInterface)
+    public void Initialize()
     {
-        LoadEmbeddedResource(GetType().Assembly, "HaselCommon.Translations.json");
-        LoadEmbeddedResource(pluginAssembly.Assembly, $"{pluginInterface.InternalName}.Translations.json");
+        LoadTranslationsFile("HaselCommon.Translations.json");
+        LoadTranslationsFile($"{_pluginInterface.InternalName}.Translations.json");
     }
 
-    public void LoadEmbeddedResource(Assembly assembly, string filename)
+    private void LoadTranslationsFile(string filename)
     {
-        using var stream = assembly.GetManifestResourceStream(filename);
-        if (stream == null)
-        {
-            _logger.LogWarning("[TranslationManager] Could not find translations resource {filename} in assembly {assemblyName}", filename, assembly.ToString());
+        var filepath = Path.Join(_pluginInterface.AssemblyLocation.Directory!.FullName, filename);
+        if (!File.Exists(filepath))
             return;
+
+        _logger.LogDebug("Loading translations from {filepath}", filepath);
+
+        try
+        {
+            using var file = File.OpenRead(filepath);
+            var translations = JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, string>>>(file) ?? [];
+
+            foreach (var key in translations.Keys)
+                _translations.Add(key, translations[key]);
         }
-
-        LoadDictionary(JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, string>>>(stream) ?? []);
-    }
-
-    public void LoadDictionary(Dictionary<string, Dictionary<string, string>> translations)
-    {
-        foreach (var key in translations.Keys)
-            _translations.Add(key, translations[key]);
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error loading translations from {filepath}", filepath);
+        }
     }
 
     public bool TryGetTranslation(string key, [MaybeNullWhen(false)] out string text)

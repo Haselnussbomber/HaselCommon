@@ -18,7 +18,7 @@
 
   <!-- Translations -->
   <ItemGroup>
-    <EmbeddedResource Include="Translations.json" />
+    <None Include="Translations.json" Link="$(AssemblyName).Translations.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <!-- NuGet dependencies -->
