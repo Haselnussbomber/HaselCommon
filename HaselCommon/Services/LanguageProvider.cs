@@ -35,7 +35,7 @@ public partial class LanguageProvider : IDisposable
     private void SetLangCode(string langCode)
     {
         LanguageCode = langCode;
-        ClientLanguage = langCode.ToClientlanguage();
+        ClientLanguage = ClientLanguage.FromCode(langCode);
         CultureInfo = Localization.GetCultureInfoFromLangCode(langCode);
     }
 

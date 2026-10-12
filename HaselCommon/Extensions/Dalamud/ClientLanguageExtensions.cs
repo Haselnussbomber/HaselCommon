@@ -14,13 +14,10 @@ public static class ClientLanguageExtensions
                 _ => "en"
             };
         }
-    }
 
-    extension(string value)
-    {
-        public ClientLanguage ToClientlanguage()
+        public static ClientLanguage FromCode(string langCode)
         {
-            return value switch
+            return langCode switch
             {
                 "de" => ClientLanguage.German,
                 "fr" => ClientLanguage.French,
