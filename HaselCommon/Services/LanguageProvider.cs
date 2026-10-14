@@ -10,7 +10,7 @@ public partial class LanguageProvider : IDisposable
 
     public CultureInfo CultureInfo { get; private set; }
     public ClientLanguage ClientLanguage { get; private set; }
-    public string LanguageCode { get; private set; }
+    public Language Language { get; private set; }
 
     public event Action LanguageChanged;
 
@@ -34,7 +34,7 @@ public partial class LanguageProvider : IDisposable
 
     private void SetLangCode(string langCode)
     {
-        LanguageCode = langCode;
+        Language = Language.FromCode(langCode, true);
         ClientLanguage = ClientLanguage.FromCode(langCode);
         CultureInfo = Localization.GetCultureInfoFromLangCode(langCode);
     }

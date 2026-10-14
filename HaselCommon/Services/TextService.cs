@@ -1,3 +1,4 @@
+using System.Collections.Frozen;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Text.Json;
@@ -17,18 +18,26 @@ public partial class TextService
     private readonly ExcelService _excelService;
     private readonly ISeStringEvaluator _seStringEvaluator;
 
-    private readonly Dictionary<string, Dictionary<string, string>> _translations = [];
     private readonly Dictionary<(Type, uint, ClientLanguage), string> _rowNameCache = [];
     private readonly Dictionary<(string, ClientLanguage), ReadOnlySeString> _macroStringCache = [];
+    private FrozenDictionary<string, FrozenDictionary<Language, string>> _translations;
 
     [AutoPostConstruct]
     public void Initialize()
     {
-        LoadTranslationsFile("HaselCommon.Translations.json");
-        LoadTranslationsFile($"{_pluginInterface.InternalName}.Translations.json");
+        var dict = new Dictionary<string, Dictionary<string, string>>();
+
+        LoadTranslationsFile(dict, "HaselCommon.Translations.json");
+        LoadTranslationsFile(dict, $"{_pluginInterface.InternalName}.Translations.json");
+
+        _translations = dict.ToFrozenDictionary(
+            kv => kv.Key,
+            kv => kv.Value.Where(kv => !kv.Key.StartsWith('_')).ToFrozenDictionary(
+                kv => Language.FromCode(kv.Key, true),
+                kv => kv.Value));
     }
 
-    private void LoadTranslationsFile(string filename)
+    private void LoadTranslationsFile(Dictionary<string, Dictionary<string, string>> dict, string filename)
     {
         var filepath = Path.Join(_pluginInterface.AssemblyLocation.Directory!.FullName, filename);
         if (!File.Exists(filepath))
@@ -42,7 +51,7 @@ public partial class TextService
             var translations = JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, string>>>(file) ?? [];
 
             foreach (var key in translations.Keys)
-                _translations.Add(key, translations[key]);
+                dict[key] = translations[key];
         }
         catch (Exception ex)
         {
@@ -53,13 +62,13 @@ public partial class TextService
     public bool TryGetTranslation(string key, [MaybeNullWhen(false)] out string text)
     {
         text = default;
-        return _translations.TryGetValue(key, out var entry) && (entry.TryGetValue(_languageProvider.LanguageCode, out text) || entry.TryGetValue("en", out text));
+        return _translations.TryGetValue(key, out var entry) && (entry.TryGetValue(_languageProvider.Language, out text) || entry.TryGetValue(Language.English, out text));
     }
 
     public bool TryGetTranslation(string key, ClientLanguage language, [MaybeNullWhen(false)] out string text)
     {
         text = default;
-        return _translations.TryGetValue(key, out var entry) && (entry.TryGetValue(language.ToCode(), out text) || entry.TryGetValue("en", out text));
+        return _translations.TryGetValue(key, out var entry) && (entry.TryGetValue(Language.FromClientLanguage(language), out text) || entry.TryGetValue(Language.English, out text));
     }
 
     public string Translate(string key)
