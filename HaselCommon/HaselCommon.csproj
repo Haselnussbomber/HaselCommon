@@ -26,7 +26,6 @@
     <PackageReference Include="AutoCtor" Version="4.0.0" PrivateAssets="all" ExcludeAssets="compile;runtime" />
     <PackageReference Include="Injectio" Version="6.2.0" PrivateAssets="all" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.12" />
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.12" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.12" />
     <PackageReference Include="Roslynator.Analyzers" Version="4.16.1" PrivateAssets="all" />
   </ItemGroup>
