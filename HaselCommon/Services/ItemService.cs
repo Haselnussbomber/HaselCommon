@@ -7,6 +7,8 @@ using HaselCommon.Game.Enums;
 
 namespace HaselCommon.Services;
 
+#pragma warning disable PendingExcelSchema
+
 [RegisterSingleton, AutoConstruct]
 public partial class ItemService
 {
@@ -301,18 +303,20 @@ public partial class ItemService
 
         return entry.HairStyleIcons.GetOrAdd((tribe, sex), _ =>
         {
-            if (!_excelService.TryFindRow<HairMakeType>(t => t.Tribe.RowId == tribe && t.Gender == sex, out var hairMakeType))
+            if (!_excelService.TryFindRow<Lumina.Excel.Sheets.Experimental.HairMakeType>(t => t.Tribe.RowId == tribe && t.Gender == sex, out var hairMakeType))
                 return 0;
 
-            if (!hairMakeType.CharaMakeStruct[0].SubMenuParam
-                .Select(rowId => _excelService.CreateRowRef<CharaMakeCustomize>(rowId))
-                .Where(rowRef => rowRef.RowId != 0 && rowRef.IsValid)
-                .TryGetFirst(h => h.Value.HintItem.RowId == item.ItemId, out var itemRow))
+            foreach (var param in hairMakeType.CharaMakeStruct[0].SubMenuParam)
             {
-                return 0;
+                if (param != 0
+                    && _excelService.TryGetRow<CharaMakeCustomize>(param, out var charaMakeCustomizeRow)
+                    && charaMakeCustomizeRow.HintItem.RowId == item.ItemId)
+                {
+                    return charaMakeCustomizeRow.Icon;
+                }
             }
 
-            return itemRow.IsValid ? itemRow.Value.Icon : 0;
+            return 0;
         });
     }
 
