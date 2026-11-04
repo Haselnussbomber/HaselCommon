@@ -3,7 +3,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
-namespace HaselCommon.Generator;
+namespace HaselCommon.Generators;
 
 [Generator]
 public class AgentLifecycleExtensionGenerator : IIncrementalGenerator

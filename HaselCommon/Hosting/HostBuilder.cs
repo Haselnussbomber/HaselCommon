@@ -2,7 +2,7 @@ namespace HaselCommon.Hosting;
 
 public readonly struct HostBuilder()
 {
-    private readonly ServiceCollection _services = new();
+    private readonly DependencyInjection.ServiceCollection _services = new();
 
     public HostBuilder ConfigureServices(Action<IServiceCollection> configure)
     {

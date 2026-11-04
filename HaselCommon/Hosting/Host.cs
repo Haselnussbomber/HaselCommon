@@ -27,18 +27,17 @@ public sealed class Host(IServiceProvider services)
             .ConfigureAwait(false);
     }
 
-    public ValueTask DisposeAsync()
+    public async ValueTask DisposeAsync()
     {
         switch (Services)
         {
             case IAsyncDisposable asyncDisposable:
-                return asyncDisposable.DisposeAsync();
+                await asyncDisposable.DisposeAsync().ConfigureAwait(false);
+                break;
             case IDisposable disposable:
                 disposable.Dispose();
                 break;
         }
-
-        return default;
     }
 
     public void Dispose()
