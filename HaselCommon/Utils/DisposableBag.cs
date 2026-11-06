@@ -1,192 +1,153 @@
+using System.Collections;
+using System.Threading;
+using System.Threading.Tasks;
+
 namespace HaselCommon.Utils;
 
-public static class DisposableBag
+public class DisposableBag : IEnumerable, IDisposable, IAsyncDisposable
 {
-    public static IDisposable Empty => EmptyDisposable.Instance;
+    private readonly List<object> _disposables = [];
+    private readonly Lock _lock = new();
 
-    public static void AddTo(this IDisposable disposable, DisposableBagBuilder disposableBag)
+    public bool IsDisposed { get; private set; }
+
+    public IEnumerator GetEnumerator()
     {
-        disposableBag.Add(disposable);
-    }
-
-    internal class EmptyDisposable : IDisposable
-    {
-        internal static readonly IDisposable Instance = new EmptyDisposable();
-        public void Dispose() { }
-    }
-
-    public static IDisposable Create(IDisposable disposable1)
-    {
-        return new Disposable1(disposable1);
-    }
-
-    private sealed class Disposable1(IDisposable disposable1) : IDisposable
-    {
-        private bool _disposed;
-
-        public void Dispose()
+        try
         {
-            if (!_disposed)
+            _lock.Enter();
+
+            foreach (var disposable in _disposables)
             {
-                _disposed = true;
-                disposable1.Dispose();
+                yield return disposable;
+            }
+        }
+        finally
+        {
+            _lock.Exit();
+        }
+    }
+
+    public void Reset()
+    {
+        using (_lock.EnterScope())
+        {
+            Dispose();
+            IsDisposed = false;
+        }
+    }
+
+    public void Add(IDisposable disposable)
+    {
+        using (_lock.EnterScope())
+        {
+            if (!_disposables.Contains(disposable))
+            {
+                _disposables.Add(disposable);
             }
         }
     }
 
-    public static IDisposable Create(IDisposable disposable1, IDisposable disposable2)
+    public void Add(IAsyncDisposable disposable)
     {
-        return new Disposable2(disposable1, disposable2);
-    }
-
-    private sealed class Disposable2(IDisposable disposable1, IDisposable disposable2) : IDisposable
-    {
-        private bool _disposed;
-
-        public void Dispose()
+        using (_lock.EnterScope())
         {
-            if (!_disposed)
+            if (!_disposables.Contains(disposable))
             {
-                _disposed = true;
-                disposable1.Dispose();
-                disposable2.Dispose();
+                _disposables.Add(disposable);
             }
         }
     }
 
-    public static IDisposable Create(IDisposable disposable1, IDisposable disposable2, IDisposable disposable3)
+    public void AddRange(params Span<IDisposable> disposables)
     {
-        return new Disposable3(disposable1, disposable2, disposable3);
-    }
-
-    private sealed class Disposable3(IDisposable disposable1, IDisposable disposable2, IDisposable disposable3) : IDisposable
-    {
-        private bool _disposed;
-
-        public void Dispose()
+        using (_lock.EnterScope())
         {
-            if (!_disposed)
+            foreach (var disposable in disposables)
             {
-                _disposed = true;
-                disposable1.Dispose();
-                disposable2.Dispose();
-                disposable3.Dispose();
+                if (!_disposables.Contains(disposable))
+                {
+                    _disposables.Add(disposable);
+                }
             }
         }
     }
 
-    public static IDisposable Create(IDisposable disposable1, IDisposable disposable2, IDisposable disposable3, IDisposable disposable4)
+    public void AddRange(params Span<IAsyncDisposable> disposables)
     {
-        return new Disposable4(disposable1, disposable2, disposable3, disposable4);
-    }
-
-    private sealed class Disposable4(IDisposable disposable1, IDisposable disposable2, IDisposable disposable3, IDisposable disposable4) : IDisposable
-    {
-        private bool _disposed;
-
-        public void Dispose()
+        using (_lock.EnterScope())
         {
-            if (!_disposed)
+            foreach (var disposable in disposables)
             {
-                _disposed = true;
-                disposable1.Dispose();
-                disposable2.Dispose();
-                disposable3.Dispose();
-                disposable4.Dispose();
+                if (!_disposables.Contains(disposable))
+                {
+                    _disposables.Add(disposable);
+                }
             }
         }
     }
 
-    public static IDisposable Create(IDisposable disposable1, IDisposable disposable2, IDisposable disposable3, IDisposable disposable4, IDisposable disposable5)
+    public void AddRange(params Span<object> disposables)
     {
-        return new Disposable5(disposable1, disposable2, disposable3, disposable4, disposable5);
-    }
-
-    private sealed class Disposable5(IDisposable disposable1, IDisposable disposable2, IDisposable disposable3, IDisposable disposable4, IDisposable disposable5) : IDisposable
-    {
-        private bool _disposed;
-
-        public void Dispose()
+        using (_lock.EnterScope())
         {
-            if (!_disposed)
+            foreach (var disposable in disposables)
             {
-                _disposed = true;
-                disposable1.Dispose();
-                disposable2.Dispose();
-                disposable3.Dispose();
-                disposable4.Dispose();
-                disposable5.Dispose();
+                if (disposable is IDisposable or IAsyncDisposable && !_disposables.Contains(disposable))
+                {
+                    _disposables.Add(disposable);
+                }
             }
         }
     }
 
-    public static IDisposable Create(IDisposable disposable1, IDisposable disposable2, IDisposable disposable3, IDisposable disposable4, IDisposable disposable5, IDisposable disposable6)
+    public async ValueTask DisposeAsync()
     {
-        return new Disposable6(disposable1, disposable2, disposable3, disposable4, disposable5, disposable6);
-    }
-
-    private sealed class Disposable6(IDisposable disposable1, IDisposable disposable2, IDisposable disposable3, IDisposable disposable4, IDisposable disposable5, IDisposable disposable6) : IDisposable
-    {
-        private bool _disposed;
-
-        public void Dispose()
+        try
         {
-            if (!_disposed)
+            _lock.Enter();
+
+            if (IsDisposed)
+                return;
+
+            for (var i = _disposables.Count - 1; i >= 0; i--)
             {
-                _disposed = true;
-                disposable1.Dispose();
-                disposable2.Dispose();
-                disposable3.Dispose();
-                disposable4.Dispose();
-                disposable5.Dispose();
-                disposable6.Dispose();
+                if (_disposables[i] is IAsyncDisposable asyncDisposable)
+                    await asyncDisposable.DisposeAsync().ConfigureAwait(false);
+                else if (_disposables[i] is IDisposable disposable)
+                    disposable.Dispose();
             }
+
+            IsDisposed = true;
+            _disposables.Clear();
+        }
+        finally
+        {
+            _lock.Exit();
         }
     }
 
-    public static IDisposable Create(IDisposable disposable1, IDisposable disposable2, IDisposable disposable3, IDisposable disposable4, IDisposable disposable5, IDisposable disposable6, IDisposable disposable7)
+    public void Dispose()
     {
-        return new Disposable7(disposable1, disposable2, disposable3, disposable4, disposable5, disposable6, disposable7);
+        DisposeAsync().AsTask().GetAwaiter().GetResult();
     }
+}
 
-    private sealed class Disposable7(IDisposable disposable1, IDisposable disposable2, IDisposable disposable3, IDisposable disposable4, IDisposable disposable5, IDisposable disposable6, IDisposable disposable7) : IDisposable
+public static class DisposableExtensions
+{
+    extension(IDisposable disposable)
     {
-        private bool _disposed;
-
-        public void Dispose()
+        public void AddTo(DisposableBag bag)
         {
-            if (!_disposed)
-            {
-                _disposed = true;
-                disposable1.Dispose();
-                disposable2.Dispose();
-                disposable3.Dispose();
-                disposable4.Dispose();
-                disposable5.Dispose();
-                disposable6.Dispose();
-                disposable7.Dispose();
-            }
+            bag.Add(disposable);
         }
     }
 
-    public static IDisposable Create(params IDisposable[] disposables)
+    extension(IAsyncDisposable disposable)
     {
-        return new DisposablesArray(disposables);
-    }
-
-    private sealed class DisposablesArray(IDisposable[] disposables) : IDisposable
-    {
-        private bool _disposed;
-
-        public void Dispose()
+        public void AddTo(DisposableBag bag)
         {
-            if (!_disposed)
-            {
-                _disposed = true;
-
-                foreach (var item in disposables)
-                    item.Dispose();
-            }
+            bag.Add(disposable);
         }
     }
 }

@@ -1,5 +1,4 @@
 using System.Collections.Concurrent;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace HaselCommon.DependencyInjection;
@@ -10,8 +9,7 @@ public class ServiceProvider : IServiceProvider, IServiceProviderIsService, IDis
     private readonly IReadOnlyList<IServiceResolver> _resolvers;
     private readonly IReadOnlyList<IServiceProvider> _fallbackProviders;
     private readonly ConcurrentDictionary<Type, object> _dynamicSingletons = new();
-    private readonly List<object> _disposables = [];
-    private readonly Lock _disposablesLock = new();
+    private readonly DisposableBag _disposables = [];
 
     public ServiceProvider(ServiceCollection services)
     {
@@ -22,14 +20,10 @@ public class ServiceProvider : IServiceProvider, IServiceProviderIsService, IDis
 
     private T TrackDisposable<T>(T instance)
     {
-        if (instance is IDisposable or IAsyncDisposable)
-        {
-            using (_disposablesLock.EnterScope())
-            {
-                if (!_disposables.Contains(instance))
-                    _disposables.Add(instance);
-            }
-        }
+        if (instance is IAsyncDisposable asyncDisposable)
+            _disposables.Add(asyncDisposable);
+        else if (instance is IDisposable disposable)
+            _disposables.Add(disposable);
 
         return instance;
     }
@@ -57,8 +51,8 @@ public class ServiceProvider : IServiceProvider, IServiceProviderIsService, IDis
 
         for (var i = 0; i < _fallbackProviders.Count; i++)
         {
-            var fallback = _fallbackProviders[i].GetService(serviceType);
-            if (fallback != null)
+            var instance = _fallbackProviders[i].GetService(serviceType);
+            if (instance != null)
                 return true;
         }
 
@@ -103,9 +97,9 @@ public class ServiceProvider : IServiceProvider, IServiceProviderIsService, IDis
 
         foreach (var resolver in _resolvers)
         {
-            var match = resolver.Resolve(serviceType);
-            if (match != null)
-                return match;
+            var instance = resolver.Resolve(serviceType);
+            if (instance != null)
+                return instance;
         }
 
         var serviceDescriptor = _descriptors.LastOrDefault(d => d.ServiceType == serviceType);
@@ -133,9 +127,9 @@ public class ServiceProvider : IServiceProvider, IServiceProviderIsService, IDis
 
         foreach (var provider in _fallbackProviders)
         {
-            var fallback = provider.GetService(serviceType);
-            if (fallback != null)
-                return fallback;
+            var instance = provider.GetService(serviceType);
+            if (instance != null)
+                return instance;
         }
 
         return null;
@@ -173,18 +167,7 @@ public class ServiceProvider : IServiceProvider, IServiceProviderIsService, IDis
 
     public async ValueTask DisposeAsync()
     {
-        List<object> disposables;
-
-        using (_disposablesLock.EnterScope())
-            disposables = [.. _disposables];
-
-        for (var i = disposables.Count - 1; i >= 0; i--)
-        {
-            if (disposables[i] is IAsyncDisposable asyncDisposable)
-                await asyncDisposable.DisposeAsync().ConfigureAwait(false);
-            else if (disposables[i] is IDisposable disposable)
-                disposable.Dispose();
-        }
+        await _disposables.DisposeAsync().ConfigureAwait(false);
 
         for (var i = _resolvers.Count - 1; i >= 0; i--)
         {
