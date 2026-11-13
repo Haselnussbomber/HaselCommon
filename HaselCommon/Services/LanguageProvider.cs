@@ -7,6 +7,7 @@ namespace HaselCommon.Services;
 public partial class LanguageProvider : IDisposable
 {
     private readonly IDalamudPluginInterface _pluginInterface;
+    private readonly IClientState _clientState;
 
     public CultureInfo CultureInfo { get; private set; }
     public ClientLanguage ClientLanguage { get; private set; }
@@ -35,7 +36,7 @@ public partial class LanguageProvider : IDisposable
     private void SetLangCode(string langCode)
     {
         Language = Language.FromCode(langCode, true);
-        ClientLanguage = ClientLanguage.FromCode(langCode);
+        ClientLanguage = ClientLanguage.FromCode(langCode, _clientState.ClientLanguage);
         CultureInfo = Localization.GetCultureInfoFromLangCode(langCode);
     }
 
