@@ -273,42 +273,22 @@ public class DependencyInjectionGenerator : IIncrementalGenerator
         sb.AppendLine("    }");
         sb.AppendLine();
 
-        // Generate properties
+        // Generate properties (singletons only)
         foreach (var group in byClass)
         {
             var first = group.First();
+            if (!first.IsSingleton)
+                continue;
+
             var classSymbol = (INamedTypeSymbol)group.Key!;
             var fullClassTypeName = classSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
-            var propName = classSymbol.Name;
+            var propName = GetPropertyName(classSymbol, fullClassTypeName);
+            var instExpr = GetInstExpr(first, fullClassTypeName);
 
-            string instExpr;
-            if (first.FactoryMethod != null)
-            {
-                instExpr = $"{fullClassTypeName}.{first.FactoryMethod}(sp)";
-            }
-            else
-            {
-                var args = first.ConstructorParameters.Select(p =>
-                {
-                    if (p.ToDisplayString() == "System.IServiceProvider")
-                        return "sp";
-
-                    return $"sp.GetRequiredService<{p.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}>()";
-                });
-                instExpr = $"new {fullClassTypeName}({string.Join(", ", args)})";
-            }
-
-            if (first.IsSingleton)
-            {
-                sb.AppendLine($"    private {fullClassTypeName} {propName}");
-                sb.AppendLine("    {");
-                sb.AppendLine($"        get => field ??= TrackDisposable({instExpr});");
-                sb.AppendLine("    }");
-            }
-            else
-            {
-                sb.AppendLine($"    private {fullClassTypeName} {propName} => {instExpr};");
-            }
+            sb.AppendLine($"    private {fullClassTypeName} {propName}");
+            sb.AppendLine("    {");
+            sb.AppendLine($"        get => field ??= TrackDisposable({instExpr});");
+            sb.AppendLine("    }");
             sb.AppendLine();
         }
 
@@ -321,11 +301,13 @@ public class DependencyInjectionGenerator : IIncrementalGenerator
             var first = group.First();
             var classSymbol = (INamedTypeSymbol)group.Key!;
             var fullClassTypeName = classSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
-            var propName = classSymbol.Name;
+            var propName = GetPropertyName(classSymbol, fullClassTypeName);
+            var instExpr = GetInstExpr(first, fullClassTypeName);
+            var resolveExpr = first.IsSingleton ? propName : instExpr;
 
             // Direct implementation type check
             sb.AppendLine($"        if (serviceType == typeof({fullClassTypeName}))");
-            sb.AppendLine($"            return {propName};");
+            sb.AppendLine($"            return {resolveExpr};");
 
             // Service type checks (if different and not DuplicateStrategy.Append)
             foreach (var reg in group)
@@ -333,8 +315,9 @@ public class DependencyInjectionGenerator : IIncrementalGenerator
                 var serviceTypeName = reg.ServiceType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
                 if (serviceTypeName != fullClassTypeName && reg.DuplicateStrategy != 2 /* Append */)
                 {
+                    var regResolveExpr = reg.IsSingleton ? propName : GetInstExpr(reg, fullClassTypeName);
                     sb.AppendLine($"        if (serviceType == typeof({serviceTypeName}))");
-                    sb.AppendLine($"            return {propName};");
+                    sb.AppendLine($"            return {regResolveExpr};");
                 }
             }
         }
@@ -356,7 +339,17 @@ public class DependencyInjectionGenerator : IIncrementalGenerator
             sb.AppendLine("        {");
             foreach (var reg in group)
             {
-                sb.AppendLine($"            yield return {reg.ClassSymbol.Name};");
+                var fullClassTypeName = reg.ClassSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+                if (reg.IsSingleton)
+                {
+                    var propName = GetPropertyName(reg.ClassSymbol, fullClassTypeName);
+                    sb.AppendLine($"            yield return {propName};");
+                }
+                else
+                {
+                    var instExpr = GetInstExpr(reg, fullClassTypeName);
+                    sb.AppendLine($"            yield return {instExpr};");
+                }
             }
             sb.AppendLine("            yield break;");
             sb.AppendLine("        }");
@@ -370,10 +363,8 @@ public class DependencyInjectionGenerator : IIncrementalGenerator
         sb.AppendLine("    {");
         foreach (var group in byClass)
         {
-            var first = group.First();
             var classSymbol = (INamedTypeSymbol)group.Key!;
             var fullClassTypeName = classSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
-            var propName = classSymbol.Name;
 
             // Direct implementation type check
             sb.AppendLine($"        if (serviceType == typeof({fullClassTypeName}))");
@@ -437,5 +428,27 @@ public class DependencyInjectionGenerator : IIncrementalGenerator
         sb.AppendLine("}");
 
         spc.AddSource($"{resolverName}.g.cs", SourceText.From(sb.ToString(), Encoding.UTF8));
+    }
+
+    private static string GetPropertyName(INamedTypeSymbol classSymbol, string fullClassTypeName)
+    {
+        return classSymbol.Name + fullClassTypeName.GetHashCode().ToString("X");
+    }
+
+    private static string GetInstExpr(ServiceInfo info, string fullClassTypeName)
+    {
+        if (info.FactoryMethod != null)
+        {
+            return $"{fullClassTypeName}.{info.FactoryMethod}(sp)";
+        }
+
+        var args = info.ConstructorParameters.Select(p =>
+        {
+            if (p.ToDisplayString() == "System.IServiceProvider" || p.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat) == "global::System.IServiceProvider")
+                return "sp";
+
+            return $"sp.GetRequiredService<{p.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}>()";
+        });
+        return $"new {fullClassTypeName}({string.Join(", ", args)})";
     }
 }
