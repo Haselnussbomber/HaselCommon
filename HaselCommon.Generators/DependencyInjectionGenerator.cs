@@ -283,7 +283,7 @@ public class DependencyInjectionGenerator : IIncrementalGenerator
             var classSymbol = (INamedTypeSymbol)group.Key!;
             var fullClassTypeName = classSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
             var propName = GetPropertyName(classSymbol, fullClassTypeName);
-            var instExpr = GetInstExpr(first, fullClassTypeName);
+            var instExpr = GetInstExpr(first, fullClassTypeName, "        ");
 
             sb.AppendLine($"    private {fullClassTypeName} {propName}");
             sb.AppendLine("    {");
@@ -302,7 +302,7 @@ public class DependencyInjectionGenerator : IIncrementalGenerator
             var classSymbol = (INamedTypeSymbol)group.Key!;
             var fullClassTypeName = classSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
             var propName = GetPropertyName(classSymbol, fullClassTypeName);
-            var instExpr = GetInstExpr(first, fullClassTypeName);
+            var instExpr = GetInstExpr(first, fullClassTypeName, "            ");
             var resolveExpr = first.IsSingleton ? propName : instExpr;
 
             // Direct implementation type check
@@ -315,7 +315,7 @@ public class DependencyInjectionGenerator : IIncrementalGenerator
                 var serviceTypeName = reg.ServiceType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
                 if (serviceTypeName != fullClassTypeName && reg.DuplicateStrategy != 2 /* Append */)
                 {
-                    var regResolveExpr = reg.IsSingleton ? propName : GetInstExpr(reg, fullClassTypeName);
+                    var regResolveExpr = reg.IsSingleton ? propName : GetInstExpr(reg, fullClassTypeName, "            ");
                     sb.AppendLine($"        if (serviceType == typeof({serviceTypeName}))");
                     sb.AppendLine($"            return {regResolveExpr};");
                 }
@@ -347,7 +347,7 @@ public class DependencyInjectionGenerator : IIncrementalGenerator
                 }
                 else
                 {
-                    var instExpr = GetInstExpr(reg, fullClassTypeName);
+                    var instExpr = GetInstExpr(reg, fullClassTypeName, "            ");
                     sb.AppendLine($"            yield return {instExpr};");
                 }
             }
@@ -435,7 +435,7 @@ public class DependencyInjectionGenerator : IIncrementalGenerator
         return classSymbol.Name + fullClassTypeName.GetHashCode().ToString("X");
     }
 
-    private static string GetInstExpr(ServiceInfo info, string fullClassTypeName)
+    private static string GetInstExpr(ServiceInfo info, string fullClassTypeName, string indent = "        ")
     {
         if (info.FactoryMethod != null)
         {
@@ -448,7 +448,14 @@ public class DependencyInjectionGenerator : IIncrementalGenerator
                 return "sp";
 
             return $"sp.GetRequiredService<{p.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}>()";
-        });
-        return $"new {fullClassTypeName}({string.Join(", ", args)})";
+        }).ToList();
+
+        if (args.Count == 0)
+        {
+            return $"new {fullClassTypeName}()";
+        }
+
+        var argIndent = indent + "    ";
+        return $"new {fullClassTypeName}(\n{argIndent}{string.Join($",\n{argIndent}", args)})";
     }
 }
