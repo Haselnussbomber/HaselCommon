@@ -9,35 +9,30 @@ public sealed class Host(IServiceProvider services)
 {
     public IServiceProvider Services => services;
 
-    public async Task StartAsync(CancellationToken cancellationToken = default)
+    public Task StartAsync(CancellationToken cancellationToken = default)
     {
-        await Task.WhenAll(
+        return Task.WhenAll(
             Services
                 .GetServices<IHostedService>()
-                .Select(service => service.StartAsync(cancellationToken)))
-            .ConfigureAwait(false);
+                .Select(service => service.StartAsync(cancellationToken)));
     }
 
-    public async Task StopAsync(CancellationToken cancellationToken = default)
+    public Task StopAsync(CancellationToken cancellationToken = default)
     {
-        await Task.WhenAll(
+        return Task.WhenAll(
             Services
                 .GetServices<IHostedService>()
-                .Select(service => service.StopAsync(cancellationToken)))
-            .ConfigureAwait(false);
+                .Select(service => service.StopAsync(cancellationToken)));
     }
 
-    public async ValueTask DisposeAsync()
+    public ValueTask DisposeAsync()
     {
-        switch (Services)
-        {
-            case IAsyncDisposable asyncDisposable:
-                await asyncDisposable.DisposeAsync().ConfigureAwait(false);
-                break;
-            case IDisposable disposable:
-                disposable.Dispose();
-                break;
-        }
+        if (Services is IAsyncDisposable asyncDisposable)
+            return asyncDisposable.DisposeAsync();
+        else if (Services is IDisposable disposable)
+            disposable.Dispose();
+
+        return ValueTask.CompletedTask;
     }
 
     public void Dispose()
