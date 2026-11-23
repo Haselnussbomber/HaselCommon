@@ -34,8 +34,8 @@ public static unsafe class Chat
             return;
 
         using var rssb = new RentedSeStringBuilder();
-        using var utf8Sender = sender.IsEmpty ? new Utf8String() : new Utf8String(rssb.Builder.Append(sender).GetViewAsSpan());
-        using var utf8Message = new Utf8String(rssb.Builder.Clear().Append(message).GetViewAsSpan());
+        using var utf8Sender = sender.IsEmpty ? new Utf8String() : new Utf8String(rssb.Append(sender).GetViewAsSpan());
+        using var utf8Message = new Utf8String(rssb.Clear().Append(message).GetViewAsSpan());
         var logInfo = new LogInfo { LogKind = logKindId };
         RaptureLogModule.Instance()->PrintMessage(logInfo, &utf8Sender, &utf8Message, 0);
     }

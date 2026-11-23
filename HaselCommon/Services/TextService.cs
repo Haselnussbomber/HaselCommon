@@ -83,7 +83,6 @@ public partial class TextService
             return ReadOnlySeString.FromText(key);
 
         using var rssb = new RentedSeStringBuilder();
-        var sb = rssb.Builder;
         var placeholders = format.Split(['{', '}']);
 
         foreach (var (i, placeholder) in placeholders.Index())
@@ -91,7 +90,7 @@ public partial class TextService
             // only odd indices contain placeholders
             if (i % 2 != 1)
             {
-                sb.Append(placeholder);
+                rssb.Append(placeholder);
                 continue;
             }
 
@@ -100,18 +99,18 @@ public partial class TextService
 
             if (placeholderIndex >= args.Length)
             {
-                sb.Append($"{placeholderIndex}"); // fallback
+                rssb.Builder.Append($"{placeholderIndex}"); // fallback
                 continue;
             }
 
             var arg = args[placeholderIndex];
             if (arg.IsString)
-                sb.Append(arg.StringValue);
+                rssb.Append(arg.StringValue);
             else
-                sb.Append(arg.UIntValue);
+                rssb.Append(arg.UIntValue);
         }
 
-        return sb.ToReadOnlySeString();
+        return rssb.ToReadOnlySeString();
     }
 
     public ReadOnlySeString EvaluateTranslatedSeString(string key, params Span<SeStringParameter> localParameters)

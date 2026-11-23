@@ -96,7 +96,7 @@ public partial class ItemService
             using var rssb = new RentedSeStringBuilder();
 
             var itemName = GetItemName(item, true, clientLanguage);
-            var itemLink = rssb.Builder
+            var itemLink = rssb
                 .PushColorType(ItemUtil.GetItemRarityColorType(item, false))
                 .PushEdgeColorType(ItemUtil.GetItemRarityColorType(item, true))
                 .PushLinkItem(item.ItemId, itemName.ToString())

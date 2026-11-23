@@ -106,14 +106,14 @@ public partial class MapService
             return null;
 
         using var rssb = new RentedSeStringBuilder();
-        var sb = rssb.Builder;
-        sb.Append(placeName.Name);
+
+        rssb.Append(placeName.Name);
 
         var instanceId = Framework.Instance()->GetNetworkModuleProxy()->GetCurrentInstance();
         if (instanceId > 0)
-            sb.Append((char)(SeIconChar.Instance1 + (byte)(instanceId - 1)));
+            rssb.Append((char)(SeIconChar.Instance1 + (byte)(instanceId - 1)));
 
-        var placeNameWithInstance = sb.ToReadOnlySeString();
+        var placeNameWithInstance = rssb.ToReadOnlySeString();
 
         var mapPosX = map.ConvertRawToMapPosX(obj.Position.X);
         var mapPosY = map.ConvertRawToMapPosY(obj.Position.Z);
@@ -134,8 +134,8 @@ public partial class MapService
             linkText = _seStringEvaluator.EvaluateFromAddon(1635, [placeNameWithInstance, mapPosX, mapPosY], language);
         }
 
-        sb.Clear();
-        var mapLink = sb
+        rssb.Clear();
+        var mapLink = rssb
             .PushLinkMapPosition(territoryId, mapId, (int)(obj.Position.X * 1000f), (int)(obj.Position.Z * 1000f))
             .Append(linkText)
             .PopLink()
@@ -205,7 +205,8 @@ public partial class MapService
 
         using var tooltip = new Utf8String();
         using var rssb = new RentedSeStringBuilder();
-        tooltip.SetString(rssb.Builder
+
+        tooltip.SetString(rssb
             .Append(levelText.AsSpan())
             .Append(" ")
             .Append(gatheringPointName)
@@ -277,21 +278,20 @@ public partial class MapService
 
         using var title = new Utf8String();
         using var rssb = new RentedSeStringBuilder();
-        var titleBuilder = rssb.Builder;
 
         if (prefix != null)
         {
-            titleBuilder.Append(prefix);
+            rssb.Append(prefix);
         }
 
         if (itemId != 0 && _excelService.GetSheet<Item>().HasRow(itemId))
         {
             if (prefix != null)
             {
-                titleBuilder.Append(" (");
+                rssb.Append(" (");
             }
 
-            titleBuilder
+            rssb
                 .PushColorType(549)
                 .PushEdgeColorType(550)
                 .Append(_textService.GetItemName(itemId))
@@ -300,11 +300,11 @@ public partial class MapService
 
             if (prefix != null)
             {
-                titleBuilder.Append(")");
+                rssb.Append(")");
             }
         }
 
-        title.SetString(titleBuilder.GetViewAsSpan());
+        title.SetString(rssb.GetViewAsSpan());
 
         var mapInfo = new OpenMapInfo
         {

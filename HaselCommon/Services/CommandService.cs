@@ -173,12 +173,12 @@ public partial class CommandService : IDisposable
     private void ShowHelp(CommandHandler node)
     {
         using var rssb = new RentedSeStringBuilder();
-        rssb.Builder.Append(node.GetFullPath());
+
+        rssb.Append(node.GetFullPath());
 
         if (!string.IsNullOrEmpty(node.HelpTextKey))
         {
-            rssb.Builder
-                .AppendNewLine()
+            rssb.AppendNewLine()
                 .Append("→ ")
                 .Append(_textService.Translate(node.HelpTextKey));
         }
@@ -186,16 +186,14 @@ public partial class CommandService : IDisposable
         if (node.Args.Count != 0)
         {
             var argDisplay = string.Join(" ", node.Args.Select(a => $"<{a.Name}>"));
-            rssb.Builder
-                .AppendNewLine()
+            rssb.AppendNewLine()
                 .Append(_textService.EvaluateTranslatedSeString("CommandManager.Usage"))
                 .Append($"{node.GetFullPath()} {argDisplay}");
         }
 
         if (node.Children.Any(kv => kv.Value.Enabled))
         {
-            rssb.Builder
-                .AppendNewLine()
+            rssb.AppendNewLine()
                 .Append(_textService.EvaluateTranslatedSeString("CommandManager.Subcommands"));
 
             foreach (var child in node.Children.Values)
@@ -207,8 +205,7 @@ public partial class CommandService : IDisposable
                     ? _textService.Translate(child.HelpTextKey)
                     : _textService.EvaluateTranslatedSeString("CommandManager.NoDescription");
 
-                rssb.Builder
-                    .AppendNewLine()
+                rssb.AppendNewLine()
                     .Append("  ")
                     .PushColorType(506)
                     .PushEdgeColorType(507)
@@ -219,7 +216,7 @@ public partial class CommandService : IDisposable
             }
         }
 
-        Chat.Print(rssb.Builder.ToReadOnlySeString());
+        Chat.Print(rssb.ToReadOnlySeString());
     }
 
     private static Dictionary<string, string>? ParseArgs(CommandHandler node, List<string> tokens)
