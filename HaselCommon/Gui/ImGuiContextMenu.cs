@@ -16,13 +16,6 @@ public static class ImGuiContextMenu
 
     public static void Draw(string id, Action<ImGuiContextMenuBuilder> buildAction)
     {
-        if (!ServiceLocator.TryGetService<TextService>(out var textService)
-         || !ServiceLocator.TryGetService<MapService>(out var mapService)
-         || !ServiceLocator.TryGetService<ItemService>(out var itemService))
-        {
-            return;
-        }
-
         var shouldOpen = ImGui.IsMouseReleased(ImGuiMouseButton.Right) && ImGui.IsItemHovered(ImGuiHoveredFlags.AllowWhenBlockedByPopup);
         var isOpen = shouldOpen || ImGui.IsPopupOpen(id);
 
@@ -33,7 +26,7 @@ public static class ImGuiContextMenu
 
         try
         {
-            var builder = new ImGuiContextMenuBuilder(textService, mapService, itemService, entries);
+            var builder = new ImGuiContextMenuBuilder(entries);
             buildAction(builder);
 
             if (shouldOpen && entries.Any(entry => entry.Visible))
@@ -57,7 +50,7 @@ public static class ImGuiContextMenu
 }
 
 
-public unsafe struct ImGuiContextMenuBuilder(TextService textService, MapService mapService, ItemService itemService, List<IImGuiContextMenuEntry> entries)
+public unsafe struct ImGuiContextMenuBuilder(List<IImGuiContextMenuEntry> entries)
 {
     public ImGuiContextMenuBuilder Add(IImGuiContextMenuEntry entry)
     {
@@ -73,6 +66,9 @@ public unsafe struct ImGuiContextMenuBuilder(TextService textService, MapService
 
     public ImGuiContextMenuBuilder AddTryOn(ItemHandle item, uint glamourItemId = 0, byte stain0Id = 0, byte stain1Id = 0)
     {
+        var itemService = ServiceProvider.GetRequiredService<ItemService>();
+        var textService = ServiceProvider.GetRequiredService<TextService>();
+
         entries.Add(new ImGuiContextMenuEntry()
         {
             Visible = itemService.CanTryOn(item),
@@ -96,6 +92,9 @@ public unsafe struct ImGuiContextMenuBuilder(TextService textService, MapService
 
     public ImGuiContextMenuBuilder AddItemFinder(ItemHandle item)
     {
+        var itemService = ServiceProvider.GetRequiredService<ItemService>();
+        var textService = ServiceProvider.GetRequiredService<TextService>();
+
         entries.Add(new ImGuiContextMenuEntry()
         {
             Visible = AgentLobby.Instance()->IsLoggedIn && !itemService.IsCurrency(item),
@@ -109,6 +108,9 @@ public unsafe struct ImGuiContextMenuBuilder(TextService textService, MapService
 
     public ImGuiContextMenuBuilder AddLinkItem(ItemHandle item)
     {
+        var itemService = ServiceProvider.GetRequiredService<ItemService>();
+        var textService = ServiceProvider.GetRequiredService<TextService>();
+
         entries.Add(new ImGuiContextMenuEntry()
         {
             Visible = AgentLobby.Instance()->IsLoggedIn && !itemService.IsCurrency(item) && ExdModule.GetItemRowById(item) != null,
@@ -122,12 +124,13 @@ public unsafe struct ImGuiContextMenuBuilder(TextService textService, MapService
 
     public ImGuiContextMenuBuilder AddCopyItemName(ItemHandle item)
     {
-        var itemName = itemService.GetItemName(item).ToString();
+        var itemService = ServiceProvider.GetRequiredService<ItemService>();
+        var textService = ServiceProvider.GetRequiredService<TextService>();
 
         entries.Add(new ImGuiContextMenuEntry()
         {
             Label = textService.GetAddonText(159), // "Copy Item Name"
-            ClickCallback = () => ImGui.SetClipboardText(itemName)
+            ClickCallback = () => ImGui.SetClipboardText(itemService.GetItemName(item).ToString())
         });
 
         return this;
@@ -135,6 +138,7 @@ public unsafe struct ImGuiContextMenuBuilder(TextService textService, MapService
 
     public ImGuiContextMenuBuilder AddItemSearch(ItemHandle item)
     {
+        var textService = ServiceProvider.GetRequiredService<TextService>();
         var agent = AgentItemSearch.Instance();
 
         entries.Add(new ImGuiContextMenuEntry()
@@ -150,6 +154,9 @@ public unsafe struct ImGuiContextMenuBuilder(TextService textService, MapService
 
     public ImGuiContextMenuBuilder AddSearchCraftingMethod(ItemHandle item)
     {
+        var itemService = ServiceProvider.GetRequiredService<ItemService>();
+        var textService = ServiceProvider.GetRequiredService<TextService>();
+
         entries.Add(new ImGuiContextMenuEntry()
         {
             Visible = itemService.IsCraftable(item),
@@ -163,8 +170,9 @@ public unsafe struct ImGuiContextMenuBuilder(TextService textService, MapService
 
     public ImGuiContextMenuBuilder AddOpenMapForGatheringPoint(ItemHandle item, TerritoryType territoryType, ReadOnlySeString? prefix = null)
     {
-        var _mapService = mapService;
-        var _itemService = itemService;
+        var itemService = ServiceProvider.GetRequiredService<ItemService>();
+        var textService = ServiceProvider.GetRequiredService<TextService>();
+        var mapService = ServiceProvider.GetRequiredService<MapService>();
 
         entries.Add(new ImGuiContextMenuEntry()
         {
@@ -173,8 +181,8 @@ public unsafe struct ImGuiContextMenuBuilder(TextService textService, MapService
             LoseFocusOnClick = true,
             ClickCallback = () =>
             {
-                if (_itemService.GetGatheringPoints(item).TryGetFirst(point => point.TerritoryType.RowId == territoryType.RowId, out var point))
-                    _mapService.OpenMap(point, item, prefix);
+                if (itemService.GetGatheringPoints(item).TryGetFirst(point => point.TerritoryType.RowId == territoryType.RowId, out var point))
+                    mapService.OpenMap(point, item, prefix);
             }
         });
 
@@ -183,8 +191,9 @@ public unsafe struct ImGuiContextMenuBuilder(TextService textService, MapService
 
     public ImGuiContextMenuBuilder AddOpenMapForFishingSpot(ItemHandle item, ReadOnlySeString? prefix = null)
     {
-        var _mapService = mapService;
-        var _itemService = itemService;
+        var itemService = ServiceProvider.GetRequiredService<ItemService>();
+        var textService = ServiceProvider.GetRequiredService<TextService>();
+        var mapService = ServiceProvider.GetRequiredService<MapService>();
 
         var isFish = itemService.IsFish(item);
         var isSpearfish = itemService.IsSpearfish(item);
@@ -198,13 +207,13 @@ public unsafe struct ImGuiContextMenuBuilder(TextService textService, MapService
             {
                 if (isSpearfish)
                 {
-                    if (_itemService.GetSpearfishingGatheringPoints(item).TryGetFirst(out var point))
-                        _mapService.OpenMap(point, item, prefix);
+                    if (itemService.GetSpearfishingGatheringPoints(item).TryGetFirst(out var point))
+                        mapService.OpenMap(point, item, prefix);
                 }
                 else
                 {
-                    if (_itemService.GetFishingSpots(item).TryGetFirst(out var spot))
-                        _mapService.OpenMap(spot, item, prefix);
+                    if (itemService.GetFishingSpots(item).TryGetFirst(out var spot))
+                        mapService.OpenMap(spot, item, prefix);
                 }
             }
         });
@@ -214,6 +223,9 @@ public unsafe struct ImGuiContextMenuBuilder(TextService textService, MapService
 
     public ImGuiContextMenuBuilder AddSearchGatheringMethod(ItemHandle item)
     {
+        var itemService = ServiceProvider.GetRequiredService<ItemService>();
+        var textService = ServiceProvider.GetRequiredService<TextService>();
+
         entries.Add(new ImGuiContextMenuEntry()
         {
             Visible = itemService.IsGatherable(item),
@@ -227,6 +239,9 @@ public unsafe struct ImGuiContextMenuBuilder(TextService textService, MapService
 
     public ImGuiContextMenuBuilder AddOpenInFishGuide(ItemHandle item)
     {
+        var itemService = ServiceProvider.GetRequiredService<ItemService>();
+        var textService = ServiceProvider.GetRequiredService<TextService>();
+
         var isFish = itemService.IsFish(item);
         var isSpearfish = itemService.IsSpearfish(item);
 
@@ -243,6 +258,8 @@ public unsafe struct ImGuiContextMenuBuilder(TextService textService, MapService
 
     public ImGuiContextMenuBuilder AddGearsetLinkGlamour(GearsetEntry* gearset)
     {
+        var textService = ServiceProvider.GetRequiredService<TextService>();
+
         entries.Add(new ImGuiContextMenuEntry()
         {
             Visible = gearset != null && gearset->GlamourSetLink == 0 && UIState.Instance()->IsUnlockLinkUnlocked(15),
@@ -257,6 +274,8 @@ public unsafe struct ImGuiContextMenuBuilder(TextService textService, MapService
 
     public ImGuiContextMenuBuilder AddGearsetChangeGlamour(GearsetEntry* gearset)
     {
+        var textService = ServiceProvider.GetRequiredService<TextService>();
+
         entries.Add(new ImGuiContextMenuEntry()
         {
             Visible = gearset != null && gearset->GlamourSetLink != 0 && UIState.Instance()->IsUnlockLinkUnlocked(15),
@@ -270,6 +289,8 @@ public unsafe struct ImGuiContextMenuBuilder(TextService textService, MapService
 
     public ImGuiContextMenuBuilder AddGearsetUnlinkGlamour(GearsetEntry* gearset)
     {
+        var textService = ServiceProvider.GetRequiredService<TextService>();
+
         entries.Add(new ImGuiContextMenuEntry()
         {
             Visible = gearset != null && gearset->GlamourSetLink != 0 && UIState.Instance()->IsUnlockLinkUnlocked(15),
@@ -282,6 +303,8 @@ public unsafe struct ImGuiContextMenuBuilder(TextService textService, MapService
 
     public ImGuiContextMenuBuilder AddGearsetChangePortrait(GearsetEntry* gearset)
     {
+        var textService = ServiceProvider.GetRequiredService<TextService>();
+
         entries.Add(new ImGuiContextMenuEntry()
         {
             Visible = gearset != null,
@@ -298,13 +321,12 @@ public unsafe struct ImGuiContextMenuBuilder(TextService textService, MapService
 
     public ImGuiContextMenuBuilder AddOpenOnGarlandTools(string type, uint id)
     {
+        var textService = ServiceProvider.GetRequiredService<TextService>();
+
         entries.Add(new ImGuiContextMenuEntry()
         {
             Label = textService.Translate("ItemContextMenu.OpenOnGarlandTools"),
-            ClickCallback = () =>
-            {
-                Task.Run(() => Util.OpenLink($"https://www.garlandtools.org/db/#{type}/{id}"));
-            },
+            ClickCallback = () => Task.Run(() => Util.OpenLink($"https://www.garlandtools.org/db/#{type}/{id}")),
             HoverCallback = () =>
             {
                 using var tooltip = ImRaii.Tooltip();

@@ -10,9 +10,10 @@ public static unsafe class AgentItemSearchExtensions
     {
         public bool CanSearchForItem(ItemHandle item)
         {
+            var itemService = ServiceProvider.GetRequiredService<ItemService>();
+
             return agent.IsAgentActive()
                 && !item.IsEventItem
-                && ServiceLocator.TryGetService<ItemService>(out var itemService)
                 && itemService.TryGetItem(item, out var itemRow)
                 && !itemRow.IsUntradable
                 && !itemRow.IsCollectable
@@ -27,11 +28,8 @@ public static unsafe class AgentItemSearchExtensions
             if (!TryGetAddon<AddonItemSearch>((ushort)agent.GetAddonId(), out var addon))
                 return;
 
-            if (!ServiceLocator.TryGetService<IClientState>(out var clientState))
-                return;
-
-            if (!ServiceLocator.TryGetService<ItemService>(out var itemService))
-                return;
+            var clientState = ServiceProvider.GetRequiredService<IClientState>();
+            var itemService = ServiceProvider.GetRequiredService<ItemService>();
 
             if (TryGetAddon<AtkUnitBase>("ItemSearchResult"u8, out var itemSearchResult))
                 itemSearchResult->Hide2();

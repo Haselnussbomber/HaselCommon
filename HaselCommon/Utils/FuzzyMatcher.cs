@@ -27,9 +27,7 @@ public static class FuzzyMatcher
         FuzzyMatcherMode mode = FuzzyMatcherMode.Simple,
         CultureInfo? cultureInfo = null)
     {
-        cultureInfo ??= ServiceLocator.TryGetService<LanguageProvider>(out var languageProvider)
-            ? languageProvider.CultureInfo
-            : CultureInfo.CurrentCulture;
+        cultureInfo ??= ServiceProvider.GetService<LanguageProvider>()?.CultureInfo ?? CultureInfo.CurrentCulture;
 
         switch (mode)
         {

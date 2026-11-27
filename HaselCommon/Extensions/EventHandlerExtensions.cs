@@ -7,7 +7,7 @@ namespace HaselCommon.Extensions;
 /// </summary>
 public static class EventHandlerExtensions
 {
-    private static IPluginLog? PluginLog => ServiceLocator.GetService<IPluginLog>();
+    private static IPluginLog? PluginLog => ServiceProvider.GetService<IPluginLog>();
 
     /// <summary>
     /// Replacement for Invoke() on EventHandlers to catch exceptions that stop event propagation in case

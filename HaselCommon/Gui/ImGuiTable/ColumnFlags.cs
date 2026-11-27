@@ -13,7 +13,7 @@ public class ColumnFlags<T, TItem> : Column<TItem> where T : struct, Enum
         => Enum.GetNames<T>();
 
     public virtual string GetTranslatedName(int index)
-        => !string.IsNullOrEmpty(NameKeySpace) && ServiceLocator.GetService<TextService>()?.TryGetTranslation($"{NameKeySpace}.{Names[index]}", out var text) == true ? text : Names[index];
+        => !string.IsNullOrEmpty(NameKeySpace) && ServiceProvider.GetService<TextService>()?.TryGetTranslation($"{NameKeySpace}.{Names[index]}", out var text) == true ? text : Names[index];
 
     public virtual T FilterValue
         => default;
@@ -36,7 +36,7 @@ public class ColumnFlags<T, TItem> : Column<TItem> where T : struct, Enum
             return true;
         }
 
-        var textService = ServiceLocator.GetService<TextService>();
+        var textService = ServiceProvider.GetService<TextService>();
 
         if (!all && ImGui.IsItemHovered())
             ImGui.SetTooltip(textService?.Translate("ImGuiTable.ColumnFlags.Filter.RightClickToClear") ?? "Right-click to clear filters.");

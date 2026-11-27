@@ -1,10 +1,13 @@
 using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 
 namespace HaselCommon.DependencyInjection;
 
 public class ServiceProvider : IServiceProvider, IServiceProviderIsService, IDisposable, IAsyncDisposable
 {
+    private static ServiceProvider? Instance;
+
     private readonly IReadOnlyList<ServiceDescriptor> _descriptors;
     private readonly IReadOnlyList<IServiceResolver> _resolvers;
     private readonly IReadOnlyList<IServiceProvider> _fallbackProviders;
@@ -13,19 +16,27 @@ public class ServiceProvider : IServiceProvider, IServiceProviderIsService, IDis
 
     public ServiceProvider(ServiceCollection services)
     {
+        Instance = this;
+
         _descriptors = [.. services];
         _fallbackProviders = [.. services.FallbackProviders];
         _resolvers = services.ResolverFactories.ConvertAll(f => f(this));
     }
 
-    private T TrackDisposable<T>(T instance)
+    public static T? GetService<T>() where T : notnull
     {
-        if (instance is IAsyncDisposable asyncDisposable)
-            _disposables.Add(asyncDisposable);
-        else if (instance is IDisposable disposable)
-            _disposables.Add(disposable);
+        return Instance != null ? Instance.GetService<T>() : default;
+    }
 
-        return instance;
+    public static T GetRequiredService<T>() where T : notnull
+    {
+        return Instance!.GetRequiredService<T>();
+    }
+
+    public static bool TryGetService<T>([NotNullWhen(returnValue: true)] out T? service)
+    {
+        service = default;
+        return Instance != null && Instance.TryGetService(out service);
     }
 
     public bool IsService(Type serviceType)
